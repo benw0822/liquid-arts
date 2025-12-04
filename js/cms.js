@@ -95,6 +95,8 @@ function initQuill() {
     quill.on('text-change', () => {
         updateTOC();
     });
+
+    setupImageClickListeners();
 }
 
 // --- TOC Logic ---
@@ -150,13 +152,17 @@ function imageHandler() {
             try {
                 loadingOverlay.style.display = 'flex'; // Show Loading
                 const url = await uploadImage(file, 'content');
-                pendingImageUrl = url;
-
                 loadingOverlay.style.display = 'none'; // Hide Loading
 
-                // Open Caption Modal
-                captionInput.value = '';
-                captionModal.classList.add('active');
+                // 1. Insert Image Immediately
+                const range = quill.getSelection(true);
+                quill.insertEmbed(range.index, 'image', url);
+
+                // 2. Find the inserted image blot
+                const [leaf] = quill.getLeaf(range.index);
+
+                // 3. Open Caption Modal for this image
+                openCaptionModal(leaf);
 
             } catch (err) {
                 loadingOverlay.style.display = 'none';
@@ -166,40 +172,99 @@ function imageHandler() {
     };
 }
 
+// Global state for current editing image
+let currentImageBlot = null;
+
+// Listen for clicks on images to edit caption
+// We need to wait for Quill to be ready, so we add this in initQuill or after
+function setupImageClickListeners() {
+    quill.root.addEventListener('click', (e) => {
+        if (e.target && e.target.tagName === 'IMG') {
+            const blot = Quill.find(e.target);
+            if (blot) {
+                openCaptionModal(blot);
+            }
+        }
+    });
+}
+
+function openCaptionModal(imageBlot) {
+    currentImageBlot = imageBlot;
+    const index = quill.getIndex(imageBlot);
+
+    // Check if next line is a caption
+    // Heuristic: Next line is centered and italic
+    const nextIndex = index + 1;
+    // We need to check if we are at end of doc
+    if (nextIndex >= quill.getLength()) {
+        captionInput.value = '';
+    } else {
+        const [line, offset] = quill.getLine(nextIndex);
+        if (line) {
+            const formats = line.formats();
+            // Check if it looks like a caption (italic + center)
+            // Note: formats() returns formats for the *entire* line usually
+            if (formats.align === 'center' && formats.italic) {
+                captionInput.value = line.domNode.textContent;
+            } else {
+                captionInput.value = '';
+            }
+        } else {
+            captionInput.value = '';
+        }
+    }
+
+    captionModal.classList.add('active');
+}
+
 // Caption Modal Logic
 confirmCaptionBtn.addEventListener('click', () => {
-    insertImageWithCaption(pendingImageUrl, captionInput.value);
+    if (currentImageBlot) {
+        setCaption(currentImageBlot, captionInput.value);
+    }
     captionModal.classList.remove('active');
+    currentImageBlot = null;
 });
 
 skipCaptionBtn.addEventListener('click', () => {
-    insertImageWithCaption(pendingImageUrl, null);
     captionModal.classList.remove('active');
+    currentImageBlot = null;
 });
 
-function insertImageWithCaption(url, caption) {
-    const range = quill.getSelection(true);
+function setCaption(imageBlot, text) {
+    const index = quill.getIndex(imageBlot);
+    const nextIndex = index + 1;
 
-    // Insert Image
-    quill.insertEmbed(range.index, 'image', url);
+    // Check existing caption
+    let existingCaptionLine = null;
+    if (nextIndex < quill.getLength()) {
+        const [line] = quill.getLine(nextIndex);
+        const formats = line.formats();
+        if (formats.align === 'center' && formats.italic) {
+            existingCaptionLine = line;
+        }
+    }
 
-    // Insert Caption if provided
-    if (caption) {
-        // Move cursor after image
-        quill.setSelection(range.index + 1);
-
-        // Insert caption text
-        quill.insertText(range.index + 1, caption, {
-            'italic': true,
-            'color': '#666'
-        });
-
-        // Center align the caption (requires block level, might be tricky with inline style)
-        // Quill formats are line-based. Let's try to format the line.
-        quill.formatLine(range.index + 1, 1, 'align', 'center');
-
-        // Add a newline after
-        quill.insertText(range.index + 1 + caption.length, '\n');
+    if (text) {
+        if (existingCaptionLine) {
+            // Update existing
+            const lineIndex = quill.getIndex(existingCaptionLine);
+            const lineLength = existingCaptionLine.length();
+            quill.deleteText(lineIndex, lineLength);
+            quill.insertText(lineIndex, text, { 'italic': true });
+            quill.formatLine(lineIndex, 1, 'align', 'center');
+        } else {
+            // Insert new caption
+            // We insert a newline then the caption
+            quill.insertText(nextIndex, '\n' + text, { 'italic': true });
+            quill.formatLine(nextIndex + 1, 1, 'align', 'center');
+        }
+    } else {
+        // Remove caption if empty and exists
+        if (existingCaptionLine) {
+            const lineIndex = quill.getIndex(existingCaptionLine);
+            quill.deleteText(lineIndex, existingCaptionLine.length());
+        }
     }
 }
 
