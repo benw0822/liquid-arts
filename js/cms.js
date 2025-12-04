@@ -170,29 +170,17 @@ function imageHandler() {
                 const url = await uploadImage(file, 'content');
                 loadingOverlay.style.display = 'none';
 
-                // Insert image
+                // 1. Insert Image
                 let range = quill.getSelection(true);
                 if (!range) range = { index: quill.getLength() };
 
                 quill.insertEmbed(range.index, 'image', url);
 
-                // Robustly find the image we just inserted
+                // 2. Force Selection to trigger Modal
+                // We select the image specifically (length 1)
                 setTimeout(() => {
-                    // 1. Try to find by src (most reliable)
-                    const imgs = quill.root.querySelectorAll('img');
-                    let targetImg = null;
-                    for (let img of imgs) {
-                        if (img.src.includes(url)) {
-                            targetImg = img;
-                            break;
-                        }
-                    }
-
-                    if (targetImg) {
-                        targetImg.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        openCaptionModal(targetImg);
-                    }
-                }, 500);
+                    quill.setSelection(range.index, 1);
+                }, 100);
 
             } catch (err) {
                 loadingOverlay.style.display = 'none';
@@ -207,59 +195,47 @@ function imageHandler() {
 let currentImageBlot = null;
 
 function setupImageInteraction() {
-    // 1. Listen for selection changes (Native Quill)
+    // 1. Primary: Selection Change
+    // This handles both programmatic selection (after upload) and user clicking the image
     quill.on('selection-change', (range, oldRange, source) => {
-        if (range && source === 'user') {
+        if (range && range.length === 1) {
             const [leaf] = quill.getLeaf(range.index);
-            if (leaf && leaf.domNode && leaf.domNode.tagName === 'IMG') {
-                openCaptionModal(leaf.domNode);
+            if (leaf && leaf.statics.blotName === 'image') {
+                openCaptionModal(leaf);
             }
         }
     });
 
-    // 2. Listen for clicks (Wrapper/Resize Module support)
+    // 2. Fallback: Click Delegation
+    // This handles clicks intercepted by the resize module's overlay
     quill.root.addEventListener('click', (e) => {
         const target = e.target;
 
-        // Direct click
-        if (target.tagName === 'IMG') {
-            openCaptionModal(target);
-            return;
-        }
+        // Check if we clicked a resize handler or overlay
+        if (target.tagName !== 'IMG') {
+            // Try to find an image in the clicked container or siblings
+            let img = target.querySelector('img');
 
-        // Wrapper click (Resize module often wraps img in a div)
-        // Check if the clicked element contains an image or is a sibling
-        if (target.tagName === 'DIV' || target.tagName === 'SPAN') {
-            const img = target.querySelector('img');
-            if (img) {
-                openCaptionModal(img);
+            // If not found inside, check if the target itself is a handle sibling to an image
+            if (!img && target.parentElement) {
+                img = target.parentElement.querySelector('img');
             }
+
+            if (img) {
+                const blot = Quill.find(img);
+                if (blot) openCaptionModal(blot);
+            }
+        } else {
+            // Direct image click
+            const blot = Quill.find(target);
+            if (blot) openCaptionModal(blot);
         }
     });
 }
 
-function openCaptionModal(target) {
-    // Resolve target to DOM Node
-    let imgNode = target;
-    if (target.domNode) {
-        imgNode = target.domNode; // It was a Blot
-    }
-
-    // Double check we have an IMG
-    if (imgNode.tagName !== 'IMG') {
-        // Try to find img inside
-        const img = imgNode.querySelector('img');
-        if (img) imgNode = img;
-        else return; // Not an image
-    }
-
-    // Find the Blot for this image (needed for updates)
-    const blot = Quill.find(imgNode);
-    if (!blot) return;
-
-    currentImageBlot = blot;
-
-    const index = quill.getIndex(imageBlot);
+function openCaptionModal(imageBlot) {
+    currentImageBlot = imageBlot;
+    const imgNode = imageBlot.domNode;
 
     // 1. Reset Modal Styles
     const modalContent = captionModal.querySelector('.modal-content');
@@ -271,26 +247,21 @@ function openCaptionModal(target) {
 
     // 2. Get Caption / Alt Text
     const altText = imgNode.getAttribute('alt');
-
-    if (altText) {
-        captionInput.value = altText;
-    } else {
-        // Fallback to checking visible caption line
-        const nextIndex = index + 1;
-        if (nextIndex < quill.getLength()) {
-            const [line] = quill.getLine(nextIndex);
-            const formats = line.formats();
-            if (formats.align === 'center' && formats.italic) {
-                captionInput.value = line.domNode.textContent;
-            } else {
-                captionInput.value = '';
-            }
+    const nextIndex = index + 1;
+    if (nextIndex < quill.getLength()) {
+        const [line] = quill.getLine(nextIndex);
+        const formats = line.formats();
+        if (formats.align === 'center' && formats.italic) {
+            captionInput.value = line.domNode.textContent;
         } else {
             captionInput.value = '';
         }
+    } else {
+        captionInput.value = '';
     }
+}
 
-    captionModal.classList.add('active');
+captionModal.classList.add('active');
 }
 
 const deleteCaptionBtn = document.getElementById('delete-caption-btn');
