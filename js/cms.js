@@ -84,81 +84,7 @@ function initQuill() {
         }
     };
 
-    // Register Custom Image Figure Blot
-    const BlockEmbed = Quill.import('blots/block/embed');
-
-    class ImageFigure extends BlockEmbed {
-        static create(value) {
-            const node = super.create();
-            node.setAttribute('contenteditable', 'false'); // Prevent editing inside the figure structure directly
-
-            const img = document.createElement('img');
-            img.setAttribute('src', value.url);
-            img.setAttribute('alt', value.caption || '');
-            img.style.width = '100%'; // Responsive
-
-            const captionDiv = document.createElement('figcaption');
-            captionDiv.className = 'caption-container';
-            captionDiv.style.marginTop = '10px';
-            captionDiv.style.textAlign = 'center';
-
-            const textDisplay = document.createElement('div');
-            textDisplay.className = 'caption-text';
-            textDisplay.style.fontSize = '0.9em';
-            textDisplay.style.color = '#666';
-            textDisplay.style.fontStyle = 'italic';
-            textDisplay.style.marginBottom = '5px';
-
-            if (value.caption) {
-                textDisplay.textContent = value.caption;
-                textDisplay.style.display = 'block';
-            } else {
-                textDisplay.style.display = 'none';
-            }
-
-            const btn = document.createElement('button');
-            btn.className = 'add-caption-btn';
-            btn.textContent = value.caption ? 'Edit Caption' : 'Add Caption';
-            btn.style.padding = '5px 10px';
-            btn.style.fontSize = '0.8rem';
-            btn.style.cursor = 'pointer';
-            btn.style.border = '1px solid #ccc';
-            btn.style.borderRadius = '4px';
-            btn.style.background = '#fff';
-
-            // Prevent Quill from stealing focus immediately
-            btn.addEventListener('click', (e) => {
-                // We need to find the blot instance to pass to the modal
-                const blot = Quill.find(node);
-                if (blot) {
-                    window.openCaptionModal(blot);
-                }
-            });
-
-            captionDiv.appendChild(textDisplay);
-            captionDiv.appendChild(btn);
-
-            node.appendChild(img);
-            node.appendChild(captionDiv);
-
-            return node;
-        }
-
-        static value(node) {
-            const img = node.querySelector('img');
-            const textDisplay = node.querySelector('.caption-text');
-            return {
-                url: img.getAttribute('src'),
-                caption: textDisplay ? textDisplay.textContent : ''
-            };
-        }
-    }
-
-    ImageFigure.blotName = 'imageFigure';
-    ImageFigure.tagName = 'figure';
-    ImageFigure.className = 'cms-image-figure';
-
-    Quill.register(ImageFigure);
+    // Custom Blot registered globally
 
     quill = new Quill('#editor-container', {
         theme: 'snow',
@@ -169,6 +95,81 @@ function initQuill() {
     // Expose function globally for the Blot to call
     window.openCaptionModal = openCaptionModal;
 }
+
+// --- Custom Blot Definition ---
+const BlockEmbed = Quill.import('blots/block/embed');
+
+class ImageFigure extends BlockEmbed {
+    static create(value) {
+        console.log('Creating ImageFigure:', value);
+        const node = super.create();
+        node.setAttribute('contenteditable', 'false');
+
+        const img = document.createElement('img');
+        img.setAttribute('src', value.url);
+        img.setAttribute('alt', value.caption || '');
+        img.style.width = '100%';
+
+        const captionDiv = document.createElement('figcaption');
+        captionDiv.className = 'caption-container';
+        captionDiv.style.marginTop = '10px';
+        captionDiv.style.textAlign = 'center';
+
+        const textDisplay = document.createElement('div');
+        textDisplay.className = 'caption-text';
+        textDisplay.style.fontSize = '0.9em';
+        textDisplay.style.color = '#666';
+        textDisplay.style.fontStyle = 'italic';
+        textDisplay.style.marginBottom = '5px';
+
+        if (value.caption) {
+            textDisplay.textContent = value.caption;
+            textDisplay.style.display = 'block';
+        } else {
+            textDisplay.style.display = 'none';
+        }
+
+        const btn = document.createElement('button');
+        btn.className = 'add-caption-btn';
+        btn.textContent = value.caption ? 'Edit Caption' : 'Add Caption';
+        btn.style.padding = '5px 10px';
+        btn.style.fontSize = '0.8rem';
+        btn.style.cursor = 'pointer';
+        btn.style.border = '1px solid #ccc';
+        btn.style.borderRadius = '4px';
+        btn.style.background = '#fff';
+
+        btn.addEventListener('click', (e) => {
+            const blot = Quill.find(node);
+            if (blot) {
+                window.openCaptionModal(blot);
+            }
+        });
+
+        captionDiv.appendChild(textDisplay);
+        captionDiv.appendChild(btn);
+
+        node.appendChild(img);
+        node.appendChild(captionDiv);
+
+        return node;
+    }
+
+    static value(node) {
+        const img = node.querySelector('img');
+        const textDisplay = node.querySelector('.caption-text');
+        return {
+            url: img ? img.getAttribute('src') : '',
+            caption: textDisplay ? textDisplay.textContent : ''
+        };
+    }
+}
+
+ImageFigure.blotName = 'imageFigure';
+ImageFigure.tagName = 'figure';
+ImageFigure.className = 'cms-image-figure';
+
+Quill.register(ImageFigure);
 
 // --- TOC Logic ---
 function updateTOC() {
@@ -400,22 +401,25 @@ async function loadArticle(id) {
     quill.root.innerHTML = article.content || '';
 
     // Migration: Convert legacy images to ImageFigures
-    // This ensures old articles get the new button-based caption functionality
     setTimeout(() => {
+        console.log('Running image migration...');
         const imgs = quill.root.querySelectorAll('img');
-        // Iterate backwards to handle index shifts safely
+        console.log('Found images:', imgs.length);
+
         for (let i = imgs.length - 1; i >= 0; i--) {
             const img = imgs[i];
-            // Skip if already part of our new figure blot
-            if (img.closest('figure.cms-image-figure')) continue;
+            if (img.closest('figure.cms-image-figure')) {
+                console.log('Skipping already migrated image');
+                continue;
+            }
 
             const blot = Quill.find(img);
             if (blot) {
+                console.log('Migrating image:', img.src);
                 const index = quill.getIndex(blot);
                 const src = img.getAttribute('src');
                 const alt = img.getAttribute('alt');
 
-                // Replace standard image with ImageFigure
                 quill.deleteText(index, 1);
                 quill.insertEmbed(index, 'imageFigure', {
                     url: src,
@@ -423,7 +427,7 @@ async function loadArticle(id) {
                 });
             }
         }
-    }, 100);
+    }, 500); // Increased timeout to ensure render
 
     // Load Relations
     const { data: relations } = await supabase.from('bar_articles').select('bar_id').eq('article_id', id);
