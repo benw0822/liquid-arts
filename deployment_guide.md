@@ -40,7 +40,20 @@ If you want a **Drag & Drop** experience like Netlify but without installing any
 ## Recommendation: Cloudflare Pages
 Since you want **"No Install"** and **"No GitHub"** (Drag & Drop), **Cloudflare Pages** is your best option. It works exactly like Netlify Drop.
 
-## 2. Backend Update (Supabase)
+## 3. Routine Update Workflow (Future Updates)
+Once you are set up with **GitHub Desktop** and **Vercel**, updating your site is very easy:
+
+1.  **I (AI) make changes** to your code.
+2.  **Open GitHub Desktop**.
+3.  You will see the changed files on the left.
+4.  Type a short **Summary** (e.g., "Updated homepage") in the bottom left box.
+5.  Click **Commit to main**.
+6.  Click **Push origin** (top right).
+7.  **Done!** Vercel will detect the change and automatically update your website in about 1 minute.
+
+---
+
+## 4. Backend Update (Supabase)
 Since there are no automatic migrations, you must ensure your Supabase database has the required tables. Run the following SQL in the **Supabase SQL Editor** if you haven't already.
 
 ### Required Schema
