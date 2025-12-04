@@ -575,7 +575,7 @@ document.addEventListener('DOMContentLoaded', () => {
         else loadUsers();
     };
 
-    // --- Article Management Logic ---
+    // --- Article Management Logic (CMS) ---
     const manageArticlesBtn = document.getElementById('manage-articles-btn');
     const articlesSection = document.getElementById('articles-section');
     const articleList = document.getElementById('article-list');
@@ -584,6 +584,78 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeArticleBtn = document.getElementById('close-article-btn');
     const saveArticleBtn = document.getElementById('save-article-btn');
     const articleBarSelect = document.getElementById('article-bar-select');
+
+    // Quill Init
+    let quill;
+    if (document.getElementById('editor-container')) {
+        quill = new Quill('#editor-container', {
+            theme: 'snow',
+            modules: {
+                toolbar: {
+                    container: [
+                        [{ 'header': [1, 2, 3, false] }],
+                        ['bold', 'italic', 'underline', 'strike'],
+                        ['blockquote', 'code-block'],
+                        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                        ['link', 'image'],
+                        ['clean']
+                    ],
+                    handlers: {
+                        image: imageHandler
+                    }
+                }
+            }
+        });
+    }
+
+    function imageHandler() {
+        const input = document.createElement('input');
+        input.setAttribute('type', 'file');
+        input.setAttribute('accept', 'image/*');
+        input.click();
+
+        input.onchange = async () => {
+            const file = input.files[0];
+            if (file) {
+                try {
+                    const url = await uploadImage(file, 'content');
+                    const range = quill.getSelection();
+                    quill.insertEmbed(range.index, 'image', url);
+                } catch (err) {
+                    alert('Image upload failed: ' + err.message);
+                }
+            }
+        };
+    }
+
+    async function uploadImage(file, folder = 'covers') {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${folder}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+        const { data, error } = await supabase.storage
+            .from('articles')
+            .upload(fileName, file);
+
+        if (error) throw error;
+
+        const { data: { publicUrl } } = supabase.storage
+            .from('articles')
+            .getPublicUrl(fileName);
+
+        return publicUrl;
+    }
+
+    // Cover Image Preview
+    document.getElementById('article-cover-file').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('cover-preview').style.backgroundImage = `url('${e.target.result}')`;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
 
     manageArticlesBtn.addEventListener('click', () => {
         // Hide others
@@ -697,10 +769,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const { data: article } = await supabase.from('articles').select('*').eq('id', articleId).single();
             document.getElementById('article-id').value = article.id;
             document.getElementById('article-title').value = article.title;
-            document.getElementById('article-image').value = article.cover_image;
-            document.getElementById('article-author').value = article.author_name;
-            document.getElementById('article-excerpt').value = article.excerpt;
-            document.getElementById('article-content').value = article.content;
+            document.getElementById('article-image').value = article.cover_image || '';
+            document.getElementById('cover-preview').style.backgroundImage = article.cover_image ? `url('${article.cover_image}')` : '';
+            document.getElementById('article-author').value = article.author_name || '';
+            document.getElementById('article-excerpt').value = article.excerpt || '';
+            document.getElementById('article-tags').value = (article.tags || []).join(', ');
+
+            // Set Quill Content
+            if (quill) quill.root.innerHTML = article.content || '';
         } else {
             document.getElementById('article-modal-title').textContent = 'Add New Story';
             document.getElementById('article-id').value = '';
@@ -721,10 +797,13 @@ document.addEventListener('DOMContentLoaded', () => {
     saveArticleBtn.addEventListener('click', async () => {
         const id = document.getElementById('article-id').value;
         const title = document.getElementById('article-title').value;
-        const cover_image = document.getElementById('article-image').value;
+        let cover_image = document.getElementById('article-image').value;
         const author_name = document.getElementById('article-author').value;
         const excerpt = document.getElementById('article-excerpt').value;
-        const content = document.getElementById('article-content').value;
+        const tagsStr = document.getElementById('article-tags').value;
+        const content = quill.root.innerHTML; // Get HTML from Quill
+
+        const coverFile = document.getElementById('article-cover-file').files[0];
 
         // Get selected bars
         const selectedBarIds = Array.from(articleBarSelect.querySelectorAll('input:checked')).map(cb => cb.value);
@@ -736,8 +815,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const { data: { session } } = await supabase.auth.getSession();
             if (!session) throw new Error('Not logged in');
 
+            // Upload Cover if selected
+            if (coverFile) {
+                cover_image = await uploadImage(coverFile, 'covers');
+            }
+
+            const tags = tagsStr.split(',').map(t => t.trim()).filter(t => t);
+
             let articleId = id;
-            const articleData = { title, cover_image, author_name, excerpt, content };
+            const articleData = { title, cover_image, author_name, excerpt, content, tags };
 
             if (id) {
                 const { error } = await supabase.from('articles').update(articleData).eq('id', id);

@@ -9,6 +9,10 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:wght@400;700&display=swap"
         rel="stylesheet">
+    <!-- Quill.js Theme -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <!-- Quill.js Library -->
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         /* Admin Specific Styles */
@@ -327,50 +331,70 @@
         </div>
     </div>
 
-    <!-- Add/Edit Article Modal -->
-    <div id="article-modal" class="modal">
-        <div class="modal-content" style="max-width: 800px;">
-            <h3 id="article-modal-title">Add New Story</h3>
+    <!-- Article Modal (CMS) -->
+    <div id="article-modal" class="lightbox">
+        <div class="lightbox-content" style="max-width: 800px; width: 90%;">
+            <h3>Manage Story</h3>
             <input type="hidden" id="article-id">
 
-            <div class="form-group">
-                <label class="form-label">Title</label>
-                <input type="text" id="article-title" class="form-input">
-            </div>
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
+                <!-- Left Column: Main Content -->
+                <div>
+                    <div style="margin-bottom: 1rem;">
+                        <label class="info-label">Title</label>
+                        <input type="text" id="article-title" class="search-input" style="width: 100%;">
+                    </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                <div class="form-group">
-                    <label class="form-label">Cover Image URL</label>
-                    <input type="text" id="article-image" class="form-input" placeholder="assets/..."
-                        value="assets/gallery_2.png">
+                    <div style="margin-bottom: 1rem;">
+                        <label class="info-label">Content</label>
+                        <!-- Quill Editor Container -->
+                        <div id="editor-container" style="height: 300px; background: #fff; color: #000;"></div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Author</label>
-                    <input type="text" id="article-author" class="form-input" placeholder="Editor">
+
+                <!-- Right Column: Meta Data -->
+                <div>
+                    <div style="margin-bottom: 1rem;">
+                        <label class="info-label">Cover Image</label>
+                        <input type="file" id="article-cover-file" accept="image/*" class="search-input"
+                            style="width: 100%; margin-bottom: 5px;">
+                        <input type="text" id="article-image" class="search-input" style="width: 100%; display: none;"
+                            placeholder="Or Image URL">
+                        <div id="cover-preview"
+                            style="width: 100%; height: 150px; background: #333; margin-top: 5px; background-size: cover; background-position: center;">
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 1rem;">
+                        <label class="info-label">Excerpt</label>
+                        <textarea id="article-excerpt" class="search-input"
+                            style="width: 100%; height: 80px;"></textarea>
+                    </div>
+
+                    <div style="margin-bottom: 1rem;">
+                        <label class="info-label">Tags (comma separated)</label>
+                        <input type="text" id="article-tags" class="search-input" style="width: 100%;"
+                            placeholder="e.g. Jazz, Cocktail, Nightlife">
+                    </div>
+
+                    <div style="margin-bottom: 1rem;">
+                        <label class="info-label">Author Name</label>
+                        <input type="text" id="article-author" class="search-input" style="width: 100%;">
+                    </div>
+
+                    <div style="margin-bottom: 1rem;">
+                        <label class="info-label">Related Bars</label>
+                        <div id="article-bar-select"
+                            style="max-height: 150px; overflow-y: auto; background: #222; padding: 10px; border-radius: 4px;">
+                            <!-- Checkboxes injected by JS -->
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="form-group">
-                <label class="form-label">Excerpt (Short Summary)</label>
-                <textarea id="article-excerpt" class="form-input" rows="2"></textarea>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Content (Markdown supported)</label>
-                <textarea id="article-content" class="form-input" rows="10"></textarea>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Related Bars (Select multiple)</label>
-                <div id="article-bar-select"
-                    style="max-height: 150px; overflow-y: auto; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
-                    <!-- Checkboxes injected by JS -->
-                </div>
-            </div>
-
-            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: var(--spacing-md);">
-                <button id="close-article-btn" class="btn btn-secondary">Cancel</button>
-                <button id="save-article-btn" class="btn">Save Story</button>
+            <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                <button id="save-article-btn" class="btn" style="flex: 1;">Save Story</button>
+                <button id="close-article-btn" class="btn btn-secondary" style="flex: 1;">Cancel</button>
             </div>
         </div>
     </div>
