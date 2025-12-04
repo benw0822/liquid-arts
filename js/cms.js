@@ -85,14 +85,14 @@ function initQuill() {
     };
 
     // Safely register Image Resize Module
-    if (typeof ImageResize !== 'undefined') {
-        Quill.register('modules/imageResize', ImageResize);
-        modules.imageResize = {
-            displaySize: true
-        };
-    } else {
-        console.warn('ImageResize module not loaded');
-    }
+    // if (typeof ImageResize !== 'undefined') {
+    //     Quill.register('modules/imageResize', ImageResize);
+    //     modules.imageResize = {
+    //         displaySize: true
+    //     };
+    // } else {
+    //     console.warn('ImageResize module not loaded');
+    // }
 
     quill = new Quill('#editor-container', {
         theme: 'snow',
@@ -246,22 +246,25 @@ function openCaptionModal(imageBlot) {
     modalContent.style.margin = '';
 
     // 2. Get Caption / Alt Text
-    const altText = imgNode.getAttribute('alt');
-    const nextIndex = index + 1;
-    if (nextIndex < quill.getLength()) {
-        const [line] = quill.getLine(nextIndex);
-        const formats = line.formats();
-        if (formats.align === 'center' && formats.italic) {
-            captionInput.value = line.domNode.textContent;
+    if (altText) {
+        captionInput.value = altText;
+    } else {
+        // Fallback to checking visible caption line
+        const nextIndex = quill.getIndex(imageBlot) + 1;
+        if (nextIndex < quill.getLength()) {
+            const [line] = quill.getLine(nextIndex);
+            const formats = line.formats();
+            if (formats.align === 'center' && formats.italic) {
+                captionInput.value = line.domNode.textContent;
+            } else {
+                captionInput.value = '';
+            }
         } else {
             captionInput.value = '';
         }
-    } else {
-        captionInput.value = '';
     }
-}
 
-captionModal.classList.add('active');
+    captionModal.classList.add('active');
 }
 
 const deleteCaptionBtn = document.getElementById('delete-caption-btn');
