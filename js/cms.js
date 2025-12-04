@@ -16,10 +16,6 @@ const cancelBtn = document.getElementById('cancel-btn');
 
 // New Elements
 const loadingOverlay = document.getElementById('loading-overlay');
-const captionModal = document.getElementById('caption-modal');
-const captionInput = document.getElementById('caption-input');
-const confirmCaptionBtn = document.getElementById('confirm-caption-btn');
-const skipCaptionBtn = document.getElementById('skip-caption-btn');
 const tocContainer = document.getElementById('toc-container');
 
 let quill;
@@ -81,95 +77,19 @@ function initQuill() {
                 ['link', 'image', 'video'],
                 ['clean']
             ]
-        }
+            ]
+},
+imageResize: {
+    displaySize: true
+}
     };
 
-    // Custom Blot registered globally
-
-    quill = new Quill('#editor-container', {
-        theme: 'snow',
-        placeholder: 'Write your story here...',
-        modules: modules
-    });
-
-    // Expose function globally for the Blot to call
-    window.openCaptionModal = openCaptionModal;
+quill = new Quill('#editor-container', {
+    theme: 'snow',
+    placeholder: 'Write your story here...',
+    modules: modules
+});
 }
-
-// --- Custom Blot Definition ---
-const BlockEmbed = Quill.import('blots/block/embed');
-
-class ImageFigure extends BlockEmbed {
-    static create(value) {
-        console.log('Creating ImageFigure:', value);
-        const node = super.create();
-        node.setAttribute('contenteditable', 'false');
-
-        const img = document.createElement('img');
-        img.setAttribute('src', value.url);
-        img.setAttribute('alt', value.caption || '');
-        img.style.width = '100%';
-
-        const captionDiv = document.createElement('figcaption');
-        captionDiv.className = 'caption-container';
-        captionDiv.style.marginTop = '10px';
-        captionDiv.style.textAlign = 'center';
-
-        const textDisplay = document.createElement('div');
-        textDisplay.className = 'caption-text';
-        textDisplay.style.fontSize = '0.9em';
-        textDisplay.style.color = '#666';
-        textDisplay.style.fontStyle = 'italic';
-        textDisplay.style.marginBottom = '5px';
-
-        if (value.caption) {
-            textDisplay.textContent = value.caption;
-            textDisplay.style.display = 'block';
-        } else {
-            textDisplay.style.display = 'none';
-        }
-
-        const btn = document.createElement('button');
-        btn.className = 'add-caption-btn';
-        btn.textContent = value.caption ? 'Edit Caption' : 'Add Caption';
-        btn.style.padding = '5px 10px';
-        btn.style.fontSize = '0.8rem';
-        btn.style.cursor = 'pointer';
-        btn.style.border = '1px solid #ccc';
-        btn.style.borderRadius = '4px';
-        btn.style.background = '#fff';
-
-        btn.addEventListener('click', (e) => {
-            const blot = Quill.find(node);
-            if (blot) {
-                window.openCaptionModal(blot);
-            }
-        });
-
-        captionDiv.appendChild(textDisplay);
-        captionDiv.appendChild(btn);
-
-        node.appendChild(img);
-        node.appendChild(captionDiv);
-
-        return node;
-    }
-
-    static value(node) {
-        const img = node.querySelector('img');
-        const textDisplay = node.querySelector('.caption-text');
-        return {
-            url: img ? img.getAttribute('src') : '',
-            caption: textDisplay ? textDisplay.textContent : ''
-        };
-    }
-}
-
-ImageFigure.blotName = 'imageFigure';
-ImageFigure.tagName = 'figure';
-ImageFigure.className = 'cms-image-figure';
-
-Quill.register(ImageFigure);
 
 // --- TOC Logic ---
 function updateTOC() {
@@ -229,12 +149,9 @@ function imageHandler() {
                 const url = await uploadImage(file, 'content');
                 loadingOverlay.style.display = 'none';
 
-                // 1. Insert ImageFigure
+                // 1. Insert Image
                 const range = quill.getSelection(true);
-                quill.insertEmbed(range.index, 'imageFigure', {
-                    url: url,
-                    caption: ''
-                });
+                quill.insertEmbed(range.index, 'image', url);
 
                 // Move cursor after insertion
                 quill.setSelection(range.index + 1);
@@ -246,96 +163,6 @@ function imageHandler() {
         }
         document.body.removeChild(input);
     };
-}
-
-// Global state for current editing image
-let currentImageBlot = null;
-
-// function setupImageInteraction() {
-//     // No longer needed as buttons handle interaction
-// }
-
-function openCaptionModal(imageFigureBlot) {
-    currentImageBlot = imageFigureBlot;
-
-    // Get current value from Blot
-    const value = imageFigureBlot.value(); // { url, caption }
-
-    // 1. Reset Modal Styles
-    const modalContent = captionModal.querySelector('.modal-content');
-    modalContent.style.position = '';
-    modalContent.style.top = '';
-    modalContent.style.left = '';
-    modalContent.style.transform = '';
-    modalContent.style.margin = '';
-
-    // 2. Set Input
-    captionInput.value = value.caption || '';
-
-    captionModal.classList.add('active');
-}
-
-const deleteCaptionBtn = document.getElementById('delete-caption-btn');
-
-// Caption Modal Logic
-confirmCaptionBtn.addEventListener('click', () => {
-    if (currentImageBlot) {
-        setCaption(currentImageBlot, captionInput.value);
-    }
-    captionModal.classList.remove('active');
-    currentImageBlot = null;
-});
-
-skipCaptionBtn.addEventListener('click', () => {
-    captionModal.classList.remove('active');
-    currentImageBlot = null;
-});
-
-deleteCaptionBtn.addEventListener('click', () => {
-    if (currentImageBlot) {
-        if (confirm('Are you sure you want to delete this image?')) {
-            const index = quill.getIndex(currentImageBlot);
-            const nextIndex = index + 1;
-
-            // Check for existing caption to delete it too
-            let existingCaptionLine = null;
-            if (nextIndex < quill.getLength()) {
-                const [line] = quill.getLine(nextIndex);
-                const formats = line.formats();
-                if (formats.align === 'center' && formats.italic) {
-                    existingCaptionLine = line;
-                }
-            }
-
-            // Delete Caption first if exists (to avoid index shift issues, though Quill handles this well usually)
-            if (existingCaptionLine) {
-                const lineIndex = quill.getIndex(existingCaptionLine);
-                quill.deleteText(lineIndex, existingCaptionLine.length());
-            }
-
-            // Delete Image
-            quill.deleteText(index, 1);
-        }
-    }
-    captionModal.classList.remove('active');
-    currentImageBlot = null;
-});
-
-function setCaption(imageFigureBlot, text) {
-    // Update the Blot's data
-    // For a BlockEmbed, we usually replace it or update its DOM if we have a method
-    // But the cleanest way in Quill is often to replace the node with new data
-
-    const value = imageFigureBlot.value();
-    const index = quill.getIndex(imageFigureBlot);
-
-    // Update caption in value
-    value.caption = text;
-
-    // Replace the blot with a new one containing updated data
-    // This triggers the create() method again which updates the DOM
-    quill.deleteText(index, 1);
-    quill.insertEmbed(index, 'imageFigure', value);
 }
 
 // --- Image Upload ---
@@ -399,35 +226,6 @@ async function loadArticle(id) {
     }
 
     quill.root.innerHTML = article.content || '';
-
-    // Migration: Convert legacy images to ImageFigures
-    setTimeout(() => {
-        console.log('Running image migration...');
-        const imgs = quill.root.querySelectorAll('img');
-        console.log('Found images:', imgs.length);
-
-        for (let i = imgs.length - 1; i >= 0; i--) {
-            const img = imgs[i];
-            if (img.closest('figure.cms-image-figure')) {
-                console.log('Skipping already migrated image');
-                continue;
-            }
-
-            const blot = Quill.find(img);
-            if (blot) {
-                console.log('Migrating image:', img.src);
-                const index = quill.getIndex(blot);
-                const src = img.getAttribute('src');
-                const alt = img.getAttribute('alt');
-
-                quill.deleteText(index, 1);
-                quill.insertEmbed(index, 'imageFigure', {
-                    url: src,
-                    caption: alt
-                });
-            }
-        }
-    }, 500); // Increased timeout to ensure render
 
     // Load Relations
     const { data: relations } = await supabase.from('bar_articles').select('bar_id').eq('article_id', id);
