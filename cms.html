@@ -18,10 +18,11 @@
     <link rel="stylesheet" href="css/styles.css">
     <style>
         body {
-            background-color: #000;
-            color: #fff;
+            background-color: #f5f5f7;
+            /* Light Gray Background */
+            color: #333;
+            /* Dark Text */
             padding-bottom: 80px;
-            /* Space for bottom nav on mobile */
         }
 
         .cms-container {
@@ -44,57 +45,124 @@
             justify-content: space-between;
             align-items: center;
             padding: 20px;
-            border-bottom: 1px solid #333;
+            background: #fff;
+            border-bottom: 1px solid #ddd;
             margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        h2 {
+            color: #111;
+            margin: 0;
         }
 
         .editor-wrapper {
             background: #fff;
             color: #000;
-            min-height: 400px;
-            border-radius: 4px;
+            min-height: 500px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e0e0e0;
         }
 
         .ql-toolbar {
-            background: #f0f0f0;
-            border-top-left-radius: 4px;
-            border-top-right-radius: 4px;
+            background: #f9f9f9;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            border-bottom: 1px solid #e0e0e0;
         }
 
         .ql-container {
-            border-bottom-left-radius: 4px;
-            border-bottom-right-radius: 4px;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
             font-family: 'Inter', sans-serif;
             font-size: 16px;
+            min-height: 450px;
         }
 
         .meta-panel {
-            background: #111;
+            background: #fff;
             padding: 20px;
             border-radius: 8px;
-            border: 1px solid #333;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         }
 
         .info-label {
             display: block;
-            margin-bottom: 5px;
-            color: #aaa;
+            margin-bottom: 8px;
+            color: #666;
             font-size: 0.9em;
+            font-weight: 600;
         }
 
         .search-input {
-            background: #222;
-            border: 1px solid #444;
-            color: #fff;
+            background: #fff;
+            border: 1px solid #ccc;
+            color: #333;
             padding: 10px;
             border-radius: 4px;
             width: 100%;
             box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
         }
 
         .search-input:focus {
             outline: none;
-            border-color: var(--bg-red);
+            border-color: #007aff;
+            /* Blue focus for admin */
+        }
+
+        /* Cover Image 16:9 Container */
+        .cover-container {
+            width: 100%;
+            padding-top: 56.25%;
+            /* 16:9 Aspect Ratio */
+            position: relative;
+            background: #f0f0f0;
+            border-radius: 4px;
+            border: 2px dashed #ccc;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        #cover-preview {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 0.9em;
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .btn {
+            background: #000;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        /* Checkboxes in light mode */
+        #bar-select-container label {
+            color: #333 !important;
+            border-bottom: 1px solid #eee;
+            padding: 8px 0;
         }
     </style>
 </head>
@@ -113,32 +181,37 @@
         <!-- Left Column: Editor -->
         <div>
             <div style="margin-bottom: 1.5rem;">
-                <input type="text" id="article-title" class="search-input" style="font-size: 1.5rem; font-weight: bold;"
+                <input type="text" id="article-title" class="search-input"
+                    style="font-size: 1.8rem; font-weight: bold; border: none; padding: 0; background: transparent;"
                     placeholder="Enter Story Title...">
             </div>
 
             <div class="editor-wrapper">
-                <div id="editor-container" style="height: 500px;"></div>
+                <div id="editor-container"></div>
             </div>
         </div>
 
         <!-- Right Column: Meta Data -->
         <div class="meta-panel">
-            <h3 style="margin-bottom: 1rem; border-bottom: 1px solid #333; padding-bottom: 10px;">Settings</h3>
+            <h3 style="margin-bottom: 1rem; border-bottom: 1px solid #eee; padding-bottom: 10px; color: #333;">Settings
+            </h3>
 
             <div style="margin-bottom: 1.5rem;">
                 <label class="info-label">Cover Image</label>
-                <input type="file" id="cover-file" accept="image/*" class="search-input" style="margin-bottom: 10px;">
-                <div id="cover-preview"
-                    style="width: 100%; height: 150px; background: #222; background-size: cover; background-position: center; border-radius: 4px; border: 1px dashed #444; display: flex; align-items: center; justify-content: center; color: #666;">
-                    No Image
+                <input type="file" id="cover-file" accept="image/*" class="search-input" style="margin-bottom: 5px;">
+                <div style="font-size: 0.8em; color: #888; margin-bottom: 5px;">Recommended: 1200 x 675 px (16:9)</div>
+
+                <div class="cover-container">
+                    <div id="cover-preview">
+                        <span>No Image Selected</span>
+                    </div>
                 </div>
             </div>
 
             <div style="margin-bottom: 1.5rem;">
                 <label class="info-label">Excerpt</label>
                 <textarea id="article-excerpt" class="search-input" style="height: 100px;"
-                    placeholder="Short summary..."></textarea>
+                    placeholder="Short summary for list view..."></textarea>
             </div>
 
             <div style="margin-bottom: 1.5rem;">
@@ -154,7 +227,7 @@
             <div style="margin-bottom: 1.5rem;">
                 <label class="info-label">Related Bars</label>
                 <div id="bar-select-container"
-                    style="max-height: 200px; overflow-y: auto; background: #222; padding: 10px; border-radius: 4px; border: 1px solid #444;">
+                    style="max-height: 200px; overflow-y: auto; background: #fff; padding: 10px; border-radius: 4px; border: 1px solid #ccc;">
                     <!-- Checkboxes injected by JS -->
                 </div>
             </div>
