@@ -155,15 +155,16 @@ window.scrollToHeader = (id) => {
 // --- Image Handling ---
 function imageHandler() {
     try {
-        // Save current selection range
-        const range = quill.getSelection(true);
+        // Save current selection range or default to end
+        let range = quill.getSelection(true);
+        if (!range) {
+            range = { index: quill.getLength() };
+        }
 
         const input = document.createElement('input');
         input.setAttribute('type', 'file');
         input.setAttribute('accept', 'image/*');
-        input.style.display = 'none'; // Hidden
-
-        // Append to body to ensure click works in all browsers
+        input.style.display = 'none';
         document.body.appendChild(input);
 
         input.click();
@@ -172,35 +173,34 @@ function imageHandler() {
             const file = input.files[0];
             if (file) {
                 try {
-                    loadingOverlay.style.display = 'flex'; // Show Loading
+                    loadingOverlay.style.display = 'flex';
                     const url = await uploadImage(file, 'content');
-                    loadingOverlay.style.display = 'none'; // Hide Loading
+                    loadingOverlay.style.display = 'none';
 
-                    // 1. Insert Image at the saved index
                     quill.insertEmbed(range.index, 'image', url);
 
-                    // 2. Force a layout update / wait for render
                     setTimeout(() => {
                         const [leaf] = quill.getLeaf(range.index);
                         if (leaf && leaf.domNode && leaf.domNode.tagName === 'IMG') {
                             leaf.domNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
                             openCaptionModal(leaf);
+                        } else {
+                            // Try next index in case of shift
+                            const [nextLeaf] = quill.getLeaf(range.index + 1);
+                            if (nextLeaf && nextLeaf.domNode && nextLeaf.domNode.tagName === 'IMG') {
+                                nextLeaf.domNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                openCaptionModal(nextLeaf);
+                            }
                         }
-                    }, 100);
+                    }, 200); // Increased delay slightly
 
                 } catch (err) {
                     loadingOverlay.style.display = 'none';
                     alert('Image upload failed: ' + err.message);
                 }
             }
-            // Clean up
             document.body.removeChild(input);
         };
-
-        // Clean up if cancel (optional, but hard to detect cancel event reliably across browsers)
-        // We remove on change, but if user cancels, input stays in DOM. 
-        // Better to remove on blur or timeout, but for now appending/removing is safer for the click.
-
     } catch (e) {
         console.error('Image Handler Error:', e);
         alert('Error opening image selector');
@@ -210,26 +210,28 @@ function imageHandler() {
 // Global state for current editing image
 let currentImageBlot = null;
 
-// Listen for selection changes to detect image clicks
-// This is more robust than click events when using resize modules (which add overlays)
 function setupImageSelectionListener() {
     quill.on('selection-change', (range, oldRange, source) => {
         if (range && source === 'user') {
-            // Check if selection is an image
-            // Quill treats images as length 1 usually, but sometimes just cursor position
-            // We check the leaf at the index
+            // 1. Check direct selection (image selected)
             const [leaf] = quill.getLeaf(range.index);
             if (leaf && leaf.domNode && leaf.domNode.tagName === 'IMG') {
-                // It's an image!
-                // We verify it's the only thing selected or just clicked
                 openCaptionModal(leaf);
+                return;
+            }
+
+            // 2. Check if cursor is just after an image (common when clicking right side of image)
+            if (range.index > 0) {
+                const [prevLeaf] = quill.getLeaf(range.index - 1);
+                if (prevLeaf && prevLeaf.domNode && prevLeaf.domNode.tagName === 'IMG') {
+                    openCaptionModal(prevLeaf);
+                }
             }
         }
     });
 
-    // Fallback: Click listener for when selection doesn't change but user clicks again
+    // Fallback click listener
     quill.root.addEventListener('click', (e) => {
-        // Check if target is image (if no overlay)
         if (e.target && e.target.tagName === 'IMG') {
             const blot = Quill.find(e.target);
             if (blot) openCaptionModal(blot);
