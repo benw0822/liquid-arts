@@ -643,9 +643,14 @@ document.addEventListener('DOMContentLoaded', () => {
         `).join('');
     }
 
-    addArticleBtn.addEventListener('click', () => {
-        window.location.href = 'cms.html';
-    });
+    if (addArticleBtn) {
+        addArticleBtn.addEventListener('click', () => {
+            console.log('Add Story clicked, redirecting to cms.html');
+            window.location.href = 'cms.html';
+        });
+    } else {
+        console.error('Add Article Button not found!');
+    }
 
     window.editArticle = (id) => {
         window.location.href = `cms.html?id=${id}`;
