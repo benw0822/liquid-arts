@@ -206,18 +206,36 @@ function openCaptionModal(imageBlot) {
     currentImageBlot = imageBlot;
     const index = quill.getIndex(imageBlot);
 
-    // Check if next line is a caption
-    // Heuristic: Next line is centered and italic
-    const nextIndex = index + 1;
-    // We need to check if we are at end of doc
-    if (nextIndex >= quill.getLength()) {
-        captionInput.value = '';
+    // 1. Position Modal over Image
+    const imgNode = imageBlot.domNode;
+    const rect = imgNode.getBoundingClientRect();
+    const modalContent = captionModal.querySelector('.modal-content');
+
+    // Reset styles to ensure absolute positioning works
+    modalContent.style.position = 'absolute';
+    modalContent.style.margin = '0';
+
+    // Calculate center of image
+    // We use fixed positioning relative to viewport (since modal wrapper is fixed)
+    const top = rect.top + (rect.height / 2);
+    const left = rect.left + (rect.width / 2);
+
+    modalContent.style.top = `${top}px`;
+    modalContent.style.left = `${left}px`;
+    modalContent.style.transform = 'translate(-50%, -50%)';
+
+    // 2. Get Caption / Alt Text
+    // Priority: Alt Text > Visible Caption > Empty
+    const altText = imgNode.getAttribute('alt');
+
+    if (altText) {
+        captionInput.value = altText;
     } else {
-        const [line, offset] = quill.getLine(nextIndex);
-        if (line) {
+        // Fallback to checking visible caption line
+        const nextIndex = index + 1;
+        if (nextIndex < quill.getLength()) {
+            const [line] = quill.getLine(nextIndex);
             const formats = line.formats();
-            // Check if it looks like a caption (italic + center)
-            // Note: formats() returns formats for the *entire* line usually
             if (formats.align === 'center' && formats.italic) {
                 captionInput.value = line.domNode.textContent;
             } else {
@@ -248,8 +266,16 @@ skipCaptionBtn.addEventListener('click', () => {
 function setCaption(imageBlot, text) {
     const index = quill.getIndex(imageBlot);
     const nextIndex = index + 1;
+    const imgNode = imageBlot.domNode;
 
-    // Check existing caption
+    // 1. Set SEO Alt Attribute
+    if (text) {
+        imgNode.setAttribute('alt', text);
+    } else {
+        imgNode.removeAttribute('alt');
+    }
+
+    // 2. Handle Visible Caption
     let existingCaptionLine = null;
     if (nextIndex < quill.getLength()) {
         const [line] = quill.getLine(nextIndex);
