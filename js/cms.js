@@ -399,6 +399,32 @@ async function loadArticle(id) {
 
     quill.root.innerHTML = article.content || '';
 
+    // Migration: Convert legacy images to ImageFigures
+    // This ensures old articles get the new button-based caption functionality
+    setTimeout(() => {
+        const imgs = quill.root.querySelectorAll('img');
+        // Iterate backwards to handle index shifts safely
+        for (let i = imgs.length - 1; i >= 0; i--) {
+            const img = imgs[i];
+            // Skip if already part of our new figure blot
+            if (img.closest('figure.cms-image-figure')) continue;
+
+            const blot = Quill.find(img);
+            if (blot) {
+                const index = quill.getIndex(blot);
+                const src = img.getAttribute('src');
+                const alt = img.getAttribute('alt');
+
+                // Replace standard image with ImageFigure
+                quill.deleteText(index, 1);
+                quill.insertEmbed(index, 'imageFigure', {
+                    url: src,
+                    caption: alt
+                });
+            }
+        }
+    }, 100);
+
     // Load Relations
     const { data: relations } = await supabase.from('bar_articles').select('bar_id').eq('article_id', id);
     const relatedIds = (relations || []).map(r => r.bar_id);
