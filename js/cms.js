@@ -84,16 +84,6 @@ function initQuill() {
         }
     };
 
-    // Safely register Image Resize Module
-    // if (typeof ImageResize !== 'undefined') {
-    //     Quill.register('modules/imageResize', ImageResize);
-    //     modules.imageResize = {
-    //         displaySize: true
-    //     };
-    // } else {
-    //     console.warn('ImageResize module not loaded');
-    // }
-
     quill = new Quill('#editor-container', {
         theme: 'snow',
         placeholder: 'Write your story here...',
@@ -171,17 +161,14 @@ function imageHandler() {
                 loadingOverlay.style.display = 'none';
 
                 // 1. Insert Image
-                let range = quill.getSelection(true);
-                if (!range) range = { index: quill.getLength() };
-
+                const range = quill.getSelection(true);
                 quill.insertEmbed(range.index, 'image', url);
 
-                // 2. Explicitly Open Modal (Bypass event listeners for reliability)
+                // 2. Open Modal for the new image
                 setTimeout(() => {
                     const [leaf] = quill.getLeaf(range.index);
-                    if (leaf && leaf.domNode && leaf.domNode.tagName === 'IMG') {
-                        quill.setSelection(range.index, 1); // Select it visually
-                        openCaptionModal(leaf); // Open modal directly
+                    if (leaf) {
+                        openCaptionModal(leaf);
                     }
                 }, 100);
 
@@ -198,21 +185,13 @@ function imageHandler() {
 let currentImageBlot = null;
 
 function setupImageInteraction() {
-    // 1. Selection Change (Native Quill)
-    quill.on('selection-change', (range, oldRange, source) => {
-        if (range && range.length === 1) {
-            const [leaf] = quill.getLeaf(range.index);
-            if (leaf && leaf.domNode && leaf.domNode.tagName === 'IMG') {
-                openCaptionModal(leaf);
-            }
-        }
-    });
-
-    // 2. Click Delegation (Backup)
+    // Simple click listener for images
     quill.root.addEventListener('click', (e) => {
-        if (e.target.tagName === 'IMG') {
+        if (e.target && e.target.tagName === 'IMG') {
             const blot = Quill.find(e.target);
-            if (blot) openCaptionModal(blot);
+            if (blot) {
+                openCaptionModal(blot);
+            }
         }
     });
 }
@@ -252,7 +231,6 @@ function openCaptionModal(imageBlot) {
 }
 
 const deleteCaptionBtn = document.getElementById('delete-caption-btn');
-const resizeBtn = document.getElementById('resize-btn');
 
 // Caption Modal Logic
 confirmCaptionBtn.addEventListener('click', () => {
@@ -265,14 +243,6 @@ confirmCaptionBtn.addEventListener('click', () => {
 
 skipCaptionBtn.addEventListener('click', () => {
     captionModal.classList.remove('active');
-    currentImageBlot = null;
-});
-
-resizeBtn.addEventListener('click', () => {
-    // Just close the modal so the user can interact with the resize handles
-    // The ImageResize module automatically adds handles when image is selected
-    captionModal.classList.remove('active');
-    // Keep currentImageBlot null so next click re-opens it properly if needed
     currentImageBlot = null;
 });
 
