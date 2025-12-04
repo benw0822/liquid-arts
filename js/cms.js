@@ -176,10 +176,13 @@ function imageHandler() {
 
                 quill.insertEmbed(range.index, 'image', url);
 
-                // 2. Force Selection to trigger Modal
-                // We select the image specifically (length 1)
+                // 2. Explicitly Open Modal (Bypass event listeners for reliability)
                 setTimeout(() => {
-                    quill.setSelection(range.index, 1);
+                    const [leaf] = quill.getLeaf(range.index);
+                    if (leaf && leaf.domNode && leaf.domNode.tagName === 'IMG') {
+                        quill.setSelection(range.index, 1); // Select it visually
+                        openCaptionModal(leaf); // Open modal directly
+                    }
                 }, 100);
 
             } catch (err) {
@@ -195,39 +198,20 @@ function imageHandler() {
 let currentImageBlot = null;
 
 function setupImageInteraction() {
-    // 1. Primary: Selection Change
-    // This handles both programmatic selection (after upload) and user clicking the image
+    // 1. Selection Change (Native Quill)
     quill.on('selection-change', (range, oldRange, source) => {
         if (range && range.length === 1) {
             const [leaf] = quill.getLeaf(range.index);
-            if (leaf && leaf.statics.blotName === 'image') {
+            if (leaf && leaf.domNode && leaf.domNode.tagName === 'IMG') {
                 openCaptionModal(leaf);
             }
         }
     });
 
-    // 2. Fallback: Click Delegation
-    // This handles clicks intercepted by the resize module's overlay
+    // 2. Click Delegation (Backup)
     quill.root.addEventListener('click', (e) => {
-        const target = e.target;
-
-        // Check if we clicked a resize handler or overlay
-        if (target.tagName !== 'IMG') {
-            // Try to find an image in the clicked container or siblings
-            let img = target.querySelector('img');
-
-            // If not found inside, check if the target itself is a handle sibling to an image
-            if (!img && target.parentElement) {
-                img = target.parentElement.querySelector('img');
-            }
-
-            if (img) {
-                const blot = Quill.find(img);
-                if (blot) openCaptionModal(blot);
-            }
-        } else {
-            // Direct image click
-            const blot = Quill.find(target);
+        if (e.target.tagName === 'IMG') {
+            const blot = Quill.find(e.target);
             if (blot) openCaptionModal(blot);
         }
     });
