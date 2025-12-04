@@ -643,56 +643,13 @@ document.addEventListener('DOMContentLoaded', () => {
         `).join('');
     }
 
-    addArticleBtn.addEventListener('click', async () => {
-        openArticleModal();
+    addArticleBtn.addEventListener('click', () => {
+        window.location.href = 'cms.html';
     });
 
-    async function openArticleModal(articleId = null) {
-        // Load Bars for Checkboxes
-        const { data: bars } = await supabase.from('bars').select('id, title, name_en');
-
-        let checkedBars = [];
-        if (articleId) {
-            // Fetch existing associations
-            const { data: relations } = await supabase
-                .from('bar_articles')
-                .select('bar_id')
-                .eq('article_id', articleId);
-            if (relations) checkedBars = relations.map(r => r.bar_id);
-        }
-
-        articleBarSelect.innerHTML = (bars || []).map(b => `
-            <label style="display: flex; align-items: center; margin-bottom: 5px; cursor: pointer;">
-                <input type="checkbox" value="${b.id}" ${checkedBars.includes(b.id) ? 'checked' : ''} style="margin-right: 10px;">
-                ${b.name_en || b.title}
-            </label>
-        `).join('');
-
-        if (articleId) {
-            document.getElementById('article-modal-title').textContent = 'Edit Story';
-            const { data: article } = await supabase.from('articles').select('*').eq('id', articleId).single();
-            document.getElementById('article-id').value = article.id;
-            document.getElementById('article-title').value = article.title;
-            document.getElementById('article-image').value = article.cover_image || '';
-            document.getElementById('cover-preview').style.backgroundImage = article.cover_image ? `url('${article.cover_image}')` : '';
-            document.getElementById('article-author').value = article.author_name || '';
-            document.getElementById('article-excerpt').value = article.excerpt || '';
-            document.getElementById('article-tags').value = (article.tags || []).join(', ');
-
-            // Set Quill Content
-            if (quill) quill.root.innerHTML = article.content || '';
-        } else {
-            document.getElementById('article-modal-title').textContent = 'Add New Story';
-            document.getElementById('article-id').value = '';
-            document.getElementById('article-title').value = '';
-            document.getElementById('article-image').value = 'assets/gallery_2.png';
-            document.getElementById('article-author').value = '';
-            document.getElementById('article-excerpt').value = '';
-            document.getElementById('article-content').value = '';
-        }
-
-        articleModal.classList.add('active');
-    }
+    window.editArticle = (id) => {
+        window.location.href = `cms.html?id=${id}`;
+    };
 
 
     window.deleteArticle = async (id) => {
