@@ -171,3 +171,26 @@ create policy "Public Read Bar Articles" on bar_articles for select using (true)
 create policy "Public Read Menus" on menus for select using (true);
 create policy "Public Read Events" on events for select using (true);
 ```
+
+-- 9. Storage Policies (Required for Image Upload)
+-- Enable RLS on objects
+alter table storage.objects enable row level security;
+
+-- Allow public read access to 'articles' bucket
+create policy "Public Access"
+on storage.objects for select
+using ( bucket_id = 'articles' );
+
+-- Allow authenticated users to upload to 'articles' bucket
+create policy "Authenticated Upload"
+on storage.objects for insert
+with check ( bucket_id = 'articles' and auth.role() = 'authenticated' );
+
+-- Allow users to update/delete their own uploads (Optional, good for management)
+create policy "Owner Update"
+on storage.objects for update
+using ( bucket_id = 'articles' and auth.uid() = owner );
+
+create policy "Owner Delete"
+on storage.objects for delete
+using ( bucket_id = 'articles' and auth.uid() = owner );

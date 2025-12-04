@@ -14,9 +14,18 @@ const barContainer = document.getElementById('bar-select-container');
 const saveBtn = document.getElementById('save-btn');
 const cancelBtn = document.getElementById('cancel-btn');
 
+// New Elements
+const loadingOverlay = document.getElementById('loading-overlay');
+const captionModal = document.getElementById('caption-modal');
+const captionInput = document.getElementById('caption-input');
+const confirmCaptionBtn = document.getElementById('confirm-caption-btn');
+const skipCaptionBtn = document.getElementById('skip-caption-btn');
+const tocContainer = document.getElementById('toc-container');
+
 let quill;
 let currentArticleId = null;
 let currentCoverUrl = '';
+let pendingImageUrl = ''; // Store URL while waiting for caption
 
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', async () => {
@@ -81,8 +90,54 @@ function initQuill() {
             }
         }
     });
+
+    // TOC Listener
+    quill.on('text-change', () => {
+        updateTOC();
+    });
 }
 
+// --- TOC Logic ---
+function updateTOC() {
+    const headers = [];
+    const delta = quill.getContents();
+
+    // Simple scan for headers
+    // Note: Quill stores headers as attributes on the newline character
+    // We need to iterate lines to find headers
+
+    // Alternative: Use DOM traversal which is easier for structure
+    const editorRoot = quill.root;
+    const headerNodes = editorRoot.querySelectorAll('h1, h2, h3');
+
+    if (headerNodes.length === 0) {
+        tocContainer.innerHTML = '<div style="color: #999; font-size: 0.9em; font-style: italic;">Headings will appear here...</div>';
+        return;
+    }
+
+    let html = '';
+    headerNodes.forEach((node, index) => {
+        const text = node.textContent;
+        if (!text) return;
+
+        // Add ID to node for scrolling if not present
+        if (!node.id) node.id = `header-${index}`;
+
+        const tagName = node.tagName.toLowerCase();
+        html += `<div class="toc-item toc-${tagName}" onclick="scrollToHeader('${node.id}')">${text}</div>`;
+    });
+
+    tocContainer.innerHTML = html;
+}
+
+window.scrollToHeader = (id) => {
+    const element = document.getElementById(id);
+    if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+};
+
+// --- Image Handling ---
 function imageHandler() {
     const input = document.createElement('input');
     input.setAttribute('type', 'file');
@@ -93,14 +148,59 @@ function imageHandler() {
         const file = input.files[0];
         if (file) {
             try {
+                loadingOverlay.style.display = 'flex'; // Show Loading
                 const url = await uploadImage(file, 'content');
-                const range = quill.getSelection();
-                quill.insertEmbed(range.index, 'image', url);
+                pendingImageUrl = url;
+
+                loadingOverlay.style.display = 'none'; // Hide Loading
+
+                // Open Caption Modal
+                captionInput.value = '';
+                captionModal.classList.add('active');
+
             } catch (err) {
+                loadingOverlay.style.display = 'none';
                 alert('Image upload failed: ' + err.message);
             }
         }
     };
+}
+
+// Caption Modal Logic
+confirmCaptionBtn.addEventListener('click', () => {
+    insertImageWithCaption(pendingImageUrl, captionInput.value);
+    captionModal.classList.remove('active');
+});
+
+skipCaptionBtn.addEventListener('click', () => {
+    insertImageWithCaption(pendingImageUrl, null);
+    captionModal.classList.remove('active');
+});
+
+function insertImageWithCaption(url, caption) {
+    const range = quill.getSelection(true);
+
+    // Insert Image
+    quill.insertEmbed(range.index, 'image', url);
+
+    // Insert Caption if provided
+    if (caption) {
+        // Move cursor after image
+        quill.setSelection(range.index + 1);
+
+        // Insert caption text
+        quill.insertText(range.index + 1, caption, {
+            'italic': true,
+            'color': '#666'
+        });
+
+        // Center align the caption (requires block level, might be tricky with inline style)
+        // Quill formats are line-based. Let's try to format the line.
+        quill.formatLine(range.index + 1, 1, 'align', 'center');
+
+        // Add a newline after
+        quill.insertText(range.index + 1 + caption.length, '\n');
+    }
 }
 
 // --- Image Upload ---
