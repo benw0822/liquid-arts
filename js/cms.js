@@ -77,18 +77,17 @@ function initQuill() {
                 ['link', 'image', 'video'],
                 ['clean']
             ]
-            ]
-},
-imageResize: {
-    displaySize: true
-}
+        },
+        imageResize: {
+            displaySize: true
+        }
     };
 
-quill = new Quill('#editor-container', {
-    theme: 'snow',
-    placeholder: 'Write your story here...',
-    modules: modules
-});
+    quill = new Quill('#editor-container', {
+        theme: 'snow',
+        placeholder: 'Write your story here...',
+        modules: modules
+    });
 }
 
 // --- TOC Logic ---
