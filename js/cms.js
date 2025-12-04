@@ -141,6 +141,9 @@ window.scrollToHeader = (id) => {
 
 // --- Image Handling ---
 function imageHandler() {
+    // Save current selection range
+    const range = quill.getSelection(true);
+
     const input = document.createElement('input');
     input.setAttribute('type', 'file');
     input.setAttribute('accept', 'image/*');
@@ -154,15 +157,26 @@ function imageHandler() {
                 const url = await uploadImage(file, 'content');
                 loadingOverlay.style.display = 'none'; // Hide Loading
 
-                // 1. Insert Image Immediately
-                const range = quill.getSelection(true);
+                // 1. Insert Image at the saved index
+                // We use the saved range to ensure it goes where the user intended
                 quill.insertEmbed(range.index, 'image', url);
 
-                // 2. Find the inserted image blot
-                const [leaf] = quill.getLeaf(range.index);
+                // 2. Force a layout update / wait for render
+                setTimeout(() => {
+                    // 3. Find the inserted image blot
+                    // The image should be at the original index
+                    const [leaf] = quill.getLeaf(range.index);
 
-                // 3. Open Caption Modal for this image
-                openCaptionModal(leaf);
+                    if (leaf && leaf.domNode && leaf.domNode.tagName === 'IMG') {
+                        // 4. Scroll it into view so the user sees it
+                        leaf.domNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                        // 5. Open Caption Modal
+                        openCaptionModal(leaf);
+                    } else {
+                        console.error('Could not find inserted image blot');
+                    }
+                }, 100); // Small delay to allow DOM to paint
 
             } catch (err) {
                 loadingOverlay.style.display = 'none';
