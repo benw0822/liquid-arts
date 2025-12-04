@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liquid Arts - Admin</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:wght@400;700&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* Admin Specific Styles */
+        .admin-container {
+            max-width: 1000px;
+            margin: 100px auto;
+            padding: var(--spacing-md);
+        }
+
+        .login-box {
+            max-width: 400px;
+            margin: 150px auto;
+            background: var(--bg-secondary);
+            padding: var(--spacing-lg);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: var(--spacing-sm);
+            text-align: left;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+            font-family: var(--font-main);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            border: none;
+            background: var(--accent-color);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+
+        .btn:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .bar-list {
+            display: grid;
+            gap: var(--spacing-sm);
+        }
+
+        .bar-item {
+            background: var(--bg-secondary);
+            padding: var(--spacing-sm);
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-primary);
+            padding: var(--spacing-md);
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+            border: 1px solid var(--border-color);
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container nav-content">
+            <a href="index.html" class="logo">
+                <img src="assets/logo_horizontal.png" alt="Liquid Arts" class="logo-img"> <span
+                    style="font-size: 0.8em; opacity: 0.7;">Admin</span>
+            </a>
+            <button id="logout-btn" class="btn btn-secondary" style="display: none;">Logout</button>
+        </div>
+    </nav>
+
+    <!-- Login Section -->
+    <section id="login-section" class="login-box">
+        <h2>Admin Access</h2>
+        <p style="color: var(--text-secondary); margin-bottom: var(--spacing-md);">Enter password to manage content</p>
+        <div class="form-group">
+            <input type="email" id="admin-email" class="form-input" placeholder="Email" style="margin-bottom: 10px;">
+            <input type="password" id="admin-password" class="form-input" placeholder="Password">
+        </div>
+        <button id="login-btn" class="btn" style="width: 100%;">Login</button>
+    </section>
+
+    <!-- Dashboard Section -->
+    <section id="dashboard-section" class="admin-container" style="display: none;">
+        <div class="dashboard-header">
+            <h2>Manage Bars</h2>
+            <div style="display: flex; gap: 10px;">
+                <button id="manage-bars-btn" class="btn btn-secondary">🍸 Bars</button>
+                <button id="settings-btn" class="btn btn-secondary">⚙️ Database</button>
+                <button id="manage-users-btn" class="btn btn-secondary">👥 Users</button>
+                <button id="manage-articles-btn" class="btn btn-secondary">📝 Stories</button>
+                <button id="add-bar-btn" class="btn">+ Add Bar</button>
+            </div>
+        </div>
+
+        <!-- Bars List -->
+        <div id="bar-list" class="grid">
+            <p>Loading...</p>
+        </div>
+    </section>
+
+    <!-- Articles Section (Hidden by default) -->
+    <section id="articles-section" class="container" style="display: none; margin-top: 2rem;">
+        <div class="section-header">
+            <h2>Manage Stories</h2>
+            <button id="add-article-btn" class="btn">+ Add Story</button>
+        </div>
+        <div id="article-list" class="bar-list">
+            <!-- Injected by JS -->
+        </div>
+    </section>
+
+    <!-- Users Section (Hidden by default) -->
+    <section id="users-section" class="container" style="display: none; margin-top: 2rem;">
+        <div class="section-header">
+            <h2>Manage Users</h2>
+            <button id="add-user-btn" class="btn">+ Add User</button>
+        </div>
+        <div style="background: var(--bg-secondary); border-radius: 8px; overflow: hidden;">
+            <table style="width: 100%; border-collapse: collapse; color: var(--text-primary);">
+                <thead>
+                    <tr style="background: #111; text-align: left;">
+                        <th style="padding: 1rem;">Email</th>
+                        <th style="padding: 1rem;">Role</th>
+                        <th style="padding: 1rem;">Linked Bar</th>
+                        <th style="padding: 1rem; text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="user-list">
+                    <!-- Injected by JS -->
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="lightbox">
+        <div class="lightbox-content">
+            <h3>Database Settings</h3>
+            <p style="color: #888; font-size: 0.9rem; margin-bottom: 1rem;">Connect to your Supabase project.</p>
+
+            <div style="margin-bottom: 1rem;">
+                <label class="info-label">Supabase URL</label>
+                <input type="text" id="supabase-url" class="search-input" style="width: 100%;">
+            </div>
+            <div style="margin-bottom: 1.5rem;">
+                <label class="info-label">Supabase Anon Key</label>
+                <input type="text" id="supabase-key" class="search-input" style="width: 100%;">
+            </div>
+
+            <div style="display: flex; gap: 1rem;">
+                <button id="save-settings-btn" class="btn" style="flex: 1;">Connect</button>
+                <button id="close-settings-btn" class="btn btn-secondary" style="flex: 1;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Modal -->
+    <div id="user-modal" class="lightbox">
+        <div class="lightbox-content">
+            <h3 id="user-modal-title">Add User</h3>
+            <input type="hidden" id="user-id">
+
+            <div style="margin-bottom: 1rem;">
+                <label class="info-label">Email</label>
+                <input type="email" id="user-email" class="search-input" style="width: 100%;">
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <label class="info-label">Password</label>
+                <input type="password" id="user-password" class="search-input" style="width: 100%;"
+                    placeholder="Leave blank to keep unchanged">
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <label class="info-label">Roles</label>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <label style="display: flex; align-items: center; cursor: pointer;">
+                        <input type="checkbox" class="role-checkbox" value="admin" style="margin-right: 5px;"> Admin
+                    </label>
+                    <label style="display: flex; align-items: center; cursor: pointer;">
+                        <input type="checkbox" class="role-checkbox" value="editor" style="margin-right: 5px;"> Editor
+                    </label>
+                    <label style="display: flex; align-items: center; cursor: pointer;">
+                        <input type="checkbox" class="role-checkbox" value="barOwner" style="margin-right: 5px;"> Bar
+                        Owner
+                    </label>
+                    <label style="display: flex; align-items: center; cursor: pointer;">
+                        <input type="checkbox" class="role-checkbox" value="reader" style="margin-right: 5px;"> Reader
+                    </label>
+                </div>
+            </div>
+            <div style="margin-bottom: 1.5rem;">
+                <label class="info-label">Assign to Bar (Optional)</label>
+                <select id="user-bar-select" class="search-input" style="width: 100%; color: white;">
+                    <option value="">None</option>
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 1rem;">
+                <button id="save-user-btn" class="btn" style="flex: 1;">Save</button>
+                <button id="close-user-btn" class="btn btn-secondary" style="flex: 1;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Owner Modal -->
+    <div id="owner-modal" class="lightbox">
+        <div class="lightbox-content">
+            <h3>Create Bar Owner</h3>
+            <p style="color: #888; font-size: 0.9rem; margin-bottom: 1rem;">Create a new user and assign them to a bar.
+            </p>
+
+            <div style="margin-bottom: 1rem;">
+                <label class="info-label">Email</label>
+                <input type="email" id="owner-email" class="search-input" style="width: 100%;"
+                    placeholder="owner@example.com">
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <label class="info-label">Password</label>
+                <input type="password" id="owner-password" class="search-input" style="width: 100%;"
+                    placeholder="Min 6 characters">
+            </div>
+            <div style="margin-bottom: 1.5rem;">
+                <label class="info-label">Assign to Bar</label>
+                <select id="owner-bar-select" class="search-input" style="width: 100%; color: white;">
+                    <option value="">Select a Bar...</option>
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 1rem;">
+                <button id="save-owner-btn" class="btn" style="flex: 1;">Create Owner</button>
+                <button id="close-owner-btn" class="btn btn-secondary" style="flex: 1;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Bar Modal -->
+    <div id="bar-modal" class="modal">
+        <div class="modal-content">
+            <h3 id="modal-title">Add New Bar</h3>
+            <div class="form-group">
+                <label class="form-label">Name</label>
+                <input type="text" id="bar-title" class="form-input">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Location</label>
+                <input type="text" id="bar-location" class="form-input" placeholder="e.g. Taipei, Xinyi">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Vibe</label>
+                <input type="text" id="bar-vibe" class="form-input" placeholder="e.g. Speakeasy">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Image URL</label>
+                <input type="text" id="bar-image" class="form-input" placeholder="assets/..."
+                    value="assets/gallery_1.png">
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: var(--spacing-md);">
+                <button id="close-bar-btn" class="btn btn-secondary">Cancel</button>
+                <button id="save-bar-btn" class="btn">Save Bar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Article Modal -->
+    <div id="article-modal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <h3 id="article-modal-title">Add New Story</h3>
+            <input type="hidden" id="article-id">
+
+            <div class="form-group">
+                <label class="form-label">Title</label>
+                <input type="text" id="article-title" class="form-input">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="form-group">
+                    <label class="form-label">Cover Image URL</label>
+                    <input type="text" id="article-image" class="form-input" placeholder="assets/..."
+                        value="assets/gallery_2.png">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Author</label>
+                    <input type="text" id="article-author" class="form-input" placeholder="Editor">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Excerpt (Short Summary)</label>
+                <textarea id="article-excerpt" class="form-input" rows="2"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Content (Markdown supported)</label>
+                <textarea id="article-content" class="form-input" rows="10"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Related Bars (Select multiple)</label>
+                <div id="article-bar-select"
+                    style="max-height: 150px; overflow-y: auto; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <!-- Checkboxes injected by JS -->
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: var(--spacing-md);">
+                <button id="close-article-btn" class="btn btn-secondary">Cancel</button>
+                <button id="save-article-btn" class="btn">Save Story</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/admin.js"></script>
+</body>
+
+</html>

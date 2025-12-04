@@ -4,47 +4,173 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LiquidArts - Visual Experience</title>
+    <title>Liquid Arts - Visual Experience</title>
     <meta name="description" content="A premium showcase of visual arts and media.">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:wght@400;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&display=swap"
         rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
     <nav class="navbar">
         <div class="container nav-content">
-            <a href="#" class="logo">Liquid Arts</a>
+            <a href="index.html" class="logo">
+                <img src="assets/logo_horizontal.png" alt="Liquid Arts" class="logo-img">
+            </a>
+            <div class="nav-links">
+                <a href="bars.html" class="nav-link">Bars</a>
+                <a href="map.html" class="nav-link">Map</a>
+                <a href="articles.html" class="nav-link">Stories</a>
+                <a href="about.html" class="nav-link">About</a>
+                <!-- Auth Section -->
+                <div id="auth-section" style="display: inline-block; margin-left: 1rem;">
+                    <button id="login-btn" class="nav-link"
+                        style="background: none; border: none; cursor: pointer; color: var(--text-accent);">Sign
+                        In</button>
+                    <div id="user-menu" style="display: none; position: relative;">
+                        <a href="profile.html" id="user-avatar" class="nav-link"
+                            style="color: var(--text-primary);">Profile</a>
+                    </div>
+                </div>
+            </div>
         </div>
     </nav>
 
-    <header class="hero">
-        <div class="hero-content">
-            <h1>Liquid Arts</h1>
-            <p class="hero-subtitle">Where the Night Becomes Art</p>
-            <div class="search-container">
-                <input type="text" class="search-input" placeholder="Find your perfect atmosphere...">
-                <button class="search-btn">Explore</button>
+    <!-- Hero Section -->
+    <header class="hero-split">
+        <div class="hero-text-side">
+            <img src="assets/logo_vertical.png" alt="Liquid Arts" class="hero-logo">
+            <p class="hero-subtitle">
+                Where the night becomes a canvas. Explore the finest speakeasies and the stories behind the spirits.
+            </p>
+            <div style="margin-top: 2rem;">
+                <a href="bars.html" class="btn">Explore Collection</a>
             </div>
+        </div>
+        <div class="hero-image-side">
+            <img src="assets/gallery_3.png" alt="Atmospheric Bar">
         </div>
     </header>
 
-    <main class="container gallery">
-        <div id="media-grid" class="grid">
-            <!-- Content will be injected by app.js -->
-        </div>
+    <main>
+        <!-- Featured Bars -->
+        <section class="container section-padding">
+            <div class="section-header" style="border-bottom: none; margin-bottom: 0;">
+                <h2 class="display-text" style="font-size: 4rem;">Featured <span
+                        class="text-italic text-red">Spots</span></h2>
+                <a href="bars.html" class="btn"
+                    style="color: var(--text-primary); border-color: var(--border-color);">View All</a>
+            </div>
+
+            <div id="featured-grid" class="magazine-grid">
+                <!-- Injected by JS -->
+            </div>
+        </section>
+
+        <!-- Feature Section (PeiPei Style) -->
+        <section class="bg-red section-padding" style="position: relative; overflow: hidden;">
+            <div class="container" style="position: relative; z-index: 2;">
+                <div style="text-align: center; margin-bottom: 3rem;">
+                    <div class="circle-feature">
+                        <div class="circle-mask">
+                            <img src="assets/gallery_1.png" alt="Bartender">
+                        </div>
+                        <div class="circle-text-overlay">
+                            Bartender
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; max-width: 800px; margin: 0 auto;">
+                    <div
+                        style="font-size: 4rem; line-height: 1; font-family: var(--font-display); margin-bottom: 1rem;">
+                        “</div>
+                    <h3 class="display-text" style="font-size: 2.5rem; margin-bottom: 1rem;">
+                        An apple a day, keeps the doctor away.
+                    </h3>
+                    <p class="serif-caption" style="color: rgba(255,255,255,0.8);">
+                        一天一蘋果，醫師遠離我。
+                    </p>
+                    <div
+                        style="margin-top: 2rem; width: 100px; height: 1px; background: white; margin-left: auto; margin-right: auto;">
+                    </div>
+                    <p
+                        style="margin-top: 1rem; font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.1em;">
+                        MO BAR Bartender
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Latest Articles -->
+        <section class="container section-padding">
+            <div class="section-header" style="border-bottom: none;">
+                <h2 class="display-text" style="font-size: 4rem;">Latest <span
+                        class="text-italic text-red">Stories</span></h2>
+            </div>
+            <div id="article-grid" class="magazine-grid">
+                <!-- Injected by JS -->
+            </div>
+        </section>
     </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="map.html" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24">
+                <path
+                    d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+            </svg>
+            <span>Map</span>
+        </a>
+        <a href="articles.html" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24">
+                <path
+                    d="M12 10.9c-.61 0-1.1.49-1.1 1.1s.49 1.1 1.1 1.1c.61 0 1.1-.49 1.1-1.1s-.49-1.1-1.1-1.1zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm2.19 12.19L6 18l3.81-8.19L18 6l-3.81 8.19z" />
+            </svg>
+            <span>Explore</span>
+        </a>
+        <a href="#" class="nav-item" onclick="alert('Saved feature coming soon!'); return false;">
+            <svg class="nav-icon" viewBox="0 0 24 24">
+                <path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2zm0 15l-5-2.18L7 18V5h10v13z" />
+            </svg>
+            <span>Saved</span>
+        </a>
+        <a href="admin.html" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24">
+                <path
+                    d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+            </svg>
+            <span>Mine</span>
+        </a>
+    </nav>
 
     <footer>
         <div class="container">
-            <p>&copy; 2024 LiquidArts. All rights reserved.</p>
+            <img src="assets/logo_vertical.png" alt="Liquid Arts" class="logo-img"
+                style="height: 80px; width: auto; margin-bottom: 1rem;">
+            <p>&copy; 2024 Liquid Arts. All rights reserved.</p>
+            <p style="margin-top: 1rem; font-size: 0.8rem;"><a href="admin.html"
+                    style="color: #333; text-decoration: none;">Admin Access</a></p>
         </div>
     </footer>
 
     <script src="js/app.js"></script>
+    <script>
+        // Navbar Scroll Effect
+        window.addEventListener('scroll', () => {
+            const nav = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                nav.classList.add('scrolled');
+            } else {
+                nav.classList.remove('scrolled');
+            }
+        });
+    </script>
 </body>
 
 </html>

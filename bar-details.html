@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bar Details - Liquid Arts</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:wght@400;700&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container nav-content">
+            <a href="index.html" class="logo">
+                <img src="assets/logo_horizontal.png" alt="Liquid Arts" class="logo-img">
+            </a>
+            <div class="nav-links">
+                <a href="bars.html" class="nav-link">Bars</a>
+                <a href="map.html" class="nav-link">Map</a>
+                <a href="articles.html" class="nav-link">Articles</a>
+                <a href="about.html" class="nav-link">About</a>
+                <a href="admin.html" class="nav-link" style="color: var(--accent-color);">Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <div id="bar-detail-container">
+        <!-- Injected by JS -->
+        <div class="container" style="padding-top: 100px; text-align: center;">
+            <p>Loading...</p>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Liquid Arts. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.initBarDetails) window.initBarDetails();
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Events - Liquid Arts</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:wght@400;700&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container nav-content">
+            <a href="index.html" class="logo">
+                <img src="../assets/logo_horizontal.png" alt="Liquid Arts" class="logo-img">
+            </a>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link">Dashboard</a>
+                <a href="#" id="logout-btn" class="nav-link" style="color: var(--accent-color);">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container" style="margin-top: 4rem;">
+        <div class="section-header">
+            <h2 class="section-title">Manage Events</h2>
+            <button id="add-event-btn" class="btn">+ Add Event</button>
+        </div>
+
+        <div id="event-list" class="grid">
+            <!-- Injected by JS -->
+            <p>Loading events...</p>
+        </div>
+    </main>
+
+    <!-- Event Modal -->
+    <div id="event-modal" class="lightbox">
+        <div class="lightbox-content"
+            style="background: var(--bg-secondary); padding: 2rem; width: 600px; max-width: 90%; height: auto; max-height: 90vh; overflow-y: auto;">
+            <h3 style="margin-bottom: 1.5rem;">Add/Edit Event</h3>
+            <form id="event-form">
+                <input type="hidden" id="event-id">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                    <div>
+                        <label class="info-label">Title (ZH)</label>
+                        <input type="text" id="event-title-zh" class="search-input" style="width: 100%;" required>
+                    </div>
+                    <div>
+                        <label class="info-label">Title (EN)</label>
+                        <input type="text" id="event-title-en" class="search-input" style="width: 100%;">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                    <div>
+                        <label class="info-label">Start Time</label>
+                        <input type="datetime-local" id="event-start" class="search-input"
+                            style="width: 100%; color: white;" required>
+                    </div>
+                    <div>
+                        <label class="info-label">End Time</label>
+                        <input type="datetime-local" id="event-end" class="search-input"
+                            style="width: 100%; color: white;">
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                    <label class="info-label">Cover Image URL</label>
+                    <input type="url" id="event-image" class="search-input" style="width: 100%;">
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                    <label class="info-label">Booking URL</label>
+                    <input type="text" id="event-booking" class="search-input" style="width: 100%;">
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                    <label class="info-label">Description (ZH)</label>
+                    <textarea id="event-desc-zh" class="search-input" style="width: 100%; height: 80px;"></textarea>
+                </div>
+                <div style="margin-bottom: 1.5rem;">
+                    <label class="info-label">Description (EN)</label>
+                    <textarea id="event-desc-en" class="search-input" style="width: 100%; height: 80px;"></textarea>
+                </div>
+
+                <div style="display: flex; gap: 1rem;">
+                    <button type="submit" class="btn" style="flex: 1;">Save</button>
+                    <button type="button" id="close-event-btn" class="btn btn-secondary"
+                        style="flex: 1;">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../js/owner.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.initEventManager) window.initEventManager();
+        });
+    </script>
+</body>
+
+</html>

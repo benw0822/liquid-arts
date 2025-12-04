@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Owner Dashboard - Liquid Arts</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:wght@400;700&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .dashboard-card {
+            background: var(--bg-secondary);
+            padding: 2rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+            transition: var(--transition-normal);
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+
+        .dashboard-card:hover {
+            border-color: var(--accent-color);
+            transform: translateY(-5px);
+        }
+
+        .card-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container nav-content">
+            <a href="index.html" class="logo">
+                <img src="../assets/logo_horizontal.png" alt="Liquid Arts" class="logo-img">
+            </a>
+            <div class="nav-links">
+                <span id="user-name" style="color: var(--text-secondary);">Loading...</span>
+                <a href="#" id="logout-btn" class="nav-link" style="color: var(--accent-color);">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container" style="margin-top: 4rem;">
+        <div class="section-header">
+            <h2 class="section-title">Dashboard</h2>
+            <span id="bar-name" style="font-size: 1.2rem; color: var(--text-secondary);">Checking Bar Status...</span>
+        </div>
+
+        <div id="dashboard-actions" class="dashboard-grid" style="display: none;">
+            <a href="bar.html" class="dashboard-card">
+                <span class="card-icon">🏨</span>
+                <h3>Edit Bar Info</h3>
+                <p style="color: var(--text-secondary); margin-top: 0.5rem;">Update contact info & hours</p>
+            </a>
+            <a href="menus.html" class="dashboard-card">
+                <span class="card-icon">📜</span>
+                <h3>Manage Menus</h3>
+                <p style="color: var(--text-secondary); margin-top: 0.5rem;">Upload & edit menus</p>
+            </a>
+            <a href="events.html" class="dashboard-card">
+                <span class="card-icon">🎉</span>
+                <h3>Manage Events</h3>
+                <p style="color: var(--text-secondary); margin-top: 0.5rem;">Schedule upcoming events</p>
+            </a>
+        </div>
+
+        <div id="no-bar-msg" style="text-align: center; padding: 4rem; display: none;">
+            <h3 style="color: var(--text-secondary);">No Bar Linked</h3>
+            <p>Your account is not currently linked to any bar.</p>
+            <p>Please contact the administrator to assign a bar to your account.</p>
+        </div>
+    </main>
+
+    <script src="../js/owner.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.initDashboard) window.initDashboard();
+        });
+    </script>
+</body>
+
+</html>
