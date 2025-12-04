@@ -161,7 +161,10 @@ function imageHandler() {
                 loadingOverlay.style.display = 'none';
 
                 // 1. Insert Image
-                const range = quill.getSelection(true);
+                let range = quill.getSelection(true);
+                if (!range) {
+                    range = { index: quill.getLength() };
+                }
                 quill.insertEmbed(range.index, 'image', url);
 
                 // 2. Open Modal for the new image
@@ -209,6 +212,7 @@ function openCaptionModal(imageBlot) {
     modalContent.style.margin = '';
 
     // 2. Get Caption / Alt Text
+    const altText = imgNode.getAttribute('alt');
     if (altText) {
         captionInput.value = altText;
     } else {
