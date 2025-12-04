@@ -70,31 +70,37 @@ async function checkAuth() {
 
 // --- Quill Setup ---
 function initQuill() {
-    // Register Image Resize Module
-    Quill.register('modules/imageResize', ImageResize);
+    let modules = {
+        toolbar: {
+            container: [
+                [{ 'header': [1, 2, 3, false] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                ['blockquote', 'code-block'],
+                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                [{ 'color': [] }, { 'background': [] }],
+                ['link', 'image', 'video'],
+                ['clean']
+            ],
+            handlers: {
+                image: imageHandler
+            }
+        }
+    };
+
+    // Safely register Image Resize Module
+    if (typeof ImageResize !== 'undefined') {
+        Quill.register('modules/imageResize', ImageResize);
+        modules.imageResize = {
+            displaySize: true
+        };
+    } else {
+        console.warn('ImageResize module not loaded');
+    }
 
     quill = new Quill('#editor-container', {
         theme: 'snow',
         placeholder: 'Write your story here...',
-        modules: {
-            imageResize: {
-                displaySize: true
-            },
-            toolbar: {
-                container: [
-                    [{ 'header': [1, 2, 3, false] }],
-                    ['bold', 'italic', 'underline', 'strike'],
-                    ['blockquote', 'code-block'],
-                    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                    [{ 'color': [] }, { 'background': [] }],
-                    ['link', 'image', 'video'],
-                    ['clean']
-                ],
-                handlers: {
-                    image: imageHandler
-                }
-            }
-        }
+        modules: modules
     });
 
     // TOC Listener
@@ -102,7 +108,7 @@ function initQuill() {
         updateTOC();
     });
 
-    setupImageClickListeners();
+    setupImageSelectionListener();
 }
 
 // --- TOC Logic ---
@@ -195,15 +201,29 @@ function imageHandler() {
 // Global state for current editing image
 let currentImageBlot = null;
 
-// Listen for clicks on images to edit caption
-// We need to wait for Quill to be ready, so we add this in initQuill or after
-function setupImageClickListeners() {
+// Listen for selection changes to detect image clicks
+// This is more robust than click events when using resize modules (which add overlays)
+function setupImageSelectionListener() {
+    quill.on('selection-change', (range, oldRange, source) => {
+        if (range && source === 'user') {
+            // Check if selection is an image
+            // Quill treats images as length 1 usually, but sometimes just cursor position
+            // We check the leaf at the index
+            const [leaf] = quill.getLeaf(range.index);
+            if (leaf && leaf.domNode && leaf.domNode.tagName === 'IMG') {
+                // It's an image!
+                // We verify it's the only thing selected or just clicked
+                openCaptionModal(leaf);
+            }
+        }
+    });
+
+    // Fallback: Click listener for when selection doesn't change but user clicks again
     quill.root.addEventListener('click', (e) => {
+        // Check if target is image (if no overlay)
         if (e.target && e.target.tagName === 'IMG') {
             const blot = Quill.find(e.target);
-            if (blot) {
-                openCaptionModal(blot);
-            }
+            if (blot) openCaptionModal(blot);
         }
     });
 }
