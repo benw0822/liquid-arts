@@ -153,49 +153,57 @@ window.scrollToHeader = (id) => {
 
 // --- Image Handling ---
 function imageHandler() {
-    // Save current selection range
-    const range = quill.getSelection(true);
+    try {
+        // Save current selection range
+        const range = quill.getSelection(true);
 
-    const input = document.createElement('input');
-    input.setAttribute('type', 'file');
-    input.setAttribute('accept', 'image/*');
-    input.click();
+        const input = document.createElement('input');
+        input.setAttribute('type', 'file');
+        input.setAttribute('accept', 'image/*');
+        input.style.display = 'none'; // Hidden
 
-    input.onchange = async () => {
-        const file = input.files[0];
-        if (file) {
-            try {
-                loadingOverlay.style.display = 'flex'; // Show Loading
-                const url = await uploadImage(file, 'content');
-                loadingOverlay.style.display = 'none'; // Hide Loading
+        // Append to body to ensure click works in all browsers
+        document.body.appendChild(input);
 
-                // 1. Insert Image at the saved index
-                // We use the saved range to ensure it goes where the user intended
-                quill.insertEmbed(range.index, 'image', url);
+        input.click();
 
-                // 2. Force a layout update / wait for render
-                setTimeout(() => {
-                    // 3. Find the inserted image blot
-                    // The image should be at the original index
-                    const [leaf] = quill.getLeaf(range.index);
+        input.onchange = async () => {
+            const file = input.files[0];
+            if (file) {
+                try {
+                    loadingOverlay.style.display = 'flex'; // Show Loading
+                    const url = await uploadImage(file, 'content');
+                    loadingOverlay.style.display = 'none'; // Hide Loading
 
-                    if (leaf && leaf.domNode && leaf.domNode.tagName === 'IMG') {
-                        // 4. Scroll it into view so the user sees it
-                        leaf.domNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    // 1. Insert Image at the saved index
+                    quill.insertEmbed(range.index, 'image', url);
 
-                        // 5. Open Caption Modal
-                        openCaptionModal(leaf);
-                    } else {
-                        console.error('Could not find inserted image blot');
-                    }
-                }, 100); // Small delay to allow DOM to paint
+                    // 2. Force a layout update / wait for render
+                    setTimeout(() => {
+                        const [leaf] = quill.getLeaf(range.index);
+                        if (leaf && leaf.domNode && leaf.domNode.tagName === 'IMG') {
+                            leaf.domNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            openCaptionModal(leaf);
+                        }
+                    }, 100);
 
-            } catch (err) {
-                loadingOverlay.style.display = 'none';
-                alert('Image upload failed: ' + err.message);
+                } catch (err) {
+                    loadingOverlay.style.display = 'none';
+                    alert('Image upload failed: ' + err.message);
+                }
             }
-        }
-    };
+            // Clean up
+            document.body.removeChild(input);
+        };
+
+        // Clean up if cancel (optional, but hard to detect cancel event reliably across browsers)
+        // We remove on change, but if user cancels, input stays in DOM. 
+        // Better to remove on blur or timeout, but for now appending/removing is safer for the click.
+
+    } catch (e) {
+        console.error('Image Handler Error:', e);
+        alert('Error opening image selector');
+    }
 }
 
 // Global state for current editing image
