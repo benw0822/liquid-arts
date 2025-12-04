@@ -70,10 +70,16 @@ async function checkAuth() {
 
 // --- Quill Setup ---
 function initQuill() {
+    // Register Image Resize Module
+    Quill.register('modules/imageResize', ImageResize);
+
     quill = new Quill('#editor-container', {
         theme: 'snow',
         placeholder: 'Write your story here...',
         modules: {
+            imageResize: {
+                displaySize: true
+            },
             toolbar: {
                 container: [
                     [{ 'header': [1, 2, 3, false] }],
@@ -241,6 +247,7 @@ function openCaptionModal(imageBlot) {
 }
 
 const deleteCaptionBtn = document.getElementById('delete-caption-btn');
+const resizeBtn = document.getElementById('resize-btn');
 
 // Caption Modal Logic
 confirmCaptionBtn.addEventListener('click', () => {
@@ -253,6 +260,14 @@ confirmCaptionBtn.addEventListener('click', () => {
 
 skipCaptionBtn.addEventListener('click', () => {
     captionModal.classList.remove('active');
+    currentImageBlot = null;
+});
+
+resizeBtn.addEventListener('click', () => {
+    // Just close the modal so the user can interact with the resize handles
+    // The ImageResize module automatically adds handles when image is selected
+    captionModal.classList.remove('active');
+    // Keep currentImageBlot null so next click re-opens it properly if needed
     currentImageBlot = null;
 });
 
