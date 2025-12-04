@@ -80,10 +80,7 @@ function initQuill() {
                 [{ 'color': [] }, { 'background': [] }],
                 ['link', 'image', 'video'],
                 ['clean']
-            ],
-            handlers: {
-                image: imageHandler
-            }
+            ]
         }
     };
 
@@ -102,6 +99,10 @@ function initQuill() {
         placeholder: 'Write your story here...',
         modules: modules
     });
+
+    // Manually attach image handler to ensure it overrides default
+    const toolbar = quill.getModule('toolbar');
+    toolbar.addHandler('image', imageHandler);
 
     // TOC Listener
     quill.on('text-change', () => {
