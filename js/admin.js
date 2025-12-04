@@ -580,113 +580,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const articlesSection = document.getElementById('articles-section');
     const articleList = document.getElementById('article-list');
     const addArticleBtn = document.getElementById('add-article-btn');
-    const articleModal = document.getElementById('article-modal');
-    const closeArticleBtn = document.getElementById('close-article-btn');
-    const saveArticleBtn = document.getElementById('save-article-btn');
-    const articleBarSelect = document.getElementById('article-bar-select');
-
-    // Quill Init
-    let quill;
-    if (document.getElementById('editor-container')) {
-        quill = new Quill('#editor-container', {
-            theme: 'snow',
-            modules: {
-                toolbar: {
-                    container: [
-                        [{ 'header': [1, 2, 3, false] }],
-                        ['bold', 'italic', 'underline', 'strike'],
-                        ['blockquote', 'code-block'],
-                        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                        ['link', 'image'],
-                        ['clean']
-                    ],
-                    handlers: {
-                        image: imageHandler
-                    }
-                }
-            }
-        });
-    }
-
-    function imageHandler() {
-        const input = document.createElement('input');
-        input.setAttribute('type', 'file');
-        input.setAttribute('accept', 'image/*');
-        input.click();
-
-        input.onchange = async () => {
-            const file = input.files[0];
-            if (file) {
-                try {
-                    const url = await uploadImage(file, 'content');
-                    const range = quill.getSelection();
-                    quill.insertEmbed(range.index, 'image', url);
-                } catch (err) {
-                    alert('Image upload failed: ' + err.message);
-                }
-            }
-        };
-    }
-
-    async function uploadImage(file, folder = 'covers') {
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${folder}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-
-        const { data, error } = await supabase.storage
-            .from('articles')
-            .upload(fileName, file);
-
-        if (error) throw error;
-
-        const { data: { publicUrl } } = supabase.storage
-            .from('articles')
-            .getPublicUrl(fileName);
-
-        return publicUrl;
-    }
-
-    // Cover Image Preview
-    document.getElementById('article-cover-file').addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                document.getElementById('cover-preview').style.backgroundImage = `url('${e.target.result}')`;
-            };
-            reader.readAsDataURL(file);
-        }
-    });
 
     manageArticlesBtn.addEventListener('click', () => {
         // Hide others
+        barListSection.style.display = 'none';
         usersSection.style.display = 'none';
-        barListSection.style.display = 'none'; // Hide Bar List
 
-        // Show Articles
         articlesSection.style.display = 'block';
         document.querySelector('#dashboard-section h2').textContent = 'Manage Stories';
         loadArticles();
     });
 
-    // Update other toggles to hide articles
-    manageUsersBtn.addEventListener('click', () => {
-        articlesSection.style.display = 'none';
-        usersSection.style.display = 'block';
-        barListSection.style.display = 'none';
-        document.querySelector('#dashboard-section h2').textContent = 'Manage Users';
-        loadUsers();
-    });
-
-    // We need to fix the original "Manage Bars" toggle or add a button for it if we want to go back
-    // For now, let's assume clicking the "Manage Bars" header or a new button would do it.
-    // But wait, the original code didn't have a "Manage Bars" button, it was the default view.
-    // Let's make the "Manage Bars" title clickable or add a button? 
-    // Actually, let's just add a "Bars" button to the header in HTML? 
-    // Or better, let's make a "Bars" button in JS if I didn't add one in HTML.
-    // I didn't add a "Bars" button in HTML. Let's assume user reloads or we add a button.
-    // Wait, I can just add a listener to the "Manage Bars" text if I want, or just add a button now.
-    // Let's add a "Bars" button to the HTML in a separate step or just rely on the fact that I can't easily go back to Bars without it.
-    // Actually, I should add a "Bars" button. I'll do that in a sec. 
     // For now, let's implement the logic.
 
     async function loadArticles() {
@@ -790,80 +694,6 @@ document.addEventListener('DOMContentLoaded', () => {
         articleModal.classList.add('active');
     }
 
-    closeArticleBtn.addEventListener('click', () => {
-        articleModal.classList.remove('active');
-    });
-
-    saveArticleBtn.addEventListener('click', async () => {
-        const id = document.getElementById('article-id').value;
-        const title = document.getElementById('article-title').value;
-        let cover_image = document.getElementById('article-image').value;
-        const author_name = document.getElementById('article-author').value;
-        const excerpt = document.getElementById('article-excerpt').value;
-        const tagsStr = document.getElementById('article-tags').value;
-        const content = quill.root.innerHTML; // Get HTML from Quill
-
-        const coverFile = document.getElementById('article-cover-file').files[0];
-
-        // Get selected bars
-        const selectedBarIds = Array.from(articleBarSelect.querySelectorAll('input:checked')).map(cb => cb.value);
-
-        saveArticleBtn.textContent = 'Saving...';
-        saveArticleBtn.disabled = true;
-
-        try {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) throw new Error('Not logged in');
-
-            // Upload Cover if selected
-            if (coverFile) {
-                cover_image = await uploadImage(coverFile, 'covers');
-            }
-
-            const tags = tagsStr.split(',').map(t => t.trim()).filter(t => t);
-
-            let articleId = id;
-            const articleData = { title, cover_image, author_name, excerpt, content, tags };
-
-            if (id) {
-                const { error } = await supabase.from('articles').update(articleData).eq('id', id);
-                if (error) throw error;
-            } else {
-                // New Article: Add author_id
-                articleData.author_id = session.user.id;
-                const { data, error } = await supabase.from('articles').insert([articleData]).select();
-                if (error) throw error;
-                articleId = data[0].id;
-            }
-
-            // Update Associations
-            // 1. Delete old
-            if (id) {
-                await supabase.from('bar_articles').delete().eq('article_id', articleId);
-            }
-            // 2. Insert new
-            if (selectedBarIds.length > 0) {
-                const relations = selectedBarIds.map(barId => ({
-                    bar_id: barId,
-                    article_id: articleId
-                }));
-                const { error: relError } = await supabase.from('bar_articles').insert(relations);
-                if (relError) throw relError;
-            }
-
-            alert('Story Saved!');
-            articleModal.classList.remove('active');
-            loadArticles();
-
-        } catch (err) {
-            alert('Error: ' + err.message);
-        } finally {
-            saveArticleBtn.textContent = 'Save Story';
-            saveArticleBtn.disabled = false;
-        }
-    });
-
-    window.editArticle = (id) => openArticleModal(id);
 
     window.deleteArticle = async (id) => {
         if (!confirm('Are you sure?')) return;

@@ -81,6 +81,30 @@
                 }
             }
 
+            // Check Roles for Admin/Editor Access
+            const { data: dbUser } = await supabase
+                .from('users')
+                .select('roles')
+                .eq('id', user.id)
+                .single();
+
+            const roles = dbUser ? (dbUser.roles || []) : [];
+
+            if (roles.includes('admin') || roles.includes('editor') || roles.includes('barOwner')) {
+                const btnContainer = document.createElement('div');
+                btnContainer.style.marginTop = '1.5rem';
+
+                const link = document.createElement('a');
+                link.href = 'admin.html';
+                link.className = 'btn';
+                link.style.display = 'inline-block';
+                link.style.textDecoration = 'none';
+                link.textContent = roles.includes('admin') ? 'Admin Dashboard' : 'Manage Content';
+
+                btnContainer.appendChild(link);
+                document.getElementById('profile-name').parentNode.insertBefore(btnContainer, document.getElementById('profile-email').nextSibling);
+            }
+
             loading.style.display = 'none';
             profileContent.style.display = 'block';
 
