@@ -179,29 +179,38 @@ function imageHandler() {
 
                     quill.insertEmbed(range.index, 'image', url);
 
-                    // Find the image we just inserted by URL
-                    // This is safer than relying on index which might shift with modules
+                    // Find the image we just inserted by URL (Flexible check)
                     setTimeout(() => {
                         const imgs = quill.root.querySelectorAll('img');
                         let targetImg = null;
 
                         for (let img of imgs) {
-                            if (img.src === url) {
+                            // Check if src contains the uploaded URL (handles relative/absolute diffs)
+                            if (img.src.includes(url) || url.includes(img.src)) {
                                 targetImg = img;
                                 break;
                             }
                         }
 
                         if (targetImg) {
-                            const blot = Quill.find(targetImg);
+                            // Try to find blot from img directly
+                            let blot = Quill.find(targetImg);
+                            if (!blot) {
+                                // If resize module wraps it, try finding blot from wrapper
+                                // Usually resize module puts a wrapper around img
+                                blot = Quill.find(targetImg.parentElement);
+                            }
+
                             if (blot) {
                                 targetImg.scrollIntoView({ behavior: 'smooth', block: 'center' });
                                 openCaptionModal(blot);
+                            } else {
+                                console.warn('Found image DOM but no Blot');
                             }
                         } else {
                             console.error('Could not find inserted image by URL');
                         }
-                    }, 300); // Give it enough time to render
+                    }, 500); // Increased delay to 500ms
 
                 } catch (err) {
                     loadingOverlay.style.display = 'none';
@@ -225,8 +234,8 @@ function setupImageSelectionListener() {
             // 1. Check direct selection
             try {
                 const [leaf] = quill.getLeaf(range.index);
-                // Check if it's an image blot
-                if (leaf && leaf.statics.blotName === 'image') {
+                // Check if it's an image blot OR if it has an image inside (wrapper)
+                if (leaf && (leaf.statics.blotName === 'image' || leaf.domNode.querySelector('img'))) {
                     openCaptionModal(leaf);
                     return;
                 }
@@ -238,7 +247,7 @@ function setupImageSelectionListener() {
             if (range.index > 0) {
                 try {
                     const [prevLeaf] = quill.getLeaf(range.index - 1);
-                    if (prevLeaf && prevLeaf.statics.blotName === 'image') {
+                    if (prevLeaf && (prevLeaf.statics.blotName === 'image' || prevLeaf.domNode.querySelector('img'))) {
                         openCaptionModal(prevLeaf);
                     }
                 } catch (e) {
@@ -248,27 +257,34 @@ function setupImageSelectionListener() {
         }
     });
 
-    // Fallback click listener for the editor container
-    // This catches clicks that might not trigger selection-change if selection remains same
+    // Fallback click listener
     const editorContainer = document.getElementById('editor-container');
     editorContainer.addEventListener('click', (e) => {
         // Find the blot from the clicked target
-        const blot = Quill.find(e.target);
-        if (blot && blot.statics.blotName === 'image') {
+        let blot = Quill.find(e.target);
+        if (blot && (blot.statics.blotName === 'image' || e.target.tagName === 'IMG')) {
             openCaptionModal(blot);
-        } else if (e.target.tagName === 'IMG') {
-            // Fallback for raw IMG tags
-            const blot = Quill.find(e.target);
-            if (blot) openCaptionModal(blot);
         }
     });
 }
 
 function openCaptionModal(imageBlot) {
     currentImageBlot = imageBlot;
+
+    // Robustly find the IMG node
+    let imgNode = imageBlot.domNode;
+    if (imgNode.tagName !== 'IMG') {
+        imgNode = imgNode.querySelector('img');
+    }
+
+    if (!imgNode) {
+        console.error('No IMG node found in blot');
+        return;
+    }
+
     const index = quill.getIndex(imageBlot);
 
-    // 1. Reset Modal Styles (CSS handles positioning now)
+    // 1. Reset Modal Styles
     const modalContent = captionModal.querySelector('.modal-content');
     modalContent.style.position = '';
     modalContent.style.top = '';
@@ -277,8 +293,6 @@ function openCaptionModal(imageBlot) {
     modalContent.style.margin = '';
 
     // 2. Get Caption / Alt Text
-    // Priority: Alt Text > Visible Caption > Empty
-    const imgNode = imageBlot.domNode;
     const altText = imgNode.getAttribute('alt');
 
     if (altText) {
