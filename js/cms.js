@@ -181,13 +181,13 @@ function imageHandler() {
 
                     setTimeout(() => {
                         const [leaf] = quill.getLeaf(range.index);
-                        if (leaf && leaf.domNode && leaf.domNode.tagName === 'IMG') {
+                        if (leaf && leaf.statics.blotName === 'image') {
                             leaf.domNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
                             openCaptionModal(leaf);
                         } else {
                             // Try next index in case of shift
                             const [nextLeaf] = quill.getLeaf(range.index + 1);
-                            if (nextLeaf && nextLeaf.domNode && nextLeaf.domNode.tagName === 'IMG') {
+                            if (nextLeaf && nextLeaf.statics.blotName === 'image') {
                                 nextLeaf.domNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
                                 openCaptionModal(nextLeaf);
                             }
@@ -213,26 +213,42 @@ let currentImageBlot = null;
 function setupImageSelectionListener() {
     quill.on('selection-change', (range, oldRange, source) => {
         if (range && source === 'user') {
-            // 1. Check direct selection (image selected)
-            const [leaf] = quill.getLeaf(range.index);
-            if (leaf && leaf.domNode && leaf.domNode.tagName === 'IMG') {
-                openCaptionModal(leaf);
-                return;
+            // 1. Check direct selection
+            try {
+                const [leaf] = quill.getLeaf(range.index);
+                // Check if it's an image blot
+                if (leaf && leaf.statics.blotName === 'image') {
+                    openCaptionModal(leaf);
+                    return;
+                }
+            } catch (e) {
+                console.warn('Selection check failed', e);
             }
 
-            // 2. Check if cursor is just after an image (common when clicking right side of image)
+            // 2. Check if cursor is just after an image
             if (range.index > 0) {
-                const [prevLeaf] = quill.getLeaf(range.index - 1);
-                if (prevLeaf && prevLeaf.domNode && prevLeaf.domNode.tagName === 'IMG') {
-                    openCaptionModal(prevLeaf);
+                try {
+                    const [prevLeaf] = quill.getLeaf(range.index - 1);
+                    if (prevLeaf && prevLeaf.statics.blotName === 'image') {
+                        openCaptionModal(prevLeaf);
+                    }
+                } catch (e) {
+                    console.warn('Prev selection check failed', e);
                 }
             }
         }
     });
 
-    // Fallback click listener
-    quill.root.addEventListener('click', (e) => {
-        if (e.target && e.target.tagName === 'IMG') {
+    // Fallback click listener for the editor container
+    // This catches clicks that might not trigger selection-change if selection remains same
+    const editorContainer = document.getElementById('editor-container');
+    editorContainer.addEventListener('click', (e) => {
+        // Find the blot from the clicked target
+        const blot = Quill.find(e.target);
+        if (blot && blot.statics.blotName === 'image') {
+            openCaptionModal(blot);
+        } else if (e.target.tagName === 'IMG') {
+            // Fallback for raw IMG tags
             const blot = Quill.find(e.target);
             if (blot) openCaptionModal(blot);
         }
