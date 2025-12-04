@@ -240,6 +240,8 @@ function openCaptionModal(imageBlot) {
     captionModal.classList.add('active');
 }
 
+const deleteCaptionBtn = document.getElementById('delete-caption-btn');
+
 // Caption Modal Logic
 confirmCaptionBtn.addEventListener('click', () => {
     if (currentImageBlot) {
@@ -250,6 +252,36 @@ confirmCaptionBtn.addEventListener('click', () => {
 });
 
 skipCaptionBtn.addEventListener('click', () => {
+    captionModal.classList.remove('active');
+    currentImageBlot = null;
+});
+
+deleteCaptionBtn.addEventListener('click', () => {
+    if (currentImageBlot) {
+        if (confirm('Are you sure you want to delete this image?')) {
+            const index = quill.getIndex(currentImageBlot);
+            const nextIndex = index + 1;
+
+            // Check for existing caption to delete it too
+            let existingCaptionLine = null;
+            if (nextIndex < quill.getLength()) {
+                const [line] = quill.getLine(nextIndex);
+                const formats = line.formats();
+                if (formats.align === 'center' && formats.italic) {
+                    existingCaptionLine = line;
+                }
+            }
+
+            // Delete Caption first if exists (to avoid index shift issues, though Quill handles this well usually)
+            if (existingCaptionLine) {
+                const lineIndex = quill.getIndex(existingCaptionLine);
+                quill.deleteText(lineIndex, existingCaptionLine.length());
+            }
+
+            // Delete Image
+            quill.deleteText(index, 1);
+        }
+    }
     captionModal.classList.remove('active');
     currentImageBlot = null;
 });

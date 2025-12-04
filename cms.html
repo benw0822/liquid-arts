@@ -290,6 +290,17 @@
             color: #000;
         }
 
+        .modal-btn-danger {
+            background: transparent;
+            color: #ff3b30;
+            margin-right: auto;
+            /* Push to left */
+        }
+
+        .modal-btn-danger:hover {
+            background: #fff2f2;
+        }
+
         /* TOC Styles */
         .toc-item {
             padding: 5px 0;
@@ -333,6 +344,7 @@
             <div style="font-size: 0.85rem; font-weight: 600; color: #333; margin-bottom: 2px;">Image Caption</div>
             <input type="text" id="caption-input" placeholder="Enter description for SEO..." autocomplete="off">
             <div class="modal-btn-group">
+                <button id="delete-caption-btn" class="modal-btn modal-btn-danger">Delete</button>
                 <button id="skip-caption-btn" class="modal-btn modal-btn-secondary">Skip</button>
                 <button id="confirm-caption-btn" class="modal-btn modal-btn-primary">Save</button>
             </div>
