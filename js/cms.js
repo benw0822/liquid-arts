@@ -206,36 +206,17 @@ function openCaptionModal(imageBlot) {
     currentImageBlot = imageBlot;
     const index = quill.getIndex(imageBlot);
 
-    // 1. Position Modal over Image
-    const imgNode = imageBlot.domNode;
+    // 1. Reset Modal Styles (CSS handles positioning now)
     const modalContent = captionModal.querySelector('.modal-content');
-
-    // Reset styles to ensure absolute positioning works
-    modalContent.style.position = 'absolute';
-    modalContent.style.margin = '0';
-
-    const updatePosition = () => {
-        const rect = imgNode.getBoundingClientRect();
-
-        // Calculate center of image
-        const top = rect.top + (rect.height / 2);
-        const left = rect.left + (rect.width / 2);
-
-        modalContent.style.top = `${top}px`;
-        modalContent.style.left = `${left}px`;
-        modalContent.style.transform = 'translate(-50%, -50%)';
-    };
-
-    if (imgNode.complete) {
-        updatePosition();
-    } else {
-        imgNode.onload = updatePosition;
-        // Fallback in case onload doesn't fire (cached or error)
-        setTimeout(updatePosition, 100);
-    }
+    modalContent.style.position = '';
+    modalContent.style.top = '';
+    modalContent.style.left = '';
+    modalContent.style.transform = '';
+    modalContent.style.margin = '';
 
     // 2. Get Caption / Alt Text
     // Priority: Alt Text > Visible Caption > Empty
+    const imgNode = imageBlot.domNode;
     const altText = imgNode.getAttribute('alt');
 
     if (altText) {
