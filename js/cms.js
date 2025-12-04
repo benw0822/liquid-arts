@@ -179,20 +179,29 @@ function imageHandler() {
 
                     quill.insertEmbed(range.index, 'image', url);
 
+                    // Find the image we just inserted by URL
+                    // This is safer than relying on index which might shift with modules
                     setTimeout(() => {
-                        const [leaf] = quill.getLeaf(range.index);
-                        if (leaf && leaf.statics.blotName === 'image') {
-                            leaf.domNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                            openCaptionModal(leaf);
-                        } else {
-                            // Try next index in case of shift
-                            const [nextLeaf] = quill.getLeaf(range.index + 1);
-                            if (nextLeaf && nextLeaf.statics.blotName === 'image') {
-                                nextLeaf.domNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                openCaptionModal(nextLeaf);
+                        const imgs = quill.root.querySelectorAll('img');
+                        let targetImg = null;
+
+                        for (let img of imgs) {
+                            if (img.src === url) {
+                                targetImg = img;
+                                break;
                             }
                         }
-                    }, 200); // Increased delay slightly
+
+                        if (targetImg) {
+                            const blot = Quill.find(targetImg);
+                            if (blot) {
+                                targetImg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                openCaptionModal(blot);
+                            }
+                        } else {
+                            console.error('Could not find inserted image by URL');
+                        }
+                    }, 300); // Give it enough time to render
 
                 } catch (err) {
                     loadingOverlay.style.display = 'none';
