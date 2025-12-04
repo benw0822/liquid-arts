@@ -179,38 +179,10 @@ function imageHandler() {
 
                     quill.insertEmbed(range.index, 'image', url);
 
-                    // Find the image we just inserted by URL (Flexible check)
+                    // Force selection of the new image to trigger the modal
                     setTimeout(() => {
-                        const imgs = quill.root.querySelectorAll('img');
-                        let targetImg = null;
-
-                        for (let img of imgs) {
-                            // Check if src contains the uploaded URL (handles relative/absolute diffs)
-                            if (img.src.includes(url) || url.includes(img.src)) {
-                                targetImg = img;
-                                break;
-                            }
-                        }
-
-                        if (targetImg) {
-                            // Try to find blot from img directly
-                            let blot = Quill.find(targetImg);
-                            if (!blot) {
-                                // If resize module wraps it, try finding blot from wrapper
-                                // Usually resize module puts a wrapper around img
-                                blot = Quill.find(targetImg.parentElement);
-                            }
-
-                            if (blot) {
-                                targetImg.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                openCaptionModal(blot);
-                            } else {
-                                console.warn('Found image DOM but no Blot');
-                            }
-                        } else {
-                            console.error('Could not find inserted image by URL');
-                        }
-                    }, 500); // Increased delay to 500ms
+                        quill.setSelection(range.index, 1);
+                    }, 100);
 
                 } catch (err) {
                     loadingOverlay.style.display = 'none';
@@ -230,40 +202,55 @@ let currentImageBlot = null;
 
 function setupImageSelectionListener() {
     quill.on('selection-change', (range, oldRange, source) => {
-        if (range && source === 'user') {
-            // 1. Check direct selection
-            try {
+        if (range) {
+            // Check if an image is selected using Quill's format check
+            const formats = quill.getFormat(range);
+
+            if (formats.image) {
+                // An image is selected!
+                // We need to find the actual blot to position the modal
                 const [leaf] = quill.getLeaf(range.index);
-                // Check if it's an image blot OR if it has an image inside (wrapper)
-                if (leaf && (leaf.statics.blotName === 'image' || leaf.domNode.querySelector('img'))) {
+                if (leaf) {
                     openCaptionModal(leaf);
-                    return;
                 }
-            } catch (e) {
-                console.warn('Selection check failed', e);
+                return;
             }
 
-            // 2. Check if cursor is just after an image
+            // Also check if we clicked an image but it's not "formatted" as one (rare but possible with modules)
+            // or if the cursor is right after it
             if (range.index > 0) {
-                try {
-                    const [prevLeaf] = quill.getLeaf(range.index - 1);
-                    if (prevLeaf && (prevLeaf.statics.blotName === 'image' || prevLeaf.domNode.querySelector('img'))) {
-                        openCaptionModal(prevLeaf);
-                    }
-                } catch (e) {
-                    console.warn('Prev selection check failed', e);
+                const [prevLeaf] = quill.getLeaf(range.index - 1);
+                if (prevLeaf && (prevLeaf.statics.blotName === 'image' || prevLeaf.domNode.tagName === 'IMG')) {
+                    openCaptionModal(prevLeaf);
                 }
             }
         }
     });
 
-    // Fallback click listener
+    // Fallback: Global click listener to catch clicks on the resize overlay
+    // The resize module often puts a div overlay on top of the image
     const editorContainer = document.getElementById('editor-container');
     editorContainer.addEventListener('click', (e) => {
-        // Find the blot from the clicked target
-        let blot = Quill.find(e.target);
-        if (blot && (blot.statics.blotName === 'image' || e.target.tagName === 'IMG')) {
-            openCaptionModal(blot);
+        // Check if we clicked an image or an overlay
+        const target = e.target;
+
+        // 1. Direct Image Click
+        if (target.tagName === 'IMG') {
+            const blot = Quill.find(target);
+            if (blot) openCaptionModal(blot);
+            return;
+        }
+
+        // 2. Resize Overlay Click (usually has a specific class or is a sibling/child)
+        // We try to find the nearest image sibling or parent
+        // This is a heuristic: if we clicked something inside the editor that isn't text, check for image context
+        if (target.tagName === 'DIV' || target.tagName === 'SPAN') {
+            // Check if this element is part of the resize UI (often has handles)
+            // Or just try to find the blot associated with it
+            const blot = Quill.find(target);
+            if (blot && blot.statics.blotName === 'image') {
+                openCaptionModal(blot);
+            }
         }
     });
 }
