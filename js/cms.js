@@ -380,6 +380,13 @@ function instagramHandler() {
     }
 }
 
+// --- TOC Handler ---
+function tocHandler() {
+    const range = quill.getSelection(true);
+    quill.insertEmbed(range.index, 'toc', true);
+    quill.setSelection(range.index + 1);
+}
+
 
 
 
