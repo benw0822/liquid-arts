@@ -56,6 +56,19 @@
         document.addEventListener('DOMContentLoaded', async () => {
             // Use the global client exposed by app.js
             const supabase = window.supabaseClient;
+
+            // 1. Setup Logout immediately (so it works even if other things fail)
+            const logoutBtn = document.getElementById('logout-btn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    console.log('Logging out...');
+                    const { error } = await supabase.auth.signOut();
+                    if (error) console.error('Logout error:', error);
+                    window.location.href = 'index.html';
+                });
+            }
+
             const { data: { session } } = await supabase.auth.getSession();
 
             if (!session) {
@@ -64,6 +77,8 @@
             }
 
             const user = session.user;
+            console.log('Current User:', user);
+
             const profileContent = document.getElementById('profile-content');
             const loading = document.getElementById('profile-loading');
 
@@ -82,6 +97,7 @@
             }
 
             // Check Roles for Admin/Editor Access
+            console.log('Fetching roles for user:', user.id);
             const { data: dbUser, error: roleError } = await supabase
                 .from('users')
                 .select('roles')
@@ -89,10 +105,13 @@
                 .single();
 
             if (roleError) {
-                console.warn('Error fetching user roles:', roleError);
+                console.error('Error fetching user roles:', roleError);
             }
 
+            console.log('DB User Result:', dbUser);
+
             const roles = dbUser ? (dbUser.roles || []) : [];
+            console.log('User Roles:', roles);
 
             if (roles.includes('admin') || roles.includes('editor') || roles.includes('barOwner')) {
                 const btnContainer = document.createElement('div');
@@ -107,6 +126,8 @@
 
                 btnContainer.appendChild(link);
                 document.getElementById('profile-name').parentNode.insertBefore(btnContainer, document.getElementById('profile-email').nextSibling);
+            } else {
+                console.log('User has no special roles, button not shown.');
             }
 
             // --- Fetch My Stories ---
@@ -115,6 +136,8 @@
                 .select('*')
                 .eq('author_id', user.id)
                 .order('created_at', { ascending: false });
+
+            if (articlesError) console.error('Error fetching articles:', articlesError);
 
             if (myArticles && myArticles.length > 0) {
                 const storiesContainer = document.createElement('div');
@@ -166,13 +189,6 @@
 
             loading.style.display = 'none';
             profileContent.style.display = 'block';
-
-            // Logout Logic
-            document.getElementById('logout-btn').addEventListener('click', async (e) => {
-                e.preventDefault();
-                await supabase.auth.signOut();
-                window.location.href = 'index.html';
-            });
         });
     </script>
 </body>
