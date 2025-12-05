@@ -300,6 +300,46 @@ document.addEventListener('DOMContentLoaded', () => {
                 ${article.content || '<p>No content.</p>'}
             </div>
         `;
+
+        // --- TOC Generation ---
+        // Find the placeholder inserted by Quill (class: toc-embed-container)
+        const tocPlaceholder = container.querySelector('.toc-embed-container');
+        if (tocPlaceholder) {
+            const headers = container.querySelectorAll('.article-body h2, .article-body h3');
+
+            if (headers.length > 0) {
+                const tocDiv = document.createElement('div');
+                tocDiv.className = 'article-toc';
+                tocDiv.innerHTML = '<h3>Table of Contents</h3><ul></ul>';
+                const ul = tocDiv.querySelector('ul');
+
+                headers.forEach((header, index) => {
+                    // Ensure ID for linking
+                    if (!header.id) header.id = `section-${index}`;
+
+                    const li = document.createElement('li');
+                    li.className = `toc-item-${header.tagName.toLowerCase()}`;
+
+                    const a = document.createElement('a');
+                    a.href = `#${header.id}`;
+                    a.textContent = header.textContent;
+
+                    // Smooth scroll
+                    a.onclick = (e) => {
+                        e.preventDefault();
+                        header.scrollIntoView({ behavior: 'smooth' });
+                    };
+
+                    li.appendChild(a);
+                    ul.appendChild(li);
+                });
+
+                tocPlaceholder.replaceWith(tocDiv);
+            } else {
+                // No headers found, remove placeholder
+                tocPlaceholder.remove();
+            }
+        }
     };
 
     // --- Helper Functions ---
