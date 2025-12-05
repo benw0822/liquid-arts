@@ -196,14 +196,16 @@ function initQuill() {
     let modules = {
         toolbar: {
             container: [
-                [{ 'header': [1, 2, 3, false] }],
-                ['bold', 'italic', 'underline', 'strike'],
-                ['blockquote', 'code-block'],
-                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                [{ 'align': '' }, { 'align': 'center' }, { 'align': 'right' }, { 'align': 'justify' }],
-                [{ 'color': [] }, { 'background': [] }],
-                ['link', 'image', 'instagram', 'toc'], // Base buttons
-                ['clean']
+                [
+                    { 'header': [1, 2, 3, false] },
+                    'bold', 'italic', 'underline', 'strike',
+                    'blockquote', 'code-block',
+                    { 'list': 'ordered' }, { 'list': 'bullet' },
+                    { 'align': '' }, { 'align': 'center' }, { 'align': 'right' }, { 'align': 'justify' },
+                    { 'color': [] }, { 'background': [] },
+                    'link', 'image', 'instagram', 'toc',
+                    'clean'
+                ]
             ],
             handlers: {
                 image: imageHandler,
