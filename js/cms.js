@@ -42,6 +42,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     await checkAuth();
     initQuill();
 
+    // Auto-resize Title Textarea
+    titleInput.addEventListener('input', function () {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+    });
+    // Trigger once on load (after value is set)
+    setTimeout(() => {
+        titleInput.style.height = 'auto';
+        titleInput.style.height = (titleInput.scrollHeight) + 'px';
+    }, 500);
+
     // Check URL params for ID
     const urlParams = new URLSearchParams(window.location.search);
     currentArticleId = urlParams.get('id');
