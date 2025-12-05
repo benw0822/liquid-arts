@@ -76,10 +76,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Toggle Label Logic
+    // Toggle Label Logic
     publishToggle.addEventListener('change', () => {
-        const label = publishToggle.parentElement.querySelector('.label-text');
-        label.textContent = publishToggle.checked ? 'Published' : 'Draft';
-        label.style.color = publishToggle.checked ? '#4cd964' : '#666';
+        const label = publishToggle.parentElement.nextElementSibling;
+        if (label) {
+            label.textContent = publishToggle.checked ? 'Published' : 'Draft';
+            label.style.color = publishToggle.checked ? '#4cd964' : '#666';
+        }
     });
 });
 
@@ -344,20 +347,7 @@ function instagramHandler() {
 }
 
 
-// --- Video Handler & Modal ---
-videoCancelBtn.addEventListener('click', () => {
-    videoModal.style.display = 'none';
-});
 
-videoInsertBtn.addEventListener('click', () => {
-    const url = videoUrlInput.value.trim();
-    if (url) {
-        const index = parseInt(quill.dataset.rangeIndex || 0);
-        quill.insertEmbed(index, 'video', url);
-        quill.setSelection(index + 1);
-    }
-    videoModal.style.display = 'none';
-});
 
 // --- Image Cleanup Helpers ---
 function getPathFromUrl(url) {
@@ -558,7 +548,6 @@ async function loadArticle(id) {
     const debugPanel = document.getElementById('debug-panel');
     const debugContent = document.getElementById('debug-content');
     if (debugPanel && debugContent) {
-        debugPanel.style.display = 'block';
         debugContent.innerHTML = `Loading article ID: ${id}...`;
     }
 
@@ -589,13 +578,18 @@ async function loadArticle(id) {
         }
 
         // Set Status
+        const statusLabel = publishToggle.parentElement.nextElementSibling;
         if (article.status === 'published') {
             publishToggle.checked = true;
-            publishToggle.parentElement.querySelector('.label-text').textContent = 'Published';
-            publishToggle.parentElement.querySelector('.label-text').style.color = '#4cd964';
+            if (statusLabel) {
+                statusLabel.textContent = 'Published';
+                statusLabel.style.color = '#4cd964';
+            }
         } else {
             publishToggle.checked = false;
-            publishToggle.parentElement.querySelector('.label-text').textContent = 'Draft';
+            if (statusLabel) {
+                statusLabel.textContent = 'Draft';
+            }
         }
 
         console.log('Loaded article:', article);
@@ -613,34 +607,35 @@ async function loadArticle(id) {
         } else {
             quill.setText('');
         }
+
+        // Load Related Bars
+        const { data: related } = await supabase.from('article_bars').select('bar_id').eq('article_id', id);
+        if (related) {
+            selectedBarIds = new Set(related.map(r => r.bar_id));
+            renderSelectedBars();
+            renderAvailableBars(); // Re-render available to exclude selected
+        }
+
+        // Track Initial Images
+        initialImagePaths = [];
+        if (article.cover_image) {
+            const path = getPathFromUrl(article.cover_image);
+            if (path) initialImagePaths.push(path);
+        }
+
+        // Parse content for images
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = article.content || '';
+        tempDiv.querySelectorAll('img').forEach(img => {
+            const path = getPathFromUrl(img.src);
+            if (path) initialImagePaths.push(path);
+        });
+
     } catch (err) {
         console.error('Critical error in loadArticle:', err);
         if (debugContent) debugContent.innerHTML += `<br><strong style="color:red">Critical Error:</strong> ${err.message}`;
         alert('Critical error loading article: ' + err.message);
     }
-
-    // Load Related Bars
-    const { data: related } = await supabase.from('article_bars').select('bar_id').eq('article_id', id);
-    if (related) {
-        selectedBarIds = new Set(related.map(r => r.bar_id));
-        renderSelectedBars();
-        renderAvailableBars(); // Re-render available to exclude selected
-    }
-
-    // Track Initial Images
-    initialImagePaths = [];
-    if (article.cover_image) {
-        const path = getPathFromUrl(article.cover_image);
-        if (path) initialImagePaths.push(path);
-    }
-
-    // Parse content for images
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = article.content || '';
-    tempDiv.querySelectorAll('img').forEach(img => {
-        const path = getPathFromUrl(img.src);
-        if (path) initialImagePaths.push(path);
-    });
 }
 
 // --- Saving ---
