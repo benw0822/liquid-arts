@@ -117,6 +117,12 @@ h6 {
     padding: var(--spacing-sm) 0;
     z-index: 1000;
     transition: background 0.3s ease;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    /* Added border */
+    background: var(--bg-glass);
+    /* Ensure background is not transparent if border is there? */
+    backdrop-filter: blur(10px);
+    /* Ensure readability */
 }
 
 .navbar.scrolled {
