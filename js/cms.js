@@ -586,8 +586,15 @@ async function loadArticle(id) {
     console.log('Setting content:', article.content);
 
     if (article.content) {
-        // Use clipboard API for better HTML handling
-        quill.clipboard.dangerouslyPasteHTML(0, article.content);
+        // Small delay to ensure editor is ready
+        setTimeout(() => {
+            try {
+                quill.clipboard.dangerouslyPasteHTML(0, article.content);
+            } catch (e) {
+                console.warn('dangerouslyPasteHTML failed, falling back to innerHTML', e);
+                quill.root.innerHTML = article.content;
+            }
+        }, 100);
     } else {
         quill.setText('');
     }
