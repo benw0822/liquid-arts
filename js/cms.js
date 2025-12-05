@@ -164,7 +164,6 @@ function initQuill() {
                 [{ 'header': [1, 2, 3, false] }],
                 ['bold', 'italic', 'underline', 'strike'],
                 ['blockquote', 'code-block'],
-                ['blockquote', 'code-block'],
                 [{ 'list': 'ordered' }, { 'list': 'bullet' }],
                 [{ 'align': '' }, { 'align': 'center' }, { 'align': 'right' }, { 'align': 'justify' }], // Expanded Alignment
                 [{ 'color': [] }, { 'background': [] }],
@@ -333,8 +332,6 @@ function instagramHandler() {
         quill.setSelection(range.index + 1);
     }
 }
-
-    }
 }
 
 // --- Video Handler & Modal ---
