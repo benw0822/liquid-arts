@@ -26,12 +26,6 @@ const barResultsContainer = document.getElementById('bar-results-container');
 const barSearchInput = document.getElementById('bar-search');
 const selectedCountLabel = document.getElementById('selected-count');
 
-// Video Modal Elements
-const videoModal = document.getElementById('video-modal');
-const videoUrlInput = document.getElementById('video-url-input');
-const videoCancelBtn = document.getElementById('video-cancel-btn');
-const videoInsertBtn = document.getElementById('video-insert-btn');
-
 let quill;
 let currentArticleId = null;
 let currentCoverUrl = '';
@@ -42,52 +36,6 @@ let initialImagePaths = []; // Track images present at load time
 // Related Bars State
 let allBars = [];
 let selectedBarIds = new Set();
-
-let allBars = [];
-let selectedBarIds = new Set();
-
-// --- Video Handler (Global) ---
-function videoHandler() {
-    console.log('Video handler triggered');
-
-    // Re-query elements to be safe
-    const modal = document.getElementById('video-modal');
-    const input = document.getElementById('video-url-input');
-
-    if (!modal || !input) {
-        console.error('Video modal elements not found!');
-        return;
-    }
-
-    // Save current selection range to restore later
-    const range = quill.getSelection();
-    if (range) {
-        quill.dataset.rangeIndex = range.index;
-    }
-
-    input.value = '';
-    modal.style.display = 'flex';
-    input.focus();
-}
-
-// Video Modal Listeners
-if (videoCancelBtn) {
-    videoCancelBtn.addEventListener('click', () => {
-        videoModal.style.display = 'none';
-    });
-}
-
-if (videoInsertBtn) {
-    videoInsertBtn.addEventListener('click', () => {
-        const url = videoUrlInput.value.trim();
-        if (url) {
-            const index = parseInt(quill.dataset.rangeIndex || 0);
-            quill.insertEmbed(index, 'video', url);
-            quill.setSelection(index + 1);
-        }
-        videoModal.style.display = 'none';
-    });
-}
 
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', async () => {
@@ -230,13 +178,12 @@ function initQuill() {
                 [{ 'list': 'ordered' }, { 'list': 'bullet' }],
                 [{ 'align': '' }, { 'align': 'center' }, { 'align': 'right' }, { 'align': 'justify' }], // Expanded Alignment
                 [{ 'color': [] }, { 'background': [] }],
-                ['link', 'image', 'video', 'instagram'], // Add Instagram button
+                ['link', 'image', 'instagram'], // Add Instagram button
                 ['clean']
             ],
             handlers: {
                 image: imageHandler,
-                instagram: instagramHandler,
-                video: videoHandler
+                instagram: instagramHandler
             }
         },
         imageResize: {
@@ -255,21 +202,6 @@ function initQuill() {
     if (instagramBtn) {
         instagramBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>';
         instagramBtn.style.padding = '5px';
-    }
-
-    // --- Add YouTube Icon (Video) ---
-    const videoBtn = document.querySelector('.ql-video');
-    if (videoBtn) {
-        videoBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>';
-        videoBtn.style.padding = '5px';
-        // videoBtn.style.color = '#FF0000'; // Removed for monochrome style
-
-        // Manual override to ensure click works
-        videoBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            videoHandler();
-        });
     }
 
     // --- Caption Click-to-Edit Logic ---
