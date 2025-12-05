@@ -156,7 +156,6 @@ function initQuill() {
         }
     });
 }
-}
 
 // --- TOC Logic ---
 function updateTOC() {
