@@ -189,7 +189,13 @@ TOCEmbed.className = 'toc-embed-container';
 Quill.register(TOCEmbed, true);
 Quill.register(InstagramEmbed, true);
 
-if (window.QuillBetterTable) {
+Quill.register(TOCEmbed, true);
+Quill.register(InstagramEmbed, true);
+
+// Handle UMD export naming (quillBetterTable vs QuillBetterTable)
+const QuillBetterTable = window.QuillBetterTable || window.quillBetterTable;
+
+if (QuillBetterTable) {
     console.log('QuillBetterTable loaded successfully');
     Quill.register({
         'modules/better-table': QuillBetterTable
