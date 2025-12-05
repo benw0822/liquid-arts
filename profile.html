@@ -82,11 +82,15 @@
             }
 
             // Check Roles for Admin/Editor Access
-            const { data: dbUser } = await supabase
+            const { data: dbUser, error: roleError } = await supabase
                 .from('users')
                 .select('roles')
                 .eq('id', user.id)
                 .single();
+
+            if (roleError) {
+                console.warn('Error fetching user roles:', roleError);
+            }
 
             const roles = dbUser ? (dbUser.roles || []) : [];
 
@@ -103,6 +107,61 @@
 
                 btnContainer.appendChild(link);
                 document.getElementById('profile-name').parentNode.insertBefore(btnContainer, document.getElementById('profile-email').nextSibling);
+            }
+
+            // --- Fetch My Stories ---
+            const { data: myArticles, error: articlesError } = await supabase
+                .from('articles')
+                .select('*')
+                .eq('author_id', user.id)
+                .order('created_at', { ascending: false });
+
+            if (myArticles && myArticles.length > 0) {
+                const storiesContainer = document.createElement('div');
+                storiesContainer.style.textAlign = 'left';
+                storiesContainer.style.marginTop = '2rem';
+                storiesContainer.style.borderTop = '1px solid var(--border-color)';
+                storiesContainer.style.paddingTop = '2rem';
+
+                storiesContainer.innerHTML = `<h4 style="margin-bottom: 1rem;">My Stories</h4>`;
+
+                const list = document.createElement('div');
+                list.style.display = 'grid';
+                list.style.gap = '1rem';
+
+                myArticles.forEach(article => {
+                    const item = document.createElement('div');
+                    item.style.display = 'flex';
+                    item.style.alignItems = 'center';
+                    item.style.gap = '1rem';
+                    item.style.padding = '10px';
+                    item.style.background = '#fff';
+                    item.style.border = '1px solid #eee';
+                    item.style.borderRadius = '4px';
+
+                    const imgUrl = article.cover_image || 'assets/placeholder.jpg';
+                    const dateStr = new Date(article.published_at || article.created_at).toLocaleDateString();
+                    const statusBadge = article.status === 'published'
+                        ? `<span style="background:#d4edda; color:#155724; padding:2px 6px; border-radius:4px; font-size:0.75rem;">Published</span>`
+                        : `<span style="background:#fff3cd; color:#856404; padding:2px 6px; border-radius:4px; font-size:0.75rem;">Draft</span>`;
+
+                    item.innerHTML = `
+                        <img src="${imgUrl}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px;">
+                        <div style="flex: 1;">
+                            <h5 style="margin: 0 0 5px 0; font-size: 1rem;">
+                                <a href="article-details.html?id=${article.id}" style="text-decoration: none; color: inherit;">${article.title}</a>
+                            </h5>
+                            <div style="font-size: 0.85rem; color: #666;">
+                                ${statusBadge} • ${dateStr}
+                            </div>
+                        </div>
+                        <a href="cms.html?id=${article.id}" class="btn" style="padding: 5px 10px; font-size: 0.8rem; color: #333; border-color: #ccc;">Edit</a>
+                    `;
+                    list.appendChild(item);
+                });
+
+                storiesContainer.appendChild(list);
+                profileContent.appendChild(storiesContainer);
             }
 
             loading.style.display = 'none';
