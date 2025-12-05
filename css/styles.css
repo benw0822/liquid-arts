@@ -516,3 +516,60 @@ figure.article-figure figcaption {
     /* Remove border from editor container */
     font-size: 1.1rem;
 }
+
+/* --- Related Bars Selection --- */
+.bar-list-container {
+    max-height: 200px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+.bar-list-container.selected-list {
+    background: #fdfdfd;
+    border-color: #d0d0d0;
+}
+
+.bar-item {
+    padding: 8px 12px;
+    border-bottom: 1px solid #f0f0f0;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.2s;
+    font-size: 0.9rem;
+}
+
+.bar-item:last-child {
+    border-bottom: none;
+}
+
+.bar-item:hover {
+    background-color: #f5f5f5;
+}
+
+.bar-item.selected-item {
+    background-color: #fff0f0;
+    /* Light red tint for selected items in the selected list */
+}
+
+.bar-item.selected-item:hover {
+    background-color: #ffe0e0;
+}
+
+.bar-item .action-icon {
+    font-size: 1.2em;
+    color: #ccc;
+}
+
+.bar-item:hover .action-icon {
+    color: #666;
+}
+
+.bar-item.selected-item .action-icon {
+    color: #ff4d4d;
+    /* Red X for removal */
+}
