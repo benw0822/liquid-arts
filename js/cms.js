@@ -231,7 +231,7 @@ function initQuill() {
     };
 
     // Conditionally add Table support
-    if (window.QuillBetterTable) {
+    if (QuillBetterTable) {
         toolbarOptions[6].push('table'); // Add table button to the group
 
         handlers.table = () => {
