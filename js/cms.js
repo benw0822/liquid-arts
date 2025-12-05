@@ -592,6 +592,16 @@ async function loadArticle(id) {
         return;
     }
 
+    // Debug Panel Logic
+    const debugPanel = document.getElementById('debug-panel');
+    const debugContent = document.getElementById('debug-content');
+    if (debugPanel && debugContent) {
+        debugPanel.style.display = 'block';
+        const contentLen = article.content ? article.content.length : 0;
+        const contentSnippet = article.content ? article.content.substring(0, 50).replace(/</g, '&lt;') : 'N/A';
+        debugContent.innerHTML = `ID: ${id} | Content Length: ${contentLen} | Snippet: ${contentSnippet}`;
+    }
+
     if (article.content) {
         // Direct HTML paste is the most reliable for v1.3.6
         quill.clipboard.dangerouslyPasteHTML(0, article.content);
