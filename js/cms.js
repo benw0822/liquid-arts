@@ -188,9 +188,14 @@ TOCEmbed.className = 'toc-embed-container';
 
 Quill.register(TOCEmbed, true);
 Quill.register(InstagramEmbed, true);
-Quill.register({
-    'modules/better-table': QuillBetterTable
-}, true);
+
+if (window.QuillBetterTable) {
+    Quill.register({
+        'modules/better-table': QuillBetterTable
+    }, true);
+} else {
+    console.warn('QuillBetterTable not loaded');
+}
 
 // --- Quill Setup ---
 function initQuill() {
