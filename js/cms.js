@@ -191,6 +191,8 @@ Quill.register(InstagramEmbed, true);
 
 // --- Quill Setup ---
 function initQuill() {
+    console.log('Initializing Quill...');
+
     let modules = {
         toolbar: {
             container: [
@@ -214,33 +216,32 @@ function initQuill() {
         }
     };
 
-    quill = new Quill('#editor-container', {
-        theme: 'snow',
-        placeholder: 'Write your story here...',
-        modules: modules
-    });
+    try {
+        quill = new Quill('#editor-container', {
+            theme: 'snow',
+            placeholder: 'Write your story here...',
+            modules: modules
+        });
+        console.log('Quill instance created:', quill);
+    } catch (e) {
+        console.error('Error creating Quill instance:', e);
+        alert('Failed to initialize editor. Please refresh.');
+        return;
+    }
 
+    // --- Custom Icons ---
     const instagramBtn = document.querySelector('.ql-instagram');
     if (instagramBtn) {
         instagramBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>';
         instagramBtn.style.padding = '5px';
     }
 
-    // --- Add TOC Icon ---
     const tocBtn = document.querySelector('.ql-toc');
     if (tocBtn) {
         // Book Icon
         tocBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path><path d="M12 6h5"></path><path d="M12 10h5"></path><path d="M12 14h5"></path></svg>';
         tocBtn.style.padding = '5px';
         tocBtn.title = 'Insert Table of Contents';
-    }
-
-    // --- Add Table Icon ---
-    const tableBtn = document.querySelector('.ql-table');
-    if (tableBtn) {
-        tableBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line></svg>';
-        tableBtn.style.padding = '5px';
-        tableBtn.title = 'Insert Table';
     }
 
     // --- Sidebar TOC Update ---
@@ -252,18 +253,20 @@ function initQuill() {
 
     // --- Caption Click-to-Edit Logic ---
     const editorContainer = document.getElementById('editor-container');
-    editorContainer.addEventListener('click', (e) => {
-        if (e.target.tagName === 'FIGCAPTION' && e.target.parentElement.classList.contains('article-figure')) {
-            const currentCaption = e.target.innerText;
-            const newCaption = prompt('Edit caption:', currentCaption);
-            if (newCaption !== null) {
-                e.target.innerText = newCaption;
-                // Also update the alt text of the image for consistency
-                const img = e.target.parentElement.querySelector('img');
-                if (img) img.setAttribute('alt', newCaption);
+    if (editorContainer) {
+        editorContainer.addEventListener('click', (e) => {
+            if (e.target.tagName === 'FIGCAPTION' && e.target.parentElement.classList.contains('article-figure')) {
+                const currentCaption = e.target.innerText;
+                const newCaption = prompt('Edit caption:', currentCaption);
+                if (newCaption !== null) {
+                    e.target.innerText = newCaption;
+                    // Also update the alt text of the image for consistency
+                    const img = e.target.parentElement.querySelector('img');
+                    if (img) img.setAttribute('alt', newCaption);
+                }
             }
-        }
-    });
+        });
+    }
 }
 
 // --- TOC Logic ---
