@@ -643,6 +643,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <h4>${article.title}</h4>
                     <div class="article-meta">
                         <span>${new Date(article.published_at || article.created_at).toLocaleDateString()}</span>
+                        ${article.updated_at ? `<span style="color: #999; font-size: 0.9em;">(Updated: ${new Date(article.updated_at).toLocaleDateString()})</span>` : ''}
                         ${article.author_name ? `<span>by ${article.author_name}</span>` : ''}
                         ${tagsHtml}
                     </div>

@@ -409,7 +409,8 @@ saveBtn.addEventListener('click', async () => {
             tags,
             content,
             cover_image: currentCoverUrl,
-            status: publishToggle.checked ? 'published' : 'draft'
+            status: publishToggle.checked ? 'published' : 'draft',
+            updated_at: new Date().toISOString()
         };
 
         let articleId = currentArticleId;
