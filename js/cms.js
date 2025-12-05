@@ -544,25 +544,11 @@ barSearchInput.addEventListener('input', (e) => {
 
 
 async function loadArticle(id) {
-    // Debug Panel Logic (Moved to top)
-    const debugPanel = document.getElementById('debug-panel');
-    const debugContent = document.getElementById('debug-content');
-    if (debugPanel && debugContent) {
-        debugContent.innerHTML = `Loading article ID: ${id}...`;
-    }
-
     try {
         const { data: article, error } = await supabase.from('articles').select('*').eq('id', id).single();
         if (error) {
-            if (debugContent) debugContent.innerHTML += `<br>Error loading article: ${error.message}`;
             alert('Error loading article');
             return;
-        }
-
-        if (debugContent) {
-            const contentLen = article.content ? article.content.length : 0;
-            const contentSnippet = article.content ? article.content.substring(0, 50).replace(/</g, '&lt;') : 'N/A';
-            debugContent.innerHTML += `<br>Loaded! Content Length: ${contentLen} | Snippet: ${contentSnippet}`;
         }
 
         titleInput.value = article.title;
@@ -596,7 +582,6 @@ async function loadArticle(id) {
 
         if (!quill) {
             console.error('Quill instance not found!');
-            if (debugContent) debugContent.innerHTML += `<br><strong style="color:red">Quill instance missing!</strong>`;
             alert('Editor initialization failed. Please refresh.');
             return;
         }
@@ -633,7 +618,6 @@ async function loadArticle(id) {
 
     } catch (err) {
         console.error('Critical error in loadArticle:', err);
-        if (debugContent) debugContent.innerHTML += `<br><strong style="color:red">Critical Error:</strong> ${err.message}`;
         alert('Critical error loading article: ' + err.message);
     }
 }

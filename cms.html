@@ -167,20 +167,7 @@
             text-align: center;
         }
 
-        .btn {
-            background: #000;
-            color: #fff;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 600;
-        }
 
-        .btn-secondary {
-            background: #e0e0e0;
-            color: #333;
-        }
 
         /* Checkboxes in light mode */
         #bar-select-container label {
@@ -357,18 +344,7 @@
 
 <body>
 
-    <!-- Global Error Handler -->
-    <script>
-        window.onerror = function (msg, url, lineNo, columnNo, error) {
-            const debugPanel = document.getElementById('debug-panel');
-            const debugContent = document.getElementById('debug-content');
-            if (debugPanel && debugContent) {
-                debugPanel.style.display = 'block';
-                debugContent.innerHTML += `<br><strong style="color:red">JS Error:</strong> ${msg} at line ${lineNo}`;
-            }
-            return false;
-        };
-    </script>
+
 
     <!-- Loading Overlay -->
     <div id="loading-overlay">
@@ -406,11 +382,7 @@
     </div>
     </div>
 
-    <!-- Debug Panel -->
-    <div id="debug-panel"
-        style="background: #ffebee; border: 1px solid #ffcdd2; color: #b71c1c; padding: 10px; margin: 10px auto; max-width: 1200px; border-radius: 4px; font-family: monospace; font-size: 12px; display: none;">
-        <strong>Debug Info:</strong> <span id="debug-content">Waiting...</span>
-    </div>
+
 
     <div class="cms-container">
         <!-- Left Column: Editor -->
