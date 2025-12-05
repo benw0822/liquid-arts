@@ -43,15 +43,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     initQuill();
 
     // Auto-resize Title Textarea
-    titleInput.addEventListener('input', function () {
-        this.style.height = 'auto';
-        this.style.height = (this.scrollHeight) + 'px';
-    });
-    // Trigger once on load (after value is set)
-    setTimeout(() => {
+    function resizeTitle() {
         titleInput.style.height = 'auto';
         titleInput.style.height = (titleInput.scrollHeight) + 'px';
-    }, 500);
+    }
+
+    titleInput.addEventListener('input', resizeTitle);
+
+    // Trigger once on load
+    setTimeout(resizeTitle, 500);
 
     // Check URL params for ID
     const urlParams = new URLSearchParams(window.location.search);
@@ -552,6 +552,9 @@ async function loadArticle(id) {
         }
 
         titleInput.value = article.title;
+        // Trigger resize after setting value
+        titleInput.style.height = 'auto';
+        titleInput.style.height = (titleInput.scrollHeight) + 'px';
         excerptInput.value = article.excerpt || '';
         tagsInput.value = (article.tags || []).join(', ');
         categoryInput.value = article.category || '';
