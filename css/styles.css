@@ -114,8 +114,8 @@ h6 {
     top: 0;
     left: 0;
     width: 100%;
-    padding: 10px 0;
-    /* Reduced padding */
+    padding: 5px 0;
+    /* Further reduced padding */
     z-index: 1000;
     transition: background 0.3s ease;
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
