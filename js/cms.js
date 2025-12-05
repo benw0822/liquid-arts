@@ -198,32 +198,40 @@ if (window.QuillBetterTable) {
 }
 
 // --- Quill Setup ---
+// --- Quill Setup ---
 function initQuill() {
+    const toolbarOptions = [
+        [{ 'header': [1, 2, 3, false] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        ['blockquote', 'code-block'],
+        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+        [{ 'align': '' }, { 'align': 'center' }, { 'align': 'right' }, { 'align': 'justify' }],
+        [{ 'color': [] }, { 'background': [] }],
+        ['link', 'image', 'instagram', 'toc'], // Base buttons
+        ['clean']
+    ];
+
+    const handlers = {
+        image: imageHandler,
+        instagram: instagramHandler,
+        toc: tocHandler
+    };
+
     let modules = {
-        toolbar: {
-            container: [
-                [{ 'header': [1, 2, 3, false] }],
-                ['bold', 'italic', 'underline', 'strike'],
-                ['blockquote', 'code-block'],
-                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                [{ 'align': '' }, { 'align': 'center' }, { 'align': 'right' }, { 'align': 'justify' }], // Expanded Alignment
-                [{ 'color': [] }, { 'background': [] }],
-                ['link', 'image', 'instagram', 'toc', 'table'], // Add Table button
-                ['clean']
-            ],
-            handlers: {
-                image: imageHandler,
-                instagram: instagramHandler,
-                toc: tocHandler,
-                table: () => {
-                    quill.getModule('better-table').insertTable(3, 3);
-                }
-            }
-        },
         imageResize: {
             displaySize: true
-        },
-        'better-table': {
+        }
+    };
+
+    // Conditionally add Table support
+    if (window.QuillBetterTable) {
+        toolbarOptions[6].push('table'); // Add table button to the group
+
+        handlers.table = () => {
+            quill.getModule('better-table').insertTable(3, 3);
+        };
+
+        modules['better-table'] = {
             operationMenu: {
                 items: {
                     unmergeCells: {
@@ -231,10 +239,16 @@ function initQuill() {
                     }
                 }
             }
-        },
-        keyboard: {
+        };
+
+        modules.keyboard = {
             bindings: QuillBetterTable.keyboardBindings
-        }
+        };
+    }
+
+    modules.toolbar = {
+        container: toolbarOptions,
+        handlers: handlers
     };
 
     quill = new Quill('#editor-container', {
@@ -252,7 +266,7 @@ function initQuill() {
     // --- Add TOC Icon ---
     const tocBtn = document.querySelector('.ql-toc');
     if (tocBtn) {
-        // Book Icon for distinctiveness
+        // Book Icon
         tocBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path><path d="M12 6h5"></path><path d="M12 10h5"></path><path d="M12 14h5"></path></svg>';
         tocBtn.style.padding = '5px';
         tocBtn.title = 'Insert Table of Contents';
