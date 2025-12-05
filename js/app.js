@@ -290,9 +290,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>
             
-            ${article.cover_image ? `<img src="${article.cover_image}" style="width: 100%; max-height: 600px; object-fit: cover; border-radius: 8px; margin-bottom: 1.5rem;">` : ''}
+            ${article.cover_image ? `<img src="${article.cover_image}" style="width: 100%; max-height: 600px; object-fit: cover; border-radius: 8px; margin-bottom: 0.5rem;">` : ''}
             
-            <div style="margin-bottom: 2rem; text-align: center;">
+            <div style="margin-bottom: 1.5rem; text-align: center;">
                 ${tagsHtml}
             </div>
 
