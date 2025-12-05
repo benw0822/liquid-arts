@@ -11,7 +11,7 @@ const categoryInput = document.getElementById('article-category');
 const authorInput = document.getElementById('article-author');
 const coverInput = document.getElementById('cover-file');
 const coverPreview = document.getElementById('cover-preview');
-const barContainer = document.getElementById('bar-select-container');
+// const barContainer = document.getElementById('bar-select-container'); // Removed
 const saveBtn = document.getElementById('save-btn');
 const cancelBtn = document.getElementById('cancel-btn');
 const publishToggle = document.getElementById('publish-toggle');
@@ -332,7 +332,7 @@ function instagramHandler() {
         quill.setSelection(range.index + 1);
     }
 }
-}
+
 
 // --- Video Handler & Modal ---
 const videoModal = document.getElementById('video-modal');
