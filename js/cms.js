@@ -189,9 +189,6 @@ TOCEmbed.className = 'toc-embed-container';
 Quill.register(TOCEmbed, true);
 Quill.register(InstagramEmbed, true);
 
-Quill.register(TOCEmbed, true);
-Quill.register(InstagramEmbed, true);
-
 // Handle UMD export naming (quillBetterTable vs QuillBetterTable)
 const QuillBetterTable = window.QuillBetterTable || window.quillBetterTable;
 
@@ -232,6 +229,7 @@ function initQuill() {
 
     // Conditionally add Table support
     if (QuillBetterTable) {
+        console.log('Enabling Table module in Quill');
         toolbarOptions[6].push('table'); // Add table button to the group
 
         handlers.table = () => {
@@ -248,9 +246,9 @@ function initQuill() {
             }
         };
 
-        modules.keyboard = {
-            bindings: QuillBetterTable.keyboardBindings
-        };
+        // modules.keyboard = {
+        //     bindings: QuillBetterTable.keyboardBindings
+        // };
     }
 
     modules.toolbar = {
