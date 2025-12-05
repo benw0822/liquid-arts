@@ -190,11 +190,12 @@ Quill.register(TOCEmbed, true);
 Quill.register(InstagramEmbed, true);
 
 if (window.QuillBetterTable) {
+    console.log('QuillBetterTable loaded successfully');
     Quill.register({
         'modules/better-table': QuillBetterTable
     }, true);
 } else {
-    console.warn('QuillBetterTable not loaded');
+    console.error('QuillBetterTable failed to load');
 }
 
 // --- Quill Setup ---
