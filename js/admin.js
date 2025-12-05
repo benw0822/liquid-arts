@@ -628,19 +628,41 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        articleList.innerHTML = articles.map(article => `
-            <div class="bar-item">
-                <div>
-                    <strong>${article.title}</strong>
-                    <span style="color: #888; font-size: 0.9em; margin-left: 10px;">${new Date(article.published_at).toLocaleDateString()}</span>
-                    ${article.author_name ? `<span style="color: #666; font-size: 0.8em; margin-left: 10px;">by ${article.author_name}</span>` : ''}
+        articleList.innerHTML = articles.map(article => {
+            const thumbStyle = article.cover_image ? `background-image: url('${article.cover_image}')` : '';
+            const tagsHtml = (article.tags || []).map(t => `<span class="tag-badge">${t}</span>`).join('');
+            const isPublished = article.status === 'published';
+            const statusColor = isPublished ? '#4cd964' : '#666';
+            const statusText = isPublished ? 'Published' : 'Draft';
+
+            return `
+            <div class="article-item">
+                <div class="article-thumb" style="${thumbStyle}"></div>
+                
+                <div class="article-info">
+                    <h4>${article.title}</h4>
+                    <div class="article-meta">
+                        <span>${new Date(article.published_at || article.created_at).toLocaleDateString()}</span>
+                        ${article.author_name ? `<span>by ${article.author_name}</span>` : ''}
+                        ${tagsHtml}
+                    </div>
                 </div>
-                <div>
+
+                <div class="article-status">
+                    <label class="status-toggle" onclick="toggleArticleStatus('${article.id}', '${article.status}')">
+                        <input type="checkbox" ${isPublished ? 'checked' : ''}>
+                        <span class="status-slider"></span>
+                        <span class="status-label" style="color: ${statusColor}">${statusText}</span>
+                    </label>
+                </div>
+
+                <div class="article-actions">
+                    <button onclick="viewArticle('${article.id}')" class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.8em; margin-right: 5px;">View</button>
                     <button onclick="editArticle('${article.id}')" class="btn" style="padding: 5px 10px; font-size: 0.8em; margin-right: 5px;">Edit</button>
                     <button onclick="deleteArticle('${article.id}')" class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.8em; color: #ff4444; border-color: #ff4444;">Delete</button>
                 </div>
             </div>
-        `).join('');
+        `}).join('');
     }
 
     if (addArticleBtn) {
@@ -652,10 +674,35 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('Add Article Button not found!');
     }
 
+    window.viewArticle = (id) => {
+        window.location.href = `article-details.html?id=${id}`;
+    };
+
     window.editArticle = (id) => {
         window.location.href = `cms.html?id=${id}`;
     };
 
+    window.toggleArticleStatus = async (id, currentStatus) => {
+        // Prevent event bubbling if needed, but here we clicked the label
+        // Actually, the checkbox change event is better, but onclick on label works for simple toggle logic
+        // Let's use a more robust approach: find the checkbox and toggle it
+        // But since we re-render, let's just do the update
+
+        const newStatus = currentStatus === 'published' ? 'draft' : 'published';
+
+        // Optimistic UI update (optional, but we re-render anyway)
+
+        const { error } = await supabase
+            .from('articles')
+            .update({ status: newStatus })
+            .eq('id', id);
+
+        if (error) {
+            alert('Error updating status: ' + error.message);
+        } else {
+            loadArticles(); // Reload to reflect changes
+        }
+    };
 
     window.deleteArticle = async (id) => {
         if (!confirm('Are you sure?')) return;

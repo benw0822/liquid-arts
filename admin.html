@@ -281,6 +281,110 @@
             margin-bottom: 5px;
             display: block;
         }
+
+        /* Enhanced Article List Styles */
+        .article-item {
+            background: var(--admin-card-bg);
+            padding: 15px;
+            border-radius: 12px;
+            display: grid;
+            grid-template-columns: 80px 1fr auto auto;
+            /* Thumb | Info | Status | Actions */
+            gap: 20px;
+            align-items: center;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+            transition: transform 0.2s;
+        }
+
+        .article-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .article-thumb {
+            width: 80px;
+            height: 60px;
+            border-radius: 6px;
+            background-color: #eee;
+            background-size: cover;
+            background-position: center;
+            border: 1px solid #eee;
+        }
+
+        .article-info h4 {
+            margin: 0 0 5px 0;
+            font-size: 1.1rem;
+            color: var(--admin-text);
+        }
+
+        .article-meta {
+            font-size: 0.85rem;
+            color: var(--admin-text-secondary);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .tag-badge {
+            background: #f0f0f0;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        /* Toggle Switch (Small) */
+        .status-toggle {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            cursor: pointer;
+            gap: 8px;
+        }
+
+        .status-toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .status-slider {
+            position: relative;
+            display: inline-block;
+            width: 36px;
+            height: 20px;
+            background-color: #ccc;
+            border-radius: 20px;
+            transition: .4s;
+        }
+
+        .status-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            border-radius: 50%;
+            transition: .4s;
+        }
+
+        input:checked+.status-slider {
+            background-color: #4cd964;
+        }
+
+        input:checked+.status-slider:before {
+            transform: translateX(16px);
+        }
+
+        .status-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #666;
+            min-width: 60px;
+        }
     </style>
 </head>
 
