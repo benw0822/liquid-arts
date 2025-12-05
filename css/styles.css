@@ -492,23 +492,22 @@ figure.article-figure figcaption {
 
 /* --- Sticky Toolbar --- */
 .ql-toolbar {
-    position: fixed;
-    bottom: 30px;
-    left: 50%;
-    transform: translateX(-50%);
+    position: sticky;
+    top: 0;
     z-index: 1000;
-    background: rgba(255, 255, 255, 0.95) !important;
+    background: rgba(255, 255, 255, 0.98) !important;
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(0, 0, 0, 0.1) !important;
-    border-radius: 50px !important;
-    padding: 8px 20px !important;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    border: none !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important;
+    padding: 12px 20px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     display: flex;
-    gap: 5px;
-    width: auto !important;
-    max-width: 90vw;
-    flex-wrap: wrap;
-    justify-content: center;
+    gap: 8px;
+    width: 100% !important;
+    max-width: 100%;
+    flex-wrap: wrap !important;
+    justify-content: flex-start;
+    align-items: center;
 }
 
 .ql-container {

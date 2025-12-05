@@ -114,6 +114,34 @@ ImageFigure.className = 'article-figure';
 
 Quill.register(ImageFigure, true);
 
+// --- Instagram Embed Blot ---
+class InstagramEmbed extends BlockEmbed {
+    static create(url) {
+        const node = super.create();
+        const iframe = document.createElement('iframe');
+        iframe.setAttribute('src', url);
+        iframe.setAttribute('frameborder', '0');
+        iframe.setAttribute('allowtransparency', 'true');
+        iframe.setAttribute('scrolling', 'no');
+        iframe.style.width = '100%';
+        iframe.style.maxWidth = '540px'; // Standard IG width
+        iframe.style.height = '600px'; // Default height, user might need to adjust or we use JS to resize
+        iframe.style.display = 'block';
+        iframe.style.margin = '20px auto';
+        node.appendChild(iframe);
+        return node;
+    }
+
+    static value(node) {
+        return node.querySelector('iframe').getAttribute('src');
+    }
+}
+InstagramEmbed.blotName = 'instagram';
+InstagramEmbed.tagName = 'div';
+InstagramEmbed.className = 'instagram-embed';
+
+Quill.register(InstagramEmbed, true);
+
 // --- Quill Setup ---
 function initQuill() {
     let modules = {
@@ -123,12 +151,14 @@ function initQuill() {
                 ['bold', 'italic', 'underline', 'strike'],
                 ['blockquote', 'code-block'],
                 [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                [{ 'align': [] }], // Text Alignment
                 [{ 'color': [] }, { 'background': [] }],
-                ['link', 'image', 'video'],
+                ['link', 'image', 'video', 'instagram'], // Add Instagram button
                 ['clean']
             ],
             handlers: {
-                image: imageHandler
+                image: imageHandler,
+                instagram: instagramHandler
             }
         },
         imageResize: {
@@ -256,6 +286,29 @@ async function uploadImage(file, folder = 'covers') {
     sessionUploadedPaths.push(fileName);
 
     return publicUrl;
+}
+
+// --- Instagram Handler ---
+function instagramHandler() {
+    let url = prompt('Enter Instagram Post URL:');
+    if (url) {
+        // Convert to embed URL if needed
+        // Standard URL: https://www.instagram.com/p/CODE/
+        // Embed URL: https://www.instagram.com/p/CODE/embed
+
+        // Remove query params
+        url = url.split('?')[0];
+
+        // Ensure it ends with /embed
+        if (!url.endsWith('/embed') && !url.endsWith('/embed/')) {
+            if (!url.endsWith('/')) url += '/';
+            url += 'embed';
+        }
+
+        const range = quill.getSelection(true);
+        quill.insertEmbed(range.index, 'instagram', url);
+        quill.setSelection(range.index + 1);
+    }
 }
 
 // --- Image Cleanup Helpers ---
