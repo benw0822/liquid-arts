@@ -277,7 +277,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const dateStr = new Date(article.published_at || article.created_at).toLocaleDateString();
-        const tagsHtml = (article.tags || []).map(t => `<span style="background:#eee; padding:2px 8px; border-radius:4px; font-size:0.8rem; margin-right:5px;">${t}</span>`).join('');
+        const tagsHtml = (article.tags || []).map(t => `<span style="background:var(--bg-red); color:white; padding:4px 12px; border-radius:20px; font-size:0.85rem; margin-right:8px; display:inline-block;">#${t}</span>`).join('');
 
         container.innerHTML = `
             <div style="text-align: center; max-width: 800px; margin: 0 auto 3rem auto;">
@@ -292,12 +292,12 @@ document.addEventListener('DOMContentLoaded', () => {
             
             ${article.cover_image ? `<img src="${article.cover_image}" style="width: 100%; max-height: 600px; object-fit: cover; border-radius: 8px; margin-bottom: 0.5rem;">` : ''}
             
-            <div style="margin-bottom: 1.5rem; text-align: center;">
-                ${tagsHtml}
-            </div>
-
             <div class="article-body" style="font-size: 1.1rem; line-height: 1.8;">
                 ${article.content || '<p>No content.</p>'}
+            </div>
+
+            <div style="margin-top: 3rem; margin-bottom: 2rem; text-align: center;">
+                ${tagsHtml}
             </div>
         `;
 
