@@ -486,4 +486,6 @@ figure.article-figure figcaption {
     color: #666;
     font-style: italic;
     font-family: var(--font-main);
+    cursor: pointer;
+    /* Indicate clickable */
 }

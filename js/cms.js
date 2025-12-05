@@ -87,7 +87,11 @@ class ImageFigure extends BlockEmbed {
 
         const caption = document.createElement('figcaption');
         caption.innerText = value.caption || '';
-        caption.setAttribute('contenteditable', 'true'); // Allow editing caption directly
+        const caption = document.createElement('figcaption');
+        caption.innerText = value.caption || '';
+        // caption.setAttribute('contenteditable', 'true'); // Removed to prevent accidental deletion
+        caption.style.cursor = 'pointer';
+        caption.title = 'Click to edit caption';
 
         node.appendChild(img);
         node.appendChild(caption);
@@ -138,6 +142,22 @@ function initQuill() {
         placeholder: 'Write your story here...',
         modules: modules
     });
+
+    // --- Caption Click-to-Edit Logic ---
+    const editorContainer = document.getElementById('editor-container');
+    editorContainer.addEventListener('click', (e) => {
+        if (e.target.tagName === 'FIGCAPTION' && e.target.parentElement.classList.contains('article-figure')) {
+            const currentCaption = e.target.innerText;
+            const newCaption = prompt('Edit caption:', currentCaption);
+            if (newCaption !== null) {
+                e.target.innerText = newCaption;
+                // Also update the alt text of the image for consistency
+                const img = e.target.parentElement.querySelector('img');
+                if (img) img.setAttribute('alt', newCaption);
+            }
+        }
+    });
+}
 }
 
 // --- TOC Logic ---
