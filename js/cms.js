@@ -188,6 +188,9 @@ TOCEmbed.className = 'toc-embed-container';
 
 Quill.register(TOCEmbed, true);
 Quill.register(InstagramEmbed, true);
+Quill.register({
+    'modules/better-table': QuillBetterTable
+}, true);
 
 // --- Quill Setup ---
 function initQuill() {
@@ -200,17 +203,32 @@ function initQuill() {
                 [{ 'list': 'ordered' }, { 'list': 'bullet' }],
                 [{ 'align': '' }, { 'align': 'center' }, { 'align': 'right' }, { 'align': 'justify' }], // Expanded Alignment
                 [{ 'color': [] }, { 'background': [] }],
-                ['link', 'image', 'instagram', 'toc'], // Add TOC button
+                ['link', 'image', 'instagram', 'toc', 'table'], // Add Table button
                 ['clean']
             ],
             handlers: {
                 image: imageHandler,
                 instagram: instagramHandler,
-                toc: tocHandler
+                toc: tocHandler,
+                table: () => {
+                    quill.getModule('better-table').insertTable(3, 3);
+                }
             }
         },
         imageResize: {
             displaySize: true
+        },
+        'better-table': {
+            operationMenu: {
+                items: {
+                    unmergeCells: {
+                        text: 'Another unmerge cells name'
+                    }
+                }
+            }
+        },
+        keyboard: {
+            bindings: QuillBetterTable.keyboardBindings
         }
     };
 
@@ -229,9 +247,18 @@ function initQuill() {
     // --- Add TOC Icon ---
     const tocBtn = document.querySelector('.ql-toc');
     if (tocBtn) {
-        tocBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>';
+        // Book Icon for distinctiveness
+        tocBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path><path d="M12 6h5"></path><path d="M12 10h5"></path><path d="M12 14h5"></path></svg>';
         tocBtn.style.padding = '5px';
         tocBtn.title = 'Insert Table of Contents';
+    }
+
+    // --- Add Table Icon ---
+    const tableBtn = document.querySelector('.ql-table');
+    if (tableBtn) {
+        tableBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line></svg>';
+        tableBtn.style.padding = '5px';
+        tableBtn.title = 'Insert Table';
     }
 
     // --- Sidebar TOC Update ---
