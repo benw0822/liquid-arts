@@ -189,71 +189,29 @@ TOCEmbed.className = 'toc-embed-container';
 Quill.register(TOCEmbed, true);
 Quill.register(InstagramEmbed, true);
 
-// Handle UMD export naming (quillBetterTable vs QuillBetterTable)
-const QuillBetterTable = window.QuillBetterTable || window.quillBetterTable;
-
-if (QuillBetterTable) {
-    console.log('QuillBetterTable loaded successfully');
-    Quill.register({
-        'modules/better-table': QuillBetterTable
-    }, true);
-} else {
-    console.error('QuillBetterTable failed to load');
-}
-
-// --- Quill Setup ---
 // --- Quill Setup ---
 function initQuill() {
-    const toolbarOptions = [
-        [{ 'header': [1, 2, 3, false] }],
-        ['bold', 'italic', 'underline', 'strike'],
-        ['blockquote', 'code-block'],
-        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-        [{ 'align': '' }, { 'align': 'center' }, { 'align': 'right' }, { 'align': 'justify' }],
-        [{ 'color': [] }, { 'background': [] }],
-        ['link', 'image', 'instagram', 'toc'], // Base buttons
-        ['clean']
-    ];
-
-    const handlers = {
-        image: imageHandler,
-        instagram: instagramHandler,
-        toc: tocHandler
-    };
-
     let modules = {
+        toolbar: {
+            container: [
+                [{ 'header': [1, 2, 3, false] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                ['blockquote', 'code-block'],
+                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                [{ 'align': '' }, { 'align': 'center' }, { 'align': 'right' }, { 'align': 'justify' }],
+                [{ 'color': [] }, { 'background': [] }],
+                ['link', 'image', 'instagram', 'toc'], // Base buttons
+                ['clean']
+            ],
+            handlers: {
+                image: imageHandler,
+                instagram: instagramHandler,
+                toc: tocHandler
+            }
+        },
         imageResize: {
             displaySize: true
         }
-    };
-
-    // Conditionally add Table support
-    if (QuillBetterTable) {
-        console.log('Enabling Table module in Quill');
-        toolbarOptions[6].push('table'); // Add table button to the group
-
-        handlers.table = () => {
-            quill.getModule('better-table').insertTable(3, 3);
-        };
-
-        modules['better-table'] = {
-            operationMenu: {
-                items: {
-                    unmergeCells: {
-                        text: 'Another unmerge cells name'
-                    }
-                }
-            }
-        };
-
-        // modules.keyboard = {
-        //     bindings: QuillBetterTable.keyboardBindings
-        // };
-    }
-
-    modules.toolbar = {
-        container: toolbarOptions,
-        handlers: handlers
     };
 
     quill = new Quill('#editor-container', {
