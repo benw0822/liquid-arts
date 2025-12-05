@@ -168,6 +168,25 @@ InstagramEmbed.blotName = 'instagram';
 InstagramEmbed.tagName = 'div';
 InstagramEmbed.className = 'instagram-embed';
 
+// --- TOC Embed Blot ---
+class TOCEmbed extends BlockEmbed {
+    static create() {
+        const node = super.create();
+        node.innerHTML = 'Table of Contents';
+        node.setAttribute('contenteditable', 'false');
+        node.classList.add('toc-embed');
+        return node;
+    }
+
+    static value(node) {
+        return true; // Just a marker
+    }
+}
+TOCEmbed.blotName = 'toc';
+TOCEmbed.tagName = 'div';
+TOCEmbed.className = 'toc-embed-container';
+
+Quill.register(TOCEmbed, true);
 Quill.register(InstagramEmbed, true);
 
 // --- Quill Setup ---
@@ -181,12 +200,13 @@ function initQuill() {
                 [{ 'list': 'ordered' }, { 'list': 'bullet' }],
                 [{ 'align': '' }, { 'align': 'center' }, { 'align': 'right' }, { 'align': 'justify' }], // Expanded Alignment
                 [{ 'color': [] }, { 'background': [] }],
-                ['link', 'image', 'instagram'], // Add Instagram button
+                ['link', 'image', 'instagram', 'toc'], // Add TOC button
                 ['clean']
             ],
             handlers: {
                 image: imageHandler,
-                instagram: instagramHandler
+                instagram: instagramHandler,
+                toc: tocHandler
             }
         },
         imageResize: {
@@ -200,12 +220,26 @@ function initQuill() {
         modules: modules
     });
 
-    // --- Add Instagram Icon ---
     const instagramBtn = document.querySelector('.ql-instagram');
     if (instagramBtn) {
         instagramBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>';
         instagramBtn.style.padding = '5px';
     }
+
+    // --- Add TOC Icon ---
+    const tocBtn = document.querySelector('.ql-toc');
+    if (tocBtn) {
+        tocBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>';
+        tocBtn.style.padding = '5px';
+        tocBtn.title = 'Insert Table of Contents';
+    }
+
+    // --- Sidebar TOC Update ---
+    quill.on('text-change', function () {
+        // Debounce slightly
+        clearTimeout(quill.tocTimeout);
+        quill.tocTimeout = setTimeout(updateTOC, 1000);
+    });
 
     // --- Caption Click-to-Edit Logic ---
     const editorContainer = document.getElementById('editor-container');
@@ -618,6 +652,9 @@ async function loadArticle(id) {
             const path = getPathFromUrl(img.src);
             if (path) initialImagePaths.push(path);
         });
+
+        // Initial TOC Update
+        setTimeout(updateTOC, 500);
 
     } catch (err) {
         console.error('Critical error in loadArticle:', err);
