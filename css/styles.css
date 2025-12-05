@@ -448,6 +448,8 @@ footer {
 .article-body {
     width: 100%;
     overflow-wrap: break-word;
+    padding: 2rem 0;
+    /* Added spacing */
 }
 
 .article-body img {
@@ -462,4 +464,26 @@ footer {
 .article-body video {
     max-width: 100%;
     margin: 1.5rem 0;
+}
+
+/* --- Article Figure (Image + Caption) --- */
+figure.article-figure {
+    margin: 2rem 0;
+    text-align: center;
+}
+
+figure.article-figure img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    display: block;
+    margin: 0 auto;
+}
+
+figure.article-figure figcaption {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    color: #666;
+    font-style: italic;
+    font-family: var(--font-main);
 }

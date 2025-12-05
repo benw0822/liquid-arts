@@ -56,19 +56,6 @@
         document.addEventListener('DOMContentLoaded', async () => {
             // Use the global client exposed by app.js
             const supabase = window.supabaseClient;
-
-            // 1. Setup Logout immediately (so it works even if other things fail)
-            const logoutBtn = document.getElementById('logout-btn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', async (e) => {
-                    e.preventDefault();
-                    console.log('Logging out...');
-                    const { error } = await supabase.auth.signOut();
-                    if (error) console.error('Logout error:', error);
-                    window.location.href = 'index.html';
-                });
-            }
-
             const { data: { session } } = await supabase.auth.getSession();
 
             if (!session) {
@@ -77,8 +64,6 @@
             }
 
             const user = session.user;
-            console.log('Current User:', user);
-
             const profileContent = document.getElementById('profile-content');
             const loading = document.getElementById('profile-loading');
 
@@ -97,51 +82,13 @@
             }
 
             // Check Roles for Admin/Editor Access
-            console.log('Fetching roles for user:', user.id);
-            const { data: dbUser, error: roleError } = await supabase
+            const { data: dbUser } = await supabase
                 .from('users')
                 .select('roles')
                 .eq('id', user.id)
                 .single();
 
-            if (roleError) {
-                console.error('Error fetching user roles:', roleError);
-            }
-
-            console.log('DB User Result:', dbUser);
-
             const roles = dbUser ? (dbUser.roles || []) : [];
-            console.log('User Roles:', roles);
-
-            // VISUAL DEBUG (Temporary)
-            const debugInfo = document.createElement('div');
-            debugInfo.style.fontSize = '0.8rem';
-            debugInfo.style.color = '#999';
-            debugInfo.style.marginTop = '1rem';
-            debugInfo.innerHTML = `Debug: ID=${user.id.slice(0, 4)}... | Roles=${JSON.stringify(roles)} | DBUser=${dbUser ? 'Found' : 'Null'}`;
-            document.getElementById('profile-email').parentNode.appendChild(debugInfo);
-
-            // AUTO-FIX: If DBUser is null, try to create/sync the user
-            if (!dbUser) {
-                console.log('User not found in DB, attempting to sync...');
-                const { error: syncError } = await supabase
-                    .from('users')
-                    .upsert({
-                        id: user.id,
-                        email: user.email,
-                        roles: ['barOwner'] // Default to barOwner for testing if missing
-                    });
-
-                if (syncError) {
-                    console.error('Sync failed:', syncError);
-                    debugInfo.innerHTML += `<br><span style="color:red">Sync Failed: ${syncError.message} (RLS Blocking?)</span>`;
-                } else {
-                    console.log('User synced!');
-                    debugInfo.innerHTML += `<br><span style="color:green">User Synced! Reloading...</span>`;
-                    setTimeout(() => window.location.reload(), 1000);
-                    return;
-                }
-            }
 
             if (roles.includes('admin') || roles.includes('editor') || roles.includes('barOwner')) {
                 const btnContainer = document.createElement('div');
@@ -156,69 +103,17 @@
 
                 btnContainer.appendChild(link);
                 document.getElementById('profile-name').parentNode.insertBefore(btnContainer, document.getElementById('profile-email').nextSibling);
-            } else {
-                console.log('User has no special roles, button not shown.');
-            }
-
-            // --- Fetch My Stories ---
-            const { data: myArticles, error: articlesError } = await supabase
-                .from('articles')
-                .select('*')
-                .eq('author_id', user.id)
-                .order('created_at', { ascending: false });
-
-            if (articlesError) console.error('Error fetching articles:', articlesError);
-
-            if (myArticles && myArticles.length > 0) {
-                const storiesContainer = document.createElement('div');
-                storiesContainer.style.textAlign = 'left';
-                storiesContainer.style.marginTop = '2rem';
-                storiesContainer.style.borderTop = '1px solid var(--border-color)';
-                storiesContainer.style.paddingTop = '2rem';
-
-                storiesContainer.innerHTML = `<h4 style="margin-bottom: 1rem;">My Stories</h4>`;
-
-                const list = document.createElement('div');
-                list.style.display = 'grid';
-                list.style.gap = '1rem';
-
-                myArticles.forEach(article => {
-                    const item = document.createElement('div');
-                    item.style.display = 'flex';
-                    item.style.alignItems = 'center';
-                    item.style.gap = '1rem';
-                    item.style.padding = '10px';
-                    item.style.background = '#fff';
-                    item.style.border = '1px solid #eee';
-                    item.style.borderRadius = '4px';
-
-                    const imgUrl = article.cover_image || 'assets/placeholder.jpg';
-                    const dateStr = new Date(article.published_at || article.created_at).toLocaleDateString();
-                    const statusBadge = article.status === 'published'
-                        ? `<span style="background:#d4edda; color:#155724; padding:2px 6px; border-radius:4px; font-size:0.75rem;">Published</span>`
-                        : `<span style="background:#fff3cd; color:#856404; padding:2px 6px; border-radius:4px; font-size:0.75rem;">Draft</span>`;
-
-                    item.innerHTML = `
-                        <img src="${imgUrl}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px;">
-                        <div style="flex: 1;">
-                            <h5 style="margin: 0 0 5px 0; font-size: 1rem;">
-                                <a href="article-details.html?id=${article.id}" style="text-decoration: none; color: inherit;">${article.title}</a>
-                            </h5>
-                            <div style="font-size: 0.85rem; color: #666;">
-                                ${statusBadge} • ${dateStr}
-                            </div>
-                        </div>
-                        <a href="cms.html?id=${article.id}" class="btn" style="padding: 5px 10px; font-size: 0.8rem; color: #333; border-color: #ccc;">Edit</a>
-                    `;
-                    list.appendChild(item);
-                });
-
-                storiesContainer.appendChild(list);
-                profileContent.appendChild(storiesContainer);
             }
 
             loading.style.display = 'none';
             profileContent.style.display = 'block';
+
+            // Logout Logic
+            document.getElementById('logout-btn').addEventListener('click', async (e) => {
+                e.preventDefault();
+                await supabase.auth.signOut();
+                window.location.href = 'index.html';
+            });
         });
     </script>
 </body>

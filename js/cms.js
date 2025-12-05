@@ -7,7 +7,6 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const titleInput = document.getElementById('article-title');
 const excerptInput = document.getElementById('article-excerpt');
 const tagsInput = document.getElementById('article-tags');
-const categoryInput = document.getElementById('article-category');
 const authorInput = document.getElementById('article-author');
 const coverInput = document.getElementById('cover-file');
 const coverPreview = document.getElementById('cover-preview');
@@ -75,6 +74,43 @@ async function checkAuth() {
     }
 }
 
+// --- Custom Image Blot (Figure + Caption) ---
+const BlockEmbed = Quill.import('blots/block/embed');
+
+class ImageFigure extends BlockEmbed {
+    static create(value) {
+        const node = super.create();
+
+        const img = document.createElement('img');
+        img.setAttribute('src', value.url);
+        img.setAttribute('alt', value.caption || '');
+
+        const caption = document.createElement('figcaption');
+        caption.innerText = value.caption || '';
+        caption.setAttribute('contenteditable', 'true'); // Allow editing caption directly
+
+        node.appendChild(img);
+        node.appendChild(caption);
+
+        return node;
+    }
+
+    static value(node) {
+        const img = node.querySelector('img');
+        const caption = node.querySelector('figcaption');
+        return {
+            url: img.getAttribute('src'),
+            caption: caption ? caption.innerText : ''
+        };
+    }
+}
+
+ImageFigure.blotName = 'imageFigure';
+ImageFigure.tagName = 'figure';
+ImageFigure.className = 'article-figure';
+
+Quill.register(ImageFigure, true);
+
 // --- Quill Setup ---
 function initQuill() {
     let modules = {
@@ -87,7 +123,10 @@ function initQuill() {
                 [{ 'color': [] }, { 'background': [] }],
                 ['link', 'image', 'video'],
                 ['clean']
-            ]
+            ],
+            handlers: {
+                image: imageHandler
+            }
         },
         imageResize: {
             displaySize: true
@@ -159,9 +198,14 @@ function imageHandler() {
                 const url = await uploadImage(file, 'content');
                 loadingOverlay.style.display = 'none';
 
-                // 1. Insert Image
+                // 1. Insert Image with Caption
+                const caption = prompt('Enter a caption for this image (optional):');
+
                 const range = quill.getSelection(true);
-                quill.insertEmbed(range.index, 'image', url);
+                quill.insertEmbed(range.index, 'imageFigure', {
+                    url: url,
+                    caption: caption
+                });
 
                 // Move cursor after insertion
                 quill.setSelection(range.index + 1);
@@ -343,7 +387,6 @@ async function loadArticle(id) {
     titleInput.value = article.title;
     excerptInput.value = article.excerpt || '';
     tagsInput.value = (article.tags || []).join(', ');
-    categoryInput.value = article.category || '';
     authorInput.value = article.author_name || '';
 
     if (article.cover_image) {
@@ -407,7 +450,6 @@ saveBtn.addEventListener('click', async () => {
         const articleData = {
             title,
             excerpt: excerptInput.value,
-            category: categoryInput.value,
             author_name: authorInput.value,
             tags,
             content,
