@@ -113,6 +113,14 @@
             const roles = dbUser ? (dbUser.roles || []) : [];
             console.log('User Roles:', roles);
 
+            // VISUAL DEBUG (Temporary)
+            const debugInfo = document.createElement('div');
+            debugInfo.style.fontSize = '0.8rem';
+            debugInfo.style.color = '#999';
+            debugInfo.style.marginTop = '1rem';
+            debugInfo.innerHTML = `Debug: ID=${user.id.slice(0, 4)}... | Roles=${JSON.stringify(roles)} | DBUser=${dbUser ? 'Found' : 'Null'}`;
+            document.getElementById('profile-email').parentNode.appendChild(debugInfo);
+
             if (roles.includes('admin') || roles.includes('editor') || roles.includes('barOwner')) {
                 const btnContainer = document.createElement('div');
                 btnContainer.style.marginTop = '1.5rem';
