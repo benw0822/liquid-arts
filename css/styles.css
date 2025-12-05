@@ -31,6 +31,19 @@
     --transition-medium: 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+body.light-mode {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f9f9f9;
+    --text-primary: #111111;
+    --text-secondary: #555555;
+    --border-color: #e0e0e0;
+    --bg-glass: rgba(255, 255, 255, 0.9);
+}
+
+body.light-mode .logo-img {
+    filter: none;
+}
+
 /* Reset & Base */
 * {
     margin: 0;
