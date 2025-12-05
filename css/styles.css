@@ -552,12 +552,13 @@ figure.article-figure figcaption {
 }
 
 .bar-item.selected-item {
-    background-color: #fff0f0;
-    /* Light red tint for selected items in the selected list */
+    background-color: rgba(138, 0, 0, 0.05);
+    /* Light red tint */
+    color: var(--bg-red);
 }
 
 .bar-item.selected-item:hover {
-    background-color: #ffe0e0;
+    background-color: rgba(138, 0, 0, 0.1);
 }
 
 .bar-item .action-icon {
@@ -570,6 +571,49 @@ figure.article-figure figcaption {
 }
 
 .bar-item.selected-item .action-icon {
-    color: #ff4d4d;
+    color: var(--bg-red);
     /* Red X for removal */
+}
+
+/* --- Article Category Badge --- */
+.article-category-badge {
+    color: var(--bg-red);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5rem;
+    display: block;
+    font-weight: 600;
+}
+
+/* --- Primary Button (CI Red) --- */
+.btn-primary {
+    background-color: var(--bg-red);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.2s;
+}
+
+.btn-primary:hover {
+    background-color: #660000;
+    /* Darker red */
+}
+
+.btn-secondary {
+    background-color: #eee;
+    color: #333;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.2s;
+}
+
+.btn-secondary:hover {
+    background-color: #ddd;
 }

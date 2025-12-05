@@ -358,18 +358,22 @@
     </div>
 
     <div class="cms-header">
-        <h2 style="font-family: 'Playfair Display', serif;">CMS Editor</h2>
-        <div style="display: flex; align-items: center; gap: 15px;">
+        <div style="display: flex; align-items: center;">
+            <img src="assets/logo.png" alt="Liquid Arts" style="height: 40px; margin-right: 15px;">
+            <h2 style="margin: 0;">CMS Editor</h2>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center;">
             <label class="toggle-switch">
                 <input type="checkbox" id="publish-toggle">
                 <span class="slider"></span>
-                <span class="label-text">Draft</span>
             </label>
-            <button id="cancel-btn" class="btn btn-secondary">Cancel</button>
-            <button id="save-btn" class="btn">Save Story</button>
+            <span class="label-text" style="margin-right: 15px; color: #666;">Draft</span>
+
+            <button id="cancel-btn" class="btn btn-secondary"
+                onclick="window.location.href='admin.html'">Cancel</button>
+            <button id="save-btn" class="btn btn-primary">Save Article</button>
         </div>
     </div>
-
     <div class="cms-container">
         <!-- Left Column: Editor -->
         <div>
