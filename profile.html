@@ -121,6 +121,28 @@
             debugInfo.innerHTML = `Debug: ID=${user.id.slice(0, 4)}... | Roles=${JSON.stringify(roles)} | DBUser=${dbUser ? 'Found' : 'Null'}`;
             document.getElementById('profile-email').parentNode.appendChild(debugInfo);
 
+            // AUTO-FIX: If DBUser is null, try to create/sync the user
+            if (!dbUser) {
+                console.log('User not found in DB, attempting to sync...');
+                const { error: syncError } = await supabase
+                    .from('users')
+                    .upsert({
+                        id: user.id,
+                        email: user.email,
+                        roles: ['barOwner'] // Default to barOwner for testing if missing
+                    });
+
+                if (syncError) {
+                    console.error('Sync failed:', syncError);
+                    debugInfo.innerHTML += `<br><span style="color:red">Sync Failed: ${syncError.message} (RLS Blocking?)</span>`;
+                } else {
+                    console.log('User synced!');
+                    debugInfo.innerHTML += `<br><span style="color:green">User Synced! Reloading...</span>`;
+                    setTimeout(() => window.location.reload(), 1000);
+                    return;
+                }
+            }
+
             if (roles.includes('admin') || roles.includes('editor') || roles.includes('barOwner')) {
                 const btnContainer = document.createElement('div');
                 btnContainer.style.marginTop = '1.5rem';
