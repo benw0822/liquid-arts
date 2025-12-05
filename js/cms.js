@@ -13,6 +13,7 @@ const coverPreview = document.getElementById('cover-preview');
 const barContainer = document.getElementById('bar-select-container');
 const saveBtn = document.getElementById('save-btn');
 const cancelBtn = document.getElementById('cancel-btn');
+const publishToggle = document.getElementById('publish-toggle');
 
 // New Elements
 const loadingOverlay = document.getElementById('loading-overlay');
@@ -45,6 +46,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (user && user.name) authorInput.value = user.name;
         }
     }
+
+    // Toggle Label Logic
+    publishToggle.addEventListener('change', () => {
+        const label = publishToggle.parentElement.querySelector('.label-text');
+        label.textContent = publishToggle.checked ? 'Published' : 'Draft';
+        label.style.color = publishToggle.checked ? '#4cd964' : '#666';
+    });
 });
 
 // --- Auth Check ---
@@ -182,17 +190,107 @@ async function uploadImage(file, folder = 'covers') {
     return publicUrl;
 }
 
-// Cover Preview
-coverInput.addEventListener('change', async (e) => {
+// --- Cover Image & Cropping ---
+const cropModal = document.getElementById('crop-modal');
+const cropImage = document.getElementById('crop-image');
+const cropSaveBtn = document.getElementById('crop-save-btn');
+const cropCancelBtn = document.getElementById('crop-cancel-btn');
+let cropper = null;
+let currentFile = null;
+
+coverInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (file) {
+        currentFile = file;
         const reader = new FileReader();
         reader.onload = (e) => {
-            coverPreview.style.backgroundImage = `url('${e.target.result}')`;
-            coverPreview.textContent = '';
+            // Check dimensions and upscale if needed
+            const img = new Image();
+            img.onload = () => {
+                let src = img.src;
+
+                // Auto-Upscale Logic
+                const minWidth = 1200;
+                if (img.width < minWidth) {
+                    const canvas = document.createElement('canvas');
+                    const scale = minWidth / img.width;
+                    canvas.width = minWidth;
+                    canvas.height = img.height * scale;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    src = canvas.toDataURL('image/jpeg', 0.9); // High quality upscale
+                    console.log(`Auto-upscaled image from ${img.width}px to ${minWidth}px width.`);
+                }
+
+                // Open Modal
+                cropImage.src = src;
+                cropModal.style.display = 'flex';
+
+                // Init Cropper
+                if (cropper) cropper.destroy();
+                cropper = new Cropper(cropImage, {
+                    aspectRatio: 16 / 9,
+                    viewMode: 1,
+                    autoCropArea: 1,
+                });
+            };
+            img.src = e.target.result;
         };
         reader.readAsDataURL(file);
     }
+    // Reset input so same file can be selected again if cancelled
+    coverInput.value = '';
+});
+
+cropCancelBtn.addEventListener('click', () => {
+    cropModal.style.display = 'none';
+    if (cropper) cropper.destroy();
+    cropper = null;
+});
+
+cropSaveBtn.addEventListener('click', async () => {
+    if (!cropper) return;
+
+    // Get cropped canvas
+    // We request a high resolution canvas
+    const canvas = cropper.getCroppedCanvas({
+        width: 1200, // Force output width (or at least 1200)
+        minWidth: 1200,
+        imageSmoothingEnabled: true,
+        imageSmoothingQuality: 'high',
+    });
+
+    canvas.toBlob(async (blob) => {
+        if (!blob) {
+            alert('Crop failed');
+            return;
+        }
+
+        // Create a new File object from the blob
+        const fileName = currentFile ? currentFile.name : 'cover.jpg';
+        const croppedFile = new File([blob], fileName, { type: 'image/jpeg' });
+
+        try {
+            loadingOverlay.style.display = 'flex';
+            cropModal.style.display = 'none';
+
+            // Upload
+            currentCoverUrl = await uploadImage(croppedFile, 'covers');
+
+            // Update Preview
+            coverPreview.style.backgroundImage = `url('${currentCoverUrl}')`;
+            coverPreview.textContent = '';
+
+            loadingOverlay.style.display = 'none';
+        } catch (err) {
+            loadingOverlay.style.display = 'none';
+            alert('Upload failed: ' + err.message);
+            // Show modal again if failed? Or just close.
+        } finally {
+            if (cropper) cropper.destroy();
+            cropper = null;
+        }
+    }, 'image/jpeg', 0.9);
 });
 
 // --- Data Loading ---
@@ -222,6 +320,16 @@ async function loadArticle(id) {
         currentCoverUrl = article.cover_image;
         coverPreview.style.backgroundImage = `url('${article.cover_image}')`;
         coverPreview.textContent = '';
+    }
+
+    // Set Status
+    if (article.status === 'published') {
+        publishToggle.checked = true;
+        publishToggle.parentElement.querySelector('.label-text').textContent = 'Published';
+        publishToggle.parentElement.querySelector('.label-text').style.color = '#4cd964';
+    } else {
+        publishToggle.checked = false;
+        publishToggle.parentElement.querySelector('.label-text').textContent = 'Draft';
     }
 
     quill.root.innerHTML = article.content || '';
@@ -262,7 +370,8 @@ saveBtn.addEventListener('click', async () => {
             author_name: authorInput.value,
             tags,
             content,
-            cover_image: currentCoverUrl
+            cover_image: currentCoverUrl,
+            status: publishToggle.checked ? 'published' : 'draft'
         };
 
         let articleId = currentArticleId;

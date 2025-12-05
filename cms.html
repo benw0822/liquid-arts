@@ -16,224 +16,52 @@
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/quill-image-resize-module@3.0.0/image-resize.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="css/styles.css">
+    <!-- Cropper.js -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <style>
-        body {
-            background-color: #f5f5f7;
-            /* Light Gray Background */
-            color: #333;
-            /* Dark Text */
-            padding-bottom: 80px;
+        /* ... Existing Styles ... */
+
+        /* Helper Text */
+        .help-text {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 4px;
+            margin-bottom: 0;
+            line-height: 1.4;
         }
 
-        .cms-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 20px;
-        }
-
-        @media (max-width: 768px) {
-            .cms-container {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .cms-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px;
-            background: #fff;
-            border-bottom: 1px solid #ddd;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        }
-
-        h2 {
-            color: #111;
-            margin: 0;
-        }
-
-        .editor-wrapper {
-            background: #fff;
-            color: #000;
-            min-height: 500px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            border: 1px solid #e0e0e0;
-        }
-
-        .ql-toolbar {
-            background: #f9f9f9;
-            border-top-left-radius: 8px;
-            border-top-right-radius: 8px;
-            border-bottom: 1px solid #e0e0e0;
-        }
-
-        .ql-container {
-            border-bottom-left-radius: 8px;
-            border-bottom-right-radius: 8px;
-            font-family: 'Inter', sans-serif;
-            font-size: 16px;
-            min-height: 450px;
-        }
-
-        .meta-panel {
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            border: 1px solid #e0e0e0;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-
-        .info-label {
-            display: block;
-            margin-bottom: 8px;
-            color: #666;
-            font-size: 0.9em;
-            font-weight: 600;
-        }
-
-        .search-input {
-            background: #fff;
-            border: 1px solid #ccc;
-            color: #333;
-            padding: 10px;
-            border-radius: 4px;
-            width: 100%;
-            box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: #007aff;
-            /* Blue focus for admin */
-        }
-
-        /* Cover Image 16:9 Container */
-        .cover-container {
-            width: 100%;
-            padding-top: 56.25%;
-            /* 16:9 Aspect Ratio */
-            position: relative;
-            background: #f0f0f0;
-            border-radius: 4px;
-            border: 2px dashed #ccc;
-            overflow: hidden;
-            margin-top: 10px;
-        }
-
-        #cover-preview {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-size: cover;
-            background-position: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #999;
-            font-size: 0.9em;
-            flex-direction: column;
-            text-align: center;
-        }
-
-        .btn {
-            background: #000;
-            color: #fff;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        .btn-secondary {
-            background: #e0e0e0;
-            color: #333;
-        }
-
-        /* Checkboxes in light mode */
-        #bar-select-container label {
-            color: #333 !important;
-            border-bottom: 1px solid #eee;
-            padding: 8px 0;
-        }
-
-        /* Loading Overlay */
-        #loading-overlay {
+        /* Cropper Modal */
+        .crop-modal {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(255, 255, 255, 0.8);
-            z-index: 9999;
-            /* Highest z-index */
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 10000;
             display: none;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
-            backdrop-filter: blur(5px);
+            justify-content: center;
         }
 
-        /* TOC Styles */
-        .toc-item {
-            padding: 5px 0;
-            font-size: 0.9rem;
-            color: #666;
-            cursor: pointer;
-            transition: color 0.2s;
-            border-bottom: 1px solid #eee;
+        .crop-container {
+            max-width: 90%;
+            max-height: 80vh;
+            background: #000;
         }
 
-        .toc-item:hover {
-            color: #000;
-        }
-
-        .toc-h1 {
-            font-weight: 600;
-            margin-left: 0;
-        }
-
-        .toc-h2 {
-            margin-left: 15px;
-        }
-
-        .toc-h3 {
-            margin-left: 30px;
-        }
-
-        /* Image Figure Styles */
-        .cms-image-figure {
-            margin: 20px 0;
-            display: block;
-        }
-
-        .cms-image-figure img {
-            display: block;
+        .crop-container img {
             max-width: 100%;
-            height: auto;
+            max-height: 80vh;
+            display: block;
         }
 
-        .add-caption-btn {
-            background-color: #f0f0f0;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            padding: 5px 10px;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .add-caption-btn:hover {
-            background-color: #e0e0e0;
+        .crop-actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
         }
     </style>
 </head>
@@ -246,9 +74,25 @@
         <div style="font-weight: 600; color: #333;">Uploading Image...</div>
     </div>
 
+    <!-- Crop Modal -->
+    <div id="crop-modal" class="crop-modal">
+        <div class="crop-container">
+            <img id="crop-image" src="">
+        </div>
+        <div class="crop-actions">
+            <button id="crop-cancel-btn" class="btn btn-secondary">Cancel</button>
+            <button id="crop-save-btn" class="btn">Crop & Upload</button>
+        </div>
+    </div>
+
     <div class="cms-header">
         <h2 style="font-family: 'Playfair Display', serif;">CMS Editor</h2>
-        <div>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <label class="toggle-switch">
+                <input type="checkbox" id="publish-toggle">
+                <span class="slider"></span>
+                <span class="label-text">Draft</span>
+            </label>
             <button id="cancel-btn" class="btn btn-secondary">Cancel</button>
             <button id="save-btn" class="btn">Save Story</button>
         </div>
@@ -261,6 +105,8 @@
                 <input type="text" id="article-title" class="search-input"
                     style="font-size: 1.8rem; font-weight: bold; border: none; padding: 0; background: transparent;"
                     placeholder="Enter Story Title...">
+                <p class="help-text">SEO: Keep it under 60 characters. Include main keywords (e.g., "Best Jazz Bar in
+                    Taipei").</p>
             </div>
 
             <div class="editor-wrapper">
@@ -284,6 +130,8 @@
             <div style="margin-bottom: 1.5rem;">
                 <label class="info-label">Cover Image</label>
                 <input type="file" id="cover-file" accept="image/*" class="search-input" style="margin-bottom: 5px;">
+                <p class="help-text">SEO: Use high-quality, relevant images. File name should reflect content (e.g.,
+                    "blue-note-interior.jpg").</p>
                 <div style="font-size: 0.8em; color: #888; margin-bottom: 5px;">Recommended: 1200 x 675 px (16:9)</div>
 
                 <div class="cover-container">
@@ -297,11 +145,14 @@
                 <label class="info-label">Excerpt</label>
                 <textarea id="article-excerpt" class="search-input" style="height: 100px;"
                     placeholder="Short summary for list view..."></textarea>
+                <p class="help-text">SEO: Meta Description. 150-160 characters. Summarize the content to encourage
+                    clicks.</p>
             </div>
 
             <div style="margin-bottom: 1.5rem;">
                 <label class="info-label">Tags</label>
                 <input type="text" id="article-tags" class="search-input" placeholder="e.g. Jazz, Cocktail">
+                <p class="help-text">Use comma-separated keywords for internal categorization.</p>
             </div>
 
             <div style="margin-bottom: 1.5rem;">
