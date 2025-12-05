@@ -26,6 +26,12 @@ const barResultsContainer = document.getElementById('bar-results-container');
 const barSearchInput = document.getElementById('bar-search');
 const selectedCountLabel = document.getElementById('selected-count');
 
+// Video Modal Elements
+const videoModal = document.getElementById('video-modal');
+const videoUrlInput = document.getElementById('video-url-input');
+const videoCancelBtn = document.getElementById('video-cancel-btn');
+const videoInsertBtn = document.getElementById('video-insert-btn');
+
 let quill;
 let currentArticleId = null;
 let currentCoverUrl = '';
@@ -36,6 +42,52 @@ let initialImagePaths = []; // Track images present at load time
 // Related Bars State
 let allBars = [];
 let selectedBarIds = new Set();
+
+let allBars = [];
+let selectedBarIds = new Set();
+
+// --- Video Handler (Global) ---
+function videoHandler() {
+    console.log('Video handler triggered');
+
+    // Re-query elements to be safe
+    const modal = document.getElementById('video-modal');
+    const input = document.getElementById('video-url-input');
+
+    if (!modal || !input) {
+        console.error('Video modal elements not found!');
+        return;
+    }
+
+    // Save current selection range to restore later
+    const range = quill.getSelection();
+    if (range) {
+        quill.dataset.rangeIndex = range.index;
+    }
+
+    input.value = '';
+    modal.style.display = 'flex';
+    input.focus();
+}
+
+// Video Modal Listeners
+if (videoCancelBtn) {
+    videoCancelBtn.addEventListener('click', () => {
+        videoModal.style.display = 'none';
+    });
+}
+
+if (videoInsertBtn) {
+    videoInsertBtn.addEventListener('click', () => {
+        const url = videoUrlInput.value.trim();
+        if (url) {
+            const index = parseInt(quill.dataset.rangeIndex || 0);
+            quill.insertEmbed(index, 'video', url);
+            quill.setSelection(index + 1);
+        }
+        videoModal.style.display = 'none';
+    });
+}
 
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', async () => {
@@ -361,34 +413,6 @@ function instagramHandler() {
 
 
 // --- Video Handler & Modal ---
-const videoModal = document.getElementById('video-modal');
-const videoUrlInput = document.getElementById('video-url-input');
-const videoCancelBtn = document.getElementById('video-cancel-btn');
-const videoInsertBtn = document.getElementById('video-insert-btn');
-
-function videoHandler() {
-    console.log('Video handler triggered');
-
-    // Re-query elements to be safe
-    const modal = document.getElementById('video-modal');
-    const input = document.getElementById('video-url-input');
-
-    if (!modal || !input) {
-        console.error('Video modal elements not found!');
-        return;
-    }
-
-    // Save current selection range to restore later
-    const range = quill.getSelection();
-    if (range) {
-        quill.dataset.rangeIndex = range.index;
-    }
-
-    input.value = '';
-    modal.style.display = 'flex';
-    input.focus();
-}
-
 videoCancelBtn.addEventListener('click', () => {
     videoModal.style.display = 'none';
 });
