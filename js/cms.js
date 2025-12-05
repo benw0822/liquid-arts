@@ -582,6 +582,8 @@ async function loadArticle(id) {
         publishToggle.parentElement.querySelector('.label-text').textContent = 'Draft';
     }
 
+    console.log('Loaded article:', article);
+    console.log('Setting content:', article.content);
     quill.root.innerHTML = article.content || '';
 
     // Load Related Bars
