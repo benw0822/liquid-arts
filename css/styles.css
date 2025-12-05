@@ -489,3 +489,30 @@ figure.article-figure figcaption {
     cursor: pointer;
     /* Indicate clickable */
 }
+
+/* --- Sticky Toolbar --- */
+.ql-toolbar {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    border-radius: 50px !important;
+    padding: 8px 20px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    display: flex;
+    gap: 5px;
+    width: auto !important;
+    max-width: 90vw;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.ql-container {
+    border: none !important;
+    /* Remove border from editor container */
+    font-size: 1.1rem;
+}
