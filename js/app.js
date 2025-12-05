@@ -280,15 +280,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const tagsHtml = (article.tags || []).map(t => `<span style="background:#eee; padding:2px 8px; border-radius:4px; font-size:0.8rem; margin-right:5px;">${t}</span>`).join('');
 
         container.innerHTML = `
-            <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem;">${article.title}</h1>
-            <div style="color: #888; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px;">
-                <span>${dateStr}</span>
-                ${article.author_name ? `<span>• by ${article.author_name}</span>` : ''}
+            <div style="text-align: center; max-width: 800px; margin: 0 auto 3rem auto;">
+                <h1 style="font-size: 3rem; margin-bottom: 1rem; line-height: 1.2;">${article.title}</h1>
+                ${article.excerpt ? `<p style="font-size: 1.2rem; color: #666; margin-bottom: 1.5rem; font-family: var(--font-display); font-style: italic;">${article.excerpt}</p>` : ''}
+                <div style="color: #888; display: flex; flex-direction: column; align-items: center; gap: 5px; font-family: var(--font-main);">
+                    <span style="font-size: 0.9rem; letter-spacing: 0.05em; text-transform: uppercase;">${dateStr}</span>
+                    ${article.author_name ? `<span style="font-size: 1.1rem; color: #333; font-weight: 500;">by ${article.author_name}</span>` : ''}
+                </div>
             </div>
             
-            ${article.cover_image ? `<img src="${article.cover_image}" style="width: 100%; max-height: 500px; object-fit: cover; border-radius: 8px; margin-bottom: 2rem;">` : ''}
+            ${article.cover_image ? `<img src="${article.cover_image}" style="width: 100%; max-height: 600px; object-fit: cover; border-radius: 8px; margin-bottom: 3rem;">` : ''}
             
-            <div style="margin-bottom: 2rem;">
+            <div style="margin-bottom: 2rem; text-align: center;">
                 ${tagsHtml}
             </div>
 
