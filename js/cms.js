@@ -554,59 +554,69 @@ barSearchInput.addEventListener('input', (e) => {
 
 
 async function loadArticle(id) {
-    const { data: article, error } = await supabase.from('articles').select('*').eq('id', id).single();
-    if (error) {
-        alert('Error loading article');
-        return;
-    }
-
-    titleInput.value = article.title;
-    excerptInput.value = article.excerpt || '';
-    tagsInput.value = (article.tags || []).join(', ');
-    categoryInput.value = article.category || '';
-    authorInput.value = article.author_name || '';
-
-    if (article.cover_image) {
-        currentCoverUrl = article.cover_image;
-        coverPreview.style.backgroundImage = `url('${article.cover_image}')`;
-        coverPreview.textContent = '';
-    }
-
-    // Set Status
-    if (article.status === 'published') {
-        publishToggle.checked = true;
-        publishToggle.parentElement.querySelector('.label-text').textContent = 'Published';
-        publishToggle.parentElement.querySelector('.label-text').style.color = '#4cd964';
-    } else {
-        publishToggle.checked = false;
-        publishToggle.parentElement.querySelector('.label-text').textContent = 'Draft';
-    }
-
-    console.log('Loaded article:', article);
-    console.log('Content type:', typeof article.content);
-    console.log('Content length:', article.content ? article.content.length : 0);
-
-    if (!quill) {
-        console.error('Quill instance not found!');
-        alert('Editor initialization failed. Please refresh.');
-        return;
-    }
-
-    // Debug Panel Logic
+    // Debug Panel Logic (Moved to top)
     const debugPanel = document.getElementById('debug-panel');
     const debugContent = document.getElementById('debug-content');
     if (debugPanel && debugContent) {
         debugPanel.style.display = 'block';
-        const contentLen = article.content ? article.content.length : 0;
-        const contentSnippet = article.content ? article.content.substring(0, 50).replace(/</g, '&lt;') : 'N/A';
-        debugContent.innerHTML = `ID: ${id} | Content Length: ${contentLen} | Snippet: ${contentSnippet}`;
+        debugContent.innerHTML = `Loading article ID: ${id}...`;
     }
 
-    if (article.content) {
-        // Direct HTML paste is the most reliable for v1.3.6
-        quill.clipboard.dangerouslyPasteHTML(0, article.content);
-    } else {
-        quill.setText('');
+    try {
+        const { data: article, error } = await supabase.from('articles').select('*').eq('id', id).single();
+        if (error) {
+            if (debugContent) debugContent.innerHTML += `<br>Error loading article: ${error.message}`;
+            alert('Error loading article');
+            return;
+        }
+
+        if (debugContent) {
+            const contentLen = article.content ? article.content.length : 0;
+            const contentSnippet = article.content ? article.content.substring(0, 50).replace(/</g, '&lt;') : 'N/A';
+            debugContent.innerHTML += `<br>Loaded! Content Length: ${contentLen} | Snippet: ${contentSnippet}`;
+        }
+
+        titleInput.value = article.title;
+        excerptInput.value = article.excerpt || '';
+        tagsInput.value = (article.tags || []).join(', ');
+        categoryInput.value = article.category || '';
+        authorInput.value = article.author_name || '';
+
+        if (article.cover_image) {
+            currentCoverUrl = article.cover_image;
+            coverPreview.style.backgroundImage = `url('${article.cover_image}')`;
+            coverPreview.textContent = '';
+        }
+
+        // Set Status
+        if (article.status === 'published') {
+            publishToggle.checked = true;
+            publishToggle.parentElement.querySelector('.label-text').textContent = 'Published';
+            publishToggle.parentElement.querySelector('.label-text').style.color = '#4cd964';
+        } else {
+            publishToggle.checked = false;
+            publishToggle.parentElement.querySelector('.label-text').textContent = 'Draft';
+        }
+
+        console.log('Loaded article:', article);
+
+        if (!quill) {
+            console.error('Quill instance not found!');
+            if (debugContent) debugContent.innerHTML += `<br><strong style="color:red">Quill instance missing!</strong>`;
+            alert('Editor initialization failed. Please refresh.');
+            return;
+        }
+
+        if (article.content) {
+            // Direct HTML paste is the most reliable for v1.3.6
+            quill.clipboard.dangerouslyPasteHTML(0, article.content);
+        } else {
+            quill.setText('');
+        }
+    } catch (err) {
+        console.error('Critical error in loadArticle:', err);
+        if (debugContent) debugContent.innerHTML += `<br><strong style="color:red">Critical Error:</strong> ${err.message}`;
+        alert('Critical error loading article: ' + err.message);
     }
 
     // Load Related Bars

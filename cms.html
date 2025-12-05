@@ -357,6 +357,19 @@
 
 <body>
 
+    <!-- Global Error Handler -->
+    <script>
+        window.onerror = function (msg, url, lineNo, columnNo, error) {
+            const debugPanel = document.getElementById('debug-panel');
+            const debugContent = document.getElementById('debug-content');
+            if (debugPanel && debugContent) {
+                debugPanel.style.display = 'block';
+                debugContent.innerHTML += `<br><strong style="color:red">JS Error:</strong> ${msg} at line ${lineNo}`;
+            }
+            return false;
+        };
+    </script>
+
     <!-- Loading Overlay -->
     <div id="loading-overlay">
         <div class="spinner"></div>
