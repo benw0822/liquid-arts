@@ -281,6 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         container.innerHTML = `
             <div style="text-align: center; max-width: 800px; margin: 0 auto 3rem auto;">
+                ${article.category ? `<div style="display: inline-block; background: #8a0000; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; margin-bottom: 1rem; letter-spacing: 0.1em;">${article.category}</div>` : ''}
                 <h1 style="font-size: 3rem; margin-bottom: 1rem; line-height: 1.2;">${article.title}</h1>
                 ${article.excerpt ? `<p style="font-size: 1.2rem; color: #666; margin-bottom: 1.5rem; font-family: var(--font-display); font-style: italic;">${article.excerpt}</p>` : ''}
                 <div style="color: #888; display: flex; flex-direction: column; align-items: center; gap: 5px; font-family: var(--font-main);">

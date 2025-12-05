@@ -640,7 +640,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="article-thumb" style="${thumbStyle}"></div>
                 
                 <div class="article-info">
-                    <h4>${article.title}</h4>
+                    <h4>
+                        ${article.category ? `<span class="tag-badge" style="background: #e0e0e0; color: #333; margin-right: 8px;">${article.category}</span>` : ''}
+                        ${article.title}
+                    </h4>
                     <div class="article-meta">
                         <span>${new Date(article.published_at || article.created_at).toLocaleDateString()}</span>
                         ${article.updated_at ? `<span style="color: #999; font-size: 0.9em;">(Updated: ${new Date(article.updated_at).toLocaleDateString()})</span>` : ''}

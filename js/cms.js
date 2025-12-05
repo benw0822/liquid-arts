@@ -7,6 +7,7 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const titleInput = document.getElementById('article-title');
 const excerptInput = document.getElementById('article-excerpt');
 const tagsInput = document.getElementById('article-tags');
+const categoryInput = document.getElementById('article-category');
 const authorInput = document.getElementById('article-author');
 const coverInput = document.getElementById('cover-file');
 const coverPreview = document.getElementById('cover-preview');
@@ -342,6 +343,7 @@ async function loadArticle(id) {
     titleInput.value = article.title;
     excerptInput.value = article.excerpt || '';
     tagsInput.value = (article.tags || []).join(', ');
+    categoryInput.value = article.category || '';
     authorInput.value = article.author_name || '';
 
     if (article.cover_image) {
@@ -405,6 +407,7 @@ saveBtn.addEventListener('click', async () => {
         const articleData = {
             title,
             excerpt: excerptInput.value,
+            category: categoryInput.value,
             author_name: authorInput.value,
             tags,
             content,
