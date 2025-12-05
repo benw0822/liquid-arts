@@ -583,18 +583,18 @@ async function loadArticle(id) {
     }
 
     console.log('Loaded article:', article);
-    console.log('Setting content:', article.content);
+    console.log('Content type:', typeof article.content);
+    console.log('Content length:', article.content ? article.content.length : 0);
+
+    if (!quill) {
+        console.error('Quill instance not found!');
+        alert('Editor initialization failed. Please refresh.');
+        return;
+    }
 
     if (article.content) {
-        // Small delay to ensure editor is ready
-        setTimeout(() => {
-            try {
-                quill.clipboard.dangerouslyPasteHTML(0, article.content);
-            } catch (e) {
-                console.warn('dangerouslyPasteHTML failed, falling back to innerHTML', e);
-                quill.root.innerHTML = article.content;
-            }
-        }, 100);
+        // Direct HTML paste is the most reliable for v1.3.6
+        quill.clipboard.dangerouslyPasteHTML(0, article.content);
     } else {
         quill.setText('');
     }
