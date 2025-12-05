@@ -87,8 +87,6 @@ class ImageFigure extends BlockEmbed {
 
         const caption = document.createElement('figcaption');
         caption.innerText = value.caption || '';
-        const caption = document.createElement('figcaption');
-        caption.innerText = value.caption || '';
         // caption.setAttribute('contenteditable', 'true'); // Removed to prevent accidental deletion
         caption.style.cursor = 'pointer';
         caption.title = 'Click to edit caption';
