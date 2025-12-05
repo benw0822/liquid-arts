@@ -584,7 +584,13 @@ async function loadArticle(id) {
 
     console.log('Loaded article:', article);
     console.log('Setting content:', article.content);
-    quill.root.innerHTML = article.content || '';
+
+    if (article.content) {
+        // Use clipboard API for better HTML handling
+        quill.clipboard.dangerouslyPasteHTML(0, article.content);
+    } else {
+        quill.setText('');
+    }
 
     // Load Related Bars
     const { data: related } = await supabase.from('article_bars').select('bar_id').eq('article_id', id);
