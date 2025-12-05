@@ -290,7 +290,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>
             
-            ${article.cover_image ? `<img src="${article.cover_image}" style="width: 100%; max-height: 600px; object-fit: cover; border-radius: 8px; margin-bottom: 3rem;">` : ''}
+            ${article.cover_image ? `<img src="${article.cover_image}" style="width: 100%; max-height: 600px; object-fit: cover; border-radius: 8px; margin-bottom: 1.5rem;">` : ''}
             
             <div style="margin-bottom: 2rem; text-align: center;">
                 ${tagsHtml}
@@ -310,7 +310,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (headers.length > 0) {
                 const tocDiv = document.createElement('div');
                 tocDiv.className = 'article-toc';
-                tocDiv.innerHTML = '<h3>Table of Contents</h3><ul></ul>';
+                tocDiv.innerHTML = '<h3>目錄</h3><ul></ul>';
                 const ul = tocDiv.querySelector('ul');
 
                 headers.forEach((header, index) => {

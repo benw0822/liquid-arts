@@ -172,7 +172,7 @@ InstagramEmbed.className = 'instagram-embed';
 class TOCEmbed extends BlockEmbed {
     static create() {
         const node = super.create();
-        node.innerHTML = 'Table of Contents';
+        node.innerHTML = '目錄';
         node.setAttribute('contenteditable', 'false');
         node.classList.add('toc-embed');
         return node;
