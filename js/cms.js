@@ -20,12 +20,22 @@ const publishToggle = document.getElementById('publish-toggle');
 const loadingOverlay = document.getElementById('loading-overlay');
 const tocContainer = document.getElementById('toc-container');
 
+// Related Bars Elements
+const selectedBarsContainer = document.getElementById('selected-bars-container');
+const barResultsContainer = document.getElementById('bar-results-container');
+const barSearchInput = document.getElementById('bar-search');
+const selectedCountLabel = document.getElementById('selected-count');
+
 let quill;
 let currentArticleId = null;
 let currentCoverUrl = '';
 let pendingImageUrl = ''; // Store URL while waiting for caption
 let sessionUploadedPaths = []; // Track images uploaded in this session
 let initialImagePaths = []; // Track images present at load time
+
+// Related Bars State
+let allBars = [];
+let selectedBarIds = new Set();
 
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', async () => {
@@ -36,7 +46,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     currentArticleId = urlParams.get('id');
 
-    await loadBars();
+    // Load all bars for selection
+    const { data: bars } = await supabase.from('bars').select('id, title, name_en');
+    allBars = bars || [];
+    renderAvailableBars();
+    renderSelectedBars();
 
     if (currentArticleId) {
         await loadArticle(currentArticleId);
@@ -444,16 +458,73 @@ cropSaveBtn.addEventListener('click', async () => {
     }, 'image/jpeg', 0.9);
 });
 
-// --- Data Loading ---
-async function loadBars() {
-    const { data: bars } = await supabase.from('bars').select('id, title, name_en');
-    barContainer.innerHTML = (bars || []).map(b => `
-        <label style="display: flex; align-items: center; margin-bottom: 8px; cursor: pointer; color: #ddd;">
-            <input type="checkbox" value="${b.id}" style="margin-right: 10px;">
-            ${b.name_en || b.title}
-        </label>
-    `).join('');
+// --- Related Bars Logic ---
+function renderSelectedBars() {
+    selectedCountLabel.textContent = selectedBarIds.size;
+
+    if (selectedBarIds.size === 0) {
+        selectedBarsContainer.innerHTML = '<div style="padding: 10px; color: #999; font-style: italic;">No bars selected</div>';
+        return;
+    }
+
+    selectedBarsContainer.innerHTML = '';
+    selectedBarIds.forEach(id => {
+        const bar = allBars.find(b => b.id === id);
+        if (!bar) return;
+
+        const div = document.createElement('div');
+        div.className = 'bar-item selected-item';
+        div.innerHTML = `
+            <span>${bar.name_en || bar.title}</span>
+            <span class="action-icon">&times;</span>
+        `;
+        div.onclick = () => {
+            selectedBarIds.delete(id);
+            renderSelectedBars();
+            renderAvailableBars(barSearchInput.value);
+        };
+        selectedBarsContainer.appendChild(div);
+    });
 }
+
+function renderAvailableBars(searchTerm = '') {
+    const lowerTerm = searchTerm.toLowerCase();
+
+    // Filter: Match name AND not already selected
+    const filtered = allBars.filter(bar => {
+        const name = (bar.name_en || bar.title || '').toLowerCase();
+        return !selectedBarIds.has(bar.id) && name.includes(lowerTerm);
+    });
+
+    if (filtered.length === 0) {
+        barResultsContainer.innerHTML = '<div style="padding: 10px; color: #999;">No matching bars found</div>';
+        return;
+    }
+
+    barResultsContainer.innerHTML = '';
+    filtered.forEach(bar => {
+        const div = document.createElement('div');
+        div.className = 'bar-item';
+        div.innerHTML = `
+            <span>${bar.name_en || bar.title}</span>
+            <span class="action-icon">+</span>
+        `;
+        div.onclick = () => {
+            selectedBarIds.add(bar.id);
+            renderSelectedBars();
+            renderAvailableBars(barSearchInput.value);
+            barSearchInput.value = ''; // Clear search after adding? Optional. Let's keep it for now.
+            barSearchInput.focus();
+        };
+        barResultsContainer.appendChild(div);
+    });
+}
+
+// Search Listener
+barSearchInput.addEventListener('input', (e) => {
+    renderAvailableBars(e.target.value);
+});
+
 
 async function loadArticle(id) {
     const { data: article, error } = await supabase.from('articles').select('*').eq('id', id).single();
@@ -486,9 +557,13 @@ async function loadArticle(id) {
 
     quill.root.innerHTML = article.content || '';
 
-    // Load Relations
-    const { data: relations } = await supabase.from('bar_articles').select('bar_id').eq('article_id', id);
-    const relatedIds = (relations || []).map(r => r.bar_id);
+    // Load Related Bars
+    const { data: related } = await supabase.from('article_bars').select('bar_id').eq('article_id', id);
+    if (related) {
+        selectedBarIds = new Set(related.map(r => r.bar_id));
+        renderSelectedBars();
+        renderAvailableBars(); // Re-render available to exclude selected
+    }
 
     // Track Initial Images
     initialImagePaths = [];
@@ -552,17 +627,18 @@ saveBtn.addEventListener('click', async () => {
             articleId = data[0].id;
         }
 
-        // Update Relations
-        const selectedBars = Array.from(barContainer.querySelectorAll('input:checked')).map(cb => cb.value);
+        // 3. Save Related Bars
+        // First, delete existing
+        await supabase.from('article_bars').delete().eq('article_id', articleId);
 
-        // 1. Delete old
-        if (currentArticleId) {
-            await supabase.from('bar_articles').delete().eq('article_id', articleId);
-        }
-        // 2. Insert new
-        if (selectedBars.length > 0) {
-            const relations = selectedBars.map(bid => ({ bar_id: bid, article_id: articleId }));
-            await supabase.from('bar_articles').insert(relations);
+        // Then insert new
+        if (selectedBarIds.size > 0) {
+            const barInserts = Array.from(selectedBarIds).map(barId => ({
+                article_id: articleId,
+                bar_id: barId
+            }));
+            const { error: barsError } = await supabase.from('article_bars').insert(barInserts);
+            if (barsError) console.error('Error saving related bars:', barsError);
         }
 
         // --- Image Cleanup Logic (On Save) ---
