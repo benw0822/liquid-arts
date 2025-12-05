@@ -164,15 +164,17 @@ function initQuill() {
                 [{ 'header': [1, 2, 3, false] }],
                 ['bold', 'italic', 'underline', 'strike'],
                 ['blockquote', 'code-block'],
+                ['blockquote', 'code-block'],
                 [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                [{ 'align': [] }], // Text Alignment
+                [{ 'align': '' }, { 'align': 'center' }, { 'align': 'right' }, { 'align': 'justify' }], // Expanded Alignment
                 [{ 'color': [] }, { 'background': [] }],
                 ['link', 'image', 'video', 'instagram'], // Add Instagram button
                 ['clean']
             ],
             handlers: {
                 image: imageHandler,
-                instagram: instagramHandler
+                instagram: instagramHandler,
+                video: videoHandler
             }
         },
         imageResize: {
@@ -331,6 +333,41 @@ function instagramHandler() {
         quill.setSelection(range.index + 1);
     }
 }
+
+    }
+}
+
+// --- Video Handler & Modal ---
+const videoModal = document.getElementById('video-modal');
+const videoUrlInput = document.getElementById('video-url-input');
+const videoCancelBtn = document.getElementById('video-cancel-btn');
+const videoInsertBtn = document.getElementById('video-insert-btn');
+
+function videoHandler() {
+    // Save current selection range to restore later
+    const range = quill.getSelection();
+    if (range) {
+        quill.dataset.rangeIndex = range.index;
+    }
+
+    videoUrlInput.value = '';
+    videoModal.style.display = 'flex';
+    videoUrlInput.focus();
+}
+
+videoCancelBtn.addEventListener('click', () => {
+    videoModal.style.display = 'none';
+});
+
+videoInsertBtn.addEventListener('click', () => {
+    const url = videoUrlInput.value.trim();
+    if (url) {
+        const index = parseInt(quill.dataset.rangeIndex || 0);
+        quill.insertEmbed(index, 'video', url);
+        quill.setSelection(index + 1);
+    }
+    videoModal.style.display = 'none';
+});
 
 // --- Image Cleanup Helpers ---
 function getPathFromUrl(url) {
