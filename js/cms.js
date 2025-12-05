@@ -360,15 +360,26 @@ const videoCancelBtn = document.getElementById('video-cancel-btn');
 const videoInsertBtn = document.getElementById('video-insert-btn');
 
 function videoHandler() {
+    console.log('Video handler triggered');
+
+    // Re-query elements to be safe
+    const modal = document.getElementById('video-modal');
+    const input = document.getElementById('video-url-input');
+
+    if (!modal || !input) {
+        console.error('Video modal elements not found!');
+        return;
+    }
+
     // Save current selection range to restore later
     const range = quill.getSelection();
     if (range) {
         quill.dataset.rangeIndex = range.index;
     }
 
-    videoUrlInput.value = '';
-    videoModal.style.display = 'flex';
-    videoUrlInput.focus();
+    input.value = '';
+    modal.style.display = 'flex';
+    input.focus();
 }
 
 videoCancelBtn.addEventListener('click', () => {
