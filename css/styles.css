@@ -539,6 +539,39 @@ figure.article-figure figcaption {
     /* Indicate clickable */
 }
 
+/* --- Editor Toolbar Styling --- */
+.ql-toolbar.ql-snow {
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    border-color: #e0e0e0;
+    background: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+/* Remove spacing between groups */
+.ql-toolbar.ql-snow .ql-formats {
+    margin-right: 0 !important;
+    padding-right: 5px;
+    border-right: 1px solid #eee;
+}
+
+.ql-toolbar.ql-snow .ql-formats:last-child {
+    border-right: none;
+}
+
+/* Compact buttons */
+.ql-toolbar.ql-snow button {
+    padding: 3px 5px !important;
+    width: auto !important;
+}
+
+/* Adjust dropdowns */
+.ql-toolbar.ql-snow .ql-picker-label {
+    padding-left: 4px !important;
+}
+
 /* --- Sticky Toolbar --- */
 .ql-toolbar {
     position: sticky;
