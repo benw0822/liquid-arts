@@ -23,6 +23,8 @@ let quill;
 let currentArticleId = null;
 let currentCoverUrl = '';
 let pendingImageUrl = ''; // Store URL while waiting for caption
+let sessionUploadedPaths = []; // Track images uploaded in this session
+let initialImagePaths = []; // Track images present at load time
 
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', async () => {
@@ -187,7 +189,33 @@ async function uploadImage(file, folder = 'covers') {
         .from('articles')
         .getPublicUrl(fileName);
 
+    // Track this upload
+    sessionUploadedPaths.push(fileName);
+
     return publicUrl;
+}
+
+// --- Image Cleanup Helpers ---
+function getPathFromUrl(url) {
+    if (!url) return null;
+    // URL format: .../storage/v1/object/public/articles/folder/filename
+    // We want: folder/filename
+    const marker = '/articles/';
+    const index = url.indexOf(marker);
+    if (index === -1) return null;
+    return url.substring(index + marker.length);
+}
+
+async function cleanupImages(pathsToDelete) {
+    if (!pathsToDelete || pathsToDelete.length === 0) return;
+
+    console.log('Cleaning up images:', pathsToDelete);
+    const { data, error } = await supabase.storage
+        .from('articles')
+        .remove(pathsToDelete);
+
+    if (error) console.error('Cleanup error:', error);
+    else console.log('Cleanup successful:', data);
 }
 
 // --- Cover Image & Cropping ---
@@ -338,9 +366,19 @@ async function loadArticle(id) {
     const { data: relations } = await supabase.from('bar_articles').select('bar_id').eq('article_id', id);
     const relatedIds = (relations || []).map(r => r.bar_id);
 
-    // Check boxes
-    barContainer.querySelectorAll('input').forEach(cb => {
-        if (relatedIds.includes(parseInt(cb.value))) cb.checked = true;
+    // Track Initial Images
+    initialImagePaths = [];
+    if (article.cover_image) {
+        const path = getPathFromUrl(article.cover_image);
+        if (path) initialImagePaths.push(path);
+    }
+
+    // Parse content for images
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = article.content || '';
+    tempDiv.querySelectorAll('img').forEach(img => {
+        const path = getPathFromUrl(img.src);
+        if (path) initialImagePaths.push(path);
     });
 }
 
@@ -401,6 +439,36 @@ saveBtn.addEventListener('click', async () => {
             await supabase.from('bar_articles').insert(relations);
         }
 
+        // --- Image Cleanup Logic (On Save) ---
+        // 1. Identify all images currently in use
+        const finalPaths = new Set();
+
+        if (currentCoverUrl) {
+            const path = getPathFromUrl(currentCoverUrl);
+            if (path) finalPaths.add(path);
+        }
+
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = content;
+        tempDiv.querySelectorAll('img').forEach(img => {
+            const path = getPathFromUrl(img.src);
+            if (path) finalPaths.add(path);
+        });
+
+        // 2. Find paths to delete
+        // Delete from session uploads if not in final
+        const sessionToDelete = sessionUploadedPaths.filter(p => !finalPaths.has(p));
+        // Delete from initial if not in final
+        const initialToDelete = initialImagePaths.filter(p => !finalPaths.has(p));
+
+        const allToDelete = [...new Set([...sessionToDelete, ...initialToDelete])];
+
+        if (allToDelete.length > 0) {
+            // Don't await this to speed up UI, or await if critical
+            // Better to await to ensure it happens before redirect
+            await cleanupImages(allToDelete);
+        }
+
         alert('Saved successfully!');
         window.location.href = 'admin.html';
 
@@ -411,8 +479,13 @@ saveBtn.addEventListener('click', async () => {
     }
 });
 
-cancelBtn.addEventListener('click', () => {
-    if (confirm('Discard changes?')) {
+cancelBtn.addEventListener('click', async () => {
+    if (confirm('Discard changes? This will delete any images uploaded in this session.')) {
+        if (sessionUploadedPaths.length > 0) {
+            loadingOverlay.style.display = 'flex';
+            loadingOverlay.querySelector('div:last-child').textContent = 'Cleaning up...';
+            await cleanupImages(sessionUploadedPaths);
+        }
         window.location.href = 'admin.html';
     }
 });
