@@ -260,22 +260,40 @@ document.addEventListener('DOMContentLoaded', () => {
         const id = params.get('id');
         const container = document.getElementById('article-content');
 
-        const articles = await fetchArticles();
-        const article = articles.find(a => a.id == id);
-
-        if (!article) {
+        if (!id) {
             container.innerHTML = '<p>Article not found.</p>';
             return;
         }
 
+        const { data: article, error } = await supabase
+            .from('articles')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (error || !article) {
+            container.innerHTML = '<p>Article not found.</p>';
+            return;
+        }
+
+        const dateStr = new Date(article.published_at || article.created_at).toLocaleDateString();
+        const tagsHtml = (article.tags || []).map(t => `<span style="background:#eee; padding:2px 8px; border-radius:4px; font-size:0.8rem; margin-right:5px;">${t}</span>`).join('');
+
         container.innerHTML = `
-            <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">${article.title}</h1>
-            <p style="color: #888; margin-bottom: 2rem;">Published on ${article.date}</p>
-            <img src="${article.image}" style="width: 100%; height: 400px; object-fit: cover; border-radius: 8px; margin-bottom: 2rem;">
-            <div style="font-size: 1.1rem; line-height: 1.8;">
-                <p>${article.excerpt}</p>
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
-                <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+            <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem;">${article.title}</h1>
+            <div style="color: #888; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px;">
+                <span>${dateStr}</span>
+                ${article.author_name ? `<span>• by ${article.author_name}</span>` : ''}
+            </div>
+            
+            ${article.cover_image ? `<img src="${article.cover_image}" style="width: 100%; max-height: 500px; object-fit: cover; border-radius: 8px; margin-bottom: 2rem;">` : ''}
+            
+            <div style="margin-bottom: 2rem;">
+                ${tagsHtml}
+            </div>
+
+            <div class="article-body" style="font-size: 1.1rem; line-height: 1.8;">
+                ${article.content || '<p>No content.</p>'}
             </div>
         `;
     };
@@ -294,12 +312,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function createArticleCard(article) {
+        // Handle both mock data (image, date) and real data (cover_image, published_at)
+        const imgUrl = article.cover_image || article.image || 'assets/placeholder.jpg';
+        const dateStr = new Date(article.published_at || article.created_at || article.date).toLocaleDateString();
+
         return `
             <a href="article-details.html?id=${article.id}" class="art-card grid-item">
-                <img src="${article.image}" alt="${article.title}" class="art-card-image">
-                <div class="art-card-meta" style="margin-bottom: 0.5rem;">${article.date}</div>
+                <img src="${imgUrl}" alt="${article.title}" class="art-card-image" style="height: 200px; object-fit: cover;">
+                <div class="art-card-meta" style="margin-bottom: 0.5rem;">${dateStr}</div>
                 <h3 class="art-card-title" style="font-size: 1.5rem;">${article.title}</h3>
-                <p class="serif-caption" style="font-size: 1rem; margin-top: 0.5rem;">${article.excerpt}</p>
+                <p class="serif-caption" style="font-size: 1rem; margin-top: 0.5rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">${article.excerpt || ''}</p>
             </a>
         `;
     }
