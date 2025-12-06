@@ -835,3 +835,8 @@ figure.article-figure figcaption {
 .scrollable-content::-webkit-scrollbar-thumb:hover {
     background: #999;
 }
+@media (max-width: 768px) {
+    .container.detail-grid {
+        flex-direction: column;
+    }
+}

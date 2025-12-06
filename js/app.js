@@ -280,113 +280,122 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         }
 
+        // Extract city from address (look for "City" or take last part)
+        const city = bar.address ? (bar.address.match(/(\w+\s*City)/i)?.[0] || bar.address.split(',').slice(-2)[0].trim()) : (bar.location || '');
+
         container.innerHTML = `
             <!-- Top Header (Title & Vibe) -->
             <div class="container" style="margin-top: 100px; margin-bottom: 2rem; text-align: center;">
                 <h1 style="font-size: 3.5rem; margin-bottom: 0.5rem; color: var(--text-primary); line-height: 1.2;">${bar.title}</h1>
-                <p style="font-size: 1.2rem; color: #666; letter-spacing: 0.05em;">
-                    <span style="color: var(--bg-red); font-weight: 600; text-transform: uppercase;">${bar.vibe}</span>
-                    ${bar.location}
+                <p style="font-size: 1.2rem; color: #666; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    <span style="color: var(--bg-red); font-weight: 600; text-transform: uppercase; font-size: 0.9rem;">${bar.vibe}</span>
+                    <span style="font-size: 0.9rem; color: #888;">${city}</span>
                 </p>
             </div>
 
-            <div class="container detail-grid" style="margin-top: 0;">
+            <div class="container detail-grid" style="margin-top: 0; display: flex; gap: 15px; align-items: flex-start;">
                 
-                <!-- Hero Card (Image Only) -->
-                <div class="content-card hero-card" style="padding: 0; border: none; overflow: hidden; background: transparent;">
-                    <img id="hero-card-img" src="${bar.image}" alt="${bar.title}" style="width: 100%; height: auto; display: block;">
-                </div>
-
-                <!-- Editorial Review Card (Restored) -->
-                ${bar.editorial_review ? `
-                    <div class="content-card" style="border-left: 4px solid var(--bg-red);">
-                        <span class="info-label" style="color: var(--bg-red);">Editor's Review</span>
-                        <p style="font-style: italic; color: #444; font-size: 1.1rem; line-height: 1.6; margin-bottom: 0.5rem;">"${bar.editorial_review}"</p>
-                        ${bar.editorial_rating ? `<div style="color: #FFD700; font-size: 1.2rem;">${'★'.repeat(bar.editorial_rating)}${'☆'.repeat(5 - bar.editorial_rating)}</div>` : ''}
-                    </div>
-                ` : ''}
-
-                <div id="about-card" class="content-card" style="display: flex; flex-direction: column;">
-                    <h2 style="text-align: center; font-size: 1.5rem; margin-bottom: 1.5rem; font-family: var(--font-display); flex-shrink: 0;">About</h2>
-                    
-                    <p style="line-height: 1.6; margin-bottom: 1.5rem;">
-                        ${bar.description || `Experience the finest mixology at ${bar.title}. Known for its ${bar.vibe} atmosphere, this spot in ${bar.location} offers a curated selection of cocktails and spirits.`}
-                    </p>
-
-                    <div style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 20px;">
-                        <div>
-                            <span style="font-weight: 600; color: var(--text-primary);">Google Rating:</span> 
-                            <span>${bar.rating} / 5.0 <span style="color:#888; font-size:0.9em;">(${bar.rating_count || 0} reviews)</span></span>
-                        </div>
-                        <div>
-                            <span style="font-weight: 600; color: var(--text-primary);">Price:</span> 
-                            <span>${'$'.repeat(bar.price_level || bar.price || 2)}</span>
-                        </div>
+                <!-- Left Column -->
+                <div class="left-column" style="flex: 1; min-width: 0;">
+                    <!-- Hero Card (Image Only) -->
+                    <div class="content-card hero-card" style="padding: 0; border: none; overflow: hidden; background: transparent;">
+                        <img id="hero-card-img" src="${bar.image}" alt="${bar.title}" style="width: 100%; height: auto; display: block;">
                     </div>
 
-                    <div style="display: flex; gap: 2rem; margin-bottom: 1.5rem;">
-                        ${bar.owner_name ? `
-                            <div>
-                                <span class="info-label" style="font-size: 0.9rem;">Owner</span>
-                                <p style="font-weight: 600;">${bar.owner_name}</p>
-                            </div>
-                        ` : ''}
-                        ${bar.bartender_name ? `
-                            <div>
-                                <span class="info-label" style="font-size: 0.9rem;">Head Bartender</span>
-                                <p style="font-weight: 600;">${bar.bartender_name}</p>
-                            </div>
-                        ` : ''}
-                    </div>
-
-                    ${bar.tags ? `<p style="margin-bottom:1.5rem; color:var(--text-secondary);">Tags: ${bar.tags.join(', ')}</p>` : ''}
-
-                    <div style="margin-bottom: 0; margin-top: auto;">
-                        <span class="info-label" style="font-size: 0.9rem;">Address</span>
-                        <p style="margin-bottom: 1rem;">${bar.address || bar.address_en || bar.location}</p>
+                    <div id="about-card" class="content-card" style="display: flex; flex-direction: column;">
+                        <h2 style="text-align: center; font-size: 1.5rem; margin-bottom: 1.5rem; font-family: var(--font-display); flex-shrink: 0;">About</h2>
                         
-                        <div id="detail-map" style="height: 150px; width: 100%; border-radius: 8px; margin-bottom: 1rem; z-index: 1;"></div>
-                        
-                        ${bar.google_map_url ?
+                        <p style="line-height: 1.6; margin-bottom: 1.5rem;">
+                            ${bar.description || `Experience the finest mixology at ${bar.title}. Known for its ${bar.vibe} atmosphere, this spot in ${bar.location} offers a curated selection of cocktails and spirits.`}
+                        </p>
+
+                        <div style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 20px; justify-content: center;">
+                            <div>
+                                <span style="font-weight: 600; color: var(--text-primary);">Google Rating:</span> 
+                                <span>${bar.google_rating || bar.rating || 'N/A'} / 5.0 <span style="color:#888; font-size:0.9em;">(${bar.google_review_count || bar.rating_count || 0} reviews)</span></span>
+                            </div>
+                            <div>
+                                <span style="font-weight: 600; color: var(--text-primary);">Price:</span> 
+                                <span>${'$'.repeat(bar.price_level || bar.price || 2)}</span>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 2rem; margin-bottom: 1.5rem; justify-content: center;">
+                            ${bar.owner_name ? `
+                                <div style="text-align: center;">
+                                    <span class="info-label" style="font-size: 0.9rem; display: block; text-align: center;">Owner</span>
+                                    <p style="font-weight: 600;">${bar.owner_name}</p>
+                                </div>
+                            ` : ''}
+                            ${bar.bartender_name ? `
+                                <div style="text-align: center;">
+                                    <span class="info-label" style="font-size: 0.9rem; display: block; text-align: center;">Head Bartender</span>
+                                    <p style="font-weight: 600;">${bar.bartender_name}</p>
+                                </div>
+                            ` : ''}
+                        </div>
+
+                        ${bar.tags ? `<p style="margin-bottom:1.5rem; color:var(--text-secondary); text-align: center;">Tags: ${bar.tags.join(', ')}</p>` : ''}
+
+                        <div style="margin-bottom: 0; margin-top: auto;">
+                            <span class="info-label" style="font-size: 0.9rem; display: block; text-align: center;">Address</span>
+                            <p style="margin-bottom: 1rem; text-align: center;">${bar.address || bar.address_en || bar.location}</p>
+                            
+                            <div id="detail-map" style="height: 150px; width: 100%; border-radius: 8px; margin-bottom: 1rem; z-index: 1;"></div>
+                            
+                            ${bar.google_map_url ?
                 `<a href="${bar.google_map_url}" target="_blank" class="btn" style="width:100%; text-align:center; background-color: var(--bg-red); color: white; border: none;">Open in Google Maps</a>` :
                 `<div style="height: 50px; background: #eee; display: flex; align-items: center; justify-content: center; color: #666; border-radius: 4px;">Map Link Unavailable</div>`
             }
-                    </div>
-                </div>
-
-                ${bar.bar_awards && bar.bar_awards.length > 0 ? `
-                    <div class="content-card">
-                        <h3 class="section-title" style="margin-bottom: 1rem; font-size: 1.2rem;">Awards & Recognition</h3>
-                        <div style="display: flex; flex-direction: column; gap: 12px;">
-                            ${bar.bar_awards.sort((a, b) => (b.year || 0) - (a.year || 0)).map(award => `
-                                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 8px;">
-                                    <span style="font-weight: 600; color: #333;">${award.name}</span>
-                                    <span style="color: #666; font-size: 0.9rem;">
-                                        ${award.rank ? `<span style="color: var(--bg-red); font-weight: bold; margin-right: 5px;">${award.rank}</span>` : ''}
-                                        ${award.year || ''}
-                                    </span>
-                                </div>
-                            `).join('')}
                         </div>
                     </div>
-                ` : ''}
-
-                <div class="content-card">
-                    <span class="info-label">Details</span>
-                    <p><strong>Open:</strong> ${bar.opening_hours || '18:00 - 02:00'}</p>
-                    ${bar.phone ? `<p><strong>Phone:</strong> ${bar.phone}</p>` : ''}
-                    
-                    <div style="margin-top: 1.5rem; display: flex; gap: 10px; flex-wrap: wrap;">
-                        ${bar.instagram_url ? `<a href="${bar.instagram_url}" target="_blank" class="btn btn-secondary" style="font-size: 0.9rem; padding: 8px 16px;">Instagram</a>` : ''}
-                        ${bar.facebook_url ? `<a href="${bar.facebook_url}" target="_blank" class="btn btn-secondary" style="font-size: 0.9rem; padding: 8px 16px;">Facebook</a>` : ''}
-                        ${bar.website_url ? `<a href="${bar.website_url}" target="_blank" class="btn btn-primary" style="font-size: 0.9rem; padding: 8px 16px;">Book Now</a>` : ''}
-                    </div>
                 </div>
 
-                ${signaturesHtml}
-                
-                ${galleryHtml ? `<div class="content-card">${galleryHtml}</div>` : ''}
-                ${articlesHtml ? `<div class="content-card">${articlesHtml}</div>` : ''}
+                <!-- Right Column -->
+                <div class="right-column" style="flex: 1; min-width: 0;">
+                    <!-- Editorial Review Card -->
+                    ${bar.editorial_review ? `
+                        <div class="content-card" style="border-left: 4px solid var(--bg-red);">
+                            <span class="info-label" style="color: var(--bg-red); display: block; text-align: center;">Editor's Review</span>
+                            <p style="font-style: italic; color: #444; font-size: 1.1rem; line-height: 1.6; margin-bottom: 0.5rem;">"${bar.editorial_review}"</p>
+                            ${bar.editorial_rating ? `<div style="color: #FFD700; font-size: 1.2rem; text-align: center;">${'★'.repeat(bar.editorial_rating)}${'☆'.repeat(5 - bar.editorial_rating)}</div>` : ''}
+                        </div>
+                    ` : ''}
+
+                    ${bar.bar_awards && bar.bar_awards.length > 0 ? `
+                        <div class="content-card">
+                            <h3 class="section-title" style="margin-bottom: 1rem; font-size: 1.2rem; text-align: center;">Awards</h3>
+                            <div style="display: flex; flex-direction: column; gap: 12px;">
+                                ${bar.bar_awards.sort((a, b) => (b.year || 0) - (a.year || 0)).map(award => `
+                                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 8px;">
+                                        <span style="font-weight: 600; color: #333;">${award.name}</span>
+                                        <span style="color: #666; font-size: 0.9rem;">
+                                            ${award.rank ? `<span style="color: var(--bg-red); font-weight: bold; margin-right: 5px;">${award.rank}</span>` : ''}
+                                            ${award.year || ''}
+                                        </span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    <div class="content-card">
+                        <span class="info-label" style="display: block; text-align: center;">Details</span>
+                        <p style="text-align: center;"><strong>Open:</strong> ${bar.opening_hours || '18:00 - 02:00'}</p>
+                        ${bar.phone ? `<p style="text-align: center;"><strong>Phone:</strong> ${bar.phone}</p>` : ''}
+                        
+                        <div style="margin-top: 1.5rem; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+                            ${bar.instagram_url ? `<a href="${bar.instagram_url}" target="_blank" class="btn btn-secondary" style="font-size: 0.9rem; padding: 8px 16px;">Instagram</a>` : ''}
+                            ${bar.facebook_url ? `<a href="${bar.facebook_url}" target="_blank" class="btn btn-secondary" style="font-size: 0.9rem; padding: 8px 16px;">Facebook</a>` : ''}
+                            ${bar.website_url ? `<a href="${bar.website_url}" target="_blank" class="btn btn-primary" style="font-size: 0.9rem; padding: 8px 16px;">Book Now</a>` : ''}
+                        </div>
+                    </div>
+
+                    ${signaturesHtml}
+                    
+                    ${galleryHtml ? `<div class="content-card">${galleryHtml}</div>` : ''}
+                    ${articlesHtml ? `<div class="content-card">${articlesHtml}</div>` : ''}
+                </div>
             </div>
         `;
 
