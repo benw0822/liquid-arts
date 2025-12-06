@@ -268,7 +268,9 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="container detail-grid" style="margin-top: 100px;">
                 
                 <!-- Hero Card (Image Only) -->
-                <div class="content-card hero-card" style="background-image: url('${bar.image}'); min-height: 350px; padding: 0; border: none;"></div>
+                <div class="content-card hero-card" style="padding: 0; border: none; overflow: hidden; background: transparent;">
+                    <img src="${bar.image}" alt="${bar.title}" style="width: 100%; height: auto; display: block;">
+                </div>
 
                 ${editorialHtml}
 
