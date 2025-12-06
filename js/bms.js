@@ -175,9 +175,10 @@ btnLoadMap.addEventListener('click', (e) => {
             titleInput.value = fullQuery.substring(0, firstComma).trim();
             addressInput.value = fullQuery.substring(firstComma + 1).trim();
         } else {
+            // No comma found. Assume it's the Place Name.
             titleInput.value = fullQuery;
-            addressInput.value = fullQuery;
-            alert('Note: Could not separate Name and Address automatically. Please edit them manually.');
+            // Do NOT set addressInput to the name to avoid "Name in Address" bug.
+            alert(`Found Place Name: "${fullQuery}".\nNote: This URL does not contain the full address. Please enter the Address manually.`);
         }
         updateMapPreview(fullQuery);
     }
