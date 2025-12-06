@@ -135,11 +135,12 @@ function updateMapPreview(address) {
         mapPreview.src = 'about:blank';
         return;
     }
+    const q = encodeURIComponent(address);
     // Use Google Maps Embed API (Search mode) - No API key needed for basic embedding usually, 
     // but strictly speaking requires one. 
     // Alternatively, use `https://maps.google.com/maps?q=${address}&output=embed`
-    const q = encodeURIComponent(address);
-    mapPreview.src = `https://maps.google.com/maps?q=${q}&output=embed`;
+    // iwloc=A forces the info window to open for the first result, showing ratings/reviews
+    mapPreview.src = `https://maps.google.com/maps?q=${q}&output=embed&iwloc=A`;
 }
 
 btnLoadMap.addEventListener('click', (e) => {
