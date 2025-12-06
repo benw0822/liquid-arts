@@ -270,7 +270,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 <h1 style="font-size: 3.5rem; margin-bottom: 0.5rem; color: var(--text-primary); line-height: 1.2;">${bar.title}</h1>
                 <p style="font-size: 1.2rem; color: #666; letter-spacing: 0.05em;">
                     <span style="color: var(--bg-red); font-weight: 600; text-transform: uppercase;">${bar.vibe}</span>
-                    <span style="margin: 0 10px; color: #ccc;">|</span>
                     ${bar.location}
                 </p>
             </div>
