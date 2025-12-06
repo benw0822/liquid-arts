@@ -202,18 +202,33 @@ document.addEventListener('DOMContentLoaded', () => {
         if (bar.bar_images && bar.bar_images.length > 0) {
             const sortedImages = bar.bar_images.sort((a, b) => a.display_order - b.display_order);
             galleryHtml = `
-                <div class="section-header" style="margin-top: 3rem;">
+                <div class="section-header" style="margin-top: 2rem; margin-bottom: 1rem;">
                     <h3 class="section-title">Gallery</h3>
                 </div>
-                <div class="magazine-grid" style="grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));">
+                <div class="magazine-grid" style="grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px;">
                     ${sortedImages.map(img => `
-                        <div class="grid-item" style="grid-column: span 1;">
-                            <img src="${img.image_url}" alt="${img.caption || ''}" style="width:100%; height:200px; object-fit:cover; border-radius:4px;">
+                        <div class="grid-item" style="grid-column: span 1; margin-bottom: 0;">
+                            <img src="${img.image_url}" alt="${img.caption || ''}" 
+                                 style="width:100%; height:150px; object-fit:cover; border-radius:4px; cursor: pointer; transition: opacity 0.2s;"
+                                 onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1"
+                                 onclick="openLightbox('${img.image_url}')">
                         </div>
                     `).join('')}
                 </div>
             `;
         }
+
+        // --- Lightbox Functions ---
+        window.openLightbox = (src) => {
+            const modal = document.getElementById('lightbox-modal');
+            const img = document.getElementById('lightbox-img');
+            modal.style.display = "flex";
+            img.src = src;
+        };
+
+        window.closeLightbox = () => {
+            document.getElementById('lightbox-modal').style.display = "none";
+        };
 
         // --- Related Articles ---
         let articlesHtml = '';
