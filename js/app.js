@@ -280,42 +280,13 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         }
 
-        // Extract city from address
-        let city = '';
-        if (bar.address) {
-            // 1. Try Chinese format (e.g., 台北市, 新北市) - 2 to 3 chars before 市/縣
-            const zhMatch = bar.address.match(/([^\d\s,]{2,3}[縣市])/);
-            if (zhMatch) {
-                city = zhMatch[1];
-            }
-            // 2. Try English "City" regex
-            else if (bar.address.match(/(\w+\s*City)/i)) {
-                city = bar.address.match(/(\w+\s*City)/i)[0];
-            }
-            // 3. Comma fallback: usually 2nd to last item (e.g. "123 Rd, Taipei, Taiwan")
-            else if (bar.address.includes(',')) {
-                const parts = bar.address.split(',').map(p => p.trim());
-                // If > 2 parts, take 2nd to last; if 2 parts, take 1st
-                city = parts.length > 2 ? parts[parts.length - 2] : parts[0];
-            }
-            // 4. Fallback to location if address parsing fails to yield a short string
-            else {
-                city = bar.location || bar.address;
-            }
-        } else {
-            city = bar.location || '';
-        }
-
-        // Safety: if city is still too long (> 20 chars), just show location or truncate
-        if (city.length > 20 && bar.location) city = bar.location;
-
         container.innerHTML = `
             <!-- Top Header (Title & Vibe) -->
             <div class="container" style="margin-top: 100px; margin-bottom: 2rem; text-align: center;">
                 <h1 style="font-size: 3.5rem; margin-bottom: 0.5rem; color: var(--text-primary); line-height: 1.2;">${bar.title}</h1>
                 <p style="font-size: 1.2rem; color: #666; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; gap: 10px;">
                     <span style="color: var(--bg-red); font-weight: 600; text-transform: uppercase; font-size: 0.9rem;">${bar.vibe}</span>
-                    <span style="font-size: 0.9rem; color: #888;">• ${city}</span>
+                    <span id="header-city" style="font-size: 0.9rem; color: #888;"></span>
                 </p>
             </div>
 
@@ -407,7 +378,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     <div class="content-card">
                         <span class="info-label" style="display: block; text-align: center;">Details</span>
-                        <p style="text-align: center;"><strong>Open:</strong> ${bar.opening_hours || '18:00 - 02:00'}</p>
+                        
+                        <div style="margin-bottom: 1.5rem; padding: 0 10px;">
+                            <strong style="display: block; text-align: center; margin-bottom: 10px; color: var(--text-primary);">Opening Hours</strong>
+                            ${formatOpeningHours(bar.opening_hours || 'Mon-Sun: 18:00 - 02:00')}
+                        </div>
+
                         ${bar.phone ? `<p style="text-align: center;"><strong>Phone:</strong> ${bar.phone}</p>` : ''}
                         
                         <div style="margin-top: 1.5rem; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
@@ -424,6 +400,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>
         `;
+
+        // Async City Fetch
+        if (bar.lat && bar.lng) {
+            fetchCityFromCoords(bar.lat, bar.lng).then(city => {
+                if (city) {
+                    const citySpan = document.getElementById('header-city');
+                    if (citySpan) citySpan.textContent = `• ${city}`;
+                }
+            });
+        }
 
         if (bar.lat && bar.lng) {
             setTimeout(() => {
@@ -450,6 +436,54 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 100);
         }
     };
+
+    // Helper: Reverse Geocoding
+    async function fetchCityFromCoords(lat, lng) {
+        try {
+            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=en`);
+            const data = await response.json();
+            return data.address.city || data.address.town || data.address.village || data.address.county || '';
+        } catch (e) {
+            console.error('Geocoding error:', e);
+            return '';
+        }
+    }
+
+    // Helper: Format Opening Hours
+    function formatOpeningHours(hoursStr) {
+        if (!hoursStr) return '<div style="text-align:center;">Hours not available</div>';
+
+        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        const shortDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+        // Check for "Mon-Sun: ..." format
+        const rangeMatch = hoursStr.match(/([A-Za-z]{3})\s*-\s*([A-Za-z]{3})[:\s]+(.*)/);
+
+        if (rangeMatch) {
+            const startDay = shortDays.indexOf(rangeMatch[1]);
+            const endDay = shortDays.indexOf(rangeMatch[2]);
+            const time = rangeMatch[3];
+
+            if (startDay !== -1 && endDay !== -1) {
+                let html = '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; font-size: 0.95rem; max-width: 300px; margin: 0 auto;">';
+                for (let i = 0; i < 7; i++) {
+                    const isDayInRange = (startDay <= endDay)
+                        ? (i >= startDay && i <= endDay)
+                        : (i >= startDay || i <= endDay);
+
+                    html += `
+                        <div style="text-align: right; color: ${isDayInRange ? '#333' : '#999'}; font-weight: ${isDayInRange ? '500' : 'normal'}; padding-right: 10px;">${days[i]}</div>
+                        <div style="text-align: left; color: ${isDayInRange ? '#333' : '#999'};">${isDayInRange ? time : 'Closed'}</div>
+                    `;
+                }
+                html += '</div>';
+                return html;
+            }
+        }
+
+        // Fallback
+        return `<div style="text-align:center;">${hoursStr}</div>`;
+    }
 
     // 5. Articles List
     window.initArticlesList = async () => {
