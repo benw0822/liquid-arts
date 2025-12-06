@@ -232,7 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let editorialHtml = '';
         if (bar.editorial_review) {
             editorialHtml = `
-                <div class="info-block" style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 2rem; border-left: 4px solid var(--bg-red);">
+                <div class="content-card" style="border-left: 4px solid var(--bg-red);">
                     <span class="info-label" style="color: var(--bg-red);">Editor's Review</span>
                     <p style="font-style: italic; color: #444; font-size: 1.1rem; line-height: 1.6;">"${bar.editorial_review}"</p>
                     ${bar.editorial_rating ? `<div style="margin-top: 10px; color: #FFD700; font-size: 1.2rem;">${'★'.repeat(bar.editorial_rating)}${'☆'.repeat(5 - bar.editorial_rating)}</div>` : ''}
@@ -244,22 +244,22 @@ document.addEventListener('DOMContentLoaded', () => {
         let signaturesHtml = '';
         if (bar.signatures && bar.signatures.length > 0) {
             signaturesHtml = `
-                <div class="section-header" style="margin-top: 3rem; margin-bottom: 1.5rem;">
-                    <h3 class="section-title">Signature Cocktails</h3>
-                </div>
-                <div class="magazine-grid" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; padding: 0;">
-                    ${bar.signatures.map(sig => `
-                        <div class="grid-item" style="grid-column: span 1; margin-bottom: 0;">
-                            <div style="border: 1px solid #eee; border-radius: 8px; overflow: hidden; height: 100%; background: white; transition: transform 0.2s;">
-                                <img src="${sig.image_url || 'assets/placeholder.jpg'}" alt="${sig.name}" style="width:100%; aspect-ratio: 4/5; object-fit:cover;">
-                                <div style="padding: 15px;">
-                                    <h4 style="margin: 0 0 5px 0; font-family: var(--font-display); font-size: 1.2rem; color: var(--text-primary);">${sig.name}</h4>
-                                    <p style="font-size: 0.9rem; color: #666; margin: 0; line-height: 1.4;">${sig.description || ''}</p>
-                                    ${sig.review ? `<p style="margin-top: 8px; font-size: 0.85rem; color: var(--bg-red); font-style: italic;">"${sig.review}"</p>` : ''}
+                <div class="content-card">
+                    <h3 class="section-title" style="margin-bottom: 1.5rem;">Signature Cocktails</h3>
+                    <div class="magazine-grid" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; padding: 0;">
+                        ${bar.signatures.map(sig => `
+                            <div class="grid-item" style="grid-column: span 1; margin-bottom: 0;">
+                                <div style="border: 1px solid #eee; border-radius: 8px; overflow: hidden; height: 100%; background: #f9f9f9; transition: transform 0.2s;">
+                                    <img src="${sig.image_url || 'assets/placeholder.jpg'}" alt="${sig.name}" style="width:100%; aspect-ratio: 4/5; object-fit:cover;">
+                                    <div style="padding: 15px;">
+                                        <h4 style="margin: 0 0 5px 0; font-family: var(--font-display); font-size: 1.1rem; color: var(--text-primary);">${sig.name}</h4>
+                                        <p style="font-size: 0.85rem; color: #666; margin: 0; line-height: 1.4;">${sig.description || ''}</p>
+                                        ${sig.review ? `<p style="margin-top: 8px; font-size: 0.8rem; color: var(--bg-red); font-style: italic;">"${sig.review}"</p>` : ''}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    `).join('')}
+                        `).join('')}
+                    </div>
                 </div>
             `;
         }
@@ -274,7 +274,8 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="container detail-grid">
                 <div class="main-info">
                     ${editorialHtml}
-                    <div class="info-block">
+                    
+                    <div class="content-card">
                         <span class="info-label">About</span>
                         <p style="line-height: 1.6; margin-bottom: 1.5rem;">
                             ${bar.description || `Experience the finest mixology at ${bar.title}. Known for its ${bar.vibe} atmosphere, this spot in ${bar.location} offers a curated selection of cocktails and spirits.`}
@@ -300,7 +301,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     ${signaturesHtml}
 
-                    <div class="info-block">
+                    <div class="content-card">
                         <span class="info-label">Menu</span>
                         <p>Signature Cocktails • Seasonal Specials • Bar Bites</p>
                         ${bar.menu_url ?
@@ -308,11 +309,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 `<button class="btn btn-secondary" style="margin-top: 10px;" disabled>Menu Coming Soon</button>`
             }
                     </div>
-                    ${galleryHtml}
-                    ${articlesHtml}
+                    
+                    ${galleryHtml ? `<div class="content-card">${galleryHtml}</div>` : ''}
+                    ${articlesHtml ? `<div class="content-card">${articlesHtml}</div>` : ''}
                 </div>
+                
                 <div class="sidebar-info">
-                    <div class="info-block">
+                    <div class="content-card">
                         <span class="info-label">Details</span>
                         <p><strong>Rating:</strong> ${bar.rating} / 5.0 (${bar.rating_count || 0} reviews)</p>
                         <p><strong>Price:</strong> ${'$'.repeat(bar.price_level || bar.price || 2)}</p>
@@ -328,12 +331,13 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                         </div>
                     </div>
-                    <div class="info-block">
+                    
+                    <div class="content-card">
                         <span class="info-label">Location</span>
                         <p>${bar.address_en || bar.location}</p>
                         <div style="margin-top: 10px;">
                             ${bar.google_map_url ?
-                `<a href="${bar.google_map_url}" target="_blank" class="btn" style="width:100%; text-align:center;">Open in Google Maps</a>` :
+                `<a href="${bar.google_map_url}" target="_blank" class="btn" style="width:100%; text-align:center; border: 1px solid #ddd; color: #333;">Open in Google Maps</a>` :
                 `<div style="height: 150px; background: #222; display: flex; align-items: center; justify-content: center; color: #666;">Map Unavailable</div>`
             }
                         </div>
