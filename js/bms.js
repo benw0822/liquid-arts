@@ -20,8 +20,15 @@ const hoursContainer = document.getElementById('hours-editor-container');
 const btnAddHours = document.getElementById('btn-add-hours');
 const hoursInput = document.getElementById('bar-hours'); // Hidden input
 
-const menuInput = document.getElementById('bar-menu');
 const mapInput = document.getElementById('bar-map');
+const btnLoadMap = document.getElementById('btn-load-map');
+
+const googleRatingInput = document.getElementById('bar-google-rating');
+const googleReviewsInput = document.getElementById('bar-google-reviews');
+const editorialRatingInput = document.getElementById('bar-editorial-rating');
+const editorialStars = document.getElementById('editorial-rating-stars');
+
+const menuInput = document.getElementById('bar-menu');
 const priceInput = document.getElementById('bar-price');
 const instagramInput = document.getElementById('bar-instagram');
 const facebookInput = document.getElementById('bar-facebook');
@@ -153,36 +160,26 @@ btnLoadMap.addEventListener('click', (e) => {
 
     // Parse Address & Name
     // Example: .../place/Bar+Name,+Address...
+    let parsed = false;
     const placeMatch = url.match(/\/place\/([^/]+)\//);
+
     if (placeMatch && placeMatch[1]) {
+        parsed = true;
         let fullQuery = decodeURIComponent(placeMatch[1]).replace(/\+/g, ' ');
         console.log('Found Query:', fullQuery);
 
         // Heuristic: Split by first comma
-        // If "Bar Name, Address, City", then Title="Bar Name", Address="Address, City"
-        // If just "Bar Name", then Title="Bar Name", Address="Bar Name" (User can edit)
-        // Note: Google Maps URL often puts the name first if searched by name.
         const firstComma = fullQuery.indexOf(',');
 
-        // Sometimes the query is just the address if searched by address.
-        // But user usually searches for the Bar.
         if (firstComma > -1) {
-            // Update Title only if empty or user wants overwrite? 
-            // User said "read after... name should update". So we overwrite.
             titleInput.value = fullQuery.substring(0, firstComma).trim();
-
-            // Address is the rest
-            // Also we might want to strip the country if it's redundant, but keep it safe.
-            let addr = fullQuery.substring(firstComma + 1).trim();
-            addressInput.value = addr;
-
-            // Update Map with full query for best result
-            updateMapPreview(fullQuery);
+            addressInput.value = fullQuery.substring(firstComma + 1).trim();
         } else {
             titleInput.value = fullQuery;
             addressInput.value = fullQuery;
-            updateMapPreview(fullQuery);
+            alert('Note: Could not separate Name and Address automatically. Please edit them manually.');
         }
+        updateMapPreview(fullQuery);
     }
 
     // Parse Coords
@@ -191,6 +188,17 @@ btnLoadMap.addEventListener('click', (e) => {
         console.log('Found Coords:', coordsMatch[1], coordsMatch[2]);
         latInput.value = coordsMatch[1];
         lngInput.value = coordsMatch[2];
+
+        // If we didn't find a place name, at least show the map at these coords
+        if (!parsed) {
+            parsed = true;
+            updateMapPreview(`${coordsMatch[1]},${coordsMatch[2]}`);
+            alert('Could not find Place Name in URL, but updated Map coordinates.');
+        }
+    }
+
+    if (!parsed) {
+        alert('Could not parse URL. Please ensure it is a valid Google Maps full URL (containing /place/ or @coordinates).');
     }
 });
 
@@ -341,6 +349,12 @@ async function loadBar(id) {
 
             menuInput.value = bar.menu_url || '';
             mapInput.value = bar.google_map_url || '';
+
+            googleRatingInput.value = bar.google_rating || '';
+            googleReviewsInput.value = bar.google_review_count || '';
+            editorialRatingInput.value = bar.editorial_rating || 0;
+            updateStars(bar.editorial_rating || 0);
+
             priceInput.value = bar.price || 2;
             instagramInput.value = bar.instagram_url || '';
             facebookInput.value = bar.facebook_url || '';
@@ -398,6 +412,9 @@ saveBtn.addEventListener('click', async () => {
         phone: phoneInput.value,
         menu_url: menuInput.value,
         google_map_url: mapInput.value,
+        google_rating: googleRatingInput.value ? parseFloat(googleRatingInput.value) : null,
+        google_review_count: googleReviewsInput.value ? parseInt(googleReviewsInput.value) : null,
+        editorial_rating: parseInt(editorialRatingInput.value) || 0,
         price: parseInt(priceInput.value),
         instagram_url: instagramInput.value,
         facebook_url: facebookInput.value,
@@ -632,6 +649,26 @@ async function deleteGalleryImage(imageId) {
         alert('Failed to delete image');
     }
     showLoading(false);
+}
+
+// --- Star Rating Logic ---
+if (editorialStars) {
+    const stars = editorialStars.querySelectorAll('span');
+    stars.forEach(star => {
+        star.addEventListener('click', () => {
+            const val = parseInt(star.dataset.value);
+            editorialRatingInput.value = val;
+            updateStars(val);
+        });
+    });
+}
+
+function updateStars(value) {
+    const stars = editorialStars.querySelectorAll('span');
+    stars.forEach(s => {
+        const v = parseInt(s.dataset.value);
+        s.style.color = v <= value ? '#FFD700' : '#ccc'; // Gold vs Gray
+    });
 }
 
 // Add Gallery Image

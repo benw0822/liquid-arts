@@ -299,8 +299,8 @@
         <div style="margin-bottom: 1.5rem;">
             <label class="info-label">Map Preview</label>
             <div style="width: 100%; height: 250px; background: #eee; border-radius: 4px; overflow: hidden;">
-                <iframe id="map-preview" width="100%" height="100%" frameborder="0"
-                    style="border:0; filter: grayscale(100%);" src="about:blank" allowfullscreen></iframe>
+                <iframe id="map-preview" width="100%" height="100%" frameborder="0" style="border:0;" src="about:blank"
+                    allowfullscreen></iframe>
             </div>
             <p class="help-text" style="font-size: 0.8rem; color: #888; margin-top: 5px;">Enter address to update map.
             </p>
@@ -382,6 +382,35 @@
                         style="grid-column: 1 / -1; text-align: center; color: #999; font-size: 0.9rem; padding: 20px; background: #f9f9f9; border-radius: 4px;">
                         No images yet
                     </div>
+                </div>
+            </div>
+
+            <!-- Ratings -->
+            <div style="margin-bottom: 1.5rem; border-top: 1px solid #eee; padding-top: 1.5rem;">
+                <h3 style="margin-top: 0; margin-bottom: 15px;">Ratings</h3>
+
+                <div style="display: flex; gap: 10px; margin-bottom: 1rem;">
+                    <div style="flex: 1;">
+                        <label class="info-label">Google Rating</label>
+                        <input type="number" id="bar-google-rating" class="form-input" step="0.1" placeholder="4.5">
+                    </div>
+                    <div style="flex: 1;">
+                        <label class="info-label">Review Count</label>
+                        <input type="number" id="bar-google-reviews" class="form-input" placeholder="100">
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                    <label class="info-label">Editorial Rating</label>
+                    <div id="editorial-rating-stars"
+                        style="display: flex; gap: 5px; cursor: pointer; font-size: 1.5rem; color: #ccc;">
+                        <span data-value="1">★</span>
+                        <span data-value="2">★</span>
+                        <span data-value="3">★</span>
+                        <span data-value="4">★</span>
+                        <span data-value="5">★</span>
+                    </div>
+                    <input type="hidden" id="bar-editorial-rating" value="0">
                 </div>
             </div>
 
