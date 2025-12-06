@@ -735,6 +735,13 @@ function renderGallery() {
 
 async function deleteGalleryImage(imageId) {
     showLoading(true, 'Deleting...');
+
+    // Find image to get URL
+    const img = galleryImages.find(i => i.id === imageId);
+    if (img && img.image_url) {
+        await deleteImageFromStorage(img.image_url, 'gallery');
+    }
+
     const { error } = await supabase.from('bar_images').delete().eq('id', imageId);
     if (!error) {
         galleryImages = galleryImages.filter(img => img.id !== imageId);
@@ -743,6 +750,24 @@ async function deleteGalleryImage(imageId) {
         alert('Failed to delete image');
     }
     showLoading(false);
+}
+
+async function deleteImageFromStorage(publicUrl, bucket) {
+    try {
+        const urlObj = new URL(publicUrl);
+        const pathParts = urlObj.pathname.split('/');
+        // Format: .../storage/v1/object/public/[bucket]/[path]
+        const bucketIndex = pathParts.indexOf(bucket);
+        if (bucketIndex === -1 || bucketIndex === pathParts.length - 1) return;
+
+        const filePath = decodeURIComponent(pathParts.slice(bucketIndex + 1).join('/'));
+        console.log('Deleting file from storage:', bucket, filePath);
+
+        const { error } = await supabase.storage.from(bucket).remove([filePath]);
+        if (error) console.error('Storage delete error:', error);
+    } catch (e) {
+        console.error('Error parsing URL for deletion:', e);
+    }
 }
 
 // --- Star Rating Logic ---
@@ -777,6 +802,11 @@ galleryInput.addEventListener('change', async (e) => {
 
     if (!currentBarId) {
         alert('Please save the bar first before adding gallery images.');
+        return;
+    }
+
+    if (galleryImages.length + files.length > 50) {
+        alert('Gallery cannot exceed 50 images.');
         return;
     }
 
@@ -863,6 +893,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnAddSignature) {
         btnAddSignature.addEventListener('click', (e) => {
             e.preventDefault();
+            if (signatures.length >= 5) {
+                alert('You can only add up to 5 signature cocktails.');
+                return;
+            }
             openSigModal();
         });
     }
@@ -968,6 +1002,13 @@ document.addEventListener('DOMContentLoaded', () => {
         btnDeleteSig.addEventListener('click', async () => {
             if (!confirm('Delete this signature?')) return;
             const id = document.getElementById('sig-id').value;
+
+            // Delete Image from Storage
+            const sig = signatures.find(s => s.id == id);
+            if (sig && sig.image_url) {
+                await deleteImageFromStorage(sig.image_url, 'gallery');
+            }
+
             const { error } = await supabase.from('signatures').delete().eq('id', id);
             if (error) {
                 alert('Error deleting: ' + error.message);
