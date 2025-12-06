@@ -752,3 +752,13 @@ figure.article-figure figcaption {
         grid-template-columns: 1fr;
     }
 }
+/* Map Label */
+.map-label {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #333;
+    text-shadow: 0 1px 2px white, 0 0 1em white;
+}

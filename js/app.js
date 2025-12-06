@@ -298,7 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </p>
 
                     <div style="margin-bottom: 1.5rem;">
-                        <span class="info-label" style="font-size: 0.9rem;">Location</span>
+                        <span class="info-label" style="font-size: 0.9rem;">Address</span>
                         <p style="margin-bottom: 1rem;">${bar.address_en || bar.location}</p>
                         
                         <div id="detail-map" style="height: 250px; width: 100%; border-radius: 8px; margin-bottom: 1rem; z-index: 1;"></div>
@@ -373,12 +373,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const customIcon = L.divIcon({
                     className: 'custom-div-icon',
-                    html: `<div style="width: 12px; height: 12px; background: #ef4444; border: 2px solid white; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
-                    iconSize: [12, 12],
-                    iconAnchor: [6, 6]
+                    html: `<div style="width: 24px; height: 24px; background: #ef4444; border: 3px solid white; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
+                    iconSize: [24, 24],
+                    iconAnchor: [12, 12]
                 });
 
-                L.marker([bar.lat, bar.lng], { icon: customIcon }).addTo(map);
+                L.marker([bar.lat, bar.lng], { icon: customIcon })
+                    .addTo(map)
+                    .bindTooltip(bar.title, {
+                        permanent: true,
+                        direction: 'top',
+                        className: 'map-label',
+                        offset: [0, -12]
+                    });
             }, 100);
         }
     };
