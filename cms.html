@@ -84,15 +84,15 @@
             border: 1px solid #e0e0e0;
         }
 
-        .ql-toolbar {
+        .ql-toolbar.ql-snow {
             background: #f9f9f9;
             border-top-left-radius: 8px;
             border-top-right-radius: 8px;
             border-bottom: 1px solid #e0e0e0;
             position: sticky;
-            top: 81px;
-            /* Below cms-header (approx 60px + 20px padding/margin) */
-            z-index: 1000;
+            top: 81px !important;
+            /* Override styles.css */
+            z-index: 1000 !important;
         }
 
         /* Active Toolbar Button */
