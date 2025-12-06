@@ -135,10 +135,15 @@ function updateMapPreview(address) {
     mapPreview.src = `https://maps.google.com/maps?q=${q}&output=embed`;
 }
 
-mapInput.addEventListener('input', () => {
+btnLoadMap.addEventListener('click', (e) => {
+    e.preventDefault();
     const url = mapInput.value;
-    console.log('Map URL Input:', url);
-    if (!url) return;
+    console.log('Loading Map URL:', url);
+
+    if (!url) {
+        alert('Please paste a Google Maps URL first.');
+        return;
+    }
 
     // Check for short links
     if (url.includes('goo.gl') || url.includes('maps.app.goo.gl')) {
@@ -146,15 +151,38 @@ mapInput.addEventListener('input', () => {
         return;
     }
 
-    // Parse Address
-    // Example: https://www.google.com/maps/place/Taipei+101/@25.0339639,121.5644722,17z/...
-    // Also handle short links or other formats if possible, but mainly full URLs for now.
+    // Parse Address & Name
+    // Example: .../place/Bar+Name,+Address...
     const placeMatch = url.match(/\/place\/([^/]+)\//);
     if (placeMatch && placeMatch[1]) {
-        let address = decodeURIComponent(placeMatch[1]).replace(/\+/g, ' ');
-        console.log('Found Address:', address);
-        addressInput.value = address;
-        updateMapPreview(address);
+        let fullQuery = decodeURIComponent(placeMatch[1]).replace(/\+/g, ' ');
+        console.log('Found Query:', fullQuery);
+
+        // Heuristic: Split by first comma
+        // If "Bar Name, Address, City", then Title="Bar Name", Address="Address, City"
+        // If just "Bar Name", then Title="Bar Name", Address="Bar Name" (User can edit)
+        // Note: Google Maps URL often puts the name first if searched by name.
+        const firstComma = fullQuery.indexOf(',');
+
+        // Sometimes the query is just the address if searched by address.
+        // But user usually searches for the Bar.
+        if (firstComma > -1) {
+            // Update Title only if empty or user wants overwrite? 
+            // User said "read after... name should update". So we overwrite.
+            titleInput.value = fullQuery.substring(0, firstComma).trim();
+
+            // Address is the rest
+            // Also we might want to strip the country if it's redundant, but keep it safe.
+            let addr = fullQuery.substring(firstComma + 1).trim();
+            addressInput.value = addr;
+
+            // Update Map with full query for best result
+            updateMapPreview(fullQuery);
+        } else {
+            titleInput.value = fullQuery;
+            addressInput.value = fullQuery;
+            updateMapPreview(fullQuery);
+        }
     }
 
     // Parse Coords
