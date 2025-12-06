@@ -190,6 +190,19 @@
             color: #666;
         }
 
+        .cover-actions-overlay {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            display: none;
+            /* Hidden by default */
+            gap: 10px;
+            z-index: 20;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 5px;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
 
 
         /* Checkboxes in light mode */
@@ -445,8 +458,16 @@
 
                 <div class="cover-container">
                     <div id="cover-preview">
-                        <span>No Image Selected</span>
+                        <span style="pointer-events: none;">Click to upload cover (16:9)</span>
                     </div>
+                    <!-- Actions Overlay -->
+                    <div id="cover-actions" class="cover-actions-overlay">
+                        <button id="btn-upload-cover" class="btn btn-sm btn-primary"
+                            style="font-size: 0.8rem; padding: 5px 10px;">Upload</button>
+                        <button id="btn-crop-cover" class="btn btn-sm btn-secondary"
+                            style="font-size: 0.8rem; padding: 5px 10px;">Crop</button>
+                    </div>
+                    <input type="file" id="cover-file" accept="image/*" style="display: none;">
                 </div>
             </div>
 

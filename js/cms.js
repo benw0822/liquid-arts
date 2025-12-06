@@ -432,13 +432,74 @@ const cropModal = document.getElementById('crop-modal');
 const cropImage = document.getElementById('crop-image');
 const cropSaveBtn = document.getElementById('crop-save-btn');
 const cropCancelBtn = document.getElementById('crop-cancel-btn');
+const coverActions = document.getElementById('cover-actions');
+const btnUploadCover = document.getElementById('btn-upload-cover');
+const btnCropCover = document.getElementById('btn-crop-cover');
+
 let cropper = null;
 let currentFile = null;
 
-// Click preview to upload
+function updateCoverUI() {
+    const placeholder = coverPreview.querySelector('span');
+    if (currentCoverUrl) {
+        coverPreview.style.backgroundImage = `url('${currentCoverUrl}')`;
+        if (placeholder) placeholder.style.display = 'none';
+        if (coverActions) coverActions.style.display = 'flex';
+    } else {
+        coverPreview.style.backgroundImage = 'none';
+        if (placeholder) placeholder.style.display = 'block';
+        if (coverActions) coverActions.style.display = 'none';
+    }
+}
+
+function openCropper(src) {
+    cropImage.src = src;
+    // Handle CORS for remote images
+    if (src.startsWith('http')) {
+        cropImage.crossOrigin = 'anonymous';
+    } else {
+        cropImage.removeAttribute('crossorigin');
+    }
+
+    cropModal.style.display = 'flex';
+
+    if (cropper) cropper.destroy();
+    cropper = new Cropper(cropImage, {
+        aspectRatio: 16 / 9,
+        viewMode: 1,
+        autoCropArea: 1,
+    });
+}
+
+// Click preview to upload (only if empty)
 if (coverPreview) {
-    coverPreview.addEventListener('click', () => {
+    coverPreview.addEventListener('click', (e) => {
+        if (e.target.closest('.cover-actions-overlay')) return;
+        if (!currentCoverUrl) {
+            coverInput.click();
+        }
+    });
+}
+
+// Upload Button
+if (btnUploadCover) {
+    btnUploadCover.addEventListener('click', (e) => {
+        e.stopPropagation();
         coverInput.click();
+    });
+}
+
+// Crop Button
+if (btnCropCover) {
+    btnCropCover.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (currentCoverUrl) {
+            // Use current URL (might be remote or blob)
+            // If it's a remote URL from Supabase, we need to ensure it's accessible via CORS (Supabase usually is)
+            // However, we might need to proxy it or just try.
+            // Note: If we crop a remote image, we are essentially downloading it to canvas.
+            openCropper(currentCoverUrl);
+        }
     });
 }
 
@@ -466,23 +527,12 @@ coverInput.addEventListener('change', (e) => {
                     console.log(`Auto-upscaled image from ${img.width}px to ${minWidth}px width.`);
                 }
 
-                // Open Modal
-                cropImage.src = src;
-                cropModal.style.display = 'flex';
-
-                // Init Cropper
-                if (cropper) cropper.destroy();
-                cropper = new Cropper(cropImage, {
-                    aspectRatio: 16 / 9,
-                    viewMode: 1,
-                    autoCropArea: 1,
-                });
+                openCropper(src);
             };
             img.src = e.target.result;
         };
         reader.readAsDataURL(file);
     }
-    // Reset input so same file can be selected again if cancelled
     coverInput.value = '';
 });
 
@@ -496,9 +546,8 @@ cropSaveBtn.addEventListener('click', async () => {
     if (!cropper) return;
 
     // Get cropped canvas
-    // We request a high resolution canvas
     const canvas = cropper.getCroppedCanvas({
-        width: 1200, // Force output width (or at least 1200)
+        width: 1200,
         minWidth: 1200,
         imageSmoothingEnabled: true,
         imageSmoothingQuality: 'high',
@@ -510,7 +559,6 @@ cropSaveBtn.addEventListener('click', async () => {
             return;
         }
 
-        // Create a new File object from the blob
         const fileName = currentFile ? currentFile.name : 'cover.jpg';
         const croppedFile = new File([blob], fileName, { type: 'image/jpeg' });
 
@@ -521,15 +569,13 @@ cropSaveBtn.addEventListener('click', async () => {
             // Upload
             currentCoverUrl = await uploadImage(croppedFile, 'covers');
 
-            // Update Preview
-            coverPreview.style.backgroundImage = `url('${currentCoverUrl}')`;
-            coverPreview.textContent = '';
+            // Update UI
+            updateCoverUI();
 
             loadingOverlay.style.display = 'none';
         } catch (err) {
             loadingOverlay.style.display = 'none';
             alert('Upload failed: ' + err.message);
-            // Show modal again if failed? Or just close.
         } finally {
             if (cropper) cropper.destroy();
             cropper = null;
@@ -622,10 +668,10 @@ async function loadArticle(id) {
         categoryInput.value = article.category || '';
         authorInput.value = article.author_name || '';
 
-        if (article.cover_image) {
-            currentCoverUrl = article.cover_image;
-            coverPreview.style.backgroundImage = `url('${article.cover_image}')`;
-            coverPreview.textContent = '';
+        if (article.image) {
+            currentCoverUrl = article.image;
+            initialImagePaths.push(getPathFromUrl(article.image));
+            updateCoverUI();
         }
 
         // Set Status
