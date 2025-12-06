@@ -280,8 +280,34 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         }
 
-        // Extract city from address (look for "City" or take last part)
-        const city = bar.address ? (bar.address.match(/(\w+\s*City)/i)?.[0] || bar.address.split(',').slice(-2)[0].trim()) : (bar.location || '');
+        // Extract city from address
+        let city = '';
+        if (bar.address) {
+            // 1. Try Chinese format (e.g., 台北市, 新北市) - 2 to 3 chars before 市/縣
+            const zhMatch = bar.address.match(/([^\d\s,]{2,3}[縣市])/);
+            if (zhMatch) {
+                city = zhMatch[1];
+            }
+            // 2. Try English "City" regex
+            else if (bar.address.match(/(\w+\s*City)/i)) {
+                city = bar.address.match(/(\w+\s*City)/i)[0];
+            }
+            // 3. Comma fallback: usually 2nd to last item (e.g. "123 Rd, Taipei, Taiwan")
+            else if (bar.address.includes(',')) {
+                const parts = bar.address.split(',').map(p => p.trim());
+                // If > 2 parts, take 2nd to last; if 2 parts, take 1st
+                city = parts.length > 2 ? parts[parts.length - 2] : parts[0];
+            }
+            // 4. Fallback to location if address parsing fails to yield a short string
+            else {
+                city = bar.location || bar.address;
+            }
+        } else {
+            city = bar.location || '';
+        }
+
+        // Safety: if city is still too long (> 20 chars), just show location or truncate
+        if (city.length > 20 && bar.location) city = bar.location;
 
         container.innerHTML = `
             <!-- Top Header (Title & Vibe) -->
@@ -289,7 +315,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <h1 style="font-size: 3.5rem; margin-bottom: 0.5rem; color: var(--text-primary); line-height: 1.2;">${bar.title}</h1>
                 <p style="font-size: 1.2rem; color: #666; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; gap: 10px;">
                     <span style="color: var(--bg-red); font-weight: 600; text-transform: uppercase; font-size: 0.9rem;">${bar.vibe}</span>
-                    <span style="font-size: 0.9rem; color: #888;">${city}</span>
+                    <span style="font-size: 0.9rem; color: #888;">• ${city}</span>
                 </p>
             </div>
 
