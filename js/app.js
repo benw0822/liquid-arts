@@ -265,20 +265,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         container.innerHTML = `
-            <div class="container detail-grid" style="margin-top: 2rem;">
+            <div class="container detail-grid" style="margin-top: 100px;">
                 
-                <!-- Hero Card -->
-                <div class="content-card hero-card" style="background-image: url('${bar.image}'); min-height: 400px; display: flex; align-items: flex-end; position: relative; overflow: hidden; padding: 0; border: none;">
-                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.8) 100%);"></div>
-                    <div style="position: relative; z-index: 2; padding: 40px; color: white; width: 100%;">
-                        <h1 style="font-size: 3rem; margin-bottom: 0.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">${bar.title}</h1>
-                        <p style="font-size: 1.2rem; opacity: 0.9; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">${bar.location} • ${bar.vibe}</p>
-                    </div>
-                </div>
+                <!-- Hero Card (Image Only) -->
+                <div class="content-card hero-card" style="background-image: url('${bar.image}'); min-height: 350px; padding: 0; border: none;"></div>
 
                 ${editorialHtml}
 
                 <div class="content-card">
+                    <!-- Title & Vibe (Moved here) -->
+                    <div style="margin-bottom: 1.5rem; border-bottom: 1px solid #eee; padding-bottom: 1rem;">
+                        <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem; color: var(--text-primary);">${bar.title}</h1>
+                        <p style="font-size: 1.1rem; color: #666;">${bar.location} • <span style="color: var(--bg-red); font-weight: 600;">${bar.vibe}</span></p>
+                    </div>
+
                     <span class="info-label">About</span>
                     <p style="line-height: 1.6; margin-bottom: 1.5rem;">
                         ${bar.description || `Experience the finest mixology at ${bar.title}. Known for its ${bar.vibe} atmosphere, this spot in ${bar.location} offers a curated selection of cocktails and spirits.`}
