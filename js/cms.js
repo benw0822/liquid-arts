@@ -435,6 +435,14 @@ const cropCancelBtn = document.getElementById('crop-cancel-btn');
 let cropper = null;
 let currentFile = null;
 
+// Click preview to upload
+const coverPreview = document.getElementById('cover-preview');
+if (coverPreview) {
+    coverPreview.addEventListener('click', () => {
+        coverInput.click();
+    });
+}
+
 coverInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (file) {
