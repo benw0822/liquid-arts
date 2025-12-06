@@ -170,40 +170,13 @@ function inferLocation(address) {
 }
 
 // --- Map Logic ---
-addressInput.addEventListener('change', () => {
-    updateMapPreview(addressInput.value);
-});
+// Removed: addressInput.addEventListener('change', () => { updateMapPreview(addressInput.value); });
+// The map is now updated via btnLoadMap which provides lat/lng directly.
 
 let map;
 let marker;
 
-function initMap() {
-    // Default to Taipei 101
-    map = L.map('map-preview').setView([25.033964, 121.564472], 13);
-
-    // CartoDB Dark Matter Tiles
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        subdomains: 'abcd',
-        maxZoom: 19
-    }).addTo(map);
-
-    // Custom Gold Icon
-    const goldIcon = new L.Icon({
-        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-gold.png',
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-        popupAnchor: [1, -34],
-        shadowSize: [41, 41]
-    });
-
-    marker = L.marker([25.033964, 121.564472], { icon: goldIcon }).addTo(map);
-}
-
 function updateMapPreview(lat, lng) {
-    if (!map || !lat || !lng) return;
-    const newLatLng = new L.LatLng(lat, lng);
     marker.setLatLng(newLatLng);
     map.flyTo(newLatLng, 16);
     // Force map resize in case container size changed
@@ -831,7 +804,137 @@ function updateStatus(text, type) {
 }
 
 // --- Signatures Logic ---
+document.addEventListener('DOMContentLoaded', () => {
+    // Re-select elements to ensure they exist within this scope
+    const btnAddSignature = document.getElementById('btn-add-signature');
+    const sigModal = document.getElementById('signature-modal');
+    const btnCancelSig = document.getElementById('btn-cancel-sig');
+    const btnUploadSig = document.getElementById('btn-upload-sig');
+    const sigImagePreview = document.getElementById('sig-image-preview');
+    const sigFileInput = document.getElementById('sig-file-input');
+    const btnSaveSig = document.getElementById('btn-save-sig');
+    const btnDeleteSig = document.getElementById('btn-delete-sig');
 
+    if (btnAddSignature) {
+        btnAddSignature.addEventListener('click', (e) => {
+            e.preventDefault();
+            openSigModal();
+        });
+    }
+
+    if (btnCancelSig) btnCancelSig.addEventListener('click', () => sigModal.style.display = 'none');
+
+    if (btnUploadSig) btnUploadSig.addEventListener('click', () => sigFileInput.click());
+    if (sigImagePreview) sigImagePreview.addEventListener('click', () => sigFileInput.click());
+
+    if (sigFileInput) {
+        sigFileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const cropImage = document.getElementById('crop-image');
+                const cropModal = document.getElementById('crop-modal');
+                const cropSaveBtn = document.getElementById('crop-save-btn');
+
+                cropImage.src = event.target.result;
+                cropModal.style.display = 'flex';
+
+                if (window.cropper) window.cropper.destroy();
+                window.cropper = new Cropper(cropImage, {
+                    aspectRatio: 4 / 5,
+                    viewMode: 1,
+                });
+
+                cropSaveBtn.onclick = async () => {
+                    cropSaveBtn.textContent = 'Uploading...';
+                    cropSaveBtn.disabled = true;
+
+                    const canvas = window.cropper.getCroppedCanvas({ width: 800, height: 1000 });
+                    canvas.toBlob(async (blob) => {
+                        const fileName = `sig_${Date.now()}.jpg`;
+                        const { data, error } = await supabase.storage
+                            .from('gallery')
+                            .upload(fileName, blob);
+
+                        if (error) {
+                            alert('Upload failed: ' + error.message);
+                        } else {
+                            const { data: { publicUrl } } = supabase.storage.from('gallery').getPublicUrl(fileName);
+                            currentSigImageUrl = publicUrl;
+                            updateSigImagePreview();
+                            cropModal.style.display = 'none';
+                        }
+                        cropSaveBtn.textContent = 'Crop & Upload';
+                        cropSaveBtn.disabled = false;
+                    }, 'image/jpeg', 0.8);
+                };
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    if (btnSaveSig) {
+        btnSaveSig.addEventListener('click', async () => {
+            const id = document.getElementById('sig-id').value;
+            const name = document.getElementById('sig-name').value;
+            const desc = document.getElementById('sig-description').value;
+            const review = document.getElementById('sig-review').value;
+
+            if (!name) {
+                alert('Name is required');
+                return;
+            }
+
+            const sigData = {
+                bar_id: currentBarId,
+                name: name,
+                description: desc,
+                review: review,
+                image_url: currentSigImageUrl
+            };
+
+            btnSaveSig.textContent = 'Saving...';
+            btnSaveSig.disabled = true;
+
+            let error;
+            if (id) {
+                const { error: err } = await supabase.from('signatures').update(sigData).eq('id', id);
+                error = err;
+            } else {
+                const { error: err } = await supabase.from('signatures').insert([sigData]);
+                error = err;
+            }
+
+            btnSaveSig.textContent = 'Save';
+            btnSaveSig.disabled = false;
+
+            if (error) {
+                alert('Error saving: ' + error.message);
+            } else {
+                sigModal.style.display = 'none';
+                loadSignatures(currentBarId);
+            }
+        });
+    }
+
+    if (btnDeleteSig) {
+        btnDeleteSig.addEventListener('click', async () => {
+            if (!confirm('Delete this signature?')) return;
+            const id = document.getElementById('sig-id').value;
+            const { error } = await supabase.from('signatures').delete().eq('id', id);
+            if (error) {
+                alert('Error deleting: ' + error.message);
+            } else {
+                sigModal.style.display = 'none';
+                loadSignatures(currentBarId);
+            }
+        });
+    }
+});
+
+// Global functions for access
 async function loadSignatures(barId) {
     const { data, error } = await supabase
         .from('signatures')
@@ -848,6 +951,9 @@ async function loadSignatures(barId) {
 }
 
 function renderSignatures() {
+    const signaturesGrid = document.getElementById('signatures-grid');
+    if (!signaturesGrid) return;
+
     if (signatures.length === 0) {
         signaturesGrid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: #999; padding: 20px;">No signatures yet</div>';
         return;
@@ -871,6 +977,14 @@ window.editSignature = (id) => {
 };
 
 function openSigModal(sig = null) {
+    const sigModal = document.getElementById('signature-modal');
+    const sigModalTitle = document.getElementById('sig-modal-title');
+    const sigIdInput = document.getElementById('sig-id');
+    const sigNameInput = document.getElementById('sig-name');
+    const sigDescInput = document.getElementById('sig-description');
+    const sigReviewInput = document.getElementById('sig-review');
+    const btnDeleteSig = document.getElementById('btn-delete-sig');
+
     if (sig) {
         sigModalTitle.textContent = 'Edit Signature';
         sigIdInput.value = sig.id;
@@ -894,6 +1008,7 @@ function openSigModal(sig = null) {
 }
 
 function updateSigImagePreview() {
+    const sigImagePreview = document.getElementById('sig-image-preview');
     if (currentSigImageUrl) {
         sigImagePreview.style.backgroundImage = `url('${currentSigImageUrl}')`;
         sigImagePreview.innerHTML = '';
@@ -902,106 +1017,3 @@ function updateSigImagePreview() {
         sigImagePreview.innerHTML = '<span>Upload</span>';
     }
 }
-
-btnAddSignature.addEventListener('click', () => openSigModal());
-btnCancelSig.addEventListener('click', () => sigModal.style.display = 'none');
-
-btnUploadSig.addEventListener('click', () => sigFileInput.click());
-sigImagePreview.addEventListener('click', () => sigFileInput.click());
-
-sigFileInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    // Reuse the main crop modal
-    const reader = new FileReader();
-    reader.onload = (event) => {
-        cropImage.src = event.target.result;
-        cropModal.style.display = 'flex';
-
-        if (cropper) cropper.destroy();
-        cropper = new Cropper(cropImage, {
-            aspectRatio: 4 / 5,
-            viewMode: 1,
-        });
-
-        // Override the save button for this specific upload
-        cropSaveBtn.onclick = async () => {
-            cropSaveBtn.textContent = 'Uploading...';
-            cropSaveBtn.disabled = true;
-
-            const canvas = cropper.getCroppedCanvas({ width: 800, height: 1000 });
-            canvas.toBlob(async (blob) => {
-                // Upload logic
-                const fileName = `sig_${Date.now()}.jpg`;
-                const { data, error } = await supabase.storage
-                    .from('gallery') // Reuse gallery bucket
-                    .upload(fileName, blob);
-
-                if (error) {
-                    alert('Upload failed: ' + error.message);
-                } else {
-                    const { data: { publicUrl } } = supabase.storage.from('gallery').getPublicUrl(fileName);
-                    currentSigImageUrl = publicUrl;
-                    updateSigImagePreview();
-                    cropModal.style.display = 'none';
-                }
-                cropSaveBtn.textContent = 'Crop & Upload';
-                cropSaveBtn.disabled = false;
-            }, 'image/jpeg', 0.8);
-        };
-    };
-    reader.readAsDataURL(file);
-});
-
-btnSaveSig.addEventListener('click', async () => {
-    const id = sigIdInput.value;
-    const name = sigNameInput.value;
-
-    if (!name) {
-        alert('Name is required');
-        return;
-    }
-
-    const sigData = {
-        bar_id: currentBarId,
-        name: name,
-        description: sigDescInput.value,
-        review: sigReviewInput.value,
-        image_url: currentSigImageUrl
-    };
-
-    btnSaveSig.textContent = 'Saving...';
-    btnSaveSig.disabled = true;
-
-    let error;
-    if (id) {
-        const { error: err } = await supabase.from('signatures').update(sigData).eq('id', id);
-        error = err;
-    } else {
-        const { error: err } = await supabase.from('signatures').insert([sigData]);
-        error = err;
-    }
-
-    btnSaveSig.textContent = 'Save';
-    btnSaveSig.disabled = false;
-
-    if (error) {
-        alert('Error saving: ' + error.message);
-    } else {
-        sigModal.style.display = 'none';
-        loadSignatures(currentBarId);
-    }
-});
-
-btnDeleteSig.addEventListener('click', async () => {
-    if (!confirm('Delete this signature?')) return;
-    const id = sigIdInput.value;
-    const { error } = await supabase.from('signatures').delete().eq('id', id);
-    if (error) {
-        alert('Error deleting: ' + error.message);
-    } else {
-        sigModal.style.display = 'none';
-        loadSignatures(currentBarId);
-    }
-});

@@ -130,20 +130,35 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // 3. Map Page
+    // 3. Map Page
     window.initMap = async () => {
         const bars = await fetchBars();
         // Default to Taipei/Asia view if no user location
-        const map = L.map('map').setView([25.0330, 121.5654], 4);
+        const map = L.map('map').setView([25.0330, 121.5654], 14);
 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-            subdomains: 'abcd',
             maxZoom: 20
         }).addTo(map);
 
         bars.forEach(bar => {
             if (bar.lat && bar.lng) {
-                const marker = L.marker([bar.lat, bar.lng]).addTo(map);
+                // Custom Red Circle Icon with Label
+                const customIcon = L.divIcon({
+                    className: 'custom-map-marker',
+                    html: `
+                        <div style="display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%);">
+                            <div style="background: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 12px; color: #333; box-shadow: 0 2px 4px rgba(0,0,0,0.2); margin-bottom: 4px; white-space: nowrap;">
+                                ${bar.title}
+                            </div>
+                            <div style="width: 14px; height: 14px; background: #ef4444; border: 2px solid white; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>
+                        </div>
+                    `,
+                    iconSize: [0, 0],
+                    iconAnchor: [0, 0]
+                });
+
+                const marker = L.marker([bar.lat, bar.lng], { icon: customIcon }).addTo(map);
                 marker.bindPopup(`
                     <div style="color: #333; text-align: center;">
                         <h3 style="margin: 0 0 5px 0;">${bar.title}</h3>
