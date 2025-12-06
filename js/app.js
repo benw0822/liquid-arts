@@ -282,13 +282,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     <img src="${bar.image}" alt="${bar.title}" style="width: 100%; height: auto; display: block;">
                 </div>
 
-                ${editorialHtml}
-
                 <div class="content-card">
                     <span class="info-label">About</span>
-                    <p style="line-height: 1.6; margin-bottom: 1.5rem;">
+                    <p style="line-height: 1.6; margin-bottom: 1.0rem;">
                         ${bar.description || `Experience the finest mixology at ${bar.title}. Known for its ${bar.vibe} atmosphere, this spot in ${bar.location} offers a curated selection of cocktails and spirits.`}
                     </p>
+                    
+                    <div style="margin-bottom: 1.5rem;">
+                        <span style="font-weight: 600; color: var(--text-primary);">Google Rating:</span> 
+                        <span>${bar.rating} / 5.0 <span style="color:#888; font-size:0.9em;">(${bar.rating_count || 0} reviews)</span></span>
+                    </div>
                     
                     <div style="display: flex; gap: 2rem; margin-bottom: 1.5rem;">
                         ${bar.owner_name ? `
@@ -306,11 +309,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
 
                     ${bar.tags ? `<p style="margin-top:1rem; color:var(--text-secondary);">Tags: ${bar.tags.join(', ')}</p>` : ''}
+
+                    ${bar.editorial_review ? `
+                        <hr style="border: 0; border-top: 1px solid #eee; margin: 2rem 0;">
+                        <div>
+                            <span class="info-label" style="color: var(--bg-red);">Editor's Review</span>
+                            <p style="font-style: italic; color: #444; font-size: 1.1rem; line-height: 1.6; margin-bottom: 0.5rem;">"${bar.editorial_review}"</p>
+                            ${bar.editorial_rating ? `<div style="color: #FFD700; font-size: 1.2rem;">${'★'.repeat(bar.editorial_rating)}${'☆'.repeat(5 - bar.editorial_rating)}</div>` : ''}
+                        </div>
+                    ` : ''}
                 </div>
 
                 <div class="content-card">
                     <span class="info-label">Details</span>
-                    <p><strong>Rating:</strong> ${bar.rating} / 5.0 (${bar.rating_count || 0} reviews)</p>
                     <p><strong>Price:</strong> ${'$'.repeat(bar.price_level || bar.price || 2)}</p>
                     <p><strong>Open:</strong> ${bar.opening_hours || '18:00 - 02:00'}</p>
                     ${bar.phone ? `<p><strong>Phone:</strong> ${bar.phone}</p>` : ''}
