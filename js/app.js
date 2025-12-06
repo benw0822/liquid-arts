@@ -286,40 +286,41 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>
         `;
+    };
 
-        // 5. Articles List
-        window.initArticlesList = async () => {
-            const articles = await fetchArticles();
-            const grid = document.getElementById('articles-list-grid');
-            grid.innerHTML = articles.map(article => createArticleCard(article)).join('');
-        };
+    // 5. Articles List
+    window.initArticlesList = async () => {
+        const articles = await fetchArticles();
+        const grid = document.getElementById('articles-list-grid');
+        grid.innerHTML = articles.map(article => createArticleCard(article)).join('');
+    };
 
-        // 6. Article Details
-        window.initArticleDetails = async () => {
-            const params = new URLSearchParams(window.location.search);
-            const id = params.get('id');
-            const container = document.getElementById('article-content');
+    // 6. Article Details
+    window.initArticleDetails = async () => {
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get('id');
+        const container = document.getElementById('article-content');
 
-            if (!id) {
-                container.innerHTML = '<p>Article not found.</p>';
-                return;
-            }
+        if (!id) {
+            container.innerHTML = '<p>Article not found.</p>';
+            return;
+        }
 
-            const { data: article, error } = await supabase
-                .from('articles')
-                .select('*')
-                .eq('id', id)
-                .single();
+        const { data: article, error } = await supabase
+            .from('articles')
+            .select('*')
+            .eq('id', id)
+            .single();
 
-            if (error || !article) {
-                container.innerHTML = '<p>Article not found.</p>';
-                return;
-            }
+        if (error || !article) {
+            container.innerHTML = '<p>Article not found.</p>';
+            return;
+        }
 
-            const dateStr = new Date(article.published_at || article.created_at).toLocaleDateString();
-            const tagsHtml = (article.tags || []).map(t => `<span style="background:var(--bg-red); color:white; padding:4px 12px; border-radius:20px; font-size:0.85rem; margin-right:8px; display:inline-block;">#${t}</span>`).join('');
+        const dateStr = new Date(article.published_at || article.created_at).toLocaleDateString();
+        const tagsHtml = (article.tags || []).map(t => `<span style="background:var(--bg-red); color:white; padding:4px 12px; border-radius:20px; font-size:0.85rem; margin-right:8px; display:inline-block;">#${t}</span>`).join('');
 
-            container.innerHTML = `
+        container.innerHTML = `
             <div style="text-align: center; max-width: 800px; margin: 0 auto 3rem auto;">
                 ${article.category ? `<span class="article-category-badge">${article.category}</span>` : ''}
                 <h1 style="font-size: 3rem; margin-bottom: 1rem; line-height: 1.2;">${article.title}</h1>
@@ -341,50 +342,50 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
 
-            // --- TOC Generation ---
-            // Find the placeholder inserted by Quill (class: toc-embed-container)
-            const tocPlaceholder = container.querySelector('.toc-embed-container');
-            if (tocPlaceholder) {
-                const headers = container.querySelectorAll('.article-body h2, .article-body h3');
+        // --- TOC Generation ---
+        // Find the placeholder inserted by Quill (class: toc-embed-container)
+        const tocPlaceholder = container.querySelector('.toc-embed-container');
+        if (tocPlaceholder) {
+            const headers = container.querySelectorAll('.article-body h2, .article-body h3');
 
-                if (headers.length > 0) {
-                    const tocDiv = document.createElement('div');
-                    tocDiv.className = 'article-toc';
-                    tocDiv.innerHTML = '<h3>目錄</h3><ul></ul>';
-                    const ul = tocDiv.querySelector('ul');
+            if (headers.length > 0) {
+                const tocDiv = document.createElement('div');
+                tocDiv.className = 'article-toc';
+                tocDiv.innerHTML = '<h3>目錄</h3><ul></ul>';
+                const ul = tocDiv.querySelector('ul');
 
-                    headers.forEach((header, index) => {
-                        // Ensure ID for linking
-                        if (!header.id) header.id = `section-${index}`;
+                headers.forEach((header, index) => {
+                    // Ensure ID for linking
+                    if (!header.id) header.id = `section-${index}`;
 
-                        const li = document.createElement('li');
-                        li.className = `toc-item-${header.tagName.toLowerCase()}`;
+                    const li = document.createElement('li');
+                    li.className = `toc-item-${header.tagName.toLowerCase()}`;
 
-                        const a = document.createElement('a');
-                        a.href = `#${header.id}`;
-                        a.textContent = header.textContent;
+                    const a = document.createElement('a');
+                    a.href = `#${header.id}`;
+                    a.textContent = header.textContent;
 
-                        // Smooth scroll
-                        a.onclick = (e) => {
-                            e.preventDefault();
-                            header.scrollIntoView({ behavior: 'smooth' });
-                        };
+                    // Smooth scroll
+                    a.onclick = (e) => {
+                        e.preventDefault();
+                        header.scrollIntoView({ behavior: 'smooth' });
+                    };
 
-                        li.appendChild(a);
-                        ul.appendChild(li);
-                    });
+                    li.appendChild(a);
+                    ul.appendChild(li);
+                });
 
-                    tocPlaceholder.replaceWith(tocDiv);
-                } else {
-                    // No headers found, remove placeholder
-                    tocPlaceholder.remove();
-                }
+                tocPlaceholder.replaceWith(tocDiv);
+            } else {
+                // No headers found, remove placeholder
+                tocPlaceholder.remove();
             }
-        };
+        }
+    };
 
-        // --- Helper Functions ---
-        function createBarCard(bar) {
-            return `
+    // --- Helper Functions ---
+    function createBarCard(bar) {
+        return `
             <a href="bar-details.html?id=${bar.id}" class="art-card grid-item">
                 <img src="${bar.image}" alt="${bar.title}" class="art-card-image" loading="lazy">
                 <h3 class="art-card-title">${bar.title}</h3>
@@ -393,14 +394,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </a>
         `;
-        }
+    }
 
-        function createArticleCard(article) {
-            // Handle both mock data (image, date) and real data (cover_image, published_at)
-            const imgUrl = article.cover_image || article.image || 'assets/placeholder.jpg';
-            const dateStr = new Date(article.published_at || article.created_at || article.date).toLocaleDateString();
+    function createArticleCard(article) {
+        // Handle both mock data (image, date) and real data (cover_image, published_at)
+        const imgUrl = article.cover_image || article.image || 'assets/placeholder.jpg';
+        const dateStr = new Date(article.published_at || article.created_at || article.date).toLocaleDateString();
 
-            return `
+        return `
             <a href="article-details.html?id=${article.id}" class="art-card grid-item">
                 <img src="${imgUrl}" alt="${article.title}" class="art-card-image" style="height: 200px; object-fit: cover;">
                 <div class="art-card-meta" style="margin-bottom: 0.5rem;">${dateStr}</div>
@@ -408,43 +409,43 @@ document.addEventListener('DOMContentLoaded', () => {
                 <p class="serif-caption" style="font-size: 1rem; margin-top: 0.5rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">${article.excerpt || ''}</p>
             </a>
         `;
-        }
+    }
 
-        // --- Auth Logic (Member) ---
-        const loginBtn = document.getElementById('login-btn');
-        const userMenu = document.getElementById('user-menu');
-        const userAvatar = document.getElementById('user-avatar');
+    // --- Auth Logic (Member) ---
+    const loginBtn = document.getElementById('login-btn');
+    const userMenu = document.getElementById('user-menu');
+    const userAvatar = document.getElementById('user-avatar');
 
-        async function signInWithGoogle() {
-            const { data, error } = await supabase.auth.signInWithOAuth({
-                provider: 'google',
-                options: {
-                    redirectTo: window.location.origin + '/profile.html'
-                }
-            });
-            if (error) console.error('Error logging in:', error.message);
-        }
-
-        if (loginBtn) {
-            loginBtn.addEventListener('click', signInWithGoogle);
-        }
-
-        // Check Auth State
-        supabase.auth.onAuthStateChange((event, session) => {
-            if (session) {
-                if (loginBtn) loginBtn.style.display = 'none';
-                if (userMenu) {
-                    userMenu.style.display = 'inline-block';
-                    // Optional: Fetch profile to get name/avatar if needed
-                    // For now just show "Profile" link
-                }
-            } else {
-                if (loginBtn) loginBtn.style.display = 'inline-block';
-                if (userMenu) userMenu.style.display = 'none';
+    async function signInWithGoogle() {
+        const { data, error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: window.location.origin + '/profile.html'
             }
         });
+        if (error) console.error('Error logging in:', error.message);
+    }
 
-        // --- Auto Init based on URL ---
-        const path = window.location.pathname;
-        if (path.endsWith('index.html') || path === '/') window.initHome();
+    if (loginBtn) {
+        loginBtn.addEventListener('click', signInWithGoogle);
+    }
+
+    // Check Auth State
+    supabase.auth.onAuthStateChange((event, session) => {
+        if (session) {
+            if (loginBtn) loginBtn.style.display = 'none';
+            if (userMenu) {
+                userMenu.style.display = 'inline-block';
+                // Optional: Fetch profile to get name/avatar if needed
+                // For now just show "Profile" link
+            }
+        } else {
+            if (loginBtn) loginBtn.style.display = 'inline-block';
+            if (userMenu) userMenu.style.display = 'none';
+        }
     });
+
+    // --- Auto Init based on URL ---
+    const path = window.location.pathname;
+    if (path.endsWith('index.html') || path === '/') window.initHome();
+});
