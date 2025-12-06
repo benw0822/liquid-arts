@@ -177,6 +177,16 @@ function inferLocation(address) {
 let map;
 let marker;
 
+function initMap() {
+    // Default to Taipei
+    if (map) return;
+    map = L.map('map-preview').setView([25.033964, 121.564472], 13);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; OpenStreetMap &copy; CARTO',
+        maxZoom: 20
+    }).addTo(map);
+}
+
 function updateMapPreview(lat, lng) {
     if (!lat || !lng) return;
 
