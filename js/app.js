@@ -11,7 +11,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Local Mock Data (Extended) ---
     const mockBars = [
-        { id: 1, title: "Midnight Mixology", location: "Taipei, Xinyi", vibe: "Speakeasy", image: "assets/gallery_1.png", lat: 25.0330, lng: 121.5654, price: 2, rating: 4.8 },
+        {
+            id: 1,
+            title: "Midnight Mixology",
+            location: "Taipei, Xinyi",
+            vibe: "Speakeasy",
+            image: "assets/gallery_1.png",
+            lat: 25.0330,
+            lng: 121.5654,
+            price: 2,
+            rating: 4.8,
+            owner_name: "Alex Chen",
+            bartender_name: "Sarah Lin",
+            opening_hours: "Mon-Sun: 20:00 - 02:00",
+            phone: "+886 2 1234 5678",
+            menu_url: "#",
+            description: "Hidden behind a bookshelf, Midnight Mixology offers an intimate atmosphere with bespoke cocktails inspired by classic literature."
+        },
         { id: 2, title: "The Glass Sculptor", location: "Tokyo, Ginza", vibe: "High-End", image: "assets/gallery_2.png", lat: 35.6712, lng: 139.7665, price: 3, rating: 4.9 },
         { id: 3, title: "Urban Nightlife", location: "New York, SoHo", vibe: "Lounge", image: "assets/gallery_3.png", lat: 40.7233, lng: -74.0030, price: 2, rating: 4.7 },
         { id: 4, title: "Signature Pour", location: "London, Shoreditch", vibe: "Craft Cocktails", image: "assets/gallery_1.png", lat: 51.5260, lng: -0.0782, price: 2, rating: 4.6 },
@@ -201,25 +217,41 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="container detail-title-block">
                     <h1 style="font-size: 3rem; margin-bottom: 0.5rem;">${bar.title}</h1>
                     <p style="font-size: 1.2rem; opacity: 0.9;">${bar.location} • ${bar.vibe}</p>
-                    <div style="margin-top: 1rem;">
-                        ${socialHtml}
-                    </div>
                 </div>
             </div>
             <div class="container detail-grid">
                 <div class="main-info">
                     <div class="info-block">
                         <span class="info-label">About</span>
-                        <p style="line-height: 1.6;">
-                            Experience the finest mixology at ${bar.title}. Known for its ${bar.vibe} atmosphere, 
-                            this spot in ${bar.location} offers a curated selection of cocktails and spirits.
+                        <p style="line-height: 1.6; margin-bottom: 1.5rem;">
+                            ${bar.description || `Experience the finest mixology at ${bar.title}. Known for its ${bar.vibe} atmosphere, this spot in ${bar.location} offers a curated selection of cocktails and spirits.`}
                         </p>
+                        
+                        <div style="display: flex; gap: 2rem; margin-bottom: 1.5rem;">
+                            ${bar.owner_name ? `
+                                <div>
+                                    <span class="info-label" style="font-size: 0.9rem;">Owner</span>
+                                    <p style="font-weight: 600;">${bar.owner_name}</p>
+                                </div>
+                            ` : ''}
+                            ${bar.bartender_name ? `
+                                <div>
+                                    <span class="info-label" style="font-size: 0.9rem;">Head Bartender</span>
+                                    <p style="font-weight: 600;">${bar.bartender_name}</p>
+                                </div>
+                            ` : ''}
+                        </div>
+
                         ${bar.tags ? `<p style="margin-top:1rem; color:var(--text-secondary);">Tags: ${bar.tags.join(', ')}</p>` : ''}
                     </div>
+
                     <div class="info-block">
                         <span class="info-label">Menu</span>
                         <p>Signature Cocktails • Seasonal Specials • Bar Bites</p>
-                        <button class="btn btn-secondary" style="margin-top: 10px;">View Full Menu</button>
+                        ${bar.menu_url ?
+                `<a href="${bar.menu_url}" target="_blank" class="btn btn-secondary" style="margin-top: 10px; display: inline-block;">View Full Menu</a>` :
+                `<button class="btn btn-secondary" style="margin-top: 10px;" disabled>Menu Coming Soon</button>`
+            }
                     </div>
                     ${galleryHtml}
                     ${articlesHtml}
@@ -229,8 +261,17 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span class="info-label">Details</span>
                         <p><strong>Rating:</strong> ${bar.rating} / 5.0 (${bar.rating_count || 0} reviews)</p>
                         <p><strong>Price:</strong> ${'$'.repeat(bar.price_level || bar.price || 2)}</p>
-                        <p><strong>Open:</strong> ${bar.opening_hours ? 'See Google Maps' : '18:00 - 02:00'}</p>
+                        <p><strong>Open:</strong> ${bar.opening_hours || '18:00 - 02:00'}</p>
                         ${bar.phone ? `<p><strong>Phone:</strong> ${bar.phone}</p>` : ''}
+                        
+                        <div style="margin-top: 1rem;">
+                            <span class="info-label" style="font-size: 0.9rem;">Social</span>
+                            <div style="display: flex; gap: 10px; margin-top: 5px;">
+                                ${bar.instagram_url ? `<a href="${bar.instagram_url}" target="_blank" style="color: var(--text-primary); text-decoration: underline;">Instagram</a>` : ''}
+                                ${bar.facebook_url ? `<a href="${bar.facebook_url}" target="_blank" style="color: var(--text-primary); text-decoration: underline;">Facebook</a>` : ''}
+                                ${bar.website_url ? `<a href="${bar.website_url}" target="_blank" style="color: var(--text-primary); text-decoration: underline;">Website</a>` : ''}
+                            </div>
+                        </div>
                     </div>
                     <div class="info-block">
                         <span class="info-label">Location</span>
@@ -245,41 +286,40 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>
         `;
-    };
 
-    // 5. Articles List
-    window.initArticlesList = async () => {
-        const articles = await fetchArticles();
-        const grid = document.getElementById('articles-list-grid');
-        grid.innerHTML = articles.map(article => createArticleCard(article)).join('');
-    };
+        // 5. Articles List
+        window.initArticlesList = async () => {
+            const articles = await fetchArticles();
+            const grid = document.getElementById('articles-list-grid');
+            grid.innerHTML = articles.map(article => createArticleCard(article)).join('');
+        };
 
-    // 6. Article Details
-    window.initArticleDetails = async () => {
-        const params = new URLSearchParams(window.location.search);
-        const id = params.get('id');
-        const container = document.getElementById('article-content');
+        // 6. Article Details
+        window.initArticleDetails = async () => {
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get('id');
+            const container = document.getElementById('article-content');
 
-        if (!id) {
-            container.innerHTML = '<p>Article not found.</p>';
-            return;
-        }
+            if (!id) {
+                container.innerHTML = '<p>Article not found.</p>';
+                return;
+            }
 
-        const { data: article, error } = await supabase
-            .from('articles')
-            .select('*')
-            .eq('id', id)
-            .single();
+            const { data: article, error } = await supabase
+                .from('articles')
+                .select('*')
+                .eq('id', id)
+                .single();
 
-        if (error || !article) {
-            container.innerHTML = '<p>Article not found.</p>';
-            return;
-        }
+            if (error || !article) {
+                container.innerHTML = '<p>Article not found.</p>';
+                return;
+            }
 
-        const dateStr = new Date(article.published_at || article.created_at).toLocaleDateString();
-        const tagsHtml = (article.tags || []).map(t => `<span style="background:var(--bg-red); color:white; padding:4px 12px; border-radius:20px; font-size:0.85rem; margin-right:8px; display:inline-block;">#${t}</span>`).join('');
+            const dateStr = new Date(article.published_at || article.created_at).toLocaleDateString();
+            const tagsHtml = (article.tags || []).map(t => `<span style="background:var(--bg-red); color:white; padding:4px 12px; border-radius:20px; font-size:0.85rem; margin-right:8px; display:inline-block;">#${t}</span>`).join('');
 
-        container.innerHTML = `
+            container.innerHTML = `
             <div style="text-align: center; max-width: 800px; margin: 0 auto 3rem auto;">
                 ${article.category ? `<span class="article-category-badge">${article.category}</span>` : ''}
                 <h1 style="font-size: 3rem; margin-bottom: 1rem; line-height: 1.2;">${article.title}</h1>
@@ -301,50 +341,50 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
 
-        // --- TOC Generation ---
-        // Find the placeholder inserted by Quill (class: toc-embed-container)
-        const tocPlaceholder = container.querySelector('.toc-embed-container');
-        if (tocPlaceholder) {
-            const headers = container.querySelectorAll('.article-body h2, .article-body h3');
+            // --- TOC Generation ---
+            // Find the placeholder inserted by Quill (class: toc-embed-container)
+            const tocPlaceholder = container.querySelector('.toc-embed-container');
+            if (tocPlaceholder) {
+                const headers = container.querySelectorAll('.article-body h2, .article-body h3');
 
-            if (headers.length > 0) {
-                const tocDiv = document.createElement('div');
-                tocDiv.className = 'article-toc';
-                tocDiv.innerHTML = '<h3>目錄</h3><ul></ul>';
-                const ul = tocDiv.querySelector('ul');
+                if (headers.length > 0) {
+                    const tocDiv = document.createElement('div');
+                    tocDiv.className = 'article-toc';
+                    tocDiv.innerHTML = '<h3>目錄</h3><ul></ul>';
+                    const ul = tocDiv.querySelector('ul');
 
-                headers.forEach((header, index) => {
-                    // Ensure ID for linking
-                    if (!header.id) header.id = `section-${index}`;
+                    headers.forEach((header, index) => {
+                        // Ensure ID for linking
+                        if (!header.id) header.id = `section-${index}`;
 
-                    const li = document.createElement('li');
-                    li.className = `toc-item-${header.tagName.toLowerCase()}`;
+                        const li = document.createElement('li');
+                        li.className = `toc-item-${header.tagName.toLowerCase()}`;
 
-                    const a = document.createElement('a');
-                    a.href = `#${header.id}`;
-                    a.textContent = header.textContent;
+                        const a = document.createElement('a');
+                        a.href = `#${header.id}`;
+                        a.textContent = header.textContent;
 
-                    // Smooth scroll
-                    a.onclick = (e) => {
-                        e.preventDefault();
-                        header.scrollIntoView({ behavior: 'smooth' });
-                    };
+                        // Smooth scroll
+                        a.onclick = (e) => {
+                            e.preventDefault();
+                            header.scrollIntoView({ behavior: 'smooth' });
+                        };
 
-                    li.appendChild(a);
-                    ul.appendChild(li);
-                });
+                        li.appendChild(a);
+                        ul.appendChild(li);
+                    });
 
-                tocPlaceholder.replaceWith(tocDiv);
-            } else {
-                // No headers found, remove placeholder
-                tocPlaceholder.remove();
+                    tocPlaceholder.replaceWith(tocDiv);
+                } else {
+                    // No headers found, remove placeholder
+                    tocPlaceholder.remove();
+                }
             }
-        }
-    };
+        };
 
-    // --- Helper Functions ---
-    function createBarCard(bar) {
-        return `
+        // --- Helper Functions ---
+        function createBarCard(bar) {
+            return `
             <a href="bar-details.html?id=${bar.id}" class="art-card grid-item">
                 <img src="${bar.image}" alt="${bar.title}" class="art-card-image" loading="lazy">
                 <h3 class="art-card-title">${bar.title}</h3>
@@ -353,14 +393,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </a>
         `;
-    }
+        }
 
-    function createArticleCard(article) {
-        // Handle both mock data (image, date) and real data (cover_image, published_at)
-        const imgUrl = article.cover_image || article.image || 'assets/placeholder.jpg';
-        const dateStr = new Date(article.published_at || article.created_at || article.date).toLocaleDateString();
+        function createArticleCard(article) {
+            // Handle both mock data (image, date) and real data (cover_image, published_at)
+            const imgUrl = article.cover_image || article.image || 'assets/placeholder.jpg';
+            const dateStr = new Date(article.published_at || article.created_at || article.date).toLocaleDateString();
 
-        return `
+            return `
             <a href="article-details.html?id=${article.id}" class="art-card grid-item">
                 <img src="${imgUrl}" alt="${article.title}" class="art-card-image" style="height: 200px; object-fit: cover;">
                 <div class="art-card-meta" style="margin-bottom: 0.5rem;">${dateStr}</div>
@@ -368,43 +408,43 @@ document.addEventListener('DOMContentLoaded', () => {
                 <p class="serif-caption" style="font-size: 1rem; margin-top: 0.5rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">${article.excerpt || ''}</p>
             </a>
         `;
-    }
+        }
 
-    // --- Auth Logic (Member) ---
-    const loginBtn = document.getElementById('login-btn');
-    const userMenu = document.getElementById('user-menu');
-    const userAvatar = document.getElementById('user-avatar');
+        // --- Auth Logic (Member) ---
+        const loginBtn = document.getElementById('login-btn');
+        const userMenu = document.getElementById('user-menu');
+        const userAvatar = document.getElementById('user-avatar');
 
-    async function signInWithGoogle() {
-        const { data, error } = await supabase.auth.signInWithOAuth({
-            provider: 'google',
-            options: {
-                redirectTo: window.location.origin + '/profile.html'
+        async function signInWithGoogle() {
+            const { data, error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: window.location.origin + '/profile.html'
+                }
+            });
+            if (error) console.error('Error logging in:', error.message);
+        }
+
+        if (loginBtn) {
+            loginBtn.addEventListener('click', signInWithGoogle);
+        }
+
+        // Check Auth State
+        supabase.auth.onAuthStateChange((event, session) => {
+            if (session) {
+                if (loginBtn) loginBtn.style.display = 'none';
+                if (userMenu) {
+                    userMenu.style.display = 'inline-block';
+                    // Optional: Fetch profile to get name/avatar if needed
+                    // For now just show "Profile" link
+                }
+            } else {
+                if (loginBtn) loginBtn.style.display = 'inline-block';
+                if (userMenu) userMenu.style.display = 'none';
             }
         });
-        if (error) console.error('Error logging in:', error.message);
-    }
 
-    if (loginBtn) {
-        loginBtn.addEventListener('click', signInWithGoogle);
-    }
-
-    // Check Auth State
-    supabase.auth.onAuthStateChange((event, session) => {
-        if (session) {
-            if (loginBtn) loginBtn.style.display = 'none';
-            if (userMenu) {
-                userMenu.style.display = 'inline-block';
-                // Optional: Fetch profile to get name/avatar if needed
-                // For now just show "Profile" link
-            }
-        } else {
-            if (loginBtn) loginBtn.style.display = 'inline-block';
-            if (userMenu) userMenu.style.display = 'none';
-        }
+        // --- Auto Init based on URL ---
+        const path = window.location.pathname;
+        if (path.endsWith('index.html') || path === '/') window.initHome();
     });
-
-    // --- Auto Init based on URL ---
-    const path = window.location.pathname;
-    if (path.endsWith('index.html') || path === '/') window.initHome();
-});
