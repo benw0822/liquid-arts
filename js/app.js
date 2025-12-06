@@ -466,20 +466,18 @@ document.addEventListener('DOMContentLoaded', () => {
         let cleanHours = hoursStr.trim();
 
         // Helper to generate the table
-        function generateHoursTable(start, end, timeStr) {
+        function generateHoursTable(hoursMap) {
             let html = '<table style="width: 100%; max-width: 300px; margin: 0 auto; border-collapse: collapse;">';
             for (let i = 0; i < 7; i++) {
-                const isDayInRange = (start <= end)
-                    ? (i >= start && i <= end)
-                    : (i >= start || i <= end);
-
-                const opacity = isDayInRange ? '1' : '0.4';
-                const weight = isDayInRange ? '500' : 'normal';
+                const time = hoursMap[i];
+                const opacity = time ? '1' : '0.4';
+                const weight = time ? '500' : 'normal';
+                const displayTime = time || 'Closed';
 
                 html += `
                     <tr style="border-bottom: 1px solid #f5f5f5;">
                         <td style="padding: 8px 0; text-align: left; color: #333; font-weight: ${weight}; opacity: ${opacity}; width: 40%;">${days[i]}</td>
-                        <td style="padding: 8px 0; text-align: right; color: #333; opacity: ${opacity}; width: 60%;">${isDayInRange ? timeStr : 'Closed'}</td>
+                        <td style="padding: 8px 0; text-align: right; color: #333; opacity: ${opacity}; width: 60%;">${displayTime}</td>
                     </tr>
                 `;
             }
@@ -487,34 +485,63 @@ document.addEventListener('DOMContentLoaded', () => {
             return html;
         }
 
-        function getDayIndex(d) {
-            const prefix = d.substring(0, 3).toLowerCase();
-            return shortDays.findIndex(sd => sd.toLowerCase() === prefix);
+        // 1. Check for Semicolon Separated List (New Format)
+        if (cleanHours.includes(';') || (cleanHours.includes(':') && cleanHours.match(/Mon|Tue|Wed|Thu|Fri|Sat|Sun/i))) {
+            const hoursMap = {}; // 0..6 -> time string
+
+            const parts = cleanHours.split(';');
+            parts.forEach(part => {
+                const [dayPart, timePart] = part.split(':').map(s => s.trim());
+                if (dayPart && timePart) {
+                    // Handle ranges or commas if present (though new format is likely single day)
+                    let currentDays = [];
+
+                    if (dayPart.includes('-')) {
+                        // Range
+                        const [start, end] = dayPart.split('-').map(d => d.trim());
+                        const sIdx = shortDays.findIndex(sd => sd.toLowerCase() === start.substring(0, 3).toLowerCase());
+                        const eIdx = shortDays.findIndex(sd => sd.toLowerCase() === end.substring(0, 3).toLowerCase());
+                        if (sIdx !== -1 && eIdx !== -1) {
+                            if (sIdx <= eIdx) {
+                                for (let i = sIdx; i <= eIdx; i++) currentDays.push(i);
+                            } else {
+                                for (let i = sIdx; i < 7; i++) currentDays.push(i);
+                                for (let i = 0; i <= eIdx; i++) currentDays.push(i);
+                            }
+                        }
+                    } else if (dayPart.includes(',')) {
+                        // Comma
+                        dayPart.split(',').forEach(d => {
+                            const idx = shortDays.findIndex(sd => sd.toLowerCase() === d.trim().substring(0, 3).toLowerCase());
+                            if (idx !== -1) currentDays.push(idx);
+                        });
+                    } else {
+                        // Single
+                        const idx = shortDays.findIndex(sd => sd.toLowerCase() === dayPart.substring(0, 3).toLowerCase());
+                        if (idx !== -1) currentDays.push(idx);
+                    }
+
+                    currentDays.forEach(dIdx => {
+                        hoursMap[dIdx] = timePart;
+                    });
+                }
+            });
+            return generateHoursTable(hoursMap);
         }
 
-        // 1. Check for "Daily"
+        // 2. Check for "Daily"
         if (cleanHours.toLowerCase().includes('daily') || cleanHours.toLowerCase().includes('everyday')) {
             const time = cleanHours.replace(/daily|everyday/gi, '').replace(/[:\s]+/, '').trim();
-            return generateHoursTable(0, 6, time);
-        }
-
-        // 2. Check for Range "Mon-Sun" or "Monday - Sunday"
-        // Regex: (Day) - (Day) [:] (Time)
-        const rangeMatch = cleanHours.match(/([A-Za-z]{3,})\s*-\s*([A-Za-z]{3,})[:\s]*(.*)/i);
-
-        if (rangeMatch) {
-            const startDayIdx = getDayIndex(rangeMatch[1]);
-            const endDayIdx = getDayIndex(rangeMatch[2]);
-            const time = rangeMatch[3] || '';
-
-            if (startDayIdx !== -1 && endDayIdx !== -1) {
-                return generateHoursTable(startDayIdx, endDayIdx, time);
-            }
+            const map = {};
+            for (let i = 0; i < 7; i++) map[i] = time;
+            return generateHoursTable(map);
         }
 
         // 3. Fallback: If it contains digits (likely a time), assume daily
         if (cleanHours.match(/\d/)) {
-            return generateHoursTable(0, 6, cleanHours);
+            const map = {};
+            for (let i = 0; i < 7; i++) map[i] = cleanHours;
+            return generateHoursTable(map);
         }
 
         return `<div style="text-align:center;">${hoursStr.replace(/\n/g, '<br>')}</div>`;
