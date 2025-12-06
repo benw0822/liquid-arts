@@ -765,3 +765,15 @@ figure.article-figure figcaption {
         height: 50vh;
     }
 }
+
+.signatures-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+@media (max-width: 768px) {
+    .signatures-grid {
+        grid-template-columns: 1fr;
+    }
+}

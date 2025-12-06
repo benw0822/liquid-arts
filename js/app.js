@@ -246,9 +246,9 @@ document.addEventListener('DOMContentLoaded', () => {
             signaturesHtml = `
                 <div class="content-card">
                     <h3 class="section-title" style="margin-bottom: 1.5rem;">Signature Cocktails</h3>
-                    <div class="magazine-grid" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; padding: 0;">
+                    <div class="signatures-grid">
                         ${bar.signatures.map(sig => `
-                            <div class="grid-item" style="grid-column: span 1; margin-bottom: 0;">
+                            <div class="grid-item" style="margin-bottom: 0;">
                                 <div style="border: 1px solid #eee; border-radius: 8px; overflow: hidden; height: 100%; background: #f9f9f9; transition: transform 0.2s;">
                                     <img src="${sig.image_url || 'assets/placeholder.jpg'}" alt="${sig.name}" style="width:100%; aspect-ratio: 4/5; object-fit:cover;">
                                     <div style="padding: 15px;">
@@ -335,7 +335,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="content-card">
                         <span class="info-label">Location</span>
                         <p>${bar.address_en || bar.location}</p>
-                        <div style="margin-top: 10px;">
+                        
+                        <div id="detail-map" style="height: 200px; width: 100%; border-radius: 4px; margin-top: 15px; z-index: 1;"></div>
+
+                        <div style="margin-top: 15px;">
                             ${bar.google_map_url ?
                 `<a href="${bar.google_map_url}" target="_blank" class="btn" style="width:100%; text-align:center; border: 1px solid #ddd; color: #333;">Open in Google Maps</a>` :
                 `<div style="height: 150px; background: #222; display: flex; align-items: center; justify-content: center; color: #666;">Map Unavailable</div>`
@@ -345,6 +348,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>
         `;
+
+        if (bar.lat && bar.lng) {
+            setTimeout(() => {
+                const map = L.map('detail-map').setView([bar.lat, bar.lng], 15);
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                    attribution: '&copy; OpenStreetMap &copy; CARTO'
+                }).addTo(map);
+
+                const customIcon = L.divIcon({
+                    className: 'custom-div-icon',
+                    html: `<div style="width: 12px; height: 12px; background: #ef4444; border: 2px solid white; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
+                    iconSize: [12, 12],
+                    iconAnchor: [6, 6]
+                });
+
+                L.marker([bar.lat, bar.lng], { icon: customIcon }).addTo(map);
+            }, 100);
+        }
     };
 
     // 5. Articles List
