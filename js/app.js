@@ -265,14 +265,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         container.innerHTML = `
-            <div class="detail-header" style="background-image: url('${bar.image}');">
-                <div class="container detail-title-block">
-                    <h1 style="font-size: 3rem; margin-bottom: 0.5rem;">${bar.title}</h1>
-                    <p style="font-size: 1.2rem; opacity: 0.9;">${bar.location} • ${bar.vibe}</p>
-                </div>
-            </div>
-            <div class="container detail-grid">
+            <div class="container detail-grid" style="margin-top: 2rem;">
                 
+                <!-- Hero Card -->
+                <div class="content-card hero-card" style="background-image: url('${bar.image}'); min-height: 400px; display: flex; align-items: flex-end; position: relative; overflow: hidden; padding: 0; border: none;">
+                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.8) 100%);"></div>
+                    <div style="position: relative; z-index: 2; padding: 40px; color: white; width: 100%;">
+                        <h1 style="font-size: 3rem; margin-bottom: 0.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">${bar.title}</h1>
+                        <p style="font-size: 1.2rem; opacity: 0.9; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">${bar.location} • ${bar.vibe}</p>
+                    </div>
+                </div>
+
                 ${editorialHtml}
 
                 <div class="content-card">
