@@ -16,211 +16,213 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 
-    <style>
-        body {
-            background-color: #f5f5f7;
-            color: #333;
-            padding-bottom: 80px;
-        }
+    <!-- Leaflet CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    color: #333;
+    padding-bottom: 80px;
+    }
 
-        .cms-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 20px;
-        }
+    .cms-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+    }
 
-        @media (max-width: 768px) {
-            .cms-container {
-                grid-template-columns: 1fr;
-            }
-        }
+    @media (max-width: 768px) {
+    .cms-container {
+    grid-template-columns: 1fr;
+    }
+    }
 
-        .cms-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px;
-            background: #fff;
-            border-bottom: 1px solid #ddd;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-            position: sticky;
-            top: 0;
-            z-index: 1001;
-        }
+    .cms-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background: #fff;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    position: sticky;
+    top: 0;
+    z-index: 1001;
+    }
 
-        h2 {
-            color: #111;
-            margin: 0;
-        }
+    h2 {
+    color: #111;
+    margin: 0;
+    }
 
-        .editor-wrapper {
-            background: #fff;
-            color: #000;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            border: 1px solid #e0e0e0;
-        }
+    .editor-wrapper {
+    background: #fff;
+    color: #000;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e0e0e0;
+    }
 
-        .info-panel {
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            height: fit-content;
-            position: sticky;
-            top: 100px;
-        }
+    .info-panel {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    height: fit-content;
+    position: sticky;
+    top: 100px;
+    }
 
-        .info-label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 5px;
-            color: #555;
-            font-size: 0.9rem;
-        }
+    .info-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #555;
+    font-size: 0.9rem;
+    }
 
-        .search-input,
-        .form-input,
-        textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 1rem;
-            margin-bottom: 10px;
-            box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
-        }
+    .search-input,
+    .form-input,
+    textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+    }
 
-        textarea {
-            resize: vertical;
-            min-height: 150px;
-            line-height: 1.6;
-        }
+    textarea {
+    resize: vertical;
+    min-height: 150px;
+    line-height: 1.6;
+    }
 
-        .action-btn {
-            background-color: #8a0000;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background 0.3s;
-        }
+    .action-btn {
+    background-color: #8a0000;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.3s;
+    }
 
-        .action-btn:hover {
-            background-color: #600000;
-        }
+    .action-btn:hover {
+    background-color: #600000;
+    }
 
-        .secondary-btn {
-            background-color: #eee;
-            color: #333;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-right: 10px;
-        }
+    .secondary-btn {
+    background-color: #eee;
+    color: #333;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 10px;
+    }
 
-        .secondary-btn:hover {
-            background-color: #ddd;
-        }
+    .secondary-btn:hover {
+    background-color: #ddd;
+    }
 
-        /* Cover Image Preview */
-        .cover-preview {
-            width: 100%;
-            aspect-ratio: 4 / 5;
-            background-color: #eee;
-            background-size: cover;
-            background-position: center;
-            border-radius: 4px;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #888;
-            border: 2px dashed #ccc;
-            cursor: pointer;
-            position: relative;
-        }
+    /* Cover Image Preview */
+    .cover-preview {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    background-color: #eee;
+    background-size: cover;
+    background-position: center;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #888;
+    border: 2px dashed #ccc;
+    cursor: pointer;
+    position: relative;
+    }
 
-        .cover-preview:hover {
-            border-color: #8a0000;
-            color: #8a0000;
-        }
+    .cover-preview:hover {
+    border-color: #8a0000;
+    color: #8a0000;
+    }
 
-        /* Loading Overlay */
-        #loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.8);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-            flex-direction: column;
-        }
+    /* Loading Overlay */
+    #loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.8);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    flex-direction: column;
+    }
 
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #8a0000;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 10px;
-        }
+    .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #8a0000;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 10px;
+    }
 
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
+    @keyframes spin {
+    0% {
+    transform: rotate(0deg);
+    }
 
-            100% {
-                transform: rotate(360deg);
-            }
-        }
+    100% {
+    transform: rotate(360deg);
+    }
+    }
 
-        /* Bottom Toolbar */
-        .bottom-toolbar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: #fff;
-            border-top: 1px solid #ddd;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
-            z-index: 1000;
-        }
+    /* Bottom Toolbar */
+    .bottom-toolbar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: #fff;
+    border-top: 1px solid #ddd;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+    z-index: 1000;
+    }
 
-        .status-indicator {
-            font-size: 0.9rem;
-            color: #666;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+    .status-indicator {
+    font-size: 0.9rem;
+    color: #666;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    }
 
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background-color: #ccc;
-        }
+    .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #ccc;
+    }
     </style>
 </head>
 
@@ -352,9 +354,8 @@
                 </div>
 
                 <div
-                    style="width: 100%; height: 150px; background: #eee; border-radius: 4px; overflow: hidden; margin-bottom: 5px;">
-                    <iframe id="map-preview" width="100%" height="100%" frameborder="0" style="border:0;"
-                        src="about:blank" allowfullscreen></iframe>
+                    style="width: 100%; height: 250px; background: #222; border-radius: 4px; overflow: hidden; margin-bottom: 5px;">
+                    <div id="map-preview" style="width: 100%; height: 100%; z-index: 1;"></div>
                 </div>
                 <p class="help-text" style="font-size: 0.75rem; color: #888; margin: 0;">* Ratings depend on Google.</p>
             </div>

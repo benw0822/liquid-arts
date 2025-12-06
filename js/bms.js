@@ -79,6 +79,7 @@ const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', async () => {
     await checkAuth();
+    initMap(); // Initialize Leaflet Map
     initHoursEditor();
 
     // Check URL params
@@ -130,17 +131,40 @@ addressInput.addEventListener('change', () => {
     updateMapPreview(addressInput.value);
 });
 
-function updateMapPreview(address) {
-    if (!address) {
-        mapPreview.src = 'about:blank';
-        return;
-    }
-    const q = encodeURIComponent(address);
-    // Use Google Maps Embed API (Search mode) - No API key needed for basic embedding usually, 
-    // but strictly speaking requires one. 
-    // Alternatively, use `https://maps.google.com/maps?q=${address}&output=embed`
-    // iwloc=A forces the info window to open for the first result, showing ratings/reviews
-    mapPreview.src = `https://maps.google.com/maps?q=${q}&output=embed&iwloc=A`;
+let map;
+let marker;
+
+function initMap() {
+    // Default to Taipei 101
+    map = L.map('map-preview').setView([25.033964, 121.564472], 13);
+
+    // CartoDB Dark Matter Tiles
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 19
+    }).addTo(map);
+
+    // Custom Gold Icon
+    const goldIcon = new L.Icon({
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-gold.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+    });
+
+    marker = L.marker([25.033964, 121.564472], { icon: goldIcon }).addTo(map);
+}
+
+function updateMapPreview(lat, lng) {
+    if (!map || !lat || !lng) return;
+    const newLatLng = new L.LatLng(lat, lng);
+    marker.setLatLng(newLatLng);
+    map.flyTo(newLatLng, 16);
+    // Force map resize in case container size changed
+    setTimeout(() => { map.invalidateSize(); }, 200);
 }
 
 btnLoadMap.addEventListener('click', (e) => {
@@ -181,20 +205,22 @@ btnLoadMap.addEventListener('click', (e) => {
             // Do NOT set addressInput to the name to avoid "Name in Address" bug.
             alert(`Found Place Name: "${fullQuery}".\nNote: This URL does not contain the full address. Please enter the Address manually.`);
         }
-        updateMapPreview(fullQuery);
+        // Removed: updateMapPreview(fullQuery); // This was an old call that passed a string, not lat/lng
     }
 
     // Parse Coords
     const coordsMatch = url.match(/@([\d.-]+),([\d.-]+)/);
     if (coordsMatch) {
-        console.log('Found Coords:', coordsMatch[1], coordsMatch[2]);
-        latInput.value = coordsMatch[1];
-        lngInput.value = coordsMatch[2];
+        const lat = parseFloat(coordsMatch[1]);
+        const lng = parseFloat(coordsMatch[2]);
+        console.log('Found Coords:', lat, lng);
+        latInput.value = lat;
+        lngInput.value = lng;
+        updateMapPreview(lat, lng); // Call with parsed numbers
 
         // If we didn't find a place name, at least show the map at these coords
         if (!parsed) {
             parsed = true;
-            updateMapPreview(`${coordsMatch[1]},${coordsMatch[2]}`);
             alert('Could not find Place Name in URL, but updated Map coordinates.');
         }
     }
@@ -336,6 +362,9 @@ async function loadBar(id) {
             updateMapPreview(bar.address);
             latInput.value = bar.lat || '';
             lngInput.value = bar.lng || '';
+            if (bar.lat && bar.lng) {
+                updateMapPreview(bar.lat, bar.lng);
+            }
 
             ownerInput.value = bar.owner_name || '';
             bartenderInput.value = bar.bartender_name || '';
