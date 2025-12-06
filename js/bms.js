@@ -140,6 +140,12 @@ mapInput.addEventListener('input', () => {
     console.log('Map URL Input:', url);
     if (!url) return;
 
+    // Check for short links
+    if (url.includes('goo.gl') || url.includes('maps.app.goo.gl')) {
+        alert('Please copy the full URL from the browser address bar (containing /place/ and @coordinates), not the "Share" short link.');
+        return;
+    }
+
     // Parse Address
     // Example: https://www.google.com/maps/place/Taipei+101/@25.0339639,121.5644722,17z/...
     // Also handle short links or other formats if possible, but mainly full URLs for now.
@@ -620,7 +626,7 @@ galleryInput.addEventListener('change', async (e) => {
     for (const file of files) {
         try {
             console.log('Uploading file:', file.name);
-            const url = await uploadImage(file, 'covers');
+            const url = await uploadImage(file, 'gallery');
             console.log('Uploaded URL:', url);
 
             // Insert into DB
