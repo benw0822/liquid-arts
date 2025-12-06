@@ -268,9 +268,13 @@
 
         <div style="margin-bottom: 1.5rem;">
             <label class="info-label">Google Maps URL (Auto-Fill)</label>
-            <input type="text" id="bar-map" class="form-input" placeholder="Paste Google Maps Link here...">
-            <p class="help-text" style="font-size: 0.8rem; color: #888; margin-top: 5px;">Paste a Google Maps link to
-                auto-fill Address and Coordinates.</p>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="bar-map" class="form-input" placeholder="Paste Google Maps Link here..."
+                    style="margin-bottom: 0;">
+                <button id="btn-load-map" class="secondary-btn" style="white-space: nowrap;">Load Data</button>
+            </div>
+            <p class="help-text" style="font-size: 0.8rem; color: #888; margin-top: 5px;">Paste link and click Load to
+                auto-fill Name, Address, and Map.</p>
         </div>
 
         <div style="margin-bottom: 1.5rem;">
@@ -295,8 +299,8 @@
         <div style="margin-bottom: 1.5rem;">
             <label class="info-label">Map Preview</label>
             <div style="width: 100%; height: 250px; background: #eee; border-radius: 4px; overflow: hidden;">
-                <iframe id="map-preview" width="100%" height="100%" frameborder="0" style="border:0" src="about:blank"
-                    allowfullscreen></iframe>
+                <iframe id="map-preview" width="100%" height="100%" frameborder="0"
+                    style="border:0; filter: grayscale(100%);" src="about:blank" allowfullscreen></iframe>
             </div>
             <p class="help-text" style="font-size: 0.8rem; color: #888; margin-top: 5px;">Enter address to update map.
             </p>
