@@ -281,11 +281,26 @@ document.addEventListener('DOMContentLoaded', () => {
                     <img src="${bar.image}" alt="${bar.title}" style="width: 100%; height: auto; display: block;">
                 </div>
 
+                <!-- Editorial Review Card (Restored) -->
+                ${bar.editorial_review ? `
+                    <div class="content-card" style="border-left: 4px solid var(--bg-red);">
+                        <span class="info-label" style="color: var(--bg-red);">Editor's Review</span>
+                        <p style="font-style: italic; color: #444; font-size: 1.1rem; line-height: 1.6; margin-bottom: 0.5rem;">"${bar.editorial_review}"</p>
+                        ${bar.editorial_rating ? `<div style="color: #FFD700; font-size: 1.2rem;">${'★'.repeat(bar.editorial_rating)}${'☆'.repeat(5 - bar.editorial_rating)}</div>` : ''}
+                    </div>
+                ` : ''}
+
                 <div class="content-card">
-                    <span class="info-label">About</span>
-                    <p style="line-height: 1.6; margin-bottom: 1.0rem;">
+                    <h2 style="text-align: center; font-size: 1.5rem; margin-bottom: 2rem; font-family: var(--font-display);">About</h2>
+                    
+                    <p style="line-height: 1.6; margin-bottom: 1.5rem;">
                         ${bar.description || `Experience the finest mixology at ${bar.title}. Known for its ${bar.vibe} atmosphere, this spot in ${bar.location} offers a curated selection of cocktails and spirits.`}
                     </p>
+
+                    <div style="margin-bottom: 1.5rem;">
+                        <span class="info-label" style="font-size: 0.9rem;">Location</span>
+                        <p>${bar.address_en || bar.location}</p>
+                    </div>
                     
                     <div style="margin-bottom: 1.5rem;">
                         <span style="font-weight: 600; color: var(--text-primary);">Google Rating:</span> 
@@ -308,15 +323,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
 
                     ${bar.tags ? `<p style="margin-top:1rem; color:var(--text-secondary);">Tags: ${bar.tags.join(', ')}</p>` : ''}
-
-                    ${bar.editorial_review ? `
-                        <hr style="border: 0; border-top: 1px solid #eee; margin: 2rem 0;">
-                        <div>
-                            <span class="info-label" style="color: var(--bg-red);">Editor's Review</span>
-                            <p style="font-style: italic; color: #444; font-size: 1.1rem; line-height: 1.6; margin-bottom: 0.5rem;">"${bar.editorial_review}"</p>
-                            ${bar.editorial_rating ? `<div style="color: #FFD700; font-size: 1.2rem;">${'★'.repeat(bar.editorial_rating)}${'☆'.repeat(5 - bar.editorial_rating)}</div>` : ''}
-                        </div>
-                    ` : ''}
                 </div>
 
                 <div class="content-card">
@@ -336,10 +342,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
 
                 <div class="content-card">
-                    <span class="info-label">Location</span>
-                    <p>${bar.address_en || bar.location}</p>
+                    <span class="info-label">Map</span>
                     
-                    <div id="detail-map" style="height: 200px; width: 100%; border-radius: 4px; margin-top: 15px; z-index: 1;"></div>
+                    <div id="detail-map" style="height: 200px; width: 100%; border-radius: 4px; margin-top: 0; z-index: 1;"></div>
 
                     <div style="margin-top: 15px;">
                         ${bar.google_map_url ?
