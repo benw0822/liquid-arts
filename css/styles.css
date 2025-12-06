@@ -739,11 +739,6 @@ figure.article-figure figcaption {
         grid-template-columns: 1fr;
         gap: 20px;
     }
-
-    .hero-card {
-        grid-column: span 1;
-        min-height: 300px !important;
-    }
 }
 
 .signatures-grid {
