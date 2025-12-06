@@ -298,8 +298,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     </p>
 
                     <div style="margin-bottom: 1.5rem;">
+                        <span style="font-weight: 600; color: var(--text-primary);">Google Rating:</span> 
+                        <span>${bar.rating} / 5.0 <span style="color:#888; font-size:0.9em;">(${bar.rating_count || 0} reviews)</span></span>
+                    </div>
+
+                    <div style="margin-bottom: 1.5rem;">
                         <span class="info-label" style="font-size: 0.9rem;">Address</span>
-                        <p style="margin-bottom: 1rem;">${bar.address_en || bar.location}</p>
+                        <p style="margin-bottom: 1rem;">${bar.address || bar.address_en || bar.location}</p>
                         
                         <div id="detail-map" style="height: 250px; width: 100%; border-radius: 8px; margin-bottom: 1rem; z-index: 1;"></div>
                         
@@ -307,11 +312,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 `<a href="${bar.google_map_url}" target="_blank" class="btn" style="width:100%; text-align:center; background-color: var(--bg-red); color: white; border: none;">Open in Google Maps</a>` :
                 `<div style="height: 50px; background: #eee; display: flex; align-items: center; justify-content: center; color: #666; border-radius: 4px;">Map Link Unavailable</div>`
             }
-                    </div>
-                    
-                    <div style="margin-bottom: 1.5rem;">
-                        <span style="font-weight: 600; color: var(--text-primary);">Google Rating:</span> 
-                        <span>${bar.rating} / 5.0 <span style="color:#888; font-size:0.9em;">(${bar.rating_count || 0} reviews)</span></span>
                     </div>
                     
                     <div style="display: flex; gap: 2rem; margin-bottom: 1.5rem;">
