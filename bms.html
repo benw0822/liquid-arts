@@ -136,8 +136,7 @@
         /* Cover Image Preview */
         .cover-preview {
             width: 100%;
-            height: 250px;
-            /* 4:5 aspect ratio approximation for preview width */
+            aspect-ratio: 4 / 5;
             background-color: #eee;
             background-size: cover;
             background-position: center;
@@ -313,14 +312,42 @@
         <div class="info-panel">
             <h3 style="margin-top: 0; margin-bottom: 15px;">Media & Settings</h3>
 
+            <!-- Cover Image -->
             <div style="margin-bottom: 1.5rem;">
                 <label class="info-label">Cover Image (Portrait 4:5)</label>
-                <div id="cover-preview" class="cover-preview" onclick="document.getElementById('cover-file').click()">
-                    <span>Click to Upload</span>
+                <div class="cover-container" style="position: relative;">
+                    <div id="cover-preview" class="cover-preview">
+                        <span style="pointer-events: none;">Click to Upload</span>
+                    </div>
+                    <!-- Actions Overlay -->
+                    <div id="cover-actions" class="cover-actions-overlay"
+                        style="display: none; position: absolute; bottom: 10px; right: 10px; gap: 10px;">
+                        <button id="btn-upload-cover" class="btn btn-sm btn-primary"
+                            style="font-size: 0.8rem; padding: 5px 10px; background: #8a0000; color: white; border: none; border-radius: 4px; cursor: pointer;">Upload</button>
+                        <button id="btn-crop-cover" class="btn btn-sm btn-secondary"
+                            style="font-size: 0.8rem; padding: 5px 10px; background: white; color: #333; border: 1px solid #ccc; border-radius: 4px; cursor: pointer;">Crop</button>
+                    </div>
+                    <input type="file" id="cover-file" accept="image/*" style="display: none;">
                 </div>
-                <input type="file" id="cover-file" accept="image/*" style="display: none;">
                 <p class="help-text" style="font-size: 0.8rem; color: #888; margin-top: 5px;">Recommended: 1080x1350px
                 </p>
+            </div>
+
+            <!-- Gallery Images -->
+            <div style="margin-bottom: 1.5rem; border-top: 1px solid #eee; padding-top: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <label class="info-label" style="margin-bottom: 0;">Gallery Images</label>
+                    <button id="btn-add-gallery" class="secondary-btn" style="padding: 5px 10px; font-size: 0.8rem;">+
+                        Add</button>
+                    <input type="file" id="gallery-input" accept="image/*" multiple style="display: none;">
+                </div>
+                <div id="gallery-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px;">
+                    <!-- Gallery items injected here -->
+                    <div
+                        style="grid-column: 1 / -1; text-align: center; color: #999; font-size: 0.9rem; padding: 20px; background: #f9f9f9; border-radius: 4px;">
+                        No images yet
+                    </div>
+                </div>
             </div>
 
             <div style="margin-bottom: 1.5rem;">
@@ -352,6 +379,19 @@
         <div>
             <button id="cancel-btn" class="secondary-btn">Cancel</button>
             <button id="save-btn" class="action-btn">Save Changes</button>
+        </div>
+    </div>
+
+    <!-- Crop Modal -->
+    <div id="crop-modal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 3000; justify-content: center; align-items: center; flex-direction: column;">
+        <div style="width: 90%; height: 80%; background: #000;">
+            <img id="crop-image" style="max-width: 100%; max-height: 100%;">
+        </div>
+        <div style="margin-top: 20px; display: flex; gap: 15px;">
+            <button id="crop-cancel-btn" class="secondary-btn"
+                style="background: #333; color: white; border: 1px solid #555;">Cancel</button>
+            <button id="crop-save-btn" class="action-btn">Crop & Upload</button>
         </div>
     </div>
 

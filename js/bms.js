@@ -21,6 +21,19 @@ const websiteInput = document.getElementById('bar-website');
 
 const coverInput = document.getElementById('cover-file');
 const coverPreview = document.getElementById('cover-preview');
+const coverActions = document.getElementById('cover-actions');
+const btnUploadCover = document.getElementById('btn-upload-cover');
+const btnCropCover = document.getElementById('btn-crop-cover');
+
+const galleryInput = document.getElementById('gallery-input');
+const galleryGrid = document.getElementById('gallery-grid');
+const btnAddGallery = document.getElementById('btn-add-gallery');
+
+const cropModal = document.getElementById('crop-modal');
+const cropImage = document.getElementById('crop-image');
+const cropSaveBtn = document.getElementById('crop-save-btn');
+const cropCancelBtn = document.getElementById('crop-cancel-btn');
+
 const saveBtn = document.getElementById('save-btn');
 const cancelBtn = document.getElementById('cancel-btn');
 const loadingOverlay = document.getElementById('loading-overlay');
@@ -30,6 +43,10 @@ const statusText = document.getElementById('status-text');
 
 let currentBarId = null;
 let currentCoverUrl = '';
+let originalImageSrc = null;
+let cropper = null;
+let currentFile = null;
+let galleryImages = []; // Array of { id, image_url, caption }
 
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', async () => {
@@ -104,9 +121,13 @@ async function loadBar(id) {
 
             if (bar.image) {
                 currentCoverUrl = bar.image;
-                coverPreview.style.backgroundImage = `url('${bar.image}')`;
-                coverPreview.innerHTML = '';
+                updateCoverUI();
+            } else {
+                updateCoverUI();
             }
+
+            // Load Gallery
+            loadGallery(id);
         }
     } catch (err) {
         console.error('Error loading bar:', err);
@@ -179,29 +200,241 @@ cancelBtn.addEventListener('click', () => {
     window.location.href = 'admin.html';
 });
 
-// --- Image Upload ---
-coverInput.addEventListener('change', async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+// --- Cover Image & Cropping ---
 
-    showLoading(true, 'Uploading Image...');
-    try {
-        const url = await uploadImage(file, 'bars'); // Assuming 'bars' bucket exists or use 'covers'
-        currentCoverUrl = url;
-        coverPreview.style.backgroundImage = `url('${url}')`;
-        coverPreview.innerHTML = '';
-        updateStatus('Image Uploaded', 'success');
-    } catch (err) {
-        console.error('Upload failed:', err);
-        alert('Upload failed: ' + err.message);
-    } finally {
-        showLoading(false);
+function updateCoverUI() {
+    const placeholder = coverPreview.querySelector('span');
+    if (currentCoverUrl) {
+        coverPreview.style.backgroundImage = `url('${currentCoverUrl}')`;
+        if (placeholder) placeholder.style.display = 'none';
+        if (coverActions) coverActions.style.display = 'flex';
+    } else {
+        coverPreview.style.backgroundImage = 'none';
+        if (placeholder) placeholder.style.display = 'block';
+        if (coverActions) coverActions.style.display = 'none';
     }
+}
+
+function openCropper(src) {
+    cropImage.src = src;
+    if (src.startsWith('http')) {
+        cropImage.crossOrigin = 'anonymous';
+    } else {
+        cropImage.removeAttribute('crossorigin');
+    }
+
+    cropModal.style.display = 'flex';
+
+    if (cropper) cropper.destroy();
+    cropper = new Cropper(cropImage, {
+        aspectRatio: 4 / 5, // Instagram Portrait
+        viewMode: 1,
+        autoCropArea: 1,
+    });
+}
+
+// Cover Listeners
+if (coverPreview) {
+    coverPreview.addEventListener('click', (e) => {
+        if (e.target.closest('.cover-actions-overlay')) return;
+        if (!currentCoverUrl) coverInput.click();
+    });
+}
+
+if (btnUploadCover) {
+    btnUploadCover.addEventListener('click', (e) => {
+        e.stopPropagation();
+        coverInput.click();
+    });
+}
+
+if (btnCropCover) {
+    btnCropCover.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (originalImageSrc) {
+            openCropper(originalImageSrc);
+        } else if (currentCoverUrl) {
+            openCropper(currentCoverUrl);
+        }
+    });
+}
+
+coverInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        currentFile = file;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                let src = img.src;
+                // Auto-Upscale (Simple version)
+                if (img.width < 1080) {
+                    // Logic similar to CMS can be added here if needed
+                }
+                originalImageSrc = src;
+                openCropper(src);
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+    coverInput.value = '';
+});
+
+cropCancelBtn.addEventListener('click', () => {
+    cropModal.style.display = 'none';
+    if (cropper) cropper.destroy();
+    cropper = null;
+});
+
+cropSaveBtn.addEventListener('click', async () => {
+    if (!cropper) return;
+
+    const canvas = cropper.getCroppedCanvas({
+        width: 1080,
+        height: 1350,
+        minWidth: 1080,
+        imageSmoothingEnabled: true,
+        imageSmoothingQuality: 'high',
+    });
+
+    canvas.toBlob(async (blob) => {
+        if (!blob) { alert('Crop failed'); return; }
+
+        const fileName = currentFile ? currentFile.name : 'cover.jpg';
+        const croppedFile = new File([blob], fileName, { type: 'image/jpeg' });
+
+        try {
+            showLoading(true, 'Uploading Cover...');
+            cropModal.style.display = 'none';
+            currentCoverUrl = await uploadImage(croppedFile, 'covers');
+            updateCoverUI();
+            showLoading(false);
+        } catch (err) {
+            showLoading(false);
+            alert('Upload failed: ' + err.message);
+        } finally {
+            if (cropper) cropper.destroy();
+            cropper = null;
+        }
+    }, 'image/jpeg', 0.9);
+});
+
+// --- Gallery Logic ---
+
+async function loadGallery(barId) {
+    const { data, error } = await supabase
+        .from('bar_images')
+        .select('*')
+        .eq('bar_id', barId)
+        .order('display_order', { ascending: true });
+
+    if (data) {
+        galleryImages = data;
+        renderGallery();
+    }
+}
+
+function renderGallery() {
+    galleryGrid.innerHTML = '';
+    if (galleryImages.length === 0) {
+        galleryGrid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: #999; font-size: 0.9rem; padding: 20px; background: #f9f9f9; border-radius: 4px;">No images yet</div>';
+        return;
+    }
+
+    galleryImages.forEach(img => {
+        const div = document.createElement('div');
+        div.style.position = 'relative';
+        div.style.aspectRatio = '1';
+        div.style.backgroundImage = `url('${img.image_url}')`;
+        div.style.backgroundSize = 'cover';
+        div.style.backgroundPosition = 'center';
+        div.style.borderRadius = '4px';
+        div.style.border = '1px solid #ddd';
+
+        const delBtn = document.createElement('button');
+        delBtn.innerHTML = '&times;';
+        delBtn.style.position = 'absolute';
+        delBtn.style.top = '5px';
+        delBtn.style.right = '5px';
+        delBtn.style.background = 'rgba(0,0,0,0.5)';
+        delBtn.style.color = 'white';
+        delBtn.style.border = 'none';
+        delBtn.style.borderRadius = '50%';
+        delBtn.style.width = '20px';
+        delBtn.style.height = '20px';
+        delBtn.style.cursor = 'pointer';
+        delBtn.style.display = 'flex';
+        delBtn.style.alignItems = 'center';
+        delBtn.style.justifyContent = 'center';
+
+        delBtn.onclick = async (e) => {
+            e.stopPropagation();
+            if (confirm('Delete this image?')) {
+                await deleteGalleryImage(img.id);
+            }
+        };
+
+        div.appendChild(delBtn);
+        galleryGrid.appendChild(div);
+    });
+}
+
+async function deleteGalleryImage(imageId) {
+    showLoading(true, 'Deleting...');
+    const { error } = await supabase.from('bar_images').delete().eq('id', imageId);
+    if (!error) {
+        galleryImages = galleryImages.filter(img => img.id !== imageId);
+        renderGallery();
+    } else {
+        alert('Failed to delete image');
+    }
+    showLoading(false);
+}
+
+// Add Gallery Image
+btnAddGallery.addEventListener('click', () => {
+    galleryInput.click();
+});
+
+galleryInput.addEventListener('change', async (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+
+    if (!currentBarId) {
+        alert('Please save the bar first before adding gallery images.');
+        return;
+    }
+
+    showLoading(true, `Uploading ${files.length} images...`);
+
+    for (const file of files) {
+        try {
+            const url = await uploadImage(file, 'covers');
+            // Insert into DB
+            const { data, error } = await supabase.from('bar_images').insert([{
+                bar_id: currentBarId,
+                image_url: url,
+                display_order: galleryImages.length + 1
+            }]).select();
+
+            if (data) {
+                galleryImages.push(data[0]);
+            }
+        } catch (err) {
+            console.error('Gallery upload error:', err);
+        }
+    }
+
+    renderGallery();
+    showLoading(false);
+    galleryInput.value = '';
 });
 
 async function uploadImage(file, bucket = 'covers') {
     const fileExt = file.name.split('.').pop();
-    const fileName = `${Date.now()}.${fileExt}`;
+    const fileName = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
     const filePath = `${fileName}`;
 
     const { data, error } = await supabase.storage
