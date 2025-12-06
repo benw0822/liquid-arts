@@ -135,17 +135,18 @@ function updateMapPreview(address) {
     mapPreview.src = `https://maps.google.com/maps?q=${q}&output=embed`;
 }
 
-mapInput.addEventListener('change', () => {
+mapInput.addEventListener('input', () => {
     const url = mapInput.value;
+    console.log('Map URL Input:', url);
     if (!url) return;
 
     // Parse Address
     // Example: https://www.google.com/maps/place/Taipei+101/@25.0339639,121.5644722,17z/...
+    // Also handle short links or other formats if possible, but mainly full URLs for now.
     const placeMatch = url.match(/\/place\/([^/]+)\//);
     if (placeMatch && placeMatch[1]) {
         let address = decodeURIComponent(placeMatch[1]).replace(/\+/g, ' ');
-        // Sometimes the address part is just the name, but often it's "Name+Address".
-        // Let's use it as a starting point.
+        console.log('Found Address:', address);
         addressInput.value = address;
         updateMapPreview(address);
     }
@@ -153,6 +154,7 @@ mapInput.addEventListener('change', () => {
     // Parse Coords
     const coordsMatch = url.match(/@([\d.-]+),([\d.-]+)/);
     if (coordsMatch) {
+        console.log('Found Coords:', coordsMatch[1], coordsMatch[2]);
         latInput.value = coordsMatch[1];
         lngInput.value = coordsMatch[2];
     }
@@ -604,6 +606,7 @@ btnAddGallery.addEventListener('click', () => {
 });
 
 galleryInput.addEventListener('change', async (e) => {
+    console.log('Gallery Input Change');
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
 
@@ -616,7 +619,10 @@ galleryInput.addEventListener('change', async (e) => {
 
     for (const file of files) {
         try {
+            console.log('Uploading file:', file.name);
             const url = await uploadImage(file, 'covers');
+            console.log('Uploaded URL:', url);
+
             // Insert into DB
             const { data, error } = await supabase.from('bar_images').insert([{
                 bar_id: currentBarId,
@@ -624,11 +630,18 @@ galleryInput.addEventListener('change', async (e) => {
                 display_order: galleryImages.length + 1
             }]).select();
 
+            if (error) {
+                console.error('DB Insert Error:', error);
+                throw error;
+            }
+
             if (data) {
+                console.log('DB Insert Success:', data);
                 galleryImages.push(data[0]);
             }
         } catch (err) {
             console.error('Gallery upload error:', err);
+            alert('Error uploading image: ' + err.message);
         }
     }
 
