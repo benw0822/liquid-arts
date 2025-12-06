@@ -386,25 +386,85 @@ function serializeHours() {
         const end = slot.querySelector('input[type="time"]:nth-of-type(2)').value;
 
         if (days.length > 0 && start && end) {
-            slots.push(`${days.join(',')}: ${start}-${end}`);
+            // User wants independent storage for each day
+            days.forEach(day => {
+                slots.push(`${day}: ${start} - ${end}`);
+            });
         }
     });
-    // Format: "Mon,Tue: 20:00-02:00; Sat,Sun: 20:00-04:00"
+
+    // Sort by day order
+    const dayOrder = { "Mon": 1, "Tue": 2, "Wed": 3, "Thu": 4, "Fri": 5, "Sat": 6, "Sun": 7 };
+    slots.sort((a, b) => {
+        const dayA = a.split(':')[0].trim();
+        const dayB = b.split(':')[0].trim();
+        return (dayOrder[dayA] || 0) - (dayOrder[dayB] || 0);
+    });
+
     return slots.join('; ');
 }
 
 function parseHours(hoursStr) {
-    // Basic parsing logic
     if (!hoursStr) return;
-    const parts = hoursStr.split(';');
+
+    // Normalize
+    const cleanStr = hoursStr.trim();
+
+    // Handle "Daily 18:00-02:00" format (no colon)
+    if (cleanStr.toLowerCase().startsWith('daily') && !cleanStr.includes(':')) {
+        const timePart = cleanStr.replace(/daily/i, '').trim();
+        const [start, end] = timePart.split('-').map(t => t.trim());
+        addHoursSlot({ days: [...DAYS], start: formatTime(start), end: formatTime(end) });
+        return;
+    }
+
+    const parts = cleanStr.split(';');
     parts.forEach(part => {
-        const [daysPart, timePart] = part.split(':').map(s => s.trim());
-        if (daysPart && timePart) {
-            const days = daysPart.split(',').map(d => d.trim());
-            const [start, end] = timePart.split('-').map(t => t.trim());
-            addHoursSlot({ days, start, end });
+        // Check for "Day-Day: Time" or "Day,Day: Time" or "Day: Time"
+        const colonIndex = part.indexOf(':');
+        if (colonIndex !== -1) {
+            const daysPart = part.substring(0, colonIndex).trim();
+            const timePart = part.substring(colonIndex + 1).trim();
+
+            let days = [];
+
+            // Handle Ranges "Mon-Sun", "Mon-Fri"
+            if (daysPart.includes('-')) {
+                const [startDay, endDay] = daysPart.split('-').map(d => d.trim());
+                const startIdx = DAYS.indexOf(startDay);
+                const endIdx = DAYS.indexOf(endDay);
+
+                if (startIdx !== -1 && endIdx !== -1) {
+                    if (startIdx <= endIdx) {
+                        days = DAYS.slice(startIdx, endIdx + 1);
+                    } else {
+                        days = [...DAYS.slice(startIdx), ...DAYS.slice(0, endIdx + 1)];
+                    }
+                }
+            } else if (daysPart.toLowerCase() === 'daily') {
+                days = [...DAYS];
+            } else {
+                // Comma separated or single day
+                days = daysPart.split(',').map(d => d.trim());
+            }
+
+            // Parse Time
+            let [start, end] = timePart.split('-').map(t => t.trim());
+            addHoursSlot({ days, start: formatTime(start), end: formatTime(end) });
+        } else {
+            // Fallback
+            if (part.match(/\d/)) {
+                let [start, end] = part.replace(/[a-zA-Z]/g, '').trim().split('-').map(t => t.trim());
+                addHoursSlot({ days: [...DAYS], start: formatTime(start), end: formatTime(end) });
+            }
         }
     });
+}
+
+function formatTime(t) {
+    if (!t) return '';
+    // Ensure HH:MM format if possible
+    return t.trim();
 }
 
 // --- Load Bar Data ---
