@@ -436,7 +436,6 @@ let cropper = null;
 let currentFile = null;
 
 // Click preview to upload
-const coverPreview = document.getElementById('cover-preview');
 if (coverPreview) {
     coverPreview.addEventListener('click', () => {
         coverInput.click();
