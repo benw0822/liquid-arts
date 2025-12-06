@@ -438,6 +438,7 @@ const btnCropCover = document.getElementById('btn-crop-cover');
 
 let cropper = null;
 let currentFile = null;
+let originalImageSrc = null; // Store original for re-cropping
 
 function updateCoverUI() {
     const placeholder = coverPreview.querySelector('span');
@@ -493,7 +494,10 @@ if (btnUploadCover) {
 if (btnCropCover) {
     btnCropCover.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (currentCoverUrl) {
+        // Prefer original source if available (for re-cropping uploaded file)
+        if (originalImageSrc) {
+            openCropper(originalImageSrc);
+        } else if (currentCoverUrl) {
             // Use current URL (might be remote or blob)
             // If it's a remote URL from Supabase, we need to ensure it's accessible via CORS (Supabase usually is)
             // However, we might need to proxy it or just try.
@@ -527,6 +531,7 @@ coverInput.addEventListener('change', (e) => {
                     console.log(`Auto-upscaled image from ${img.width}px to ${minWidth}px width.`);
                 }
 
+                originalImageSrc = src; // Save original for re-cropping
                 openCropper(src);
             };
             img.src = e.target.result;
