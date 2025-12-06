@@ -62,7 +62,10 @@ let currentCoverUrl = '';
 let originalImageSrc = null;
 let cropper = null;
 let currentFile = null;
+let currentFile = null;
 let galleryImages = [];
+let signatures = [];
+let currentSigImageUrl = '';
 
 // --- Constants ---
 const LOCATIONS = {
@@ -171,15 +174,47 @@ function inferLocation(address) {
 
 // --- Map Logic ---
 // Removed: addressInput.addEventListener('change', () => { updateMapPreview(addressInput.value); });
-// The map is now updated via btnLoadMap which provides lat/lng directly.
 
 let map;
 let marker;
 
 function updateMapPreview(lat, lng) {
-    marker.setLatLng(newLatLng);
-    map.flyTo(newLatLng, 16);
-    // Force map resize in case container size changed
+    if (!lat || !lng) return;
+
+    // Use CartoDB Voyager
+    const tileUrl = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+
+    if (!map) {
+        map = L.map('map-preview').setView([lat, lng], 15);
+        L.tileLayer(tileUrl, {
+            attribution: '&copy; OpenStreetMap &copy; CARTO',
+            maxZoom: 20
+        }).addTo(map);
+    } else {
+        map.setView([lat, lng], 15);
+    }
+
+    if (marker) map.removeLayer(marker);
+
+    // Custom Red Circle Icon with Label
+    const barTitle = document.getElementById('bar-title').value || 'Bar Location';
+    const customIcon = L.divIcon({
+        className: 'custom-map-marker',
+        html: `
+            <div style="display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%);">
+                <div style="background: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 12px; color: #333; box-shadow: 0 2px 4px rgba(0,0,0,0.2); margin-bottom: 4px; white-space: nowrap;">
+                    ${barTitle}
+                </div>
+                <div style="width: 14px; height: 14px; background: #ef4444; border: 2px solid white; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>
+            </div>
+        `,
+        iconSize: [0, 0],
+        iconAnchor: [0, 0]
+    });
+
+    marker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
+
+    // Force map resize
     setTimeout(() => { map.invalidateSize(); }, 200);
 }
 
@@ -417,6 +452,8 @@ async function loadBar(id) {
 
             // Load Gallery
             loadGallery(id);
+            // Load Signatures
+            loadSignatures(id);
         }
     } catch (err) {
         console.error('Error loading bar:', err);
