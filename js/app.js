@@ -319,18 +319,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span>${bar.rating} / 5.0 <span style="color:#888; font-size:0.9em;">(${bar.rating_count || 0} reviews)</span></span>
                     </div>
 
-                    <div style="margin-bottom: 1.5rem;">
-                        <span class="info-label" style="font-size: 0.9rem;">Address</span>
-                        <p style="margin-bottom: 1rem;">${bar.address || bar.address_en || bar.location}</p>
-                        
-                        <div id="detail-map" style="height: 250px; width: 100%; border-radius: 8px; margin-bottom: 1rem; z-index: 1;"></div>
-                        
-                        ${bar.google_map_url ?
-                `<a href="${bar.google_map_url}" target="_blank" class="btn" style="width:100%; text-align:center; background-color: var(--bg-red); color: white; border: none;">Open in Google Maps</a>` :
-                `<div style="height: 50px; background: #eee; display: flex; align-items: center; justify-content: center; color: #666; border-radius: 4px;">Map Link Unavailable</div>`
-            }
-                    </div>
-                    
                     <div style="display: flex; gap: 2rem; margin-bottom: 1.5rem;">
                         ${bar.owner_name ? `
                             <div>
@@ -346,7 +334,19 @@ document.addEventListener('DOMContentLoaded', () => {
                         ` : ''}
                     </div>
 
-                    ${bar.tags ? `<p style="margin-top:1rem; color:var(--text-secondary);">Tags: ${bar.tags.join(', ')}</p>` : ''}
+                    ${bar.tags ? `<p style="margin-bottom:1.5rem; color:var(--text-secondary);">Tags: ${bar.tags.join(', ')}</p>` : ''}
+
+                    <div style="margin-bottom: 0; margin-top: auto;">
+                        <span class="info-label" style="font-size: 0.9rem;">Address</span>
+                        <p style="margin-bottom: 1rem;">${bar.address || bar.address_en || bar.location}</p>
+                        
+                        <div id="detail-map" style="height: 150px; width: 100%; border-radius: 8px; margin-bottom: 1rem; z-index: 1;"></div>
+                        
+                        ${bar.google_map_url ?
+                `<a href="${bar.google_map_url}" target="_blank" class="btn" style="width:100%; text-align:center; background-color: var(--bg-red); color: white; border: none;">Open in Google Maps</a>` :
+                `<div style="height: 50px; background: #eee; display: flex; align-items: center; justify-content: center; color: #666; border-radius: 4px;">Map Link Unavailable</div>`
+            }
+                    </div>
                 </div>
 
                 <div class="content-card">
@@ -578,14 +578,14 @@ document.addEventListener('DOMContentLoaded', () => {
 window.syncAboutCardHeight = () => {
     const heroImg = document.getElementById('hero-card-img');
     const aboutCard = document.getElementById('about-card');
-    
+
     if (heroImg && aboutCard && window.innerWidth > 768) {
         // Only sync on desktop where they are side-by-side
         const height = heroImg.offsetHeight;
         if (height > 0) {
             aboutCard.style.maxHeight = height + 'px';
             // Ensure min-height is reasonable if image is too small
-            aboutCard.style.minHeight = Math.min(height, 400) + 'px'; 
+            aboutCard.style.minHeight = Math.min(height, 400) + 'px';
         }
     } else if (aboutCard) {
         // Reset on mobile
