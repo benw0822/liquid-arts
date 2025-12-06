@@ -179,7 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let socialHtml = '';
         if (bar.instagram_url) socialHtml += `<a href="${bar.instagram_url}" target="_blank" style="color:white; margin-right:10px;">Instagram</a>`;
         if (bar.facebook_url) socialHtml += `<a href="${bar.facebook_url}" target="_blank" style="color:white; margin-right:10px;">Facebook</a>`;
-        if (bar.website_url) socialHtml += `<a href="${bar.website_url}" target="_blank" style="color:white;">Website</a>`;
+        if (bar.website_url) socialHtml += `<a href="${bar.website_url}" target="_blank" style="color:white;">Book Now</a>`;
 
         // --- Gallery ---
         let galleryHtml = '';
@@ -269,7 +269,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div style="display: flex; gap: 10px; margin-top: 5px;">
                                 ${bar.instagram_url ? `<a href="${bar.instagram_url}" target="_blank" style="color: var(--text-primary); text-decoration: underline;">Instagram</a>` : ''}
                                 ${bar.facebook_url ? `<a href="${bar.facebook_url}" target="_blank" style="color: var(--text-primary); text-decoration: underline;">Facebook</a>` : ''}
-                                ${bar.website_url ? `<a href="${bar.website_url}" target="_blank" style="color: var(--text-primary); text-decoration: underline;">Website</a>` : ''}
+                                ${bar.website_url ? `<a href="${bar.website_url}" target="_blank" style="color: var(--text-primary); text-decoration: underline;">Book Now</a>` : ''}
                             </div>
                         </div>
                     </div>
