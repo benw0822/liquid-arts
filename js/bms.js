@@ -5,15 +5,22 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // --- DOM Elements ---
 const titleInput = document.getElementById('bar-title');
-const locationInput = document.getElementById('bar-location');
 const vibeInput = document.getElementById('bar-vibe');
 const descriptionInput = document.getElementById('bar-description');
+
+const addressInput = document.getElementById('bar-address');
+const latInput = document.getElementById('bar-lat');
+const lngInput = document.getElementById('bar-lng');
+const mapPreview = document.getElementById('map-preview');
+
 const ownerInput = document.getElementById('bar-owner');
 const bartenderInput = document.getElementById('bar-bartender');
-const hoursInput = document.getElementById('bar-hours');
 const phoneInput = document.getElementById('bar-phone');
+const hoursContainer = document.getElementById('hours-editor-container');
+const btnAddHours = document.getElementById('btn-add-hours');
+const hoursInput = document.getElementById('bar-hours'); // Hidden input
+
 const menuInput = document.getElementById('bar-menu');
-const mapInput = document.getElementById('bar-map');
 const priceInput = document.getElementById('bar-price');
 const instagramInput = document.getElementById('bar-instagram');
 const facebookInput = document.getElementById('bar-facebook');
@@ -46,13 +53,27 @@ let currentCoverUrl = '';
 let originalImageSrc = null;
 let cropper = null;
 let currentFile = null;
-let galleryImages = []; // Array of { id, image_url, caption }
+let galleryImages = [];
+
+// --- Constants ---
+const LOCATIONS = {
+    "Taiwan": ["Taipei", "New Taipei", "Taichung", "Tainan", "Kaohsiung"],
+    "Hong Kong": ["Central", "Wan Chai", "Causeway Bay", "Tsim Sha Tsui", "Mong Kok"],
+    "Japan": ["Tokyo", "Osaka", "Kyoto", "Fukuoka"],
+    "Singapore": ["Marina Bay", "Chinatown", "Orchard", "Clarke Quay"],
+    "South Korea": ["Seoul", "Busan"],
+    "USA": ["New York", "San Francisco", "Los Angeles", "Chicago"],
+    "UK": ["London", "Manchester", "Edinburgh"]
+};
+
+const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', async () => {
     await checkAuth();
+    initHoursEditor();
 
-    // Check URL params for ID (Admin editing specific bar)
+    // Check URL params
     const urlParams = new URLSearchParams(window.location.search);
     const paramId = urlParams.get('id');
 
@@ -60,8 +81,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         currentBarId = paramId;
         await loadBar(currentBarId);
     } else {
-        // If no ID, check if user is an owner and load their bar
-        await loadOwnerBar();
+        // New Bar: Add one empty hours slot
+        addHoursSlot();
     }
 });
 
@@ -75,28 +96,158 @@ async function checkAuth() {
     userEmailSpan.textContent = session.user.email;
 }
 
-// --- Load Bar Data ---
-async function loadOwnerBar() {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return;
+// --- Helper: Infer Location ---
+function inferLocation(address) {
+    if (!address) return '';
 
-    // Find bar owned by this user
-    // Note: This assumes a 'owner_id' column exists in bars table or a separate relation.
-    // Since we haven't strictly defined 'owner_id' in bars yet (we did roles), 
-    // for now we might need to rely on the Admin passing an ID or a temporary mapping.
-    // BUT, for this task, let's assume the user is an Admin editing ANY bar, 
-    // or we'll fetch the first bar if they are an owner (placeholder logic).
-
-    // For now, if no ID provided, we'll just alert or show empty state if creating new.
-    // But BMS is usually for editing existing.
-    // Let's default to ID=1 for testing if nothing else.
-    if (!currentBarId) {
-        // Try to find if they are an owner of a specific bar (future proofing)
-        // For now, just warn if no ID.
-        // alert('No bar specified. Creating new or please select from Admin Dashboard.');
+    // Simple string matching against LOCATIONS
+    for (const [country, cities] of Object.entries(LOCATIONS)) {
+        // Check cities first (more specific)
+        for (const city of cities) {
+            if (address.includes(city)) {
+                return `${city}, ${country}`;
+            }
+        }
+        // Check country
+        if (address.includes(country)) {
+            // If only country found, try to find a city again or just return Country
+            return country;
+        }
     }
+    return ''; // Could not detect
 }
 
+// --- Map Logic ---
+addressInput.addEventListener('change', () => {
+    updateMapPreview(addressInput.value);
+});
+
+function updateMapPreview(address) {
+    if (!address) {
+        mapPreview.src = 'about:blank';
+        return;
+    }
+    // Use Google Maps Embed API (Search mode) - No API key needed for basic embedding usually, 
+    // but strictly speaking requires one. 
+    // Alternatively, use `https://maps.google.com/maps?q=${address}&output=embed`
+    const q = encodeURIComponent(address);
+    mapPreview.src = `https://maps.google.com/maps?q=${q}&output=embed`;
+}
+
+// --- Hours Logic ---
+let hoursSlots = [];
+
+function initHoursEditor() {
+    btnAddHours.addEventListener('click', () => addHoursSlot());
+}
+
+function addHoursSlot(data = { days: [], start: "20:00", end: "02:00" }) {
+    const div = document.createElement('div');
+    div.className = 'hours-slot';
+    div.style.marginBottom = '10px';
+    div.style.padding = '10px';
+    div.style.background = 'white';
+    div.style.border = '1px solid #eee';
+    div.style.borderRadius = '4px';
+
+    // Days Checkboxes
+    const daysDiv = document.createElement('div');
+    daysDiv.style.display = 'flex';
+    daysDiv.style.gap = '5px';
+    daysDiv.style.flexWrap = 'wrap';
+    daysDiv.style.marginBottom = '5px';
+
+    DAYS.forEach(day => {
+        const label = document.createElement('label');
+        label.style.display = 'flex';
+        label.style.alignItems = 'center';
+        label.style.fontSize = '0.8rem';
+        label.style.cursor = 'pointer';
+
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.value = day;
+        cb.checked = data.days.includes(day);
+        cb.style.marginRight = '3px';
+
+        label.appendChild(cb);
+        label.appendChild(document.createTextNode(day));
+        daysDiv.appendChild(label);
+    });
+
+    // Time Inputs
+    const timeDiv = document.createElement('div');
+    timeDiv.style.display = 'flex';
+    timeDiv.style.alignItems = 'center';
+    timeDiv.style.gap = '10px';
+
+    const startInput = document.createElement('input');
+    startInput.type = 'time';
+    startInput.className = 'form-input';
+    startInput.style.marginBottom = '0';
+    startInput.style.width = 'auto';
+    startInput.value = data.start;
+
+    const toSpan = document.createElement('span');
+    toSpan.textContent = 'to';
+
+    const endInput = document.createElement('input');
+    endInput.type = 'time';
+    endInput.className = 'form-input';
+    endInput.style.marginBottom = '0';
+    endInput.style.width = 'auto';
+    endInput.value = data.end;
+
+    const delBtn = document.createElement('button');
+    delBtn.textContent = 'Remove';
+    delBtn.className = 'secondary-btn';
+    delBtn.style.padding = '5px 10px';
+    delBtn.style.fontSize = '0.8rem';
+    delBtn.style.marginLeft = 'auto';
+    delBtn.style.color = 'red';
+    delBtn.onclick = () => div.remove();
+
+    timeDiv.appendChild(startInput);
+    timeDiv.appendChild(toSpan);
+    timeDiv.appendChild(endInput);
+    timeDiv.appendChild(delBtn);
+
+    div.appendChild(daysDiv);
+    div.appendChild(timeDiv);
+    hoursContainer.appendChild(div);
+}
+
+function serializeHours() {
+    const slots = [];
+    hoursContainer.querySelectorAll('.hours-slot').forEach(slot => {
+        const days = [];
+        slot.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => days.push(cb.value));
+        const start = slot.querySelector('input[type="time"]:nth-of-type(1)').value;
+        const end = slot.querySelector('input[type="time"]:nth-of-type(2)').value;
+
+        if (days.length > 0 && start && end) {
+            slots.push(`${days.join(',')}: ${start}-${end}`);
+        }
+    });
+    // Format: "Mon,Tue: 20:00-02:00; Sat,Sun: 20:00-04:00"
+    return slots.join('; ');
+}
+
+function parseHours(hoursStr) {
+    // Basic parsing logic
+    if (!hoursStr) return;
+    const parts = hoursStr.split(';');
+    parts.forEach(part => {
+        const [daysPart, timePart] = part.split(':').map(s => s.trim());
+        if (daysPart && timePart) {
+            const days = daysPart.split(',').map(d => d.trim());
+            const [start, end] = timePart.split('-').map(t => t.trim());
+            addHoursSlot({ days, start, end });
+        }
+    });
+}
+
+// --- Load Bar Data ---
 async function loadBar(id) {
     showLoading(true);
     try {
@@ -105,15 +256,30 @@ async function loadBar(id) {
 
         if (bar) {
             titleInput.value = bar.title || '';
-            locationInput.value = bar.location || '';
             vibeInput.value = bar.vibe || '';
             descriptionInput.value = bar.description || '';
+
+            // Location is now inferred from address on save, 
+            // but we might want to show it? No, user said "don't fill it".
+            // We just load the address.
+            addressInput.value = bar.address || '';
+            updateMapPreview(bar.address);
+            latInput.value = bar.lat || '';
+            lngInput.value = bar.lng || '';
+
             ownerInput.value = bar.owner_name || '';
             bartenderInput.value = bar.bartender_name || '';
-            hoursInput.value = bar.opening_hours || '';
             phoneInput.value = bar.phone || '';
+
+            // Hours Parsing
+            hoursContainer.innerHTML = ''; // Clear default
+            if (bar.opening_hours && bar.opening_hours.includes(':')) {
+                parseHours(bar.opening_hours);
+            } else {
+                addHoursSlot();
+            }
+
             menuInput.value = bar.menu_url || '';
-            mapInput.value = bar.google_map_url || '';
             priceInput.value = bar.price || 2;
             instagramInput.value = bar.instagram_url || '';
             facebookInput.value = bar.facebook_url || '';
@@ -146,17 +312,30 @@ saveBtn.addEventListener('click', async () => {
 
     showLoading(true, 'Saving...');
 
+    // Infer Location from Address
+    const locationStr = inferLocation(addressInput.value);
+    // Note: If inference fails, locationStr is empty. 
+    // We might want to fallback to just the address or leave it empty.
+    // For now, we trust the inference or let it be empty (frontend will just show address if location missing? or we need location for cards).
+    // If empty, let's try to just use the first part of the address as a fallback?
+    // Or just warn? 
+    // Let's just save what we have.
+
+    const hoursStr = serializeHours();
+
     const barData = {
         title: titleInput.value,
-        location: locationInput.value,
+        location: locationStr, // Inferred
         vibe: vibeInput.value,
         description: descriptionInput.value,
+        address: addressInput.value,
+        lat: latInput.value ? parseFloat(latInput.value) : null,
+        lng: lngInput.value ? parseFloat(lngInput.value) : null,
         owner_name: ownerInput.value,
         bartender_name: bartenderInput.value,
-        opening_hours: hoursInput.value,
+        opening_hours: hoursStr,
         phone: phoneInput.value,
         menu_url: menuInput.value,
-        google_map_url: mapInput.value,
         price: parseInt(priceInput.value),
         instagram_url: instagramInput.value,
         facebook_url: facebookInput.value,

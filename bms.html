@@ -244,69 +244,95 @@
 
     <div class="cms-container">
         <!-- Left Column: Main Content -->
-        <div class="editor-wrapper">
-            <h3 style="margin-top: 0; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px;">Basic
-                Info</h3>
+        <h3 style="margin-top: 0; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px;">Basic
+            Info</h3>
 
-            <div style="margin-bottom: 1.5rem;">
-                <label class="info-label">Bar Name</label>
-                <input type="text" id="bar-title" class="form-input" placeholder="e.g. Midnight Mixology">
+        <div style="margin-bottom: 1.5rem;">
+            <label class="info-label">Bar Name</label>
+            <input type="text" id="bar-title" class="form-input" placeholder="e.g. Midnight Mixology">
+        </div>
+
+        <div style="margin-bottom: 1.5rem;">
+            <label class="info-label">Vibe</label>
+            <input type="text" id="bar-vibe" class="form-input" placeholder="e.g. Speakeasy, Jazz, Rooftop">
+        </div>
+
+        <div style="margin-bottom: 1.5rem;">
+            <label class="info-label">Description (About)</label>
+            <textarea id="bar-description"
+                placeholder="Describe the atmosphere, concept, and what makes this bar special..."></textarea>
+        </div>
+
+        <h3 style="margin-top: 30px; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+            Location</h3>
+
+        <div style="margin-bottom: 1.5rem;">
+            <label class="info-label">Full Address</label>
+            <input type="text" id="bar-address" class="form-input"
+                placeholder="e.g. No. 123, Sec 4, Xinyi Rd, Taipei City">
+            <p class="help-text" style="font-size: 0.8rem; color: #888; margin-top: 5px;">City and Country will be
+                automatically detected from the address.</p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 1.5rem;">
+            <div>
+                <label class="info-label">Latitude</label>
+                <input type="number" id="bar-lat" class="form-input" step="any" placeholder="e.g. 25.0330">
             </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                <div style="margin-bottom: 1.5rem;">
-                    <label class="info-label">Location (Area)</label>
-                    <input type="text" id="bar-location" class="form-input" placeholder="e.g. Taipei, Xinyi">
-                </div>
-                <div style="margin-bottom: 1.5rem;">
-                    <label class="info-label">Vibe</label>
-                    <input type="text" id="bar-vibe" class="form-input" placeholder="e.g. Speakeasy">
-                </div>
-            </div>
-
-            <div style="margin-bottom: 1.5rem;">
-                <label class="info-label">Description (About)</label>
-                <textarea id="bar-description"
-                    placeholder="Describe the atmosphere, concept, and what makes this bar special..."></textarea>
-            </div>
-
-            <h3 style="margin-top: 30px; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
-                Details</h3>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                <div style="margin-bottom: 1.5rem;">
-                    <label class="info-label">Owner Name</label>
-                    <input type="text" id="bar-owner" class="form-input" placeholder="e.g. Alex Chen">
-                </div>
-                <div style="margin-bottom: 1.5rem;">
-                    <label class="info-label">Head Bartender</label>
-                    <input type="text" id="bar-bartender" class="form-input" placeholder="e.g. Sarah Lin">
-                </div>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                <div style="margin-bottom: 1.5rem;">
-                    <label class="info-label">Opening Hours</label>
-                    <input type="text" id="bar-hours" class="form-input" placeholder="e.g. Mon-Sun: 20:00 - 02:00">
-                </div>
-                <div style="margin-bottom: 1.5rem;">
-                    <label class="info-label">Phone</label>
-                    <input type="text" id="bar-phone" class="form-input" placeholder="e.g. +886 2 1234 5678">
-                </div>
-            </div>
-
-            <div style="margin-bottom: 1.5rem;">
-                <label class="info-label">Menu URL</label>
-                <input type="text" id="bar-menu" class="form-input" placeholder="https://...">
-                <p class="help-text" style="font-size: 0.8rem; color: #888; margin-top: 5px;">Link to a PDF or image of
-                    the menu.</p>
-            </div>
-
-            <div style="margin-bottom: 1.5rem;">
-                <label class="info-label">Google Maps URL</label>
-                <input type="text" id="bar-map" class="form-input" placeholder="https://maps.google.com/...">
+            <div>
+                <label class="info-label">Longitude</label>
+                <input type="number" id="bar-lng" class="form-input" step="any" placeholder="e.g. 121.5654">
             </div>
         </div>
+
+        <div style="margin-bottom: 1.5rem;">
+            <label class="info-label">Map Preview</label>
+            <div style="width: 100%; height: 250px; background: #eee; border-radius: 4px; overflow: hidden;">
+                <iframe id="map-preview" width="100%" height="100%" frameborder="0" style="border:0" src="about:blank"
+                    allowfullscreen></iframe>
+            </div>
+            <p class="help-text" style="font-size: 0.8rem; color: #888; margin-top: 5px;">Enter address to update map.
+            </p>
+        </div>
+
+        <h3 style="margin-top: 30px; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+            Operations</h3>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div style="margin-bottom: 1.5rem;">
+                <label class="info-label">Owner Name</label>
+                <input type="text" id="bar-owner" class="form-input" placeholder="e.g. Alex Chen">
+            </div>
+            <div style="margin-bottom: 1.5rem;">
+                <label class="info-label">Head Bartender</label>
+                <input type="text" id="bar-bartender" class="form-input" placeholder="e.g. Sarah Lin">
+            </div>
+        </div>
+
+        <div style="margin-bottom: 1.5rem;">
+            <label class="info-label">Phone</label>
+            <input type="text" id="bar-phone" class="form-input" placeholder="e.g. +886 2 1234 5678">
+        </div>
+
+        <div style="margin-bottom: 1.5rem;">
+            <label class="info-label">Opening Hours</label>
+            <div id="hours-editor-container"
+                style="border: 1px solid #ddd; padding: 15px; border-radius: 4px; background: #f9f9f9;">
+                <!-- Hours rows injected by JS -->
+            </div>
+            <button id="btn-add-hours" class="secondary-btn" style="margin-top: 10px; font-size: 0.8rem; width: 100%;">+
+                Add Time Slot</button>
+            <input type="hidden" id="bar-hours"> <!-- Hidden input to store serialized string -->
+        </div>
+
+        <div style="margin-bottom: 1.5rem;">
+            <label class="info-label">Menu URL</label>
+            <input type="text" id="bar-menu" class="form-input" placeholder="https://...">
+            <p class="help-text" style="font-size: 0.8rem; color: #888; margin-top: 5px;">Link to a PDF or image of
+                the menu.</p>
+        </div>
+
+        <input type="hidden" id="bar-map"> <!-- Hidden map url, maybe auto-generated -->
 
         <!-- Right Column: Meta & Media -->
         <div class="info-panel">
