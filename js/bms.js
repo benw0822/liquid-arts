@@ -62,7 +62,6 @@ let currentCoverUrl = '';
 let originalImageSrc = null;
 let cropper = null;
 let currentFile = null;
-let currentFile = null;
 let galleryImages = [];
 let signatures = [];
 let currentSigImageUrl = '';
@@ -410,7 +409,6 @@ async function loadBar(id) {
             // but we might want to show it? No, user said "don't fill it".
             // We just load the address.
             addressInput.value = bar.address || '';
-            updateMapPreview(bar.address);
             latInput.value = bar.lat || '';
             lngInput.value = bar.lng || '';
             if (bar.lat && bar.lng) {
