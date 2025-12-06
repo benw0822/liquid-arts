@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liquid Arts BMS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:wght@400;700&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Cropper.js -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+    <style>
+        body {
+            background-color: #f5f5f7;
+            color: #333;
+            padding-bottom: 80px;
+        }
+
+        .cms-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .cms-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .cms-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: #fff;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 1001;
+        }
+
+        h2 {
+            color: #111;
+            margin: 0;
+        }
+
+        .editor-wrapper {
+            background: #fff;
+            color: #000;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e0e0e0;
+        }
+
+        .info-panel {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+
+        .info-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #555;
+            font-size: 0.9rem;
+        }
+
+        .search-input,
+        .form-input,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 150px;
+            line-height: 1.6;
+        }
+
+        .action-btn {
+            background-color: #8a0000;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        .action-btn:hover {
+            background-color: #600000;
+        }
+
+        .secondary-btn {
+            background-color: #eee;
+            color: #333;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        .secondary-btn:hover {
+            background-color: #ddd;
+        }
+
+        /* Cover Image Preview */
+        .cover-preview {
+            width: 100%;
+            height: 250px;
+            /* 4:5 aspect ratio approximation for preview width */
+            background-color: #eee;
+            background-size: cover;
+            background-position: center;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #888;
+            border: 2px dashed #ccc;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .cover-preview:hover {
+            border-color: #8a0000;
+            color: #8a0000;
+        }
+
+        /* Loading Overlay */
+        #loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            flex-direction: column;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #8a0000;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 10px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Bottom Toolbar */
+        .bottom-toolbar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #fff;
+            border-top: 1px solid #ddd;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+            z-index: 1000;
+        }
+
+        .status-indicator {
+            font-size: 0.9rem;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #ccc;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay">
+        <div class="spinner"></div>
+        <div id="loading-text">Processing...</div>
+    </div>
+
+    <div class="cms-header">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <a href="admin.html" style="text-decoration: none; color: #333; font-weight: bold;">&larr; Back</a>
+            <h2>Bar Management System</h2>
+        </div>
+        <div style="font-size: 0.9rem; color: #666;">
+            Logged in as: <span id="user-email">Loading...</span>
+        </div>
+    </div>
+
+    <div class="cms-container">
+        <!-- Left Column: Main Content -->
+        <div class="editor-wrapper">
+            <h3 style="margin-top: 0; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px;">Basic
+                Info</h3>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label class="info-label">Bar Name</label>
+                <input type="text" id="bar-title" class="form-input" placeholder="e.g. Midnight Mixology">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div style="margin-bottom: 1.5rem;">
+                    <label class="info-label">Location (Area)</label>
+                    <input type="text" id="bar-location" class="form-input" placeholder="e.g. Taipei, Xinyi">
+                </div>
+                <div style="margin-bottom: 1.5rem;">
+                    <label class="info-label">Vibe</label>
+                    <input type="text" id="bar-vibe" class="form-input" placeholder="e.g. Speakeasy">
+                </div>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label class="info-label">Description (About)</label>
+                <textarea id="bar-description"
+                    placeholder="Describe the atmosphere, concept, and what makes this bar special..."></textarea>
+            </div>
+
+            <h3 style="margin-top: 30px; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                Details</h3>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div style="margin-bottom: 1.5rem;">
+                    <label class="info-label">Owner Name</label>
+                    <input type="text" id="bar-owner" class="form-input" placeholder="e.g. Alex Chen">
+                </div>
+                <div style="margin-bottom: 1.5rem;">
+                    <label class="info-label">Head Bartender</label>
+                    <input type="text" id="bar-bartender" class="form-input" placeholder="e.g. Sarah Lin">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div style="margin-bottom: 1.5rem;">
+                    <label class="info-label">Opening Hours</label>
+                    <input type="text" id="bar-hours" class="form-input" placeholder="e.g. Mon-Sun: 20:00 - 02:00">
+                </div>
+                <div style="margin-bottom: 1.5rem;">
+                    <label class="info-label">Phone</label>
+                    <input type="text" id="bar-phone" class="form-input" placeholder="e.g. +886 2 1234 5678">
+                </div>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label class="info-label">Menu URL</label>
+                <input type="text" id="bar-menu" class="form-input" placeholder="https://...">
+                <p class="help-text" style="font-size: 0.8rem; color: #888; margin-top: 5px;">Link to a PDF or image of
+                    the menu.</p>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label class="info-label">Google Maps URL</label>
+                <input type="text" id="bar-map" class="form-input" placeholder="https://maps.google.com/...">
+            </div>
+        </div>
+
+        <!-- Right Column: Meta & Media -->
+        <div class="info-panel">
+            <h3 style="margin-top: 0; margin-bottom: 15px;">Media & Settings</h3>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label class="info-label">Cover Image (Portrait 4:5)</label>
+                <div id="cover-preview" class="cover-preview" onclick="document.getElementById('cover-file').click()">
+                    <span>Click to Upload</span>
+                </div>
+                <input type="file" id="cover-file" accept="image/*" style="display: none;">
+                <p class="help-text" style="font-size: 0.8rem; color: #888; margin-top: 5px;">Recommended: 1080x1350px
+                </p>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label class="info-label">Price Level</label>
+                <select id="bar-price" class="form-input">
+                    <option value="1">$ (Affordable)</option>
+                    <option value="2">$$ (Moderate)</option>
+                    <option value="3">$$$ (High End)</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label class="info-label">Social Links</label>
+                <input type="text" id="bar-instagram" class="form-input" placeholder="Instagram URL"
+                    style="margin-bottom: 5px;">
+                <input type="text" id="bar-facebook" class="form-input" placeholder="Facebook URL"
+                    style="margin-bottom: 5px;">
+                <input type="text" id="bar-website" class="form-input" placeholder="Website URL">
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Toolbar -->
+    <div class="bottom-toolbar">
+        <div class="status-indicator">
+            <div class="status-dot" id="status-dot"></div>
+            <span id="status-text">Ready</span>
+        </div>
+        <div>
+            <button id="cancel-btn" class="secondary-btn">Cancel</button>
+            <button id="save-btn" class="action-btn">Save Changes</button>
+        </div>
+    </div>
+
+    <script src="js/bms.js"></script>
+</body>
+
+</html>

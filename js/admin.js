@@ -229,20 +229,69 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderBars() {
-        barList.innerHTML = bars.map(bar => `
-            <div class="bar-item">
-                <div>
-                    <strong>${bar.title}</strong>
-                    <span style="color: #888; font-size: 0.9em; margin-left: 10px;">${bar.location}</span>
+        if (bars.length === 0) {
+            barList.innerHTML = '<p style="color: #888;">No bars found.</p>';
+            return;
+        }
+
+        barList.innerHTML = bars.map(bar => {
+            const thumbStyle = bar.image ? `background-image: url('${bar.image}')` : 'background-color: #eee;';
+            const isPublished = bar.is_published !== false; // Default true if undefined
+            const statusColor = isPublished ? '#4cd964' : '#666';
+            const statusText = isPublished ? 'Published' : 'Hidden';
+
+            return `
+            <div class="article-item">
+                <div class="article-thumb" style="${thumbStyle}"></div>
+                
+                <div class="article-info">
+                    <h4>${bar.title}</h4>
+                    <div class="article-meta">
+                        <span>${bar.location || 'No Location'}</span>
+                        ${bar.vibe ? `<span>• ${bar.vibe}</span>` : ''}
+                    </div>
                 </div>
-                <button onclick="deleteBar(${bar.id})" class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.8em; color: #ff4444; border-color: #ff4444;">Delete</button>
+
+                <div class="article-status">
+                    <label class="status-toggle" onclick="toggleBarStatus('${bar.id}', ${isPublished})">
+                        <input type="checkbox" ${isPublished ? 'checked' : ''}>
+                        <span class="status-slider"></span>
+                        <span class="status-label" style="color: ${statusColor}">${statusText}</span>
+                    </label>
+                </div>
+
+                <div class="article-actions">
+                    <button onclick="editBar('${bar.id}')" class="btn" style="padding: 5px 10px; font-size: 0.8em; margin-right: 5px;">Edit</button>
+                    <button onclick="deleteBar('${bar.id}')" class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.8em; color: #ff4444; border-color: #ff4444;">Delete</button>
+                </div>
             </div>
-        `).join('');
+        `}).join('');
     }
+
+    window.editBar = (id) => {
+        window.location.href = `bms.html?id=${id}`;
+    };
+
+    window.toggleBarStatus = async (id, currentStatus) => {
+        const newStatus = !currentStatus;
+
+        if (supabase) {
+            const { error } = await supabase
+                .from('bars')
+                .update({ is_published: newStatus })
+                .eq('id', id);
+
+            if (error) {
+                alert('Error updating status: ' + error.message);
+            } else {
+                loadBars();
+            }
+        }
+    };
 
     // Expose delete function to window
     window.deleteBar = async (id) => {
-        if (!confirm('Are you sure?')) return;
+        if (!confirm('Are you sure? This will delete the bar and all related data.')) return;
 
         if (supabase) {
             const { error } = await supabase.from('bars').delete().eq('id', id);
