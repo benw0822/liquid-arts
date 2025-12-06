@@ -261,6 +261,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
 
                 <div class="article-actions">
+                    <a href="bar-details.html?id=${bar.id}" target="_blank" class="btn" style="padding: 5px 10px; font-size: 0.8em; margin-right: 5px; background-color: #666; border-color: #666; text-decoration: none; color: white;">View</a>
                     <button onclick="editBar('${bar.id}')" class="btn" style="padding: 5px 10px; font-size: 0.8em; margin-right: 5px;">Edit</button>
                     <button onclick="deleteBar('${bar.id}')" class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.8em; color: #ff4444; border-color: #ff4444;">Delete</button>
                 </div>

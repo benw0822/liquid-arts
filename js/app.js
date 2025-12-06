@@ -265,7 +265,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         container.innerHTML = `
-            <div class="container detail-grid" style="margin-top: 100px;">
+            <!-- Top Header (Title & Vibe) -->
+            <div class="container" style="margin-top: 100px; margin-bottom: 2rem; text-align: center;">
+                <h1 style="font-size: 3.5rem; margin-bottom: 0.5rem; color: var(--text-primary); line-height: 1.2;">${bar.title}</h1>
+                <p style="font-size: 1.2rem; color: #666; letter-spacing: 0.05em;">
+                    <span style="color: var(--bg-red); font-weight: 600; text-transform: uppercase;">${bar.vibe}</span>
+                    <span style="margin: 0 10px; color: #ccc;">|</span>
+                    ${bar.location}
+                </p>
+            </div>
+
+            <div class="container detail-grid" style="margin-top: 0;">
                 
                 <!-- Hero Card (Image Only) -->
                 <div class="content-card hero-card" style="padding: 0; border: none; overflow: hidden; background: transparent;">
@@ -275,12 +285,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 ${editorialHtml}
 
                 <div class="content-card">
-                    <!-- Title & Vibe (Moved here) -->
-                    <div style="margin-bottom: 1.5rem; border-bottom: 1px solid #eee; padding-bottom: 1rem;">
-                        <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem; color: var(--text-primary);">${bar.title}</h1>
-                        <p style="font-size: 1.1rem; color: #666;">${bar.location} • <span style="color: var(--bg-red); font-weight: 600;">${bar.vibe}</span></p>
-                    </div>
-
                     <span class="info-label">About</span>
                     <p style="line-height: 1.6; margin-bottom: 1.5rem;">
                         ${bar.description || `Experience the finest mixology at ${bar.title}. Known for its ${bar.vibe} atmosphere, this spot in ${bar.location} offers a curated selection of cocktails and spirits.`}
