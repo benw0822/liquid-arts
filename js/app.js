@@ -299,7 +299,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     <div style="margin-bottom: 1.5rem;">
                         <span class="info-label" style="font-size: 0.9rem;">Location</span>
-                        <p>${bar.address_en || bar.location}</p>
+                        <p style="margin-bottom: 1rem;">${bar.address_en || bar.location}</p>
+                        
+                        <div id="detail-map" style="height: 250px; width: 100%; border-radius: 8px; margin-bottom: 1rem; z-index: 1;"></div>
+                        
+                        ${bar.google_map_url ?
+                `<a href="${bar.google_map_url}" target="_blank" class="btn" style="width:100%; text-align:center; background-color: var(--bg-red); color: white; border: none;">Open in Google Maps</a>` :
+                `<div style="height: 50px; background: #eee; display: flex; align-items: center; justify-content: center; color: #666; border-radius: 4px;">Map Link Unavailable</div>`
+            }
                     </div>
                     
                     <div style="margin-bottom: 1.5rem;">
@@ -338,19 +345,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             ${bar.facebook_url ? `<a href="${bar.facebook_url}" target="_blank" style="color: var(--text-primary); text-decoration: underline;">Facebook</a>` : ''}
                             ${bar.website_url ? `<a href="${bar.website_url}" target="_blank" style="color: var(--text-primary); text-decoration: underline;">Book Now</a>` : ''}
                         </div>
-                    </div>
-                </div>
-
-                <div class="content-card">
-                    <span class="info-label">Map</span>
-                    
-                    <div id="detail-map" style="height: 200px; width: 100%; border-radius: 4px; margin-top: 0; z-index: 1;"></div>
-
-                    <div style="margin-top: 15px;">
-                        ${bar.google_map_url ?
-                `<a href="${bar.google_map_url}" target="_blank" class="btn" style="width:100%; text-align:center; border: 1px solid #ddd; color: #333;">Open in Google Maps</a>` :
-                `<div style="height: 150px; background: #222; display: flex; align-items: center; justify-content: center; color: #666;">Map Unavailable</div>`
-            }
                     </div>
                 </div>
 
