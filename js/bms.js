@@ -21,6 +21,7 @@ const btnAddHours = document.getElementById('btn-add-hours');
 const hoursInput = document.getElementById('bar-hours'); // Hidden input
 
 const menuInput = document.getElementById('bar-menu');
+const mapInput = document.getElementById('bar-map');
 const priceInput = document.getElementById('bar-price');
 const instagramInput = document.getElementById('bar-instagram');
 const facebookInput = document.getElementById('bar-facebook');
