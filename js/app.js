@@ -293,7 +293,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 <!-- Hero Card (Image Only) -->
                 <div class="content-card hero-card" style="padding: 0; border: none; overflow: hidden; background: transparent;">
-                    <img src="${bar.image}" alt="${bar.title}" style="width: 100%; height: auto; display: block;">
+                    <img id="hero-card-img" src="${bar.image}" alt="${bar.title}" style="width: 100%; height: auto; display: block;" onload="syncAboutCardHeight()">
                 </div>
 
                 <!-- Editorial Review Card (Restored) -->
@@ -305,12 +305,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 ` : ''}
 
-                <div class="content-card">
-                    <h2 style="text-align: center; font-size: 1.5rem; margin-bottom: 2rem; font-family: var(--font-display);">About</h2>
+                <div id="about-card" class="content-card" style="display: flex; flex-direction: column;">
+                    <h2 style="text-align: center; font-size: 1.5rem; margin-bottom: 1.5rem; font-family: var(--font-display); flex-shrink: 0;">About</h2>
                     
-                    <p style="line-height: 1.6; margin-bottom: 1.5rem;">
-                        ${bar.description || `Experience the finest mixology at ${bar.title}. Known for its ${bar.vibe} atmosphere, this spot in ${bar.location} offers a curated selection of cocktails and spirits.`}
-                    </p>
+                    <div id="about-description-scroll" class="scrollable-content" style="flex: 1; overflow-y: auto; margin-bottom: 1.5rem; padding-right: 5px;">
+                        <p style="line-height: 1.6; margin: 0;">
+                            ${bar.description || `Experience the finest mixology at ${bar.title}. Known for its ${bar.vibe} atmosphere, this spot in ${bar.location} offers a curated selection of cocktails and spirits.`}
+                        </p>
+                    </div>
 
                     <div style="margin-bottom: 1.5rem;">
                         <span style="font-weight: 600; color: var(--text-primary);">Google Rating:</span> 
@@ -571,3 +573,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const path = window.location.pathname;
     if (path.endsWith('index.html') || path === '/') window.initHome();
 });
+
+// --- Sync Height Logic ---
+window.syncAboutCardHeight = () => {
+    const heroImg = document.getElementById('hero-card-img');
+    const aboutCard = document.getElementById('about-card');
+    
+    if (heroImg && aboutCard && window.innerWidth > 768) {
+        // Only sync on desktop where they are side-by-side
+        const height = heroImg.offsetHeight;
+        if (height > 0) {
+            aboutCard.style.maxHeight = height + 'px';
+            // Ensure min-height is reasonable if image is too small
+            aboutCard.style.minHeight = Math.min(height, 400) + 'px'; 
+        }
+    } else if (aboutCard) {
+        // Reset on mobile
+        aboutCard.style.maxHeight = 'none';
+        aboutCard.style.minHeight = 'auto';
+    }
+};
+
+window.addEventListener('resize', window.syncAboutCardHeight);
+// Also call it after a slight delay to ensure rendering
+setTimeout(window.syncAboutCardHeight, 500);
