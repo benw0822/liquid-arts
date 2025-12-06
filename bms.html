@@ -325,6 +325,40 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Editorial & Ratings Card (Admin Only) -->
+            <div class="info-panel" style="position: static; margin-top: 20px;">
+                <h3 style="margin-top: 0; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                    Editorial & Ratings (Admin Only)</h3>
+
+                <div style="display: flex; gap: 20px; margin-bottom: 1.5rem;">
+                    <div style="flex: 1;">
+                        <label class="info-label">Google Rating</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="number" id="bar-google-rating" class="form-input" step="0.1" placeholder="4.5"
+                                style="width: 80px;">
+                            <input type="number" id="bar-google-reviews" class="form-input" placeholder="Review Count"
+                                style="flex: 1;">
+                        </div>
+                    </div>
+                    <div style="flex: 1;">
+                        <label class="info-label">Editorial Rating</label>
+                        <div id="editorial-rating-stars"
+                            style="display: flex; gap: 5px; cursor: pointer; font-size: 1.5rem; color: #ccc; margin-top: 5px;">
+                            <span data-value="1">★</span><span data-value="2">★</span><span data-value="3">★</span><span
+                                data-value="4">★</span><span data-value="5">★</span>
+                        </div>
+                        <input type="hidden" id="bar-editorial-rating" value="0">
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                    <label class="info-label">Editorial Review</label>
+                    <textarea id="bar-editorial-review" class="form-input"
+                        placeholder="Write your professional review here..." disabled
+                        style="min-height: 150px; font-size: 1rem;"></textarea>
+                </div>
+            </div>
         </div>
 
         <!-- Right Column: Sidebar -->
@@ -363,32 +397,7 @@
                 <p class="help-text" style="font-size: 0.75rem; color: #888; margin: 0;">* Ratings depend on Google.</p>
             </div>
 
-            <!-- Ratings Card -->
-            <div class="info-panel" style="margin-bottom: 20px; position: static;">
-                <h3 style="margin-top: 0; margin-bottom: 15px;">Ratings</h3>
 
-                <div style="display: flex; gap: 10px; margin-bottom: 1rem;">
-                    <div>
-                        <label class="info-label">Google</label>
-                        <input type="number" id="bar-google-rating" class="form-input" step="0.1" placeholder="4.5"
-                            style="width: 60px;">
-                    </div>
-                    <div style="flex: 1;">
-                        <label class="info-label">Reviews</label>
-                        <input type="number" id="bar-google-reviews" class="form-input" placeholder="100">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="info-label">Editorial</label>
-                    <div id="editorial-rating-stars"
-                        style="display: flex; gap: 5px; cursor: pointer; font-size: 1.5rem; color: #ccc;">
-                        <span data-value="1">★</span><span data-value="2">★</span><span data-value="3">★</span><span
-                            data-value="4">★</span><span data-value="5">★</span>
-                    </div>
-                    <input type="hidden" id="bar-editorial-rating" value="0">
-                </div>
-            </div>
 
             <!-- Operations Card -->
             <div class="info-panel" style="margin-bottom: 20px; position: static;">

@@ -27,6 +27,7 @@ const googleRatingInput = document.getElementById('bar-google-rating');
 const googleReviewsInput = document.getElementById('bar-google-reviews');
 const editorialRatingInput = document.getElementById('bar-editorial-rating');
 const editorialStars = document.getElementById('editorial-rating-stars');
+const editorialReviewInput = document.getElementById('bar-editorial-review');
 
 const menuInput = document.getElementById('bar-menu');
 const priceInput = document.getElementById('bar-price');
@@ -102,7 +103,49 @@ async function checkAuth() {
         window.location.href = 'admin.html';
         return;
     }
-    userEmailSpan.textContent = session.user.email;
+    const user = session.user;
+    userEmailSpan.textContent = user.email;
+
+    // Fetch User Roles from 'users' table
+    const { data: profile } = await supabase
+        .from('users')
+        .select('roles')
+        .eq('id', user.id)
+        .single();
+
+    const roles = profile ? (profile.roles || []) : [];
+    const isEditor = roles.includes('admin') || roles.includes('editor');
+
+    // Apply Permissions
+    const restrictedFields = [
+        editorialReviewInput,
+        googleRatingInput,
+        googleReviewsInput
+    ];
+
+    if (isEditor) {
+        // Enable Fields
+        restrictedFields.forEach(field => {
+            field.disabled = false;
+            field.style.backgroundColor = '#fff';
+        });
+        editorialReviewInput.placeholder = "Write your professional review here...";
+
+        // Enable Stars
+        editorialStars.style.pointerEvents = 'auto';
+        editorialStars.style.opacity = '1';
+    } else {
+        // Disable Fields
+        restrictedFields.forEach(field => {
+            field.disabled = true;
+            field.style.backgroundColor = '#f5f5f5';
+        });
+        editorialReviewInput.placeholder = "Only Editors can modify this field.";
+
+        // Disable Stars
+        editorialStars.style.pointerEvents = 'none';
+        editorialStars.style.opacity = '0.6';
+    }
 }
 
 // --- Helper: Infer Location ---
@@ -384,6 +427,7 @@ async function loadBar(id) {
             googleRatingInput.value = bar.google_rating || '';
             googleReviewsInput.value = bar.google_review_count || '';
             editorialRatingInput.value = bar.editorial_rating || 0;
+            editorialReviewInput.value = bar.editorial_review || '';
             updateStars(bar.editorial_rating || 0);
 
             priceInput.value = bar.price || 2;
@@ -446,6 +490,7 @@ saveBtn.addEventListener('click', async () => {
         google_rating: googleRatingInput.value ? parseFloat(googleRatingInput.value) : null,
         google_review_count: googleReviewsInput.value ? parseInt(googleReviewsInput.value) : null,
         editorial_rating: parseInt(editorialRatingInput.value) || 0,
+        editorial_review: editorialReviewInput.value,
         price: parseInt(priceInput.value),
         instagram_url: instagramInput.value,
         facebook_url: facebookInput.value,
