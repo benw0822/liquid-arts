@@ -134,6 +134,29 @@ function updateMapPreview(address) {
     mapPreview.src = `https://maps.google.com/maps?q=${q}&output=embed`;
 }
 
+mapInput.addEventListener('change', () => {
+    const url = mapInput.value;
+    if (!url) return;
+
+    // Parse Address
+    // Example: https://www.google.com/maps/place/Taipei+101/@25.0339639,121.5644722,17z/...
+    const placeMatch = url.match(/\/place\/([^/]+)\//);
+    if (placeMatch && placeMatch[1]) {
+        let address = decodeURIComponent(placeMatch[1]).replace(/\+/g, ' ');
+        // Sometimes the address part is just the name, but often it's "Name+Address".
+        // Let's use it as a starting point.
+        addressInput.value = address;
+        updateMapPreview(address);
+    }
+
+    // Parse Coords
+    const coordsMatch = url.match(/@([\d.-]+),([\d.-]+)/);
+    if (coordsMatch) {
+        latInput.value = coordsMatch[1];
+        lngInput.value = coordsMatch[2];
+    }
+});
+
 // --- Hours Logic ---
 let hoursSlots = [];
 
@@ -280,6 +303,7 @@ async function loadBar(id) {
             }
 
             menuInput.value = bar.menu_url || '';
+            mapInput.value = bar.google_map_url || '';
             priceInput.value = bar.price || 2;
             instagramInput.value = bar.instagram_url || '';
             facebookInput.value = bar.facebook_url || '';
@@ -336,6 +360,7 @@ saveBtn.addEventListener('click', async () => {
         opening_hours: hoursStr,
         phone: phoneInput.value,
         menu_url: menuInput.value,
+        google_map_url: mapInput.value,
         price: parseInt(priceInput.value),
         instagram_url: instagramInput.value,
         facebook_url: facebookInput.value,
