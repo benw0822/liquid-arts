@@ -710,7 +710,6 @@ figure.article-figure figcaption {
 }
 
 .hero-card {
-    grid-column: span 2;
     background-size: cover;
     background-position: center;
 }
