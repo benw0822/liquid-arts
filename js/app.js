@@ -455,12 +455,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
         const shortDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-        // Check for "Mon-Sun: ..." format
-        const rangeMatch = hoursStr.match(/([A-Za-z]{3})\s*-\s*([A-Za-z]{3})[:\s]+(.*)/);
+        // Normalize input: remove extra spaces, handle full names
+        // Regex: (Day) - (Day) : (Time)
+        // We use [A-Za-z]+ to match "Mon" or "Monday"
+        const rangeMatch = hoursStr.match(/([A-Za-z]+)\s*-\s*([A-Za-z]+)[:\s]+(.*)/);
 
         if (rangeMatch) {
-            const startDay = shortDays.indexOf(rangeMatch[1]);
-            const endDay = shortDays.indexOf(rangeMatch[2]);
+            // Helper to get index from "Mon" or "Monday"
+            const getDayIndex = (d) => {
+                const prefix = d.substring(0, 3); // Take first 3 chars
+                return shortDays.findIndex(sd => sd.toLowerCase() === prefix.toLowerCase());
+            };
+
+            const startDay = getDayIndex(rangeMatch[1]);
+            const endDay = getDayIndex(rangeMatch[2]);
             const time = rangeMatch[3];
 
             if (startDay !== -1 && endDay !== -1) {
@@ -468,15 +476,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 for (let i = 0; i < 7; i++) {
                     const isDayInRange = (startDay <= endDay)
                         ? (i >= startDay && i <= endDay)
-                        : (i >= startDay || i <= endDay);
+                        : (i >= startDay || i <= endDay); // Handle wrap-around (e.g. Fri-Mon)
 
                     const color = isDayInRange ? '#333' : '#999';
                     const weight = isDayInRange ? '500' : 'normal';
 
                     html += `
                         <tr style="border-bottom: 1px solid #f5f5f5;">
-                            <td style="padding: 8px 0; text-align: left; color: ${color}; font-weight: ${weight};">${days[i]}</td>
-                            <td style="padding: 8px 0; text-align: right; color: ${color};">${isDayInRange ? time : 'Closed'}</td>
+                            <td style="padding: 8px 0; text-align: left; color: ${color}; font-weight: ${weight}; width: 40%;">${days[i]}</td>
+                            <td style="padding: 8px 0; text-align: right; color: ${color}; width: 60%;">${isDayInRange ? time : 'Closed'}</td>
                         </tr>
                     `;
                 }
@@ -485,7 +493,22 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Fallback
+        // Fallback for "Daily"
+        if (hoursStr.toLowerCase().includes('daily')) {
+            const time = hoursStr.replace(/daily/i, '').replace(/[:\s]+/, '').trim();
+            let html = '<table style="width: 100%; max-width: 300px; margin: 0 auto; border-collapse: collapse;">';
+            for (let i = 0; i < 7; i++) {
+                html += `
+                    <tr style="border-bottom: 1px solid #f5f5f5;">
+                        <td style="padding: 8px 0; text-align: left; color: #333; font-weight: 500; width: 40%;">${days[i]}</td>
+                        <td style="padding: 8px 0; text-align: right; color: #333; width: 60%;">${time}</td>
+                    </tr>
+                `;
+            }
+            html += '</table>';
+            return html;
+        }
+
         return `<div style="text-align:center;">${hoursStr}</div>`;
     }
 
