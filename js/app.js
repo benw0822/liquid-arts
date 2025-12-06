@@ -352,10 +352,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="right-column" style="flex: 1; min-width: 0;">
                     <!-- Editorial Review Card -->
                     ${bar.editorial_review ? `
-                        <div class="content-card" style="border-left: 4px solid var(--bg-red);">
-                            <span class="info-label" style="color: var(--bg-red); display: block; text-align: center;">Editor's Review</span>
-                            <p style="font-style: italic; color: #444; font-size: 1.1rem; line-height: 1.6; margin-bottom: 0.5rem;">"${bar.editorial_review}"</p>
-                            ${bar.editorial_rating ? `<div style="color: #FFD700; font-size: 1.2rem; text-align: center;">${'★'.repeat(bar.editorial_rating)}${'☆'.repeat(5 - bar.editorial_rating)}</div>` : ''}
+                        <div class="content-card" style="background-color: var(--bg-red); color: white; border: none;">
+                            <span class="info-label" style="color: white; display: block; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 10px; margin-bottom: 15px;">Editor's Review</span>
+                            <p style="font-style: italic; font-size: 1.1rem; line-height: 1.6; margin-bottom: 1rem; text-align: center;">"${bar.editorial_review}"</p>
+                            ${bar.editorial_rating ? `
+                                <div style="text-align: center;">
+                                    <div style="color: #FFD700; font-size: 1.4rem; margin-bottom: 5px;">${'★'.repeat(bar.editorial_rating)}${'☆'.repeat(5 - bar.editorial_rating)}</div>
+                                    <div style="font-weight: 600; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px;">
+                                        ${['', 'Poor', 'Fair', 'Enjoyable', 'Remarkable', 'Masterpiece'][bar.editorial_rating] || ''}
+                                    </div>
+                                </div>
+                            ` : ''}
                         </div>
                     ` : ''}
 
@@ -455,53 +462,24 @@ document.addEventListener('DOMContentLoaded', () => {
         const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
         const shortDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-        // Normalize input: remove extra spaces, handle full names
-        // Regex: (Day) - (Day) : (Time)
-        // We use [A-Za-z]+ to match "Mon" or "Monday"
-        const rangeMatch = hoursStr.match(/([A-Za-z]+)\s*-\s*([A-Za-z]+)[:\s]+(.*)/);
+        // Normalize: remove extra spaces
+        let cleanHours = hoursStr.trim();
 
-        if (rangeMatch) {
-            // Helper to get index from "Mon" or "Monday"
-            const getDayIndex = (d) => {
-                const prefix = d.substring(0, 3); // Take first 3 chars
-                return shortDays.findIndex(sd => sd.toLowerCase() === prefix.toLowerCase());
-            };
-
-            const startDay = getDayIndex(rangeMatch[1]);
-            const endDay = getDayIndex(rangeMatch[2]);
-            const time = rangeMatch[3];
-
-            if (startDay !== -1 && endDay !== -1) {
-                let html = '<table style="width: 100%; max-width: 300px; margin: 0 auto; border-collapse: collapse;">';
-                for (let i = 0; i < 7; i++) {
-                    const isDayInRange = (startDay <= endDay)
-                        ? (i >= startDay && i <= endDay)
-                        : (i >= startDay || i <= endDay); // Handle wrap-around (e.g. Fri-Mon)
-
-                    const color = isDayInRange ? '#333' : '#999';
-                    const weight = isDayInRange ? '500' : 'normal';
-
-                    html += `
-                        <tr style="border-bottom: 1px solid #f5f5f5;">
-                            <td style="padding: 8px 0; text-align: left; color: ${color}; font-weight: ${weight}; width: 40%;">${days[i]}</td>
-                            <td style="padding: 8px 0; text-align: right; color: ${color}; width: 60%;">${isDayInRange ? time : 'Closed'}</td>
-                        </tr>
-                    `;
-                }
-                html += '</table>';
-                return html;
-            }
-        }
-
-        // Fallback for "Daily"
-        if (hoursStr.toLowerCase().includes('daily')) {
-            const time = hoursStr.replace(/daily/i, '').replace(/[:\s]+/, '').trim();
+        // Helper to generate the table
+        function generateHoursTable(start, end, timeStr) {
             let html = '<table style="width: 100%; max-width: 300px; margin: 0 auto; border-collapse: collapse;">';
             for (let i = 0; i < 7; i++) {
+                const isDayInRange = (start <= end)
+                    ? (i >= start && i <= end)
+                    : (i >= start || i <= end);
+
+                const opacity = isDayInRange ? '1' : '0.4';
+                const weight = isDayInRange ? '500' : 'normal';
+
                 html += `
                     <tr style="border-bottom: 1px solid #f5f5f5;">
-                        <td style="padding: 8px 0; text-align: left; color: #333; font-weight: 500; width: 40%;">${days[i]}</td>
-                        <td style="padding: 8px 0; text-align: right; color: #333; width: 60%;">${time}</td>
+                        <td style="padding: 8px 0; text-align: left; color: #333; font-weight: ${weight}; opacity: ${opacity}; width: 40%;">${days[i]}</td>
+                        <td style="padding: 8px 0; text-align: right; color: #333; opacity: ${opacity}; width: 60%;">${isDayInRange ? timeStr : 'Closed'}</td>
                     </tr>
                 `;
             }
@@ -509,7 +487,40 @@ document.addEventListener('DOMContentLoaded', () => {
             return html;
         }
 
-        return `<div style="text-align:center;">${hoursStr}</div>`;
+        function getDayIndex(d) {
+            const prefix = d.substring(0, 3).toLowerCase();
+            return shortDays.findIndex(sd => sd.toLowerCase() === prefix);
+        }
+
+        // 1. Check for "Daily"
+        if (cleanHours.toLowerCase().startsWith('daily') || cleanHours.toLowerCase() === 'everyday') {
+            const time = cleanHours.replace(/daily|everyday/i, '').replace(/[:\s]+/, '').trim();
+            return generateHoursTable(0, 6, time);
+        }
+
+        // 2. Check for Range "Mon-Sun" or "Monday - Sunday"
+        // Regex: (Day) - (Day) [:] (Time)
+        const rangeMatch = cleanHours.match(/([A-Za-z]{3,})\s*-\s*([A-Za-z]{3,})[:\s]+(.*)/i);
+
+        if (rangeMatch) {
+            const startDayIdx = getDayIndex(rangeMatch[1]);
+            const endDayIdx = getDayIndex(rangeMatch[2]);
+            const time = rangeMatch[3];
+
+            if (startDayIdx !== -1 && endDayIdx !== -1) {
+                return generateHoursTable(startDayIdx, endDayIdx, time);
+            }
+        }
+
+        // 3. Fallback: If it contains newlines, try to parse line by line? 
+        // Or just return the raw string if we can't parse a range.
+        // But user wants 7 lines. If data is "18:00 - 02:00" (no days), maybe assume daily?
+        // Let's assume if it starts with a number, it's daily.
+        if (cleanHours.match(/^\d/)) {
+            return generateHoursTable(0, 6, cleanHours);
+        }
+
+        return `<div style="text-align:center;">${hoursStr.replace(/\n/g, '<br>')}</div>`;
     }
 
     // 5. Articles List
