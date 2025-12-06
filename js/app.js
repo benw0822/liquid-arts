@@ -52,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     *,
                     bar_images (image_url, caption, display_order),
                     signatures (*),
+                    bar_awards (*),
                     bar_articles (
                         article:articles (id, title, excerpt, cover_image, published_at)
                     )
@@ -293,7 +294,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 <!-- Hero Card (Image Only) -->
                 <div class="content-card hero-card" style="padding: 0; border: none; overflow: hidden; background: transparent;">
-                    <img id="hero-card-img" src="${bar.image}" alt="${bar.title}" style="width: 100%; height: auto; display: block;" onload="syncAboutCardHeight()">
+                    <img id="hero-card-img" src="${bar.image}" alt="${bar.title}" style="width: 100%; height: auto; display: block;">
                 </div>
 
                 <!-- Editorial Review Card (Restored) -->
@@ -308,15 +309,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div id="about-card" class="content-card" style="display: flex; flex-direction: column;">
                     <h2 style="text-align: center; font-size: 1.5rem; margin-bottom: 1.5rem; font-family: var(--font-display); flex-shrink: 0;">About</h2>
                     
-                    <div id="about-description-scroll" class="scrollable-content" style="flex: 1; overflow-y: auto; margin-bottom: 1.5rem; padding-right: 5px;">
-                        <p style="line-height: 1.6; margin: 0;">
-                            ${bar.description || `Experience the finest mixology at ${bar.title}. Known for its ${bar.vibe} atmosphere, this spot in ${bar.location} offers a curated selection of cocktails and spirits.`}
-                        </p>
-                    </div>
+                    <p style="line-height: 1.6; margin-bottom: 1.5rem;">
+                        ${bar.description || `Experience the finest mixology at ${bar.title}. Known for its ${bar.vibe} atmosphere, this spot in ${bar.location} offers a curated selection of cocktails and spirits.`}
+                    </p>
 
-                    <div style="margin-bottom: 1.5rem;">
-                        <span style="font-weight: 600; color: var(--text-primary);">Google Rating:</span> 
-                        <span>${bar.rating} / 5.0 <span style="color:#888; font-size:0.9em;">(${bar.rating_count || 0} reviews)</span></span>
+                    <div style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 20px;">
+                        <div>
+                            <span style="font-weight: 600; color: var(--text-primary);">Google Rating:</span> 
+                            <span>${bar.rating} / 5.0 <span style="color:#888; font-size:0.9em;">(${bar.rating_count || 0} reviews)</span></span>
+                        </div>
+                        <div>
+                            <span style="font-weight: 600; color: var(--text-primary);">Price:</span> 
+                            <span>${'$'.repeat(bar.price_level || bar.price || 2)}</span>
+                        </div>
                     </div>
 
                     <div style="display: flex; gap: 2rem; margin-bottom: 1.5rem;">
@@ -349,29 +354,33 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
 
+                ${bar.bar_awards && bar.bar_awards.length > 0 ? `
+                    <div class="content-card">
+                        <h3 class="section-title" style="margin-bottom: 1rem; font-size: 1.2rem;">Awards & Recognition</h3>
+                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                            ${bar.bar_awards.sort((a, b) => (b.year || 0) - (a.year || 0)).map(award => `
+                                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 8px;">
+                                    <span style="font-weight: 600; color: #333;">${award.name}</span>
+                                    <span style="color: #666; font-size: 0.9rem;">
+                                        ${award.rank ? `<span style="color: var(--bg-red); font-weight: bold; margin-right: 5px;">${award.rank}</span>` : ''}
+                                        ${award.year || ''}
+                                    </span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+
                 <div class="content-card">
                     <span class="info-label">Details</span>
-                    <p><strong>Price:</strong> ${'$'.repeat(bar.price_level || bar.price || 2)}</p>
                     <p><strong>Open:</strong> ${bar.opening_hours || '18:00 - 02:00'}</p>
                     ${bar.phone ? `<p><strong>Phone:</strong> ${bar.phone}</p>` : ''}
                     
-                    <div style="margin-top: 1rem;">
-                        <span class="info-label" style="font-size: 0.9rem;">Social</span>
-                        <div style="display: flex; gap: 10px; margin-top: 5px;">
-                            ${bar.instagram_url ? `<a href="${bar.instagram_url}" target="_blank" style="color: var(--text-primary); text-decoration: underline;">Instagram</a>` : ''}
-                            ${bar.facebook_url ? `<a href="${bar.facebook_url}" target="_blank" style="color: var(--text-primary); text-decoration: underline;">Facebook</a>` : ''}
-                            ${bar.website_url ? `<a href="${bar.website_url}" target="_blank" style="color: var(--text-primary); text-decoration: underline;">Book Now</a>` : ''}
-                        </div>
+                    <div style="margin-top: 1.5rem; display: flex; gap: 10px; flex-wrap: wrap;">
+                        ${bar.instagram_url ? `<a href="${bar.instagram_url}" target="_blank" class="btn btn-secondary" style="font-size: 0.9rem; padding: 8px 16px;">Instagram</a>` : ''}
+                        ${bar.facebook_url ? `<a href="${bar.facebook_url}" target="_blank" class="btn btn-secondary" style="font-size: 0.9rem; padding: 8px 16px;">Facebook</a>` : ''}
+                        ${bar.website_url ? `<a href="${bar.website_url}" target="_blank" class="btn btn-primary" style="font-size: 0.9rem; padding: 8px 16px;">Book Now</a>` : ''}
                     </div>
-                </div>
-
-                <div class="content-card">
-                    <span class="info-label">Menu</span>
-                    <p>Signature Cocktails • Seasonal Specials • Bar Bites</p>
-                    ${bar.menu_url ?
-                `<a href="${bar.menu_url}" target="_blank" class="btn btn-secondary" style="margin-top: 10px; display: inline-block;">View Full Menu</a>` :
-                `<button class="btn btn-secondary" style="margin-top: 10px;" disabled>Menu Coming Soon</button>`
-            }
                 </div>
 
                 ${signaturesHtml}
@@ -574,26 +583,4 @@ document.addEventListener('DOMContentLoaded', () => {
     if (path.endsWith('index.html') || path === '/') window.initHome();
 });
 
-// --- Sync Height Logic ---
-window.syncAboutCardHeight = () => {
-    const heroImg = document.getElementById('hero-card-img');
-    const aboutCard = document.getElementById('about-card');
 
-    if (heroImg && aboutCard && window.innerWidth > 768) {
-        // Only sync on desktop where they are side-by-side
-        const height = heroImg.offsetHeight;
-        if (height > 0) {
-            aboutCard.style.maxHeight = height + 'px';
-            // Ensure min-height is reasonable if image is too small
-            aboutCard.style.minHeight = Math.min(height, 400) + 'px';
-        }
-    } else if (aboutCard) {
-        // Reset on mobile
-        aboutCard.style.maxHeight = 'none';
-        aboutCard.style.minHeight = 'auto';
-    }
-};
-
-window.addEventListener('resize', window.syncAboutCardHeight);
-// Also call it after a slight delay to ensure rendering
-setTimeout(window.syncAboutCardHeight, 500);
