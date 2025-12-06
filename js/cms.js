@@ -11,6 +11,7 @@ const categoryInput = document.getElementById('article-category');
 const authorInput = document.getElementById('article-author');
 const coverInput = document.getElementById('cover-file');
 const coverPreview = document.getElementById('cover-preview');
+const coverCaptionInput = document.getElementById('cover-caption');
 // const barContainer = document.getElementById('bar-select-container'); // Removed
 const saveBtn = document.getElementById('save-btn');
 const cancelBtn = document.getElementById('cancel-btn');
@@ -673,11 +674,12 @@ async function loadArticle(id) {
         categoryInput.value = article.category || '';
         authorInput.value = article.author_name || '';
 
-        if (article.image) {
-            currentCoverUrl = article.image;
-            initialImagePaths.push(getPathFromUrl(article.image));
+        if (article.cover_image) {
+            currentCoverUrl = article.cover_image;
+            initialImagePaths.push(getPathFromUrl(article.cover_image));
             updateCoverUI();
         }
+        coverCaptionInput.value = article.image_caption || '';
 
         // Set Status
         const statusLabel = publishToggle.parentElement.nextElementSibling;
@@ -769,6 +771,7 @@ saveBtn.addEventListener('click', async () => {
             tags,
             content,
             cover_image: currentCoverUrl,
+            image_caption: coverCaptionInput.value,
             status: publishToggle.checked ? 'published' : 'draft',
             updated_at: new Date().toISOString()
         };

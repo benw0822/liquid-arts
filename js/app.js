@@ -331,7 +331,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>
             
-            ${article.cover_image ? `<img src="${article.cover_image}" style="width: 100%; max-height: 600px; object-fit: cover; border-radius: 8px; margin-bottom: 0.5rem;">` : ''}
+            ${article.cover_image ? `
+                <figure style="margin: 0 0 2rem 0; text-align: center;">
+                    <img src="${article.cover_image}" alt="${article.image_caption || article.title}" style="width: 100%; max-height: 600px; object-fit: cover; border-radius: 8px;">
+                    ${article.image_caption ? `<figcaption style="margin-top: 0.5rem; color: #666; font-size: 0.9rem; font-style: italic; font-family: var(--font-main);">${article.image_caption}</figcaption>` : ''}
+                </figure>
+            ` : ''}
             
             <div class="article-body" style="font-size: 1.1rem; line-height: 1.8;">
                 ${article.content || '<p>No content.</p>'}
