@@ -272,80 +272,77 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>
             <div class="container detail-grid">
-                <div class="main-info">
-                    ${editorialHtml}
-                    
-                    <div class="content-card">
-                        <span class="info-label">About</span>
-                        <p style="line-height: 1.6; margin-bottom: 1.5rem;">
-                            ${bar.description || `Experience the finest mixology at ${bar.title}. Known for its ${bar.vibe} atmosphere, this spot in ${bar.location} offers a curated selection of cocktails and spirits.`}
-                        </p>
-                        
-                        <div style="display: flex; gap: 2rem; margin-bottom: 1.5rem;">
-                            ${bar.owner_name ? `
-                                <div>
-                                    <span class="info-label" style="font-size: 0.9rem;">Owner</span>
-                                    <p style="font-weight: 600;">${bar.owner_name}</p>
-                                </div>
-                            ` : ''}
-                            ${bar.bartender_name ? `
-                                <div>
-                                    <span class="info-label" style="font-size: 0.9rem;">Head Bartender</span>
-                                    <p style="font-weight: 600;">${bar.bartender_name}</p>
-                                </div>
-                            ` : ''}
-                        </div>
-
-                        ${bar.tags ? `<p style="margin-top:1rem; color:var(--text-secondary);">Tags: ${bar.tags.join(', ')}</p>` : ''}
-                    </div>
-
-                    ${signaturesHtml}
-
-                    <div class="content-card">
-                        <span class="info-label">Menu</span>
-                        <p>Signature Cocktails • Seasonal Specials • Bar Bites</p>
-                        ${bar.menu_url ?
-                `<a href="${bar.menu_url}" target="_blank" class="btn btn-secondary" style="margin-top: 10px; display: inline-block;">View Full Menu</a>` :
-                `<button class="btn btn-secondary" style="margin-top: 10px;" disabled>Menu Coming Soon</button>`
-            }
-                    </div>
-                    
-                    ${galleryHtml ? `<div class="content-card">${galleryHtml}</div>` : ''}
-                    ${articlesHtml ? `<div class="content-card">${articlesHtml}</div>` : ''}
-                </div>
                 
-                <div class="sidebar-info">
-                    <div class="content-card">
-                        <span class="info-label">Details</span>
-                        <p><strong>Rating:</strong> ${bar.rating} / 5.0 (${bar.rating_count || 0} reviews)</p>
-                        <p><strong>Price:</strong> ${'$'.repeat(bar.price_level || bar.price || 2)}</p>
-                        <p><strong>Open:</strong> ${bar.opening_hours || '18:00 - 02:00'}</p>
-                        ${bar.phone ? `<p><strong>Phone:</strong> ${bar.phone}</p>` : ''}
-                        
-                        <div style="margin-top: 1rem;">
-                            <span class="info-label" style="font-size: 0.9rem;">Social</span>
-                            <div style="display: flex; gap: 10px; margin-top: 5px;">
-                                ${bar.instagram_url ? `<a href="${bar.instagram_url}" target="_blank" style="color: var(--text-primary); text-decoration: underline;">Instagram</a>` : ''}
-                                ${bar.facebook_url ? `<a href="${bar.facebook_url}" target="_blank" style="color: var(--text-primary); text-decoration: underline;">Facebook</a>` : ''}
-                                ${bar.website_url ? `<a href="${bar.website_url}" target="_blank" style="color: var(--text-primary); text-decoration: underline;">Book Now</a>` : ''}
+                ${editorialHtml}
+
+                <div class="content-card">
+                    <span class="info-label">About</span>
+                    <p style="line-height: 1.6; margin-bottom: 1.5rem;">
+                        ${bar.description || `Experience the finest mixology at ${bar.title}. Known for its ${bar.vibe} atmosphere, this spot in ${bar.location} offers a curated selection of cocktails and spirits.`}
+                    </p>
+                    
+                    <div style="display: flex; gap: 2rem; margin-bottom: 1.5rem;">
+                        ${bar.owner_name ? `
+                            <div>
+                                <span class="info-label" style="font-size: 0.9rem;">Owner</span>
+                                <p style="font-weight: 600;">${bar.owner_name}</p>
                             </div>
+                        ` : ''}
+                        ${bar.bartender_name ? `
+                            <div>
+                                <span class="info-label" style="font-size: 0.9rem;">Head Bartender</span>
+                                <p style="font-weight: 600;">${bar.bartender_name}</p>
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    ${bar.tags ? `<p style="margin-top:1rem; color:var(--text-secondary);">Tags: ${bar.tags.join(', ')}</p>` : ''}
+                </div>
+
+                <div class="content-card">
+                    <span class="info-label">Details</span>
+                    <p><strong>Rating:</strong> ${bar.rating} / 5.0 (${bar.rating_count || 0} reviews)</p>
+                    <p><strong>Price:</strong> ${'$'.repeat(bar.price_level || bar.price || 2)}</p>
+                    <p><strong>Open:</strong> ${bar.opening_hours || '18:00 - 02:00'}</p>
+                    ${bar.phone ? `<p><strong>Phone:</strong> ${bar.phone}</p>` : ''}
+                    
+                    <div style="margin-top: 1rem;">
+                        <span class="info-label" style="font-size: 0.9rem;">Social</span>
+                        <div style="display: flex; gap: 10px; margin-top: 5px;">
+                            ${bar.instagram_url ? `<a href="${bar.instagram_url}" target="_blank" style="color: var(--text-primary); text-decoration: underline;">Instagram</a>` : ''}
+                            ${bar.facebook_url ? `<a href="${bar.facebook_url}" target="_blank" style="color: var(--text-primary); text-decoration: underline;">Facebook</a>` : ''}
+                            ${bar.website_url ? `<a href="${bar.website_url}" target="_blank" style="color: var(--text-primary); text-decoration: underline;">Book Now</a>` : ''}
                         </div>
                     </div>
-                    
-                    <div class="content-card">
-                        <span class="info-label">Location</span>
-                        <p>${bar.address_en || bar.location}</p>
-                        
-                        <div id="detail-map" style="height: 200px; width: 100%; border-radius: 4px; margin-top: 15px; z-index: 1;"></div>
+                </div>
 
-                        <div style="margin-top: 15px;">
-                            ${bar.google_map_url ?
+                <div class="content-card">
+                    <span class="info-label">Location</span>
+                    <p>${bar.address_en || bar.location}</p>
+                    
+                    <div id="detail-map" style="height: 200px; width: 100%; border-radius: 4px; margin-top: 15px; z-index: 1;"></div>
+
+                    <div style="margin-top: 15px;">
+                        ${bar.google_map_url ?
                 `<a href="${bar.google_map_url}" target="_blank" class="btn" style="width:100%; text-align:center; border: 1px solid #ddd; color: #333;">Open in Google Maps</a>` :
                 `<div style="height: 150px; background: #222; display: flex; align-items: center; justify-content: center; color: #666;">Map Unavailable</div>`
             }
-                        </div>
                     </div>
                 </div>
+
+                <div class="content-card">
+                    <span class="info-label">Menu</span>
+                    <p>Signature Cocktails • Seasonal Specials • Bar Bites</p>
+                    ${bar.menu_url ?
+                `<a href="${bar.menu_url}" target="_blank" class="btn btn-secondary" style="margin-top: 10px; display: inline-block;">View Full Menu</a>` :
+                `<button class="btn btn-secondary" style="margin-top: 10px;" disabled>Menu Coming Soon</button>`
+            }
+                </div>
+
+                ${signaturesHtml}
+                
+                ${galleryHtml ? `<div class="content-card">${galleryHtml}</div>` : ''}
+                ${articlesHtml ? `<div class="content-card">${articlesHtml}</div>` : ''}
             </div>
         `;
 
