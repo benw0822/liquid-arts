@@ -45,6 +45,9 @@ const galleryInput = document.getElementById('gallery-input');
 const galleryGrid = document.getElementById('gallery-grid');
 const btnAddGallery = document.getElementById('btn-add-gallery');
 
+const awardsList = document.getElementById('awards-list');
+const btnAddAward = document.getElementById('btn-add-award');
+
 const cropModal = document.getElementById('crop-modal');
 const cropImage = document.getElementById('crop-image');
 const cropSaveBtn = document.getElementById('crop-save-btn');
@@ -64,6 +67,7 @@ let cropper = null;
 let currentFile = null;
 let galleryImages = [];
 let signatures = [];
+let awards = [];
 let currentSigImageUrl = '';
 
 // --- Constants ---
@@ -459,9 +463,11 @@ async function loadBar(id) {
             }
 
             // Load Gallery
-            loadGallery(id);
+            await loadGallery(id);
             // Load Signatures
-            loadSignatures(id);
+            await loadSignatures(id);
+            // Load Awards
+            await loadAwards(id);
         }
     } catch (err) {
         console.error('Error loading bar:', err);
@@ -1103,3 +1109,85 @@ function updateSigImagePreview() {
         sigImagePreview.innerHTML = '<span>Upload</span>';
     }
 }
+
+// --- Awards Logic ---
+async function loadAwards(barId) {
+    const { data, error } = await supabase
+        .from('bar_awards')
+        .select('*')
+        .eq('bar_id', barId)
+        .order('year', { ascending: false });
+
+    if (error) {
+        console.error('Error loading awards:', error);
+        return;
+    }
+
+    awards = data || [];
+    renderAwards();
+}
+
+function renderAwards() {
+    if (awards.length === 0) {
+        awardsList.innerHTML = '<div style="text-align: center; color: #999; padding: 20px;">No awards listed yet</div>';
+        return;
+    }
+
+    awardsList.innerHTML = awards.map(award => `
+        <div class="award-item" style="display: flex; justify-content: space-between; align-items: center; background: #f9f9f9; padding: 10px; border-radius: 4px; border: 1px solid #eee;">
+            <div>
+                <div style="font-weight: 600; color: #333;">${award.name}</div>
+                <div style="font-size: 0.85rem; color: #666;">
+                    ${award.rank ? `<span style="color: var(--bg-red); font-weight: bold;">${award.rank}</span>` : ''}
+                    ${award.year ? ` • ${award.year}` : ''}
+                </div>
+            </div>
+            <button onclick="deleteAward('${award.id}')" style="background: none; border: none; color: #ff4444; cursor: pointer; font-size: 1.2rem;">&times;</button>
+        </div>
+    `).join('');
+}
+
+btnAddAward.addEventListener('click', async () => {
+    if (!currentBarId) return alert('Please save the bar first.');
+
+    const name = prompt('Award Name (e.g. Asia\'s 50 Best Bars):');
+    if (!name) return;
+
+    const rank = prompt('Rank / Title (e.g. 12, Winner):');
+    const year = prompt('Year (e.g. 2024):');
+
+    const { data, error } = await supabase
+        .from('bar_awards')
+        .insert([{
+            bar_id: currentBarId,
+            name: name,
+            rank: rank,
+            year: year ? parseInt(year) : null
+        }])
+        .select();
+
+    if (error) {
+        console.error('Error adding award:', error);
+        alert('Failed to add award.');
+    } else {
+        awards.push(data[0]);
+        renderAwards();
+    }
+});
+
+window.deleteAward = async (id) => {
+    if (!confirm('Delete this award?')) return;
+
+    const { error } = await supabase
+        .from('bar_awards')
+        .delete()
+        .eq('id', id);
+
+    if (error) {
+        console.error('Error deleting award:', error);
+        alert('Failed to delete award.');
+    } else {
+        awards = awards.filter(a => a.id != id);
+        renderAwards();
+    }
+};
