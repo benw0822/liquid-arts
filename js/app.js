@@ -377,16 +377,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     ` : ''}
 
                     <div class="content-card">
-                        <span class="info-label" style="display: block; text-align: center;">Details</span>
+                        <h3 class="section-title" style="text-align: center; margin-bottom: 1.5rem; font-size: 1.2rem;">Opening Hours</h3>
                         
-                        <div style="margin-bottom: 1.5rem; padding: 0 10px;">
-                            <strong style="display: block; text-align: center; margin-bottom: 10px; color: var(--text-primary);">Opening Hours</strong>
+                        <div style="margin-bottom: 1.5rem;">
                             ${formatOpeningHours(bar.opening_hours || 'Mon-Sun: 18:00 - 02:00')}
                         </div>
 
-                        ${bar.phone ? `<p style="text-align: center;"><strong>Phone:</strong> ${bar.phone}</p>` : ''}
+                        ${bar.phone ? `<p style="text-align: center; margin-bottom: 1.5rem;"><strong>Phone:</strong> ${bar.phone}</p>` : ''}
                         
-                        <div style="margin-top: 1.5rem; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
                             ${bar.instagram_url ? `<a href="${bar.instagram_url}" target="_blank" class="btn btn-secondary" style="font-size: 0.9rem; padding: 8px 16px;">Instagram</a>` : ''}
                             ${bar.facebook_url ? `<a href="${bar.facebook_url}" target="_blank" class="btn btn-secondary" style="font-size: 0.9rem; padding: 8px 16px;">Facebook</a>` : ''}
                             ${bar.website_url ? `<a href="${bar.website_url}" target="_blank" class="btn btn-primary" style="font-size: 0.9rem; padding: 8px 16px;">Book Now</a>` : ''}
@@ -465,18 +464,23 @@ document.addEventListener('DOMContentLoaded', () => {
             const time = rangeMatch[3];
 
             if (startDay !== -1 && endDay !== -1) {
-                let html = '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; font-size: 0.95rem; max-width: 300px; margin: 0 auto;">';
+                let html = '<table style="width: 100%; max-width: 300px; margin: 0 auto; border-collapse: collapse;">';
                 for (let i = 0; i < 7; i++) {
                     const isDayInRange = (startDay <= endDay)
                         ? (i >= startDay && i <= endDay)
                         : (i >= startDay || i <= endDay);
 
+                    const color = isDayInRange ? '#333' : '#999';
+                    const weight = isDayInRange ? '500' : 'normal';
+
                     html += `
-                        <div style="text-align: right; color: ${isDayInRange ? '#333' : '#999'}; font-weight: ${isDayInRange ? '500' : 'normal'}; padding-right: 10px;">${days[i]}</div>
-                        <div style="text-align: left; color: ${isDayInRange ? '#333' : '#999'};">${isDayInRange ? time : 'Closed'}</div>
+                        <tr style="border-bottom: 1px solid #f5f5f5;">
+                            <td style="padding: 8px 0; text-align: left; color: ${color}; font-weight: ${weight};">${days[i]}</td>
+                            <td style="padding: 8px 0; text-align: right; color: ${color};">${isDayInRange ? time : 'Closed'}</td>
+                        </tr>
                     `;
                 }
-                html += '</div>';
+                html += '</table>';
                 return html;
             }
         }
