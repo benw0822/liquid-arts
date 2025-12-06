@@ -181,7 +181,7 @@ function initMap() {
     // Default to Taipei
     if (map) return;
     map = L.map('map-preview').setView([25.033964, 121.564472], 13);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; OpenStreetMap &copy; CARTO',
         maxZoom: 20
     }).addTo(map);
@@ -896,7 +896,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     cropSaveBtn.textContent = 'Uploading...';
                     cropSaveBtn.disabled = true;
 
-                    const canvas = window.cropper.getCroppedCanvas({ width: 800, height: 1000 });
+                    const canvas = window.cropper.getCroppedCanvas({ width: 1080, height: 1350 });
                     canvas.toBlob(async (blob) => {
                         const fileName = `sig_${Date.now()}.jpg`;
                         const { data, error } = await supabase.storage
