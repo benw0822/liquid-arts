@@ -332,22 +332,24 @@ document.addEventListener('DOMContentLoaded', () => {
         // Default to Taipei/Asia view if no user location
         const map = L.map('map').setView([25.0330, 121.5654], 14);
 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        // Dark Theme Tiles (Same as Card Maps)
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd',
             maxZoom: 20
         }).addTo(map);
 
         bars.forEach(bar => {
             if (bar.lat && bar.lng) {
-                // Custom Red Circle Icon with Label
+                // Custom Icon Style (Red Dot with Label) - Matching Card Map
                 const customIcon = L.divIcon({
                     className: 'custom-map-marker',
                     html: `
                         <div style="display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%);">
-                            <div style="background: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 12px; color: #333; box-shadow: 0 2px 4px rgba(0,0,0,0.2); margin-bottom: 4px; white-space: nowrap;">
+                            <div style="background: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; color: #333; box-shadow: 0 1px 2px rgba(0,0,0,0.15); margin-bottom: 3px; white-space: nowrap;">
                                 ${bar.title}
                             </div>
-                            <div style="width: 14px; height: 14px; background: #ef4444; border: 2px solid white; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>
+                            <div style="width: 14px; height: 14px; background: #ef4444; border: 2px solid white; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,0.2);"></div>
                         </div>
                     `,
                     iconSize: [0, 0],
@@ -355,11 +357,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 const marker = L.marker([bar.lat, bar.lng], { icon: customIcon }).addTo(map);
+
+                // Enhanced Popup
                 marker.bindPopup(`
-                    <div style="color: #333; text-align: center;">
-                        <h3 style="margin: 0 0 5px 0;">${bar.title}</h3>
-                        <p style="margin: 0;">${bar.location}</p>
-                        <a href="bar-details.html?id=${bar.id}" style="color: #b91c1c; font-weight: bold;">View Details</a>
+                    <div style="color: #333; text-align: center; min-width: 150px;">
+                        <h3 style="margin: 0 0 5px 0; font-size: 1rem;">${bar.title}</h3>
+                        <p style="margin: 0 0 8px 0; font-size: 0.85rem; color: #666;">${bar.location}</p>
+                        <a href="bar-details.html?id=${bar.id}" style="display: inline-block; padding: 4px 12px; background: #ef4444; color: white; border-radius: 4px; text-decoration: none; font-size: 0.8rem;">View Details</a>
                     </div>
                 `);
             }
