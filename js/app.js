@@ -1157,7 +1157,21 @@ document.addEventListener('DOMContentLoaded', () => {
     window.createArticleCard = function (article) {
         // Handle both mock data (image, date) and real data (cover_image, published_at)
         const imgUrl = article.cover_image || article.image || 'assets/placeholder.jpg';
-        const dateStr = new Date(article.published_at || article.created_at || article.date).toLocaleDateString();
+
+        let dateStr = new Date(article.published_at || article.created_at || article.date).toLocaleDateString();
+        let dateStyle = 'margin-bottom: 0.5rem; font-size: 0.85rem; color: #888;';
+
+        // Event Logic: Custom Date Range & Styling
+        if (article.category === 'Event' || article.category === '活動情報') {
+            if (article.start_date && article.end_date) {
+                const formatDate = (iso) => {
+                    const d = new Date(iso);
+                    return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
+                };
+                dateStr = `${formatDate(article.start_date)} - ${formatDate(article.end_date)}`;
+                dateStyle = 'margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--bg-red); font-weight: bold;';
+            }
+        }
 
         // Check saved state
         const isSaved = window.savedArticleIds ? window.savedArticleIds.has(article.id) : false;
@@ -1172,7 +1186,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <a href="journal-details.html?id=${article.id}" style="text-decoration: none; color: inherit; display: block;">
                 <img src="${imgUrl}" alt="${article.title}" class="art-card-image" style="width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 0;">
                 <div style="padding: 1.5rem;">
-                    <div class="art-card-meta" style="margin-bottom: 0.5rem; font-size: 0.85rem; color: #888;">${dateStr}</div>
+                    <div class="art-card-meta" style="${dateStyle}">${dateStr}</div>
                     <h3 class="art-card-title" style="font-size: 1.4rem; margin: 0 0 0.5rem 0; font-family: var(--font-display);">${article.title}</h3>
                     <p class="serif-caption" style="font-size: 1rem; margin: 0; color: #555; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">${article.excerpt || ''}</p>
                 </div>
