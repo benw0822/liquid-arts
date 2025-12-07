@@ -1218,6 +1218,8 @@ document.addEventListener('DOMContentLoaded', () => {
     supabase.auth.onAuthStateChange((event, session) => {
         // --- Custom Nav Logic ---
         const myLink = document.getElementById('nav-my-link');
+        const loginBtn = document.getElementById('login-btn'); // New Query
+        const userMenu = document.getElementById('user-menu'); // New Query
 
         if (session) {
             if (loginBtn) loginBtn.style.display = 'none';

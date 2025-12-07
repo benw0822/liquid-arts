@@ -76,7 +76,6 @@
                 <a href="events.html" class="nav-link">Event</a>
 
                 <a href="profile.html" class="nav-link" id="nav-my-link">My</a>
-                <a href="#" id="logout-btn" class="nav-link" style="color: var(--text-accent);">Logout</a>
             </div>
         </div>
     </nav>
@@ -131,12 +130,15 @@
 
                             <!-- Action Buttons -->
                             <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1rem;">
-                                <button onclick="updateProfile()" class="btn"
-                                    style="background: var(--bg-red); color: white; border: none; padding: 10px 30px;">Save
-                                    Changes</button>
-                                <button onclick="handleLogout()" class="btn"
-                                    style="background: #333; color: white; border: none; padding: 10px 30px;">Sign
-                                    Out</button>
+                                <div
+                                    style="width: 100%; display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+                                    <button onclick="updateProfile()" class="btn"
+                                        style="background: var(--bg-red); color: white; border: none; padding: 0.8rem 2rem;">Save
+                                        Changes</button>
+                                    <button onclick="handleLogout()" class="btn"
+                                        style="background: #333; color: white; border: none; padding: 0.8rem 2rem;">Sign
+                                        Out</button>
+                                </div>
                             </div>
                         </div>
                     </div>
