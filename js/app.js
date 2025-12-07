@@ -965,7 +965,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return '';
     }
 
-    function createBarCard(bar, city = null) {
+    // Expose for Profile Page reuse
+    window.createBarCard = function (bar, city = null) {
         const displayCity = city || bar.location || '';
         const description = bar.description || `Experience the finest mixology at ${bar.title}. Known for its ${bar.vibe} atmosphere, this spot in ${bar.location} offers a curated selection of cocktails and spirits.`;
         const rating = bar.google_rating || bar.rating || 'N/A';
