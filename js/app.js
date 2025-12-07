@@ -103,8 +103,30 @@ document.addEventListener('DOMContentLoaded', () => {
         const filterVibe = document.getElementById('filter-vibe');
         const filterPrice = document.getElementById('filter-price');
 
-        function render(items) {
-            grid.innerHTML = items.map(bar => createBarCard(bar)).join('');
+        async function render(items) {
+            grid.innerHTML = '<p style="width:100%; text-align:center; color:#888;">Updating...</p>';
+
+            // Fetch cities in parallel (using Global helper)
+            const itemsWithCity = await Promise.all(items.map(async (bar) => {
+                let city = '';
+                // If we have coords, fetch/cache city. User requested coordinate-based city.
+                // Note: This might hit rate limits if too many items. 
+                // We use the global helper which defines cache.
+                if (bar.lat && bar.lng) {
+                    city = await fetchCityFromCoordsGlobal(bar.lat, bar.lng);
+                }
+                return { ...bar, cityDisplay: city };
+            }));
+
+            grid.innerHTML = itemsWithCity.map(bar => createBarCard(bar, bar.cityDisplay)).join('');
+
+            // Initialize maps
+            itemsWithCity.forEach(bar => {
+                if (bar.lat && bar.lng) {
+                    // Small delay to ensure render layout
+                    setTimeout(() => initCardMapGlobal(bar.id, bar.lat, bar.lng), 100);
+                }
+            });
         }
 
         function filterBars() {
@@ -114,10 +136,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const price = filterPrice.value;
 
             const filtered = bars.filter(bar => {
-                const matchSearch = bar.title.toLowerCase().includes(term) || bar.location.toLowerCase().includes(term);
-                const matchCity = !city || bar.location.includes(city);
+                const matchSearch = (bar.title || '').toLowerCase().includes(term) || (bar.location || '').toLowerCase().includes(term);
+                // Note: Filter logic uses existing bar.location string, 
+                // but Display rendering uses new Coordinate City.
+                const matchCity = !city || (bar.location || '').includes(city);
                 const matchVibe = !vibe || bar.vibe === vibe;
-                const matchPrice = !price || bar.price == price; // Loose equality for string/number
+                const matchPrice = !price || bar.price == price;
                 return matchSearch && matchCity && matchVibe && matchPrice;
             });
             render(filtered);
@@ -130,7 +154,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         render(bars);
     };
-
     // 3. Map Page
     // 3. Map Page
     window.initMap = async () => {
@@ -787,20 +810,91 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- Helper Functions ---
-    function createBarCard(bar) {
-        return `
-            <a href="bar-details.html?id=${bar.id}" class="art-card grid-item" style="text-decoration: none; display: block; margin-bottom: 2rem;">
-                <div style="width: 100%; aspect-ratio: 4/3; overflow: hidden; margin-bottom: 1rem; border-radius: 4px;">
-                    <img src="${bar.image}" alt="${bar.title}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                </div>
-                <div style="text-align: center;">
-                    <h3 style="font-family: var(--font-display); font-size: 1.5rem; margin: 0 0 0.5rem 0; color: #1b1b1b;">${bar.title}</h3>
-                    <p style="font-family: var(--font-main); font-size: 1rem; color: #666; margin: 0;">${bar.location}</p>
-                </div>
-            </a>
-        `;
+
+    function initCardMapGlobal(id, lat, lng) {
+        if (typeof L === 'undefined') return;
+        const elId = `card-map-${id}`;
+        const el = document.getElementById(elId);
+        if (!el) return;
+        // Check if class includes 'leaflet-container' to avoid re-init error (though innerHTML replaces DOM usually)
+        if (el.classList.contains('leaflet-container')) return;
+
+        try {
+            const map = L.map(elId, { zoomControl: false, scrollWheelZoom: false, dragging: true }).setView([lat, lng], 15);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 19 }).addTo(map);
+            L.marker([lat, lng]).addTo(map);
+        } catch (e) { console.warn('Map init error', e); }
     }
 
+    async function fetchCityFromCoordsGlobal(lat, lng) {
+        if (!lat || !lng) return '';
+        try {
+            const key = `city_${lat}_${lng}`;
+            const cached = localStorage.getItem(key);
+            if (cached) return cached;
+
+            // Rate limit mitigation: random delay 10-100ms
+            await new Promise(r => setTimeout(r, Math.random() * 100));
+
+            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=en`);
+            const data = await response.json();
+            if (data.address) {
+                const city = data.address.city || data.address.town || data.address.village || data.address.county || '';
+                localStorage.setItem(key, city);
+                return city;
+            }
+        } catch (e) { console.error('City fetch error', e); }
+        return '';
+    }
+
+    function createBarCard(bar, city = null) {
+        const displayCity = city || bar.location || '';
+        const description = bar.description || `Experience the finest mixology at ${bar.title}. Known for its ${bar.vibe} atmosphere, this spot in ${bar.location} offers a curated selection of cocktails and spirits.`;
+        const rating = bar.google_rating || bar.rating || 'N/A';
+        const reviewCount = bar.google_review_count || bar.rating_count || 0;
+        const address = bar.address || bar.address_en || bar.location;
+        const mapUrl = bar.google_map_url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+
+        return `
+        <div class="art-card grid-item" style="display: flex; flex-direction: column; height: 100%; margin-bottom: 3rem; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+             <!-- Main Link Wrapper for Top Section -->
+            <a href="bar-details.html?id=${bar.id}" style="text-decoration: none; display: block;">
+                <div style="width: 100%; border-bottom: 1px solid #f0f0f0;">
+                    <img src="${bar.image}" alt="${bar.title}" style="width: 100%; height: auto; display: block; transition: transform 0.5s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                </div>
+                <div style="text-align: center; padding: 1.5rem 1rem 0.5rem 1rem;">
+                    <h3 style="font-family: var(--font-display); font-size: 1.8rem; margin: 0 0 0.5rem 0; color: #1b1b1b;">${bar.title}</h3>
+                    <p style="font-family: var(--font-main); font-size: 1rem; color: #888; margin: 0;">${displayCity}</p>
+                </div>
+            </a>
+            
+            <div style="padding: 0 1.5rem 1.5rem 1.5rem; text-align: center; flex: 1; display: flex; flex-direction: column;">
+                 <!-- Description -->
+                <p style="font-size: 0.95rem; color: #555; line-height: 1.6; margin-bottom: 1.2rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                    ${description}
+                </p>
+
+                 <!-- Rating -->
+                <div style="margin-bottom: 1.2rem; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                    <span style="font-weight: 600; color: #333;">${rating}</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="#FFD700" viewBox="0 0 16 16"><path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/></svg>
+                    <span style="color:#888; font-size:0.9em;">(${reviewCount})</span>
+                </div>
+
+                <!-- Address -->
+                <p style="font-size: 0.9rem; color: #333; margin-bottom: 1rem; font-weight: 500;">
+                    ${address}
+                </p>
+                
+                <!-- Map Container (Initialized by JS) -->
+                <div id="card-map-${bar.id}" class="card-map" data-lat="${bar.lat}" data-lng="${bar.lng}" style="height: 150px; width: 100%; border-radius: 4px; margin-bottom: 1rem; background: #eee;"></div>
+
+                <!-- Button -->
+                 <a href="${mapUrl}" target="_blank" class="btn" style="margin-top: auto; width: 100%; text-align: center; background-color: var(--bg-red); color: white; padding: 12px 0; border-radius: 4px; text-decoration: none; font-size: 1rem; font-weight: 600; transition: background 0.3s;">Open Google Maps</a>
+            </div>
+        </div>
+    `;
+    }
     function createArticleCard(article) {
         // Handle both mock data (image, date) and real data (cover_image, published_at)
         const imgUrl = article.cover_image || article.image || 'assets/placeholder.jpg';

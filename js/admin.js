@@ -306,7 +306,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Add Bar
     addBarBtn.addEventListener('click', () => {
-        barModal.classList.add('active');
+        // Redirect to Bar Management System (New Mode)
+        window.location.href = 'bms.html';
     });
 
     closeBarBtn.addEventListener('click', () => {

@@ -957,10 +957,20 @@ figure.article-figure figcaption {
 /* Responsive Grids */
 .magazine-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
     padding: 0;
     /* Remove legacy padding */
+}
+
+#bars-grid {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+@media (max-width: 768px) {
+    #bars-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .magazine-grid .grid-item {
