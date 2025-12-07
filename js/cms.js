@@ -135,6 +135,21 @@ class ImageFigure extends BlockEmbed {
             caption: caption ? caption.innerText : ''
         };
     }
+
+    static formats(node) {
+        const formats = {};
+        if (node.hasAttribute('class')) {
+            const className = node.getAttribute('class');
+            if (className.includes('ql-align-center')) {
+                formats.align = 'center';
+            } else if (className.includes('ql-align-right')) {
+                formats.align = 'right';
+            } else if (className.includes('ql-align-justify')) {
+                formats.align = 'justify';
+            }
+        }
+        return formats;
+    }
 }
 
 ImageFigure.blotName = 'imageFigure';
