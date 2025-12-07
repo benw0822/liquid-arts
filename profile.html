@@ -39,15 +39,47 @@
             </div>
 
             <div
-                style="background: var(--bg-secondary); padding: 2rem; border-radius: 8px; border: 1px solid var(--border-color);">
-                <div id="profile-loading">Loading...</div>
+                style="background: var(--bg-secondary); padding: 2rem; border-radius: 8px; border: 1px solid var(--border-color); text-align: left;">
+                <div id="profile-loading" style="text-align: center;">Loading...</div>
+
                 <div id="profile-content" style="display: none;">
-                    <img id="profile-avatar" src="" alt="Avatar"
-                        style="width: 100px; height: 100px; border-radius: 50%; margin-bottom: 1rem; border: 2px solid var(--accent-color);">
-                    <h3 id="profile-name" style="margin-bottom: 0.5rem; font-family: var(--font-display);">User Name
-                    </h3>
-                    <p id="profile-email" style="color: var(--text-secondary); margin-bottom: 1.5rem;">user@example.com
-                    </p>
+                    <!-- User Info & Edit Form -->
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 1.5rem;">
+
+                        <!-- Avatar Section -->
+                        <div style="text-align: center;">
+                            <img id="profile-avatar" src="" alt="Avatar"
+                                style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-color); margin-bottom: 1rem;">
+                            <br>
+                            <label style="font-size: 0.9rem; color: #666; display: block; margin-bottom: 0.5rem;">Avatar
+                                URL (1080x1080 recommended)</label>
+                            <input type="text" id="edit-avatar-url" placeholder="Paste image URL..."
+                                class="search-input" style="width: 100%; max-width: 300px; margin-bottom: 1rem;">
+                        </div>
+
+                        <!-- Info Section -->
+                        <div style="width: 100%; max-width: 400px;">
+                            <label
+                                style="font-size: 0.9rem; color: #666; display: block; margin-bottom: 0.5rem;">Nickname</label>
+                            <input type="text" id="edit-nickname" class="search-input"
+                                style="width: 100%; margin-bottom: 1.5rem;" placeholder="Enter nickname">
+
+                            <label
+                                style="font-size: 0.9rem; color: #666; display: block; margin-bottom: 0.5rem;">Email</label>
+                            <input type="text" id="profile-email" disabled class="search-input"
+                                style="width: 100%; margin-bottom: 1.5rem; background: #eee; cursor: not-allowed;">
+
+                            <!-- Action Buttons -->
+                            <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1rem;">
+                                <button onclick="updateProfile()" class="btn"
+                                    style="background: var(--bg-red); color: white; border: none; padding: 10px 30px;">Save
+                                    Changes</button>
+                                <button onclick="handleLogout()" class="btn"
+                                    style="background: #333; color: white; border: none; padding: 10px 30px;">Sign
+                                    Out</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -87,37 +119,94 @@
             const loading = document.getElementById('profile-loading');
 
             // --- Render Profile Info ---
-            document.getElementById('profile-email').textContent = user.email;
+            document.getElementById('profile-email').value = user.email; // Updated to use input value
+
+            // Populate Inputs
             if (user.user_metadata) {
-                if (user.user_metadata.full_name) document.getElementById('profile-name').textContent = user.user_metadata.full_name;
-                if (user.user_metadata.avatar_url) document.getElementById('profile-avatar').src = user.user_metadata.avatar_url;
-                else document.getElementById('profile-avatar').src = 'assets/logo_vertical.png';
+                const nickname = user.user_metadata.full_name || '';
+                const avatar = user.user_metadata.avatar_url || 'assets/logo_vertical.png';
+
+                document.getElementById('edit-nickname').value = nickname;
+                document.getElementById('edit-avatar-url').value = user.user_metadata.avatar_url || '';
+                document.getElementById('profile-avatar').src = avatar;
             }
 
-            // Admin Button Logic
+            // --- Handlers (Global Scope for onclick) ---
+            window.updateProfile = async () => {
+                const newNickname = document.getElementById('edit-nickname').value;
+                const newAvatar = document.getElementById('edit-avatar-url').value;
+                const btn = document.querySelector('button[onclick="updateProfile()"]');
+                const originalText = btn.textContent;
+
+                try {
+                    btn.textContent = 'Saving...';
+                    btn.disabled = true;
+
+                    const updates = {
+                        full_name: newNickname,
+                        avatar_url: newAvatar
+                    };
+
+                    const { error } = await supabase.auth.updateUser({
+                        data: updates
+                    });
+
+                    if (error) throw error;
+
+                    // Update UI immediately (optimistic)
+                    document.getElementById('profile-avatar').src = newAvatar || 'assets/logo_vertical.png';
+                    alert('Profile updated successfully!');
+
+                } catch (error) {
+                    console.error('Update Error:', error);
+                    alert('Failed to update profile: ' + error.message);
+                } finally {
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                }
+            };
+
+            window.handleLogout = async () => {
+                try {
+                    await supabase.auth.signOut();
+                    window.location.href = 'index.html';
+                } catch (error) {
+                    console.error('Logout Error:', error);
+                    alert('Error logging out');
+                }
+            };
+
+            // Admin Button Logic (Modified for new layout if needed, inserting after action buttons if preferred, keeping as is for now)
             const { data: dbUser } = await supabase.from('users').select('roles').eq('id', user.id).single();
             const roles = dbUser ? (dbUser.roles || []) : [];
             if (roles.includes('admin') || roles.includes('editor') || roles.includes('barOwner')) {
                 const btnContainer = document.createElement('div');
-                btnContainer.style.marginTop = '1.5rem';
+                btnContainer.style.marginTop = '1rem';
+                btnContainer.style.textAlign = 'center'; // Center align
                 const link = document.createElement('a');
                 link.href = 'admin.html';
                 link.className = 'btn';
                 link.style.display = 'inline-block';
                 link.style.textDecoration = 'none';
-                link.textContent = roles.includes('admin') ? 'Admin Dashboard' : 'Manage Content';
+                link.style.background = '#000'; // distinct from others
+                link.style.color = '#fff';
+                link.textContent = roles.includes('admin') ? 'Go to Admin Dashboard' : 'Manage Content';
                 btnContainer.appendChild(link);
-                document.getElementById('profile-name').parentNode.insertBefore(btnContainer, document.getElementById('profile-email').nextSibling);
+                // Insert after info section
+                document.querySelector('#profile-content > div > div:nth-child(2)').appendChild(btnContainer);
             }
 
             loading.style.display = 'none';
             profileContent.style.display = 'block';
 
-            document.getElementById('logout-btn').addEventListener('click', async (e) => {
-                e.preventDefault();
-                await supabase.auth.signOut();
-                window.location.href = 'index.html';
-            });
+            // Navbar Logout (Keep for compatibility)
+            const navLogout = document.getElementById('logout-btn');
+            if (navLogout) {
+                navLogout.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    window.handleLogout();
+                });
+            }
 
             // --- Load Saved Bars (Masonry) ---
             await window.initAuthAndSaved();
@@ -163,13 +252,13 @@
                 const { data: allArticles } = await supabase
                     .from('articles')
                     .select('id, title, excerpt, cover_image, published_at, created_at, date, image');
-                
+
                 if (allArticles) {
                     const savedArticles = allArticles.filter(a => window.savedArticleIds.has(a.id));
                     if (savedArticles.length > 0) {
                         savedArticlesGrid.innerHTML = savedArticles.map(a => window.createArticleCard(a)).join('');
                     } else {
-                         savedArticlesGrid.innerHTML = '<p style="text-align:center; color: #666; width: 100%;">No saved articles found.</p>';
+                        savedArticlesGrid.innerHTML = '<p style="text-align:center; color: #666; width: 100%;">No saved articles found.</p>';
                     }
                 }
             } else {
