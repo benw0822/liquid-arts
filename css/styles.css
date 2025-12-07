@@ -1074,3 +1074,15 @@ figure.article-figure figcaption {
 .filter-select option {
     color: #333;
 }
+
+/* --- Section Title (Global Large Header) --- */
+.section-title {
+    font-family: var(--font-display);
+    font-size: 3rem;
+    color: #1b1b1b;
+    margin: 0 0 2rem 0;
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    text-align: center;
+}
