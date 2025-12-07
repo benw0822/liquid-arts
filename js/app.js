@@ -395,11 +395,13 @@ document.addEventListener('DOMContentLoaded', () => {
                             <h3 class="section-title" style="text-align: center; font-size: 1.5rem; margin-bottom: 1.5rem; font-family: var(--font-display);">Awards</h3>
                             <div style="display: flex; flex-direction: column; gap: 12px;">
                                 ${bar.bar_awards.sort((a, b) => (b.year || 0) - (a.year || 0)).map(award => `
-                                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 8px;">
-                                        <span style="font-weight: 600; color: #333;">${award.name}</span>
-                                        <span style="color: #666; font-size: 0.9rem;">
-                                            ${award.rank ? `<span style="color: var(--bg-red); font-weight: bold; margin-right: 5px;">${award.rank}</span>` : ''}
-                                            ${award.year || ''}
+                                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 8px; font-weight: 700; color: #333;">
+                                        <div style="display: flex; align-items: center;">
+                                            <span style="margin-right: 10px;">${award.year || ''}</span>
+                                            <span>${award.name}</span>
+                                        </div>
+                                        <span>
+                                            ${award.rank ? `<span style="color: var(--bg-red);">${award.rank}</span>` : ''}
                                         </span>
                                     </div>
                                 `).join('')}
