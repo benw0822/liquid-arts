@@ -207,7 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             galleryHtml = `
                 <div class="content-card">
-                    <h3 class="section-title" style="text-align: center; font-size: 1.5rem; margin-bottom: 1rem; font-family: var(--font-display);">Gallery</h3>
+                    <h3 class="section-title">Gallery</h3>
                     <div class="gallery-grid">
                         ${sortedImages.map((img, index) => `
                             <div class="grid-item" style="grid-column: span 1; margin-bottom: 0;">
@@ -257,7 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (bar.article_bars && bar.article_bars.length > 0) {
             articlesHtml = `
                 <div class="content-card">
-                    <h3 class="section-title" style="text-align: center; font-size: 1.5rem; margin-bottom: 1rem; font-family: var(--font-display);">Story</h3>
+                    <h3 class="section-title">Story</h3>
                     <div class="magazine-grid">
                         ${bar.article_bars.map(ba => createArticleCard(ba.article)).join('')}
                     </div>
@@ -274,7 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             signaturesHtml = `
                 <div class="content-card">
-                    <h3 class="section-title" style="text-align: center; font-size: 1.5rem; margin-bottom: 1.5rem; font-family: var(--font-display);">Signature</h3>
+                    <h3 class="section-title">Signature</h3>
                     
                     <div class="signature-carousel-container" style="position: relative; overflow: hidden;">
                         <div class="signature-track" id="sig-track-${bar.id}" style="display: flex; transition: transform 0.3s ease-in-out;">
@@ -334,7 +334,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
 
                     <div id="about-card" class="content-card" style="display: flex; flex-direction: column;">
-                        <h2 style="text-align: center; font-size: 1.5rem; margin-bottom: 1.5rem; font-family: var(--font-display); flex-shrink: 0;">About</h2>
+                        <h2 class="section-title" style="flex-shrink: 0;">About</h2>
                         
                         <p style="line-height: 1.6; margin-bottom: 1.5rem;">
                             ${bar.description || `Experience the finest mixology at ${bar.title}. Known for its ${bar.vibe} atmosphere, this spot in ${bar.location} offers a curated selection of cocktails and spirits.`}
@@ -392,7 +392,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         <div style="margin-bottom: 0; margin-top: auto;">
                             <span class="info-label" style="font-size: 0.9rem; display: block; text-align: center;">Address</span>
-                            <p style="margin-bottom: 1rem; text-align: center;">${bar.address || bar.address_en || bar.location}</p>
+                            <p style="margin-bottom: 1rem; text-align: center; font-weight: bold;">${bar.address || bar.address_en || bar.location}</p>
                             
                             <div id="detail-map" style="height: 150px; width: 100%; border-radius: 8px; margin-bottom: 1rem; z-index: 1;"></div>
                             
@@ -409,7 +409,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <!-- Editorial Review Card -->
                     ${bar.editorial_review ? `
                         <div class="content-card" style="background-color: var(--bg-red); color: white; border: none;">
-                            <h3 class="section-title" style="text-align: center; font-size: 1.5rem; margin-bottom: 2rem; font-family: var(--font-display); color: white; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 15px;">Liquid Arts Review</h3>
+                            <h3 class="section-title" style="color: white; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 15px;">Liquid Arts Review</h3>
                             <p style="font-style: italic; font-size: 1.1rem; line-height: 1.6; margin-bottom: 1.5rem; text-align: center;">"${bar.editorial_review}"</p>
                             ${bar.editorial_rating ? `
                                 <div style="text-align: center;">
@@ -424,7 +424,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     ${bar.bar_awards && bar.bar_awards.length > 0 ? `
                         <div class="content-card">
-                            <h3 class="section-title" style="text-align: center; font-size: 1.5rem; margin-bottom: 1.5rem; font-family: var(--font-display); border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 15px;">Awards</h3>
+                            <h3 class="section-title" style="border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 15px;">Awards</h3>
                             <div style="display: flex; flex-direction: column; gap: 12px;">
                                 ${bar.bar_awards.sort((a, b) => (b.year || 0) - (a.year || 0)).map(award => `
                                     <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; font-weight: 700; color: #333;">
@@ -442,7 +442,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     ` : ''}
 
                     <div class="content-card">
-                        <h3 class="section-title" style="text-align: center; font-size: 1.5rem; margin-bottom: 1.5rem; font-family: var(--font-display);">Opening Hours</h3>
+                        <h3 class="section-title">Opening Hours</h3>
                         
                         <div style="margin-bottom: 1.5rem;">
                             ${formatOpeningHours(bar.opening_hours || 'Mon-Sun: 18:00 - 02:00')}
@@ -458,8 +458,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     ${signaturesHtml}
                     
-                    ${galleryHtml}
                     ${articlesHtml}
+                    ${galleryHtml}
                 </div>
             </div>
         `;

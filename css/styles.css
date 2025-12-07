@@ -730,6 +730,15 @@ figure.article-figure figcaption {
     border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
+.content-card .section-title {
+    text-align: center;
+    font-size: 1.5rem;
+    font-family: var(--font-display);
+    margin-bottom: 1.5rem;
+    /* Standardized spacing */
+    color: var(--text-primary);
+}
+
 .sidebar-info .content-card {
     padding: 25px;
 }
@@ -884,19 +893,44 @@ figure.article-figure figcaption {
 
 /* Lightbox Navigation */
 .lightbox-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
     background: none;
     border: none;
-    color: white;
+    color: var(--bg-red);
+    /* Red arrow */
     font-size: 3rem;
+    /* Increased size since it's just an icon now */
     cursor: pointer;
-    padding: 0 20px;
-    user-select: none;
-    transition: color 0.3s;
+    transition: transform 0.3s;
     z-index: 2001;
+    padding: 10px;
+    /* Hit area */
 }
 
 .lightbox-nav:hover {
-    color: var(--bg-red);
+    transform: translateY(-50%) scale(1.2);
+}
+
+.lightbox-nav.prev {
+    left: 15%;
+    /* Moving closer to middle (away from edge) */
+}
+
+.lightbox-nav.next {
+    right: 15%;
+    /* Moving closer to middle */
+}
+
+@media (max-width: 768px) {
+    .lightbox-nav.prev {
+        left: 5%;
+    }
+
+    .lightbox-nav.next {
+        right: 5%;
+    }
 }
 
 /* Responsive Grids */
