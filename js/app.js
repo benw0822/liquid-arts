@@ -944,7 +944,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) { console.warn('Map init error', e); }
     }
 
-    async function fetchCityFromCoordsGlobal(lat, lng) {
+    // --- Helper: Reverse Geocoding (Global) ---
+    window.fetchCityFromCoordsGlobal = async function (lat, lng) {
         if (!lat || !lng) return '';
         try {
             const key = `city_${lat}_${lng}`;
@@ -963,7 +964,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (e) { console.error('City fetch error', e); }
         return '';
-    }
+    };
 
     // Expose for Profile Page reuse
     window.createBarCard = function (bar, city = null) {
