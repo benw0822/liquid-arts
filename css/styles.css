@@ -844,20 +844,20 @@ figure.article-figure figcaption {
 
 /* CMS Editor Alignment Fixes */
 .ql-editor .article-figure {
-    display: table;
-    /* Allows margin: auto to center the figure block */
+    display: table !important;
+    width: fit-content !important;
     margin-bottom: 1em;
     max-width: 100%;
 }
 
 .ql-editor .article-figure.ql-align-center {
-    margin-left: auto;
-    margin-right: auto;
+    margin-left: auto !important;
+    margin-right: auto !important;
 }
 
 .ql-editor .article-figure.ql-align-right {
-    margin-left: auto;
-    margin-right: 0;
+    margin-left: auto !important;
+    margin-right: 0 !important;
 }
 
 .ql-editor .article-figure img {
