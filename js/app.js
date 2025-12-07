@@ -888,7 +888,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div style="padding: 0 1.5rem 1.5rem 1.5rem; text-align: center; flex: 1; display: flex; flex-direction: column;">
                 
                 ${bar.editorial_review ? `
-                    <div style="margin-bottom: 1.2rem; padding: 15px; background: var(--bg-red); color: white; border-radius: 4px; text-align: center;">
+                    <div style="margin-bottom: 1.2rem; padding: 15px; background: var(--bg-red); color: white; border-radius: 12px; text-align: center;">
                          <h4 style="margin: 0 0 5px 0; font-family: var(--font-display); font-size: 1rem; letter-spacing: 0.05em; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 5px; display: inline-block;">Liquid Arts Review</h4>
                          <p style="font-size: 0.9rem; font-style: italic; margin: 10px 0; line-height: 1.5;">"${bar.editorial_review}"</p>
                          ${bar.editorial_rating ? `
@@ -901,36 +901,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 ` : ''}
 
                  <!-- Description -->
-                <p style="font-size: 0.95rem; color: #555; line-height: 1.6; margin-bottom: 1.2rem; display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden;">
+                <p style="font-size: 0.95rem; color: #555; line-height: 1.6; margin-bottom: 1rem; display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden;">
                     ${description}
                 </p>
 
-                 <!-- Rating & Price -->
-                <div style="margin-bottom: 1.2rem; display: flex; flex-direction: column; align-items: center; gap: 5px;">
-                    <div style="display: flex; align-items: center; justify-content: center; gap: 5px;">
-                        <span style="font-weight: 600; color: #555; font-size: 0.9rem;">Google Rating:</span>
-                        <span style="font-weight: 600; color: #333;">${rating}</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="#FFD700" viewBox="0 0 16 16"><path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/></svg>
-                        <span style="color:#888; font-size:0.9em; display: flex; align-items: center; gap: 3px;">
-                            (${reviewCount})
-                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7Zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5.784 6A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216ZM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/></svg>
-                        </span>
-                    </div>
-                    <div style="font-size: 0.9rem;">
-                        <span style="font-weight: 600; color: #555;">Price:</span> <span style="font-weight: 600; color: #333;">${price}</span>
-                    </div>
+                <!-- Explore Button -->
+                <a href="bar-details.html?id=${bar.id}" class="btn" style="display: block; width: fit-content; margin: 0 auto 1.2rem auto; padding: 6px 20px; font-size: 0.9rem; border-radius: 20px; border: 1px solid #ddd; color: #555; background: #fff; transition: all 0.3s;" onmouseover="this.style.background='#f5f5f5'; this.style.color='#333'" onmouseout="this.style.background='#fff'; this.style.color='#555'">Explore</a>
+
+                 <!-- Rating & Price (Compact) -->
+                <div style="margin-bottom: 1.2rem; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.8rem;">
+                    <span style="font-weight: 600; color: #666;">Google Rating:</span>
+                    <strong style="color: #333;">${rating}</strong>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="#FFD700" viewBox="0 0 16 16"><path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/></svg>
+                    <span style="color:#888; display: flex; align-items: center; gap: 2px;">
+                        ${reviewCount}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="currentColor" viewBox="0 0 16 16"><path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7Zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5.784 6A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216ZM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/></svg>
+                    </span>
+                    <span style="color: #ddd;">|</span>
+                    <span style="font-weight: 600; color: #666;">Price:</span>
+                    <strong style="color: #333;">${price}</strong>
                 </div>
 
                 <!-- Address -->
-                <p style="font-size: 0.9rem; color: #333; margin-bottom: 1rem; font-weight: 500;">
+                <p style="font-size: 0.85rem; color: #666; margin-bottom: 1rem;">
                     ${address}
                 </p>
-
-                <!-- Map Container (Initialized by JS) -->
-                <div id="card-map-${bar.id}" class="card-map" data-lat="${bar.lat}" data-lng="${bar.lng}" style="height: 150px; width: 100%; border-radius: 4px; margin-bottom: 1rem; background: #eee;"></div>
-
-                <!-- Button -->
-                 <a href="${mapUrl}" target="_blank" class="btn" style="margin-top: auto; width: 100%; text-align: center; background-color: var(--bg-red); color: white; padding: 12px 0; border-radius: 4px; text-decoration: none; font-size: 1rem; font-weight: 600; transition: background 0.3s;">Open Google Maps</a>
+                
+                <!-- Map & Button (Merged) -->
+                <div style="margin-top: auto;">
+                    <div id="card-map-${bar.id}" class="card-map" data-lat="${bar.lat}" data-lng="${bar.lng}" style="height: 150px; width: 100%; border-radius: 4px 4px 0 0; margin-bottom: 0; background: #eee;"></div>
+                    <a href="${mapUrl}" target="_blank" class="btn" style="display: block; width: 100%; text-align: center; background-color: var(--bg-red); color: white; padding: 10px 0; border-radius: 0 0 4px 4px; text-decoration: none; font-size: 0.9rem; font-weight: 600; transition: background 0.3s; margin-top: 0;">Open Google Maps</a>
+                </div>
             </div>
         </div>
     `;

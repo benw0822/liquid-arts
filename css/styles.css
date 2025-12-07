@@ -964,12 +964,27 @@ figure.article-figure figcaption {
 }
 
 #bars-grid {
-    grid-template-columns: repeat(3, 1fr);
+    display: block;
+    column-count: 3;
+    column-gap: 30px;
+}
+
+#bars-grid .grid-item {
+    display: inline-block;
+    width: 100%;
+    break-inside: avoid;
+    margin-bottom: 30px;
+}
+
+@media (max-width: 1024px) {
+    #bars-grid {
+        column-count: 2;
+    }
 }
 
 @media (max-width: 768px) {
     #bars-grid {
-        grid-template-columns: 1fr;
+        column-count: 1;
     }
 }
 
