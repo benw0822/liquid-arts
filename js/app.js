@@ -842,7 +842,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const map = L.map(elId, { zoomControl: false, scrollWheelZoom: false, dragging: false, doubleClickZoom: false, touchZoom: false }).setView([lat, lng], 15);
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 19 }).addTo(map);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 19 }).addTo(map);
 
             const customIcon = L.divIcon({
                 className: 'custom-map-marker',
@@ -928,7 +928,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </p>
 
                 <!-- Explore Button -->
-                <a href="bar-details.html?id=${bar.id}" class="btn" style="display: block; width: fit-content; margin: 0 auto 1.2rem auto; padding: 6px 20px; font-size: 0.9rem; border-radius: 20px; border: 1px solid #ddd; color: #555; background: #fff; transition: all 0.3s;" onmouseover="this.style.background='#f5f5f5'; this.style.color='#333'" onmouseout="this.style.background='#fff'; this.style.color='#555'">Explore</a>
+                <a href="bar-details.html?id=${bar.id}" class="btn" style="display: block; width: fit-content; margin: 0 auto 1.2rem auto; padding: 6px 20px; font-size: 0.9rem; border-radius: 20px; border: none; color: white; background: var(--bg-red); transition: all 0.3s; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">Explore</a>
 
                  <!-- Rating & Price (Compact) -->
                 <div style="margin-bottom: 1.2rem; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.8rem;">
