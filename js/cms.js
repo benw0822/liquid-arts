@@ -148,6 +148,14 @@ class ImageFigure extends BlockEmbed {
                 formats.align = 'justify';
             }
         }
+        if (node.hasAttribute('style')) {
+            const style = node.getAttribute('style');
+            if (style.includes('text-align: center') || (style.includes('margin-left: auto') && style.includes('margin-right: auto'))) {
+                formats.align = 'center';
+            } else if (style.includes('text-align: right')) {
+                formats.align = 'right';
+            }
+        }
         return formats;
     }
 
