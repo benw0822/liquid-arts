@@ -999,6 +999,32 @@ figure.article-figure figcaption {
     gap: 10px;
 }
 
+/* Reusable Masonry Layout */
+.masonry-container {
+    display: block;
+    column-count: 3;
+    column-gap: 30px;
+}
+
+.masonry-container .grid-item {
+    display: inline-block;
+    width: 100%;
+    break-inside: avoid;
+    margin-bottom: 30px;
+}
+
+@media (max-width: 1024px) {
+    .masonry-container {
+        column-count: 2;
+    }
+}
+
+@media (max-width: 768px) {
+    .masonry-container {
+        column-count: 1;
+    }
+}
+
 @media (max-width: 480px) {
     .magazine-grid {
         grid-template-columns: 1fr;
