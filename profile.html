@@ -156,6 +156,25 @@
             } else {
                 savedGrid.innerHTML = '<p style="text-align:center; color: #666; width: 100%;">You haven\'t saved any bars yet.</p>';
             }
+
+            // --- Load Saved Articles ---
+            const savedArticlesGrid = document.getElementById('saved-articles-grid');
+            if (window.savedArticleIds.size > 0) {
+                const { data: allArticles } = await supabase
+                    .from('articles')
+                    .select('id, title, excerpt, cover_image, published_at, created_at, date, image');
+                
+                if (allArticles) {
+                    const savedArticles = allArticles.filter(a => window.savedArticleIds.has(a.id));
+                    if (savedArticles.length > 0) {
+                        savedArticlesGrid.innerHTML = savedArticles.map(a => window.createArticleCard(a)).join('');
+                    } else {
+                         savedArticlesGrid.innerHTML = '<p style="text-align:center; color: #666; width: 100%;">No saved articles found.</p>';
+                    }
+                }
+            } else {
+                savedArticlesGrid.innerHTML = '<p style="text-align:center; color: #666; width: 100%;">You haven\'t saved any articles yet.</p>';
+            }
         });
     </script>
 </body>

@@ -11,16 +11,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Save/Favorite Logic (Supabase) ---
     window.savedBarIds = new Set();
+    window.savedArticleIds = new Set();
     window.currentUser = null;
 
+    // 1. Auth & Saved Init (Global)
     window.initAuthAndSaved = async () => {
         const { data: { session } } = await supabase.auth.getSession();
         window.currentUser = session?.user || null;
+        window.savedBarIds = new Set();
+        window.savedArticleIds = new Set();
+
         if (window.currentUser) {
-            const { data } = await supabase.from('saved_bars').select('bar_id');
-            if (data) window.savedBarIds = new Set(data.map(r => r.bar_id));
+            // Fetch Saved Bars
+            const { data: bars } = await supabase.from('saved_bars').select('bar_id');
+            if (bars) window.savedBarIds = new Set(bars.map(r => r.bar_id));
+
+            // Fetch Saved Articles
+            const { data: articles } = await supabase.from('saved_articles').select('article_id');
+            if (articles) window.savedArticleIds = new Set(articles.map(r => r.article_id));
         }
     };
+
 
     window.toggleSaveBar = async (id, event) => {
         if (event) { event.preventDefault(); event.stopPropagation(); }
@@ -48,6 +59,36 @@ document.addEventListener('DOMContentLoaded', () => {
             await supabase.from('saved_bars').insert({ user_id: window.currentUser.id, bar_id: id });
         } else {
             await supabase.from('saved_bars').delete().match({ user_id: window.currentUser.id, bar_id: id });
+        }
+    };
+
+    // Toggle Saved Article
+    window.toggleSaveArticle = async (id, event) => {
+        if (event) { event.preventDefault(); event.stopPropagation(); }
+
+        if (!window.currentUser) {
+            alert('Please log in to save articles.');
+            return;
+        }
+
+        const isSaved = window.savedArticleIds.has(id);
+        const newStatus = !isSaved;
+
+        // Optimistic UI Update
+        if (newStatus) window.savedArticleIds.add(id);
+        else window.savedArticleIds.delete(id);
+
+        document.querySelectorAll(`.save-article-btn-${id}`).forEach(btn => {
+            const icon = btn.querySelector('svg');
+            icon.setAttribute('fill', newStatus ? '#ef4444' : 'none');
+            icon.setAttribute('stroke', newStatus ? '#ef4444' : '#333');
+        });
+
+        // DB Update
+        if (newStatus) {
+            await supabase.from('saved_articles').insert({ user_id: window.currentUser.id, article_id: id });
+        } else {
+            await supabase.from('saved_articles').delete().match({ user_id: window.currentUser.id, article_id: id });
         }
     };
 
@@ -785,9 +826,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 5. Articles List
     window.initArticlesList = async () => {
+        await initAuthAndSaved();
         const articles = await fetchArticles();
         const grid = document.getElementById('articles-list-grid');
-        grid.innerHTML = articles.map(article => createArticleCard(article)).join('');
+        if (grid) {
+            grid.innerHTML = articles.map(article => createArticleCard(article)).join('');
+        }
     };
 
     // 6. Article Details
@@ -1057,19 +1101,32 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
     `;
     }
-    function createArticleCard(article) {
+    // Expose for Profile Page
+    window.createArticleCard = function (article) {
         // Handle both mock data (image, date) and real data (cover_image, published_at)
         const imgUrl = article.cover_image || article.image || 'assets/placeholder.jpg';
         const dateStr = new Date(article.published_at || article.created_at || article.date).toLocaleDateString();
 
+        // Check saved state
+        const isSaved = window.savedArticleIds ? window.savedArticleIds.has(article.id) : false;
+
         return `
-            <a href="article-details.html?id=${article.id}" class="art-card grid-item">
-                <img src="${imgUrl}" alt="${article.title}" class="art-card-image" style="width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 4px;">
-                <div class="art-card-meta" style="margin-bottom: 0.2rem; margin-top: 0.5rem; font-size: 0.85rem; color: #888;">${dateStr}</div>
-                <h3 class="art-card-title" style="font-size: 1.4rem; margin-top: 0;">${article.title}</h3>
-                <p class="serif-caption" style="font-size: 1rem; margin-top: 0.5rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">${article.excerpt || ''}</p>
+        <div class="art-card grid-item" style="position: relative; display: flex; flex-direction: column; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+             <!-- Save Button -->
+             <button class="save-article-btn-${article.id}" onclick="toggleSaveArticle(${article.id}, event)" style="position: absolute; top: 15px; right: 15px; z-index: 20; background: white; border: none; border-radius: 50%; width: 36px; height: 36px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="${isSaved ? '#ef4444' : 'none'}" stroke="${isSaved ? '#ef4444' : '#333'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+             </button>
+
+            <a href="article-details.html?id=${article.id}" style="text-decoration: none; color: inherit; display: block;">
+                <img src="${imgUrl}" alt="${article.title}" class="art-card-image" style="width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 0;">
+                <div style="padding: 1.5rem;">
+                    <div class="art-card-meta" style="margin-bottom: 0.5rem; font-size: 0.85rem; color: #888;">${dateStr}</div>
+                    <h3 class="art-card-title" style="font-size: 1.4rem; margin: 0 0 0.5rem 0; font-family: var(--font-display);">${article.title}</h3>
+                    <p class="serif-caption" style="font-size: 1rem; margin: 0; color: #555; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">${article.excerpt || ''}</p>
+                </div>
             </a>
-        `;
+        </div>
+    `;
     }
 
     // --- Auth Logic (Member) ---
