@@ -117,12 +117,16 @@ class ImageFigure extends BlockEmbed {
 
         const caption = document.createElement('figcaption');
         caption.innerText = value.caption || '';
-        // caption.setAttribute('contenteditable', 'true'); // Removed to prevent accidental deletion
         caption.style.cursor = 'pointer';
         caption.title = 'Click to edit caption';
 
         node.appendChild(img);
         node.appendChild(caption);
+
+        // Apply alignment from value if present
+        if (value.align) {
+            node.classList.add(`ql-align-${value.align}`);
+        }
 
         return node;
     }
@@ -130,32 +134,35 @@ class ImageFigure extends BlockEmbed {
     static value(node) {
         const img = node.querySelector('img');
         const caption = node.querySelector('figcaption');
+        let align = null;
+
+        // Extract alignment from class
+        if (node.classList.contains('ql-align-center')) align = 'center';
+        else if (node.classList.contains('ql-align-right')) align = 'right';
+        else if (node.classList.contains('ql-align-justify')) align = 'justify';
+
+        // Extract alignment from style (fallback)
+        if (!align && node.hasAttribute('style')) {
+            const style = node.getAttribute('style');
+            if (style.includes('text-align: center') || (style.includes('margin-left: auto') && style.includes('margin-right: auto'))) {
+                align = 'center';
+            } else if (style.includes('text-align: right')) {
+                align = 'right';
+            }
+        }
+
         return {
             url: img.getAttribute('src'),
-            caption: caption ? caption.innerText : ''
+            caption: caption ? caption.innerText : '',
+            align: align
         };
     }
 
     static formats(node) {
         const formats = {};
-        if (node.hasAttribute('class')) {
-            const className = node.getAttribute('class');
-            if (className.includes('ql-align-center')) {
-                formats.align = 'center';
-            } else if (className.includes('ql-align-right')) {
-                formats.align = 'right';
-            } else if (className.includes('ql-align-justify')) {
-                formats.align = 'justify';
-            }
-        }
-        if (node.hasAttribute('style')) {
-            const style = node.getAttribute('style');
-            if (style.includes('text-align: center') || (style.includes('margin-left: auto') && style.includes('margin-right: auto'))) {
-                formats.align = 'center';
-            } else if (style.includes('text-align: right')) {
-                formats.align = 'right';
-            }
-        }
+        if (node.classList.contains('ql-align-center')) formats.align = 'center';
+        else if (node.classList.contains('ql-align-right')) formats.align = 'right';
+        else if (node.classList.contains('ql-align-justify')) formats.align = 'justify';
         return formats;
     }
 
