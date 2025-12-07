@@ -200,18 +200,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // --- Gallery ---
         let galleryHtml = '';
+        window.currentGalleryImages = []; // Global store
         if (bar.bar_images && bar.bar_images.length > 0) {
             const sortedImages = bar.bar_images.sort((a, b) => a.display_order - b.display_order);
+            window.currentGalleryImages = sortedImages.map(img => img.image_url);
+
             galleryHtml = `
                 <div class="content-card">
                     <h3 class="section-title" style="text-align: center; font-size: 1.5rem; margin-bottom: 0.5rem; font-family: var(--font-display);">Gallery</h3>
                     <div class="magazine-grid" style="grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px;">
-                        ${sortedImages.map(img => `
+                        ${sortedImages.map((img, index) => `
                             <div class="grid-item" style="grid-column: span 1; margin-bottom: 0;">
                                 <img src="${img.image_url}" alt="${img.caption || ''}" 
                                      style="width:100%; height:150px; object-fit:cover; border-radius:4px; cursor: pointer; transition: opacity 0.2s;"
                                      onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1"
-                                     onclick="openLightbox('${img.image_url}')">
+                                     onclick="openLightbox(${index})">
                             </div>
                         `).join('')}
                     </div>
@@ -220,11 +223,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // --- Lightbox Functions ---
-        window.openLightbox = (src) => {
+        window.currentLightboxIndex = 0;
+
+        window.openLightbox = (index) => {
             const modal = document.getElementById('lightbox-modal');
             const img = document.getElementById('lightbox-img');
-            modal.style.display = "flex";
-            img.src = src;
+            if (window.currentGalleryImages && window.currentGalleryImages[index]) {
+                window.currentLightboxIndex = index;
+                img.src = window.currentGalleryImages[index];
+                modal.style.display = "flex";
+            }
+        };
+
+        window.changeLightboxImage = (direction) => {
+            if (!window.currentGalleryImages || window.currentGalleryImages.length === 0) return;
+
+            let newIndex = window.currentLightboxIndex + direction;
+            // Loop functionality
+            if (newIndex < 0) newIndex = window.currentGalleryImages.length - 1;
+            if (newIndex >= window.currentGalleryImages.length) newIndex = 0;
+
+            window.currentLightboxIndex = newIndex;
+            const img = document.getElementById('lightbox-img');
+            img.src = window.currentGalleryImages[newIndex];
         };
 
         window.closeLightbox = () => {
@@ -277,11 +298,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                         
                         ${hasMultiple ? `
-                            <button onclick="prevSignature('${bar.id}')" style="position: absolute; top: 50%; left: 10px; transform: translateY(-50%); background: rgba(255,255,255,0.8); border: none; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; z-index: 10;">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                            <button onclick="prevSignature('${bar.id}')" style="position: absolute; top: 50%; left: 0; transform: translateY(-50%); background: none; border: none; cursor: pointer; z-index: 10; color: var(--bg-red);">
+                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
                             </button>
-                            <button onclick="nextSignature('${bar.id}')" style="position: absolute; top: 50%; right: 10px; transform: translateY(-50%); background: rgba(255,255,255,0.8); border: none; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; z-index: 10;">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            <button onclick="nextSignature('${bar.id}')" style="position: absolute; top: 50%; right: 0; transform: translateY(-50%); background: none; border: none; cursor: pointer; z-index: 10; color: var(--bg-red);">
+                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
                             </button>
                         ` : ''}
                     </div>
@@ -737,9 +758,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         return `
             <a href="article-details.html?id=${article.id}" class="art-card grid-item">
-                <img src="${imgUrl}" alt="${article.title}" class="art-card-image" style="height: 200px; object-fit: cover;">
-                <div class="art-card-meta" style="margin-bottom: 0.5rem;">${dateStr}</div>
-                <h3 class="art-card-title" style="font-size: 1.5rem;">${article.title}</h3>
+                <img src="${imgUrl}" alt="${article.title}" class="art-card-image" style="width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 4px;">
+                <div class="art-card-meta" style="margin-bottom: 0.2rem; margin-top: 0.5rem; font-size: 0.85rem; color: #888;">${dateStr}</div>
+                <h3 class="art-card-title" style="font-size: 1.4rem; margin-top: 0;">${article.title}</h3>
                 <p class="serif-caption" style="font-size: 1rem; margin-top: 0.5rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">${article.excerpt || ''}</p>
             </a>
         `;

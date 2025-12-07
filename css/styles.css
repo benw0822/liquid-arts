@@ -881,3 +881,20 @@ figure.article-figure figcaption {
     font-style: italic;
     color: #666;
 }
+
+/* Lightbox Navigation */
+.lightbox-nav {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 3rem;
+    cursor: pointer;
+    padding: 0 20px;
+    user-select: none;
+    transition: color 0.3s;
+    z-index: 2001;
+}
+
+.lightbox-nav:hover {
+    color: var(--bg-red);
+}

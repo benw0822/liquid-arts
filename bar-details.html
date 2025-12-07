@@ -42,7 +42,14 @@
     <!-- Lightbox Modal -->
     <div id="lightbox-modal" class="lightbox-modal" onclick="closeLightbox()">
         <span class="close-lightbox">&times;</span>
-        <img class="lightbox-content" id="lightbox-img">
+        <div
+            style="position: relative; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">
+            <button class="lightbox-nav prev"
+                onclick="event.stopPropagation(); changeLightboxImage(-1)">&#10094;</button>
+            <img class="lightbox-content" id="lightbox-img" onclick="event.stopPropagation()">
+            <button class="lightbox-nav next"
+                onclick="event.stopPropagation(); changeLightboxImage(1)">&#10095;</button>
+        </div>
     </div>
 
     <footer>
