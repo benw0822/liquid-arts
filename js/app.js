@@ -428,7 +428,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (bar.article_bars && bar.article_bars.length > 0) {
             articlesHtml = `
                 <div class="content-card">
-                    <h3 class="section-title">Story</h3>
+                    <h3 class="section-title">Journal</h3>
                     <div class="magazine-grid">
                         ${bar.article_bars.map(ba => createArticleCard(ba.article)).join('')}
                     </div>
