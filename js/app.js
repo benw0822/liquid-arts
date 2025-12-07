@@ -237,7 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
             articlesHtml = `
                 <div class="content-card">
                     <h3 class="section-title" style="text-align: center; font-size: 1.5rem; margin-bottom: 1.5rem; font-family: var(--font-display);">Story</h3>
-                    <div class="magazine-grid">
+                    <div class="magazine-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
                         ${bar.article_bars.map(ba => createArticleCard(ba.article)).join('')}
                     </div>
                 </div>
@@ -395,7 +395,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <h3 class="section-title" style="text-align: center; font-size: 1.5rem; margin-bottom: 1.5rem; font-family: var(--font-display); border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 15px;">Awards</h3>
                             <div style="display: flex; flex-direction: column; gap: 12px;">
                                 ${bar.bar_awards.sort((a, b) => (b.year || 0) - (a.year || 0)).map(award => `
-                                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 8px; font-weight: 700; color: #333;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; font-weight: 700; color: #333;">
                                         <div style="display: flex; align-items: center;">
                                             <span style="margin-right: 10px;">${award.year || ''}</span>
                                             <span>${award.name}</span>
