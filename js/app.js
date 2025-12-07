@@ -491,39 +491,44 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const parts = cleanHours.split(';');
             parts.forEach(part => {
-                const [dayPart, timePart] = part.split(':').map(s => s.trim());
-                if (dayPart && timePart) {
-                    // Handle ranges or commas if present (though new format is likely single day)
-                    let currentDays = [];
+                const colonIndex = part.indexOf(':');
+                if (colonIndex !== -1) {
+                    const dayPart = part.substring(0, colonIndex).trim();
+                    const timePart = part.substring(colonIndex + 1).trim();
 
-                    if (dayPart.includes('-')) {
-                        // Range
-                        const [start, end] = dayPart.split('-').map(d => d.trim());
-                        const sIdx = shortDays.findIndex(sd => sd.toLowerCase() === start.substring(0, 3).toLowerCase());
-                        const eIdx = shortDays.findIndex(sd => sd.toLowerCase() === end.substring(0, 3).toLowerCase());
-                        if (sIdx !== -1 && eIdx !== -1) {
-                            if (sIdx <= eIdx) {
-                                for (let i = sIdx; i <= eIdx; i++) currentDays.push(i);
-                            } else {
-                                for (let i = sIdx; i < 7; i++) currentDays.push(i);
-                                for (let i = 0; i <= eIdx; i++) currentDays.push(i);
+                    if (dayPart && timePart) {
+                        // Handle ranges or commas if present (though new format is likely single day)
+                        let currentDays = [];
+
+                        if (dayPart.includes('-')) {
+                            // Range
+                            const [start, end] = dayPart.split('-').map(d => d.trim());
+                            const sIdx = shortDays.findIndex(sd => sd.toLowerCase() === start.substring(0, 3).toLowerCase());
+                            const eIdx = shortDays.findIndex(sd => sd.toLowerCase() === end.substring(0, 3).toLowerCase());
+                            if (sIdx !== -1 && eIdx !== -1) {
+                                if (sIdx <= eIdx) {
+                                    for (let i = sIdx; i <= eIdx; i++) currentDays.push(i);
+                                } else {
+                                    for (let i = sIdx; i < 7; i++) currentDays.push(i);
+                                    for (let i = 0; i <= eIdx; i++) currentDays.push(i);
+                                }
                             }
-                        }
-                    } else if (dayPart.includes(',')) {
-                        // Comma
-                        dayPart.split(',').forEach(d => {
-                            const idx = shortDays.findIndex(sd => sd.toLowerCase() === d.trim().substring(0, 3).toLowerCase());
+                        } else if (dayPart.includes(',')) {
+                            // Comma
+                            dayPart.split(',').forEach(d => {
+                                const idx = shortDays.findIndex(sd => sd.toLowerCase() === d.trim().substring(0, 3).toLowerCase());
+                                if (idx !== -1) currentDays.push(idx);
+                            });
+                        } else {
+                            // Single
+                            const idx = shortDays.findIndex(sd => sd.toLowerCase() === dayPart.substring(0, 3).toLowerCase());
                             if (idx !== -1) currentDays.push(idx);
-                        });
-                    } else {
-                        // Single
-                        const idx = shortDays.findIndex(sd => sd.toLowerCase() === dayPart.substring(0, 3).toLowerCase());
-                        if (idx !== -1) currentDays.push(idx);
-                    }
+                        }
 
-                    currentDays.forEach(dIdx => {
-                        hoursMap[dIdx] = timePart;
-                    });
+                        currentDays.forEach(dIdx => {
+                            hoursMap[dIdx] = timePart;
+                        });
+                    }
                 }
             });
             return generateHoursTable(hoursMap);
