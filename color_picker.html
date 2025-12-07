@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+    <img id="ref"
+        src="file:///Users/thisisb/.gemini/antigravity/brain/a2c4a1b0-69e8-485c-a5fa-124e05d49a8e/uploaded_image_1765104126291.png"
+        style="opacity:0;" onload="analyze()">
+    <div id="output">Analyzing...</div>
+    <script>
+        function analyze() {
+            try {
+                const img = document.getElementById('ref');
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+
+                // Red is on the left side (x=10, y=middle)
+                const pRed = ctx.getImageData(10, Math.floor(img.height / 2), 1, 1).data;
+                const redHex = '#' + ((1 << 24) + (pRed[0] << 16) + (pRed[1] << 8) + pRed[2]).toString(16).slice(1);
+
+                // Black is in the text. Let's sample a few points in top center.
+                // Or just assume the User wants the 'blackest' black in the image?
+                // The logo is 'Liquid Arts'. It's large.
+                // Let's scan a small area in the middle top.
+                let minBri = 765;
+                let blackHex = '#000000';
+
+                for (let y = 50; y < 200; y += 10) {
+                    for (let x = img.width / 3; x < img.width * 0.66; x += 10) {
+                        const p = ctx.getImageData(x, y, 1, 1).data;
+                        const bri = p[0] + p[1] + p[2];
+                        if (bri < minBri) {
+                            minBri = bri;
+                            blackHex = '#' + ((1 << 24) + (p[0] << 16) + (p[1] << 8) + p[2]).toString(16).slice(1);
+                        }
+                    }
+                }
+
+                document.getElementById('output').innerText = `RED:${redHex}, BLACK:${blackHex}`;
+            } catch (e) {
+                document.getElementById('output').innerText = 'Error: ' + e.message;
+            }
+        }
+    </script>
+</body>
+
+</html>

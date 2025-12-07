@@ -1,19 +1,23 @@
 /* Design System */
 :root {
     /* Colors - Liquid Arts Magazine Palette */
-    --bg-primary: #0a0a0a;
-    /* Deep Black */
-    --bg-secondary: #111111;
-    --bg-red: #8a0000;
-    /* The signature deep red */
-    --bg-glass: rgba(10, 10, 10, 0.85);
+    --bg-primary: #1b1b1b;
+    /* Updated to Match Logo Black */
+    --bg-secondary: #262626;
+    /* Slightly lighter than primary */
+    --bg-red: #9c100f;
+    /* Updated to Match Side Red */
+    --bg-glass: rgba(27, 27, 27, 0.85);
+    /* Matched to new primary */
 
     --text-primary: #ffffff;
     --text-secondary: #cccccc;
-    --text-accent: #8a0000;
+    --text-accent: #9c100f;
+    /* Updated Red */
 
     --border-color: rgba(255, 255, 255, 0.1);
-    --border-red: #8a0000;
+    --border-red: #9c100f;
+    /* Updated Red */
 
     /* Typography */
     --font-main: 'Inter', sans-serif;
