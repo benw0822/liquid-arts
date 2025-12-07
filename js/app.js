@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     bar_images (image_url, caption, display_order),
                     signatures (*),
                     bar_awards (*),
-                    bar_articles (
+                    article_bars (
                         article:articles (id, title, excerpt, cover_image, published_at)
                     )
                 `);
@@ -233,12 +233,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // --- Related Articles ---
         let articlesHtml = '';
-        if (bar.bar_articles && bar.bar_articles.length > 0) {
+        if (bar.article_bars && bar.article_bars.length > 0) {
             articlesHtml = `
                 <div class="content-card">
                     <h3 class="section-title" style="text-align: center; font-size: 1.5rem; margin-bottom: 1.5rem; font-family: var(--font-display);">Story</h3>
                     <div class="magazine-grid">
-                        ${bar.bar_articles.map(ba => createArticleCard(ba.article)).join('')}
+                        ${bar.article_bars.map(ba => createArticleCard(ba.article)).join('')}
                     </div>
                 </div>
             `;
