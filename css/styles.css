@@ -844,29 +844,40 @@ figure.article-figure figcaption {
 
 /* CMS Editor Alignment Fixes */
 .ql-editor .article-figure {
-    display: table !important;
-    width: fit-content !important;
-    margin-bottom: 1em;
-    max-width: 100%;
-}
-
-.ql-editor .article-figure.ql-align-center {
-    margin-left: auto !important;
-    margin-right: auto !important;
-}
-
-.ql-editor .article-figure.ql-align-right {
-    margin-left: auto !important;
-    margin-right: 0 !important;
+    display: block !important;
+    width: 100% !important;
+    margin: 1em 0;
+    clear: both;
 }
 
 .ql-editor .article-figure img {
     display: block;
+    max-width: 100%;
 }
 
-.ql-editor .article-figure figcaption {
-    display: table-caption;
-    caption-side: bottom;
+/* Center */
+.ql-editor .article-figure.ql-align-center {
     text-align: center;
-    padding-top: 5px;
+}
+
+.ql-editor .article-figure.ql-align-center img {
+    margin: 0 auto !important;
+}
+
+/* Right */
+.ql-editor .article-figure.ql-align-right {
+    text-align: right;
+}
+
+.ql-editor .article-figure.ql-align-right img {
+    margin-left: auto !important;
+    margin-right: 0 !important;
+}
+
+/* Caption */
+.ql-editor .article-figure figcaption {
+    display: block;
+    margin-top: 8px;
+    font-style: italic;
+    color: #666;
 }
