@@ -856,7 +856,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const mapUrl = bar.google_map_url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
 
         return `
-        <div class="art-card grid-item" style="display: flex; flex-direction: column; height: 100%; margin-bottom: 3rem; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+        <div class="art-card grid-item" style="display: flex; flex-direction: column; height: 100%; margin-bottom: 3rem; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 380px; margin-left: auto; margin-right: auto;">
              <!-- Main Link Wrapper for Top Section -->
             <a href="bar-details.html?id=${bar.id}" style="text-decoration: none; display: block;">
                 <div style="width: 100%; border-bottom: 1px solid #f0f0f0;">
