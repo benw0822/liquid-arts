@@ -78,17 +78,40 @@ document.addEventListener('DOMContentLoaded', () => {
         if (newStatus) window.savedArticleIds.add(id);
         else window.savedArticleIds.delete(id);
 
-        document.querySelectorAll(`.save-article-btn-${id}`).forEach(btn => {
-            const icon = btn.querySelector('svg');
-            icon.setAttribute('fill', newStatus ? '#ef4444' : 'none');
-            icon.setAttribute('stroke', newStatus ? '#ef4444' : '#333');
-        });
+        const updateUI = () => {
+            document.querySelectorAll(`.save-article-btn-${id}`).forEach(btn => {
+                const icon = btn.querySelector('svg');
+                const active = window.savedArticleIds.has(id);
+                icon.setAttribute('fill', active ? '#ef4444' : 'none');
+                icon.setAttribute('stroke', active ? '#ef4444' : '#333');
+            });
+        };
+        updateUI();
 
         // DB Update
+        let error;
         if (newStatus) {
-            await supabase.from('saved_articles').insert({ user_id: window.currentUser.id, article_id: id });
+            const { error: err } = await supabase.from('saved_articles').insert({ user_id: window.currentUser.id, article_id: id });
+            error = err;
         } else {
-            await supabase.from('saved_articles').delete().match({ user_id: window.currentUser.id, article_id: id });
+            const { error: err } = await supabase.from('saved_articles').delete().match({ user_id: window.currentUser.id, article_id: id });
+            error = err;
+        }
+
+        if (error) {
+            console.error('Save Article Error:', error);
+            // Revert
+            if (newStatus) window.savedArticleIds.delete(id);
+            else window.savedArticleIds.add(id);
+            updateUI();
+
+            if (error.code === '42P01') { // Undefined Table
+                alert('System Setup Required: Please run saved_articles_migration.sql to create the saved_articles table.');
+            } else if (error.code === '23503') { // Foreign Key Violation
+                alert('Cannot save this article. It might be local mock data that is not in the database.');
+            } else {
+                alert('Failed to save article: ' + error.message);
+            }
         }
     };
 
