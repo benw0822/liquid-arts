@@ -9,6 +9,48 @@ console.log('Connected to Supabase');
 
 document.addEventListener('DOMContentLoaded', () => {
 
+    // --- Save/Favorite Logic (Supabase) ---
+    window.savedBarIds = new Set();
+    window.currentUser = null;
+
+    async function initAuthAndSaved() {
+        const { data: { session } } = await supabase.auth.getSession();
+        window.currentUser = session?.user || null;
+        if (window.currentUser) {
+            const { data } = await supabase.from('saved_bars').select('bar_id');
+            if (data) window.savedBarIds = new Set(data.map(r => r.bar_id));
+        }
+    }
+
+    window.toggleSaveBar = async (id, event) => {
+        if (event) { event.preventDefault(); event.stopPropagation(); }
+
+        if (!window.currentUser) {
+            alert('Please log in to save bars.');
+            return;
+        }
+
+        const isSaved = window.savedBarIds.has(id);
+        const newStatus = !isSaved;
+
+        // Optimistic UI Update
+        if (newStatus) window.savedBarIds.add(id);
+        else window.savedBarIds.delete(id);
+
+        document.querySelectorAll(`.save-btn-${id}`).forEach(btn => {
+            const icon = btn.querySelector('svg');
+            icon.setAttribute('fill', newStatus ? '#ef4444' : 'none');
+            icon.setAttribute('stroke', newStatus ? '#ef4444' : '#333');
+        });
+
+        // DB Update
+        if (newStatus) {
+            await supabase.from('saved_bars').insert({ user_id: window.currentUser.id, bar_id: id });
+        } else {
+            await supabase.from('saved_bars').delete().match({ user_id: window.currentUser.id, bar_id: id });
+        }
+    };
+
     // --- Local Mock Data (Extended) ---
     const mockBars = [
         {
@@ -97,6 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. Bar List Page
     // 2. Bar List Page
     window.initBarList = async () => {
+        await initAuthAndSaved(); // Wait for user & saved data
         let bars = await fetchBars();
         const grid = document.getElementById('bars-grid');
         const locationSelect = document.getElementById('filter-city');
@@ -170,6 +213,46 @@ document.addEventListener('DOMContentLoaded', () => {
 
         render(bars);
     };
+
+    // 2.5 Saved Bars Page
+    window.initSavedList = async () => {
+        await initAuthAndSaved();
+        const grid = document.getElementById('bars-grid');
+
+        if (!window.currentUser) {
+            grid.innerHTML = '<p style="text-align:center; padding: 2rem;">Please <a href="admin.html">log in</a> to view your saved bars.</p>';
+            return;
+        }
+
+        if (window.savedBarIds.size === 0) {
+            grid.innerHTML = `
+                <div style="grid-column: 1/-1; text-align: center; padding: 3rem 1rem;">
+                    <h3 style="font-family: var(--font-display); color: #ccc;">No saved bars yet.</h3>
+                    <a href="bars.html" class="btn" style="margin-top: 1rem; display: inline-block; background: var(--bg-red); color: white; padding: 10px 20px; border-radius: 30px; text-decoration: none;">Explore Bars</a>
+                </div>
+            `;
+            return;
+        }
+
+        const allBars = await fetchBars();
+        let savedBars = allBars.filter(b => window.savedBarIds.has(b.id));
+
+        // Pre-calculate cities for saved bars too
+        savedBars = await Promise.all(savedBars.map(async (bar) => {
+            let city = bar.location;
+            if (bar.lat && bar.lng) {
+                const resolved = await fetchCityFromCoordsGlobal(bar.lat, bar.lng);
+                if (resolved) city = resolved;
+            }
+            return { ...bar, cityDisplay: city };
+        }));
+
+        grid.innerHTML = savedBars.map(bar => createBarCard(bar, bar.cityDisplay)).join('');
+
+        savedBars.forEach(bar => {
+            if (bar.lat && bar.lng) setTimeout(() => initCardMapGlobal(bar.id, bar.lat, bar.lng, bar.title), 100);
+        });
+    };
     // 3. Map Page
     // 3. Map Page
     window.initMap = async () => {
@@ -213,6 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 4. Bar Details Page
     window.initBarDetails = async () => {
+        await initAuthAndSaved();
         const params = new URLSearchParams(window.location.search);
         const id = params.get('id');
         const container = document.getElementById('bar-detail-container');
@@ -368,8 +452,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 <!-- Left Column -->
                 <div class="left-column" style="flex: 1; min-width: 0;">
                     <!-- Hero Card (Image Only) -->
-                    <div class="content-card hero-card" style="padding: 0; border: none; overflow: hidden; background: transparent;">
+                    <div class="content-card hero-card" style="padding: 0; border: none; overflow: hidden; background: transparent; position: relative;">
                         <img id="hero-card-img" src="${bar.image}" alt="${bar.title}" style="width: 100%; height: auto; display: block;">
+                        
+                        <button class="save-btn-${bar.id}" onclick="toggleSaveBar(${bar.id}, event)" style="position: absolute; top: 20px; right: 20px; z-index: 20; background: white; border: none; border-radius: 50%; width: 44px; height: 44px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="${window.savedBarIds.has(bar.id) ? '#ef4444' : 'none'}" stroke="${window.savedBarIds.has(bar.id) ? '#ef4444' : '#333'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                        </button>
                     </div>
 
                     <div id="about-card" class="content-card" style="display: flex; flex-direction: column;">
@@ -886,8 +974,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const address = bar.address || bar.address_en || bar.location;
         const mapUrl = bar.google_map_url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
 
+        const isSaved = window.savedBarIds.has(bar.id);
+
         return `
-        <div class="art-card grid-item" style="display: flex; flex-direction: column; height: 100%; margin-bottom: 3rem; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 380px; margin-left: auto; margin-right: auto;">
+        <div class="art-card grid-item" style="position: relative; display: flex; flex-direction: column; height: 100%; margin-bottom: 3rem; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 380px; margin-left: auto; margin-right: auto;">
+             <!-- Save Button -->
+             <button class="save-btn-${bar.id}" onclick="toggleSaveBar(${bar.id}, event)" style="position: absolute; top: 15px; right: 15px; z-index: 20; background: white; border: none; border-radius: 50%; width: 36px; height: 36px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="${isSaved ? '#ef4444' : 'none'}" stroke="${isSaved ? '#ef4444' : '#333'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+             </button>
+
              <!-- Main Link Wrapper for Top Section -->
             <a href="bar-details.html?id=${bar.id}" style="text-decoration: none; display: block;">
                 <div style="width: 100%; border-bottom: 1px solid #f0f0f0;">
