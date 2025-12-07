@@ -826,10 +826,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 className: 'custom-map-marker',
                 html: `
                     <div style="display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%);">
-                        <div style="background: white; padding: 2px 5px; border-radius: 3px; font-weight: bold; font-size: 10px; color: #333; box-shadow: 0 1px 2px rgba(0,0,0,0.15); margin-bottom: 2px; white-space: nowrap;">
+                        <div style="background: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; color: #333; box-shadow: 0 1px 2px rgba(0,0,0,0.15); margin-bottom: 3px; white-space: nowrap;">
                             ${title || ''}
                         </div>
-                        <div style="width: 8px; height: 8px; background: #ef4444; border: 1.5px solid white; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,0.2);"></div>
+                        <div style="width: 14px; height: 14px; background: #ef4444; border: 2px solid white; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,0.2);"></div>
                     </div>
                 `,
                 iconSize: [0, 0],
@@ -878,11 +878,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div style="text-align: center; padding: 1.5rem 1rem 0.5rem 1rem;">
                     <h3 style="font-family: var(--font-display); font-size: 1.8rem; margin: 0 0 0.5rem 0; color: #1b1b1b;">${bar.title}</h3>
-                    <p style="font-family: var(--font-main); font-size: 1rem; color: #888; margin: 0;">${displayCity}</p>
+                    <p style="font-family: var(--font-main); font-size: 1rem; color: #888; margin: 0;">
+                        ${bar.vibe ? `<span style="color: var(--bg-red); font-weight: 600;">${bar.vibe}</span> • ` : ''}${displayCity}
+                    </p>
                 </div>
             </a>
             
             <div style="padding: 0 1.5rem 1.5rem 1.5rem; text-align: center; flex: 1; display: flex; flex-direction: column;">
+                
+                ${bar.editorial_review ? `
+                    <div style="margin-bottom: 1.2rem; padding: 15px; background: var(--bg-red); color: white; border-radius: 4px; text-align: center;">
+                         <h4 style="margin: 0 0 5px 0; font-family: var(--font-display); font-size: 1rem; letter-spacing: 0.05em; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 5px; display: inline-block;">Liquid Arts Review</h4>
+                         <p style="font-size: 0.9rem; font-style: italic; margin: 10px 0; line-height: 1.5;">"${bar.editorial_review}"</p>
+                         ${bar.editorial_rating ? `
+                            <div style="margin-top: 5px;">
+                                <div style="color: #FFD700; font-size: 1rem; margin-bottom: 2px;">${'★'.repeat(bar.editorial_rating)}${'☆'.repeat(5 - bar.editorial_rating)}</div>
+                                <div style="font-weight: 600; font-size: 0.8rem; text-transform: uppercase;">${['', 'Poor', 'Fair', 'Enjoyable', 'Remarkable', 'Masterpiece'][bar.editorial_rating] || ''}</div>
+                            </div>
+                         ` : ''}
+                    </div>
+                ` : ''}
+
                  <!-- Description -->
                 <p style="font-size: 0.95rem; color: #555; line-height: 1.6; margin-bottom: 1.2rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
                     ${description}
@@ -892,7 +908,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div style="margin-bottom: 1.2rem; display: flex; align-items: center; justify-content: center; gap: 5px;">
                     <span style="font-weight: 600; color: #333;">${rating}</span>
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="#FFD700" viewBox="0 0 16 16"><path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/></svg>
-                    <span style="color:#888; font-size:0.9em;">(${reviewCount})</span>
+                    <span style="color:#888; font-size:0.9em; display: flex; align-items: center; gap: 3px;">
+                        (${reviewCount})
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7Zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5.784 6A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216ZM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/></svg>
+                    </span>
                 </div>
 
                 <!-- Address -->
@@ -900,14 +919,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${address}
                 </p>
 
-                ${bar.editorial_review ? `
-                    <div style="margin-bottom: 1rem; padding: 10px; background: #fff5f5; border-radius: 4px; border-left: 3px solid #ef4444; text-align: left;">
-                         <p style="font-size: 0.85rem; color: #b91c1c; font-style: italic; margin: 0; line-height: 1.4;">
-                            <span style="font-weight:bold; font-style:normal;">Review:</span> "${bar.editorial_review}"
-                         </p>
-                    </div>
-                ` : ''}
-                
                 <!-- Map Container (Initialized by JS) -->
                 <div id="card-map-${bar.id}" class="card-map" data-lat="${bar.lat}" data-lng="${bar.lng}" style="height: 150px; width: 100%; border-radius: 4px; margin-bottom: 1rem; background: #eee;"></div>
 
