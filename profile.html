@@ -51,10 +51,10 @@
                             <img id="profile-avatar" src="" alt="Avatar"
                                 style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-color); margin-bottom: 1rem;">
                             <br>
-                            <label style="font-size: 0.9rem; color: #666; display: block; margin-bottom: 0.5rem;">Avatar
-                                URL (1080x1080 recommended)</label>
-                            <input type="text" id="edit-avatar-url" placeholder="Paste image URL..."
-                                class="search-input" style="width: 100%; max-width: 300px; margin-bottom: 1rem;">
+                            <label style="font-size: 0.9rem; color: #666; display: block; margin-bottom: 0.5rem;">Upload
+                                Avatar (Image File)</label>
+                            <input type="file" id="edit-avatar-file" accept="image/*" class="search-input"
+                                style="width: 100%; max-width: 300px; margin-bottom: 1rem; padding: 10px;">
                         </div>
 
                         <!-- Info Section -->
@@ -134,7 +134,8 @@
             // --- Handlers (Global Scope for onclick) ---
             window.updateProfile = async () => {
                 const newNickname = document.getElementById('edit-nickname').value;
-                const newAvatar = document.getElementById('edit-avatar-url').value;
+                const fileInput = document.getElementById('edit-avatar-file');
+                const file = fileInput.files[0];
                 const btn = document.querySelector('button[onclick="updateProfile()"]');
                 const originalText = btn.textContent;
 
@@ -142,9 +143,30 @@
                     btn.textContent = 'Saving...';
                     btn.disabled = true;
 
+                    let newAvatarUrl = document.getElementById('profile-avatar').src;
+
+                    // 1. Upload File if selected
+                    if (file) {
+                        const fileExt = file.name.split('.').pop();
+                        const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+                        const { error: uploadError } = await supabase.storage
+                            .from('avatars')
+                            .upload(fileName, file);
+
+                        if (uploadError) throw uploadError;
+
+                        // Get Public URL
+                        const { data: { publicUrl } } = supabase.storage
+                            .from('avatars')
+                            .getPublicUrl(fileName);
+
+                        newAvatarUrl = publicUrl;
+                    }
+
+                    // 2. Update Auth Metadata
                     const updates = {
                         full_name: newNickname,
-                        avatar_url: newAvatar
+                        avatar_url: newAvatarUrl
                     };
 
                     const { error } = await supabase.auth.updateUser({
@@ -154,12 +176,18 @@
                     if (error) throw error;
 
                     // Update UI immediately (optimistic)
-                    document.getElementById('profile-avatar').src = newAvatar || 'assets/logo_vertical.png';
+                    document.getElementById('profile-avatar').src = newAvatarUrl;
+                    // Also update nickname display if it exists (though inputs are used now)
+
                     alert('Profile updated successfully!');
 
                 } catch (error) {
                     console.error('Update Error:', error);
-                    alert('Failed to update profile: ' + error.message);
+                    if (error.statusCode === '404' || error.message.includes('bucket')) {
+                        alert('Storage Error: Please run storage_policy.sql to set up the avatars bucket.');
+                    } else {
+                        alert('Failed to update profile: ' + error.message);
+                    }
                 } finally {
                     btn.textContent = originalText;
                     btn.disabled = false;
