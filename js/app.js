@@ -858,6 +858,34 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // 5.1 Event List
+    window.initEventList = async () => {
+        await initAuthAndSaved();
+        const grid = document.getElementById('articles-list-grid');
+        if (!grid) return;
+
+        grid.innerHTML = '<p style="color:#888;">Loading events...</p>';
+
+        try {
+            const { data: events, error } = await supabase
+                .from('articles')
+                .select('*')
+                .eq('category', 'Event')
+                .order('published_at', { ascending: false });
+
+            if (error) throw error;
+
+            if (events && events.length > 0) {
+                grid.innerHTML = events.map(event => createArticleCard(event)).join('');
+            } else {
+                grid.innerHTML = '<p style="width:100%; text-align:center;">No upcoming events found.</p>';
+            }
+        } catch (err) {
+            console.error('Error loading events:', err);
+            grid.innerHTML = '<p style="color:red;">Failed to load events.</p>';
+        }
+    };
+
     // 6. Article Details
     window.initArticleDetails = async () => {
         const params = new URLSearchParams(window.location.search);
