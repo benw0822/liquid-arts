@@ -114,35 +114,45 @@ h6 {
     top: 0;
     left: 0;
     width: 100%;
-    padding: 5px 0;
-    /* Further reduced padding */
+    padding: 0;
+    /* Remove padding to let flex align handle height */
     z-index: 1000;
     transition: background 0.3s ease;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-    /* Added border */
-    background: var(--bg-glass);
-    /* Ensure background is not transparent if border is there? */
-    backdrop-filter: blur(10px);
-    /* Ensure readability */
+    border-bottom: none;
+    background: var(--bg-red);
+    /* Standard Red */
+    height: 60px;
+    /* Fixed height for easier centering */
+    display: flex;
+    align-items: center;
+    /* Center content vertically */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .navbar.scrolled {
-    background: var(--bg-glass);
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-red);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .nav-content {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    width: 100%;
+    /* Ensure container fills navbar */
+    height: 100%;
 }
 
 .logo {
+    display: flex;
+    align-items: center;
+    /* Vertical Center Logic */
+    height: 100%;
     font-family: var(--font-display);
     font-size: 1.5rem;
     font-weight: 700;
-    color: var(--text-primary);
+    color: white !important;
+    /* Force white text */
     text-decoration: none;
     text-transform: uppercase;
     letter-spacing: 0.1em;
@@ -154,7 +164,8 @@ h6 {
 }
 
 .nav-link {
-    color: var(--text-primary);
+    color: white !important;
+    /* Force white on red navbar */
     text-decoration: none;
     font-size: 0.9rem;
     text-transform: uppercase;
@@ -165,8 +176,14 @@ h6 {
 
 .nav-link:hover {
     opacity: 1;
-    color: var(--bg-red);
-    /* Red on hover */
+    color: white;
+    text-decoration: underline;
+    /* Simple hover for white text */
+}
+
+/* Ensure logo in navbar is always white (inverted from black) */
+.navbar .logo-img {
+    filter: invert(1) !important;
 }
 
 /* Logo Images */
