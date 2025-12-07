@@ -678,12 +678,48 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const dateStr = new Date(article.published_at || article.created_at).toLocaleDateString();
+        let dateStr = new Date(article.published_at || article.created_at).toLocaleDateString();
+
+        // If Event, show duration
+        if ((article.category === 'Event' || article.category === '活動情報') && article.start_date && article.end_date) {
+            const formatDate = (iso) => {
+                const d = new Date(iso);
+                return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
+            };
+            dateStr = `${formatDate(article.start_date)} - ${formatDate(article.end_date)}`;
+        }
+
         const tagsHtml = (article.tags || []).map(t => `<span style="background:var(--bg-red); color:white; padding:4px 12px; border-radius:20px; font-size:0.85rem; margin-right:8px; display:inline-block;">#${t}</span>`).join('');
+
+        // Category Logic
+        const categoryMap = {
+            'Event': '活動情報', 'Review': '直擊體驗', 'Feature': '專題報導', 'Interview': '職人專訪',
+            '活動情報': 'Event', '直擊體驗': 'Review', '專題報導': 'Feature', '職人專訪': 'Interview'
+        };
+
+        let engCat = 'Article';
+        let chiCat = '';
+
+        if (article.category) {
+            if (['Event', 'Review', 'Feature', 'Interview'].includes(article.category)) {
+                engCat = article.category;
+                chiCat = categoryMap[engCat];
+            } else if (categoryMap[article.category]) {
+                engCat = categoryMap[article.category];
+                chiCat = article.category;
+            } else {
+                engCat = article.category;
+                chiCat = '';
+            }
+        }
 
         container.innerHTML = `
             <div style="text-align: center; max-width: 800px; margin: 0 auto 3rem auto;">
-                ${article.category ? `<span class="article-category-badge">${article.category}</span>` : ''}
+                <div style="margin-bottom: 2rem;">
+                    <h2 style="font-family: var(--font-display); font-size: 3rem; color: #1b1b1b; margin: 0; line-height: 1; text-transform: uppercase; letter-spacing: 0.05em;">${engCat}</h2>
+                    <span style="font-size: 1rem; display: block; margin-top: 15px; color: var(--bg-red); font-weight: 500; letter-spacing: 0.2em;">${chiCat}</span>
+                </div>
+                
                 <h1 style="font-size: 3rem; margin-bottom: 1rem; line-height: 1.2;">${article.title}</h1>
                 ${article.excerpt ? `<p style="font-size: 1.2rem; color: #666; margin-bottom: 1.5rem; font-family: var(--font-display); font-style: italic;">${article.excerpt}</p>` : ''}
                 <div style="color: #888; display: flex; flex-direction: column; align-items: center; gap: 5px; font-family: var(--font-main);">
