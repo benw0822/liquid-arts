@@ -13,14 +13,14 @@ document.addEventListener('DOMContentLoaded', () => {
     window.savedBarIds = new Set();
     window.currentUser = null;
 
-    async function initAuthAndSaved() {
+    window.initAuthAndSaved = async () => {
         const { data: { session } } = await supabase.auth.getSession();
         window.currentUser = session?.user || null;
         if (window.currentUser) {
             const { data } = await supabase.from('saved_bars').select('bar_id');
             if (data) window.savedBarIds = new Set(data.map(r => r.bar_id));
         }
-    }
+    };
 
     window.toggleSaveBar = async (id, event) => {
         if (event) { event.preventDefault(); event.stopPropagation(); }

@@ -46,7 +46,10 @@
                 <div
                     style="text-align: left; margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 2rem;">
                     <h4 style="margin-bottom: 1rem;">Saved Items</h4>
-                    <p style="color: #666;">You haven't saved any bars yet.</p>
+                    <h4 style="margin-bottom: 1rem;">Saved Items</h4>
+                    <div id="saved-section-content">
+                        <p style="color: #666;">Loading saved bars...</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -115,6 +118,51 @@
                 await supabase.auth.signOut();
                 window.location.href = 'index.html';
             });
+
+            // --- Load Saved Bars ---
+            await window.initAuthAndSaved();
+            const savedSection = document.getElementById('saved-section-content');
+
+            if (window.savedBarIds.size > 0) {
+                // Fetch all bars to filter (or fetch specific IDs if API supported it)
+                // Note: using fetchBars from app.js requires it to be global. It is defined inside DOMContentLoaded in app.js.
+                // WE NEED fetchBars TO BE GLOBAL or accessible.
+                // Actually, fetchBars is defined INSIDE app.js's DOMContentLoaded.
+                // I need to expose fetchBars in app.js first!
+                // Wait, I can't call fetchBars if it's not exposed.
+                // FIX: I will expose fetchBars in app.js in the next step or retry.
+                // Assuming fetchBars is exposed (I will do that first/parallel).
+
+                // Let's assume fetchBars is available as window.fetchBars or I need to move it.
+                // Checking app.js... fetchBars is NOT exposed.
+                // I will add code here assuming I fix app.js, OR I reimplement fetch here.
+                // Reimplementing fetch here is safer for now to avoid multiple app.js edits if not needed.
+
+                const { data: allBars } = await supabase
+                    .from('bars')
+                    .select(`*, bar_images (image_url, caption, display_order), signatures (*), bar_awards (*), article_bars (article:articles (id, title, excerpt, cover_image, published_at))`);
+
+                if (allBars) {
+                    const savedBars = allBars.filter(bar => window.savedBarIds.has(bar.id));
+
+                    if (savedBars.length > 0) {
+                        savedSection.innerHTML = `
+                            <div class="magazine-grid" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+                                ${savedBars.map(bar => createBarCard(bar, bar.location)).join('')}
+                            </div>
+                        `;
+
+                        // Init Maps
+                        savedBars.forEach(bar => {
+                            if (bar.lat && bar.lng) setTimeout(() => initCardMapGlobal(bar.id, bar.lat, bar.lng, bar.title), 100);
+                        });
+                    } else {
+                        savedSection.innerHTML = '<p style="color: #666;">No saved bars found in database.</p>';
+                    }
+                }
+            } else {
+                savedSection.innerHTML = '<p style="color: #666;">You haven\'t saved any bars yet. Go explore!</p>';
+            }
         });
     </script>
 </body>
