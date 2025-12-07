@@ -181,9 +181,9 @@ h6 {
     /* Simple hover for white text */
 }
 
-/* Ensure logo in navbar is always white (inverted from black) */
+/* Ensure logo in navbar is black (original image) */
 .navbar .logo-img {
-    filter: invert(1) !important;
+    filter: none !important;
 }
 
 /* Logo Images */
