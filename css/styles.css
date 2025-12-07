@@ -898,3 +898,31 @@ figure.article-figure figcaption {
 .lightbox-nav:hover {
     color: var(--bg-red);
 }
+
+/* Responsive Grids */
+.magazine-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+}
+
+@media (max-width: 480px) {
+    .magazine-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .gallery-grid {
+        grid-template-columns: repeat(2, 1fr);
+        /* 2 columns for gallery on mobile */
+    }
+
+    .content-card {
+        padding: 20px;
+    }
+}

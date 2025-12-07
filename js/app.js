@@ -207,8 +207,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             galleryHtml = `
                 <div class="content-card">
-                    <h3 class="section-title" style="text-align: center; font-size: 1.5rem; margin-bottom: 0.5rem; font-family: var(--font-display);">Gallery</h3>
-                    <div class="magazine-grid" style="grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px;">
+                    <h3 class="section-title" style="text-align: center; font-size: 1.5rem; margin-bottom: 1rem; font-family: var(--font-display);">Gallery</h3>
+                    <div class="gallery-grid">
                         ${sortedImages.map((img, index) => `
                             <div class="grid-item" style="grid-column: span 1; margin-bottom: 0;">
                                 <img src="${img.image_url}" alt="${img.caption || ''}" 
@@ -257,8 +257,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (bar.article_bars && bar.article_bars.length > 0) {
             articlesHtml = `
                 <div class="content-card">
-                    <h3 class="section-title" style="text-align: center; font-size: 1.5rem; margin-bottom: 1.5rem; font-family: var(--font-display);">Story</h3>
-                    <div class="magazine-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+                    <h3 class="section-title" style="text-align: center; font-size: 1.5rem; margin-bottom: 1rem; font-family: var(--font-display);">Story</h3>
+                    <div class="magazine-grid">
                         ${bar.article_bars.map(ba => createArticleCard(ba.article)).join('')}
                     </div>
                 </div>
