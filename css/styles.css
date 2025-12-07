@@ -835,8 +835,22 @@ figure.article-figure figcaption {
 .scrollable-content::-webkit-scrollbar-thumb:hover {
     background: #999;
 }
+
 @media (max-width: 768px) {
     .container.detail-grid {
         flex-direction: column;
     }
+}
+
+/* CMS Editor Alignment Fixes */
+.ql-editor .article-figure.ql-align-center {
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+}
+
+.ql-editor .article-figure.ql-align-right {
+    margin-left: auto;
+    margin-right: 0;
+    text-align: right;
 }
