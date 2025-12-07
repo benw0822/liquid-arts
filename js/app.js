@@ -124,7 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
             itemsWithCity.forEach(bar => {
                 if (bar.lat && bar.lng) {
                     // Small delay to ensure render layout
-                    setTimeout(() => initCardMapGlobal(bar.id, bar.lat, bar.lng), 100);
+                    setTimeout(() => initCardMapGlobal(bar.id, bar.lat, bar.lng, bar.title), 100);
                 }
             });
         }
@@ -811,18 +811,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Helper Functions ---
 
-    function initCardMapGlobal(id, lat, lng) {
+    function initCardMapGlobal(id, lat, lng, title) {
         if (typeof L === 'undefined') return;
         const elId = `card-map-${id}`;
         const el = document.getElementById(elId);
         if (!el) return;
-        // Check if class includes 'leaflet-container' to avoid re-init error (though innerHTML replaces DOM usually)
         if (el.classList.contains('leaflet-container')) return;
 
         try {
-            const map = L.map(elId, { zoomControl: false, scrollWheelZoom: false, dragging: true }).setView([lat, lng], 15);
+            const map = L.map(elId, { zoomControl: false, scrollWheelZoom: false, dragging: false, doubleClickZoom: false, touchZoom: false }).setView([lat, lng], 15);
             L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 19 }).addTo(map);
-            L.marker([lat, lng]).addTo(map);
+
+            const customIcon = L.divIcon({
+                className: 'custom-map-marker',
+                html: `
+                    <div style="display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%);">
+                        <div style="background: white; padding: 2px 5px; border-radius: 3px; font-weight: bold; font-size: 10px; color: #333; box-shadow: 0 1px 2px rgba(0,0,0,0.15); margin-bottom: 2px; white-space: nowrap;">
+                            ${title || ''}
+                        </div>
+                        <div style="width: 8px; height: 8px; background: #ef4444; border: 1.5px solid white; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,0.2);"></div>
+                    </div>
+                `,
+                iconSize: [0, 0],
+                iconAnchor: [0, 0]
+            });
+
+            L.marker([lat, lng], { icon: customIcon }).addTo(map);
         } catch (e) { console.warn('Map init error', e); }
     }
 
@@ -885,6 +899,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 <p style="font-size: 0.9rem; color: #333; margin-bottom: 1rem; font-weight: 500;">
                     ${address}
                 </p>
+
+                ${bar.editorial_review ? `
+                    <div style="margin-bottom: 1rem; padding: 10px; background: #fff5f5; border-radius: 4px; border-left: 3px solid #ef4444; text-align: left;">
+                         <p style="font-size: 0.85rem; color: #b91c1c; font-style: italic; margin: 0; line-height: 1.4;">
+                            <span style="font-weight:bold; font-style:normal;">Review:</span> "${bar.editorial_review}"
+                         </p>
+                    </div>
+                ` : ''}
                 
                 <!-- Map Container (Initialized by JS) -->
                 <div id="card-map-${bar.id}" class="card-map" data-lat="${bar.lat}" data-lng="${bar.lng}" style="height: 150px; width: 100%; border-radius: 4px; margin-bottom: 1rem; background: #eee;"></div>
