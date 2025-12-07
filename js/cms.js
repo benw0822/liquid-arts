@@ -150,6 +150,17 @@ class ImageFigure extends BlockEmbed {
         }
         return formats;
     }
+
+    format(name, value) {
+        if (name === 'align') {
+            this.domNode.classList.remove('ql-align-center', 'ql-align-right', 'ql-align-justify');
+            if (value) {
+                this.domNode.classList.add(`ql-align-${value}`);
+            }
+        } else {
+            super.format(name, value);
+        }
+    }
 }
 
 ImageFigure.blotName = 'imageFigure';
