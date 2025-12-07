@@ -343,7 +343,18 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 20px; justify-content: center;">
                             <div>
                                 <span style="font-weight: 600; color: var(--text-primary);">Google Rating:</span> 
-                                <span>${bar.google_rating || bar.rating || 'N/A'} / 5.0 <span style="color:#888; font-size:0.9em;">(${bar.google_review_count || bar.rating_count || 0} reviews)</span></span>
+                                <span style="display: inline-flex; align-items: center; gap: 4px;">
+                                    ${bar.google_rating || bar.rating || 'N/A'} 
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="#FFD700" viewBox="0 0 16 16">
+                                        <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
+                                    </svg>
+                                    <span style="color:#888; font-size:0.9em; margin-left: 4px; display: inline-flex; align-items: center; gap: 2px;">
+                                        (${bar.google_review_count || bar.rating_count || 0} 
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                                            <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7Zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5.784 6A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216ZM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/>
+                                        </svg>)
+                                    </span>
+                                </span>
                             </div>
                             <div>
                                 <span style="font-weight: 600; color: var(--text-primary);">Price:</span> 
