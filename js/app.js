@@ -678,15 +678,16 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        let dateStr = new Date(article.published_at || article.created_at).toLocaleDateString();
+        let dateDisplayHtml = `<span style="font-size: 0.9rem; letter-spacing: 0.05em; text-transform: uppercase;">${new Date(article.published_at || article.created_at).toLocaleDateString()}</span>`;
 
-        // If Event, show duration
+        // If Event, show duration with special styling
         if ((article.category === 'Event' || article.category === '活動情報') && article.start_date && article.end_date) {
             const formatDate = (iso) => {
                 const d = new Date(iso);
                 return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
             };
-            dateStr = `${formatDate(article.start_date)} - ${formatDate(article.end_date)}`;
+            const durationStr = `${formatDate(article.start_date)} - ${formatDate(article.end_date)}`;
+            dateDisplayHtml = `<span style="font-size: 1.1rem; letter-spacing: 0.05em; color: var(--bg-red); font-weight: bold;">活動期間：${durationStr}</span>`;
         }
 
         const tagsHtml = (article.tags || []).map(t => `<span style="background:var(--bg-red); color:white; padding:4px 12px; border-radius:20px; font-size:0.85rem; margin-right:8px; display:inline-block;">#${t}</span>`).join('');
@@ -723,9 +724,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 <h1 style="font-size: 3rem; margin-bottom: 1rem; line-height: 1.2;">${article.title}</h1>
                 ${article.excerpt ? `<p style="font-size: 1.2rem; color: #666; margin-bottom: 1.5rem; font-family: var(--font-display); font-style: italic;">${article.excerpt}</p>` : ''}
                 <div style="color: #888; display: flex; flex-direction: column; align-items: center; gap: 5px; font-family: var(--font-main);">
-                    <span style="font-size: 0.9rem; letter-spacing: 0.05em; text-transform: uppercase;">${dateStr}</span>
-                    ${article.author_name ? `<span style="font-size: 1.1rem; color: #333; font-weight: 500;">by ${article.author_name}</span>` : ''}
-                </div>
+                ${dateDisplayHtml}
+                ${article.author_name ? `<span style="font-size: 1.1rem; color: #333; font-weight: 500;">by ${article.author_name}</span>` : ''}
+            </div>
             </div>
             
             ${article.cover_image ? `
