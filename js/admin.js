@@ -727,7 +727,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     window.viewArticle = (id) => {
-        window.location.href = `article-details.html?id=${id}`;
+        window.location.href = `journal-details.html?id=${id}`;
     };
 
     window.editArticle = (id) => {

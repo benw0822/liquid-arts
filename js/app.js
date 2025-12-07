@@ -1141,7 +1141,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="${isSaved ? '#ef4444' : 'none'}" stroke="${isSaved ? '#ef4444' : '#333'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
              </button>
 
-            <a href="article-details.html?id=${article.id}" style="text-decoration: none; color: inherit; display: block;">
+            <a href="journal-details.html?id=${article.id}" style="text-decoration: none; color: inherit; display: block;">
                 <img src="${imgUrl}" alt="${article.title}" class="art-card-image" style="width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 0;">
                 <div style="padding: 1.5rem;">
                     <div class="art-card-meta" style="margin-bottom: 0.5rem; font-size: 0.85rem; color: #888;">${dateStr}</div>
