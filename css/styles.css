@@ -1086,3 +1086,8 @@ figure.article-figure figcaption {
     letter-spacing: 0.05em;
     text-align: center;
 }
+
+/* Brighten Dark Map Routes (Fashion Style) */
+.card-map .leaflet-tile-pane {
+    filter: brightness(1.7) contrast(0.85);
+}

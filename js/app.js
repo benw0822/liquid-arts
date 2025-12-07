@@ -95,73 +95,67 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // 2. Bar List Page
+    // 2. Bar List Page
     window.initBarList = async () => {
-        const bars = await fetchBars();
+        let bars = await fetchBars();
         const grid = document.getElementById('bars-grid');
         const locationSelect = document.getElementById('filter-city');
         const vibeSelect = document.getElementById('filter-vibe');
         const priceSelect = document.getElementById('filter-price');
+        const searchInput = document.getElementById('search-input');
 
-        // Dynamic Filter Population
-        if (bars && bars.length > 0) {
-            // Collect unique values
-            const cities = [...new Set(bars.map(b => b.location).filter(Boolean))].sort();
+        // Loading state
+        if (grid) grid.innerHTML = '<p style="width:100%; text-align:center; color:#888;">Discovering locations...</p>';
+
+        // 1. Pre-calculate Cities from Coords (for Filters & Display)
+        bars = await Promise.all(bars.map(async (bar) => {
+            let city = bar.location; // Fallback
+            if (bar.lat && bar.lng) {
+                const resolved = await fetchCityFromCoordsGlobal(bar.lat, bar.lng);
+                if (resolved) city = resolved;
+            }
+            return { ...bar, cityDisplay: city };
+        }));
+
+        // 2. Populate Filters (Dynamic)
+        if (bars.length > 0) {
+            // Collect unique values from resolved cities
+            const cities = [...new Set(bars.map(b => b.cityDisplay).filter(Boolean))].sort();
             const vibes = [...new Set(bars.map(b => b.vibe).filter(Boolean))].sort();
 
-            // Populate City Filter
             if (locationSelect) {
                 locationSelect.innerHTML = '<option value="">All Cities</option>' +
                     cities.map(c => `<option value="${c}">${c}</option>`).join('');
             }
-
-            // Populate Vibe Filter
             if (vibeSelect) {
                 vibeSelect.innerHTML = '<option value="">All Vibes</option>' +
                     vibes.map(v => `<option value="${v}">${v}</option>`).join('');
             }
         }
-        const searchInput = document.getElementById('search-input');
-        const filterCity = document.getElementById('filter-city');
-        const filterVibe = document.getElementById('filter-vibe');
-        const filterPrice = document.getElementById('filter-price');
 
-        async function render(items) {
-            grid.innerHTML = '<p style="width:100%; text-align:center; color:#888;">Updating...</p>';
-
-            // Fetch cities in parallel (using Global helper)
-            const itemsWithCity = await Promise.all(items.map(async (bar) => {
-                let city = '';
-                // If we have coords, fetch/cache city. User requested coordinate-based city.
-                // Note: This might hit rate limits if too many items. 
-                // We use the global helper which defines cache.
-                if (bar.lat && bar.lng) {
-                    city = await fetchCityFromCoordsGlobal(bar.lat, bar.lng);
-                }
-                return { ...bar, cityDisplay: city };
-            }));
-
-            grid.innerHTML = itemsWithCity.map(bar => createBarCard(bar, bar.cityDisplay)).join('');
+        // 3. Render Function (Simplified)
+        function render(items) {
+            if (!grid) return;
+            grid.innerHTML = items.map(bar => createBarCard(bar, bar.cityDisplay)).join('');
 
             // Initialize maps
-            itemsWithCity.forEach(bar => {
+            items.forEach(bar => {
                 if (bar.lat && bar.lng) {
-                    // Small delay to ensure render layout
                     setTimeout(() => initCardMapGlobal(bar.id, bar.lat, bar.lng, bar.title), 100);
                 }
             });
         }
 
+        // 4. Filter Logic
         function filterBars() {
-            const term = searchInput.value.toLowerCase();
-            const city = filterCity.value;
-            const vibe = filterVibe.value;
-            const price = filterPrice.value;
+            const term = (searchInput.value || '').toLowerCase();
+            const city = locationSelect ? locationSelect.value : '';
+            const vibe = vibeSelect ? vibeSelect.value : '';
+            const price = priceSelect ? priceSelect.value : '';
 
             const filtered = bars.filter(bar => {
-                const matchSearch = (bar.title || '').toLowerCase().includes(term) || (bar.location || '').toLowerCase().includes(term);
-                // Note: Filter logic uses existing bar.location string, 
-                // but Display rendering uses new Coordinate City.
-                const matchCity = !city || (bar.location || '').includes(city);
+                const matchSearch = (bar.title || '').toLowerCase().includes(term) || (bar.cityDisplay || '').toLowerCase().includes(term);
+                const matchCity = !city || (bar.cityDisplay || '').includes(city); // Check against Resolved City
                 const matchVibe = !vibe || bar.vibe === vibe;
                 const matchPrice = !price || bar.price == price;
                 return matchSearch && matchCity && matchVibe && matchPrice;
@@ -169,10 +163,10 @@ document.addEventListener('DOMContentLoaded', () => {
             render(filtered);
         }
 
-        searchInput.addEventListener('input', filterBars);
-        filterCity.addEventListener('change', filterBars);
-        filterVibe.addEventListener('change', filterBars);
-        filterPrice.addEventListener('change', filterBars);
+        if (searchInput) searchInput.addEventListener('input', filterBars);
+        if (locationSelect) locationSelect.addEventListener('change', filterBars);
+        if (vibeSelect) vibeSelect.addEventListener('change', filterBars);
+        if (priceSelect) priceSelect.addEventListener('change', filterBars);
 
         render(bars);
     };
