@@ -915,7 +915,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Helper Functions ---
 
-    function initCardMapGlobal(id, lat, lng, title) {
+    // Expose for Profile usage
+    window.initCardMapGlobal = function (id, lat, lng, title) {
         if (typeof L === 'undefined') return;
         const elId = `card-map-${id}`;
         const el = document.getElementById(elId);
@@ -942,7 +943,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             L.marker([lat, lng], { icon: customIcon }).addTo(map);
         } catch (e) { console.warn('Map init error', e); }
-    }
+    };
 
     // --- Helper: Reverse Geocoding (Global) ---
     window.fetchCityFromCoordsGlobal = async function (lat, lng) {
