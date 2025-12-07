@@ -789,11 +789,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Helper Functions ---
     function createBarCard(bar) {
         return `
-            <a href="bar-details.html?id=${bar.id}" class="art-card grid-item">
-                <img src="${bar.image}" alt="${bar.title}" class="art-card-image" loading="lazy">
-                <h3 class="art-card-title">${bar.title}</h3>
-                <div class="art-card-meta">
-                    <span>${bar.location}</span> • <span class="text-red">${bar.vibe}</span>
+            <a href="bar-details.html?id=${bar.id}" class="art-card grid-item" style="text-decoration: none; display: block; margin-bottom: 2rem;">
+                <div style="width: 100%; aspect-ratio: 4/3; overflow: hidden; margin-bottom: 1rem; border-radius: 4px;">
+                    <img src="${bar.image}" alt="${bar.title}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                </div>
+                <div style="text-align: center;">
+                    <h3 style="font-family: var(--font-display); font-size: 1.5rem; margin: 0 0 0.5rem 0; color: #1b1b1b;">${bar.title}</h3>
+                    <p style="font-family: var(--font-main); font-size: 1rem; color: #666; margin: 0;">${bar.location}</p>
                 </div>
             </a>
         `;
