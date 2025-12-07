@@ -98,6 +98,28 @@ document.addEventListener('DOMContentLoaded', () => {
     window.initBarList = async () => {
         const bars = await fetchBars();
         const grid = document.getElementById('bars-grid');
+        const locationSelect = document.getElementById('filter-city');
+        const vibeSelect = document.getElementById('filter-vibe');
+        const priceSelect = document.getElementById('filter-price');
+
+        // Dynamic Filter Population
+        if (bars && bars.length > 0) {
+            // Collect unique values
+            const cities = [...new Set(bars.map(b => b.location).filter(Boolean))].sort();
+            const vibes = [...new Set(bars.map(b => b.vibe).filter(Boolean))].sort();
+
+            // Populate City Filter
+            if (locationSelect) {
+                locationSelect.innerHTML = '<option value="">All Cities</option>' +
+                    cities.map(c => `<option value="${c}">${c}</option>`).join('');
+            }
+
+            // Populate Vibe Filter
+            if (vibeSelect) {
+                vibeSelect.innerHTML = '<option value="">All Vibes</option>' +
+                    vibes.map(v => `<option value="${v}">${v}</option>`).join('');
+            }
+        }
         const searchInput = document.getElementById('search-input');
         const filterCity = document.getElementById('filter-city');
         const filterVibe = document.getElementById('filter-vibe');
