@@ -1216,16 +1216,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Check Auth State
     supabase.auth.onAuthStateChange((event, session) => {
+        // --- Custom Nav Logic ---
+        const myLink = document.getElementById('nav-my-link');
+
         if (session) {
             if (loginBtn) loginBtn.style.display = 'none';
-            if (userMenu) {
-                userMenu.style.display = 'inline-block';
-                // Optional: Fetch profile to get name/avatar if needed
-                // For now just show "Profile" link
+            if (userMenu) userMenu.style.display = 'none'; // Ensure old menu is hidden
+
+            // Update "My" link to "Avatar + Name"
+            if (myLink) {
+                const user = session.user;
+                const avatar = user.user_metadata.avatar_url || 'assets/default_avatar.png';
+                const name = user.user_metadata.full_name || 'My';
+
+                myLink.innerHTML = `<img src="${avatar}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; vertical-align: middle; margin-right: 6px;"> ${name}`;
+                myLink.style.display = 'inline-flex';
+                myLink.style.alignItems = 'center';
             }
         } else {
             if (loginBtn) loginBtn.style.display = 'inline-block';
             if (userMenu) userMenu.style.display = 'none';
+
+            // Reset "My" link
+            if (myLink) {
+                myLink.innerHTML = 'My';
+                myLink.style.display = ''; // Reset display style
+                myLink.style.alignItems = '';
+            }
         }
     });
 
