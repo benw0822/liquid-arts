@@ -129,7 +129,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const articleGrid = document.getElementById('article-grid');
 
         if (featuredGrid) {
-            featuredGrid.innerHTML = bars.slice(0, 3).map(bar => createBarCard(bar)).join('');
+            const featuredBars = bars.slice(0, 3);
+            featuredGrid.innerHTML = featuredBars.map(bar => createBarCard(bar)).join('');
+            // Init maps for featured bars
+            featuredBars.forEach(bar => {
+                if (bar.lat && bar.lng) {
+                    setTimeout(() => window.initCardMapGlobal(bar.id, bar.lat, bar.lng, bar.title), 100);
+                }
+            });
         }
         if (articleGrid) {
             articleGrid.innerHTML = articles.slice(0, 3).map(article => createArticleCard(article)).join('');
