@@ -204,7 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const sortedImages = bar.bar_images.sort((a, b) => a.display_order - b.display_order);
             galleryHtml = `
                 <div class="content-card">
-                    <h3 class="section-title" style="text-align: center; font-size: 1.5rem; margin-bottom: 1rem; font-family: var(--font-display);">Gallery</h3>
+                    <h3 class="section-title" style="text-align: center; font-size: 1.5rem; margin-bottom: 0.5rem; font-family: var(--font-display);">Gallery</h3>
                     <div class="magazine-grid" style="grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px;">
                         ${sortedImages.map(img => `
                             <div class="grid-item" style="grid-column: span 1; margin-bottom: 0;">
@@ -236,7 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (bar.bar_articles && bar.bar_articles.length > 0) {
             articlesHtml = `
                 <div class="content-card">
-                    <h3 class="section-title" style="text-align: center; font-size: 1.5rem; margin-bottom: 1.5rem; font-family: var(--font-display);">Related Stories</h3>
+                    <h3 class="section-title" style="text-align: center; font-size: 1.5rem; margin-bottom: 1.5rem; font-family: var(--font-display);">Story</h3>
                     <div class="magazine-grid">
                         ${bar.bar_articles.map(ba => createArticleCard(ba.article)).join('')}
                     </div>
