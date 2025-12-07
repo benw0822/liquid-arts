@@ -484,11 +484,25 @@
                 <label class="info-label">Category</label>
                 <select id="article-category" class="search-input">
                     <option value="">Select Category...</option>
-                    <option value="活動情報">活動情報 (Event Info)</option>
-                    <option value="直擊體驗">直擊體驗 (Direct Experience)</option>
-                    <option value="專題報導">專題報導 (Feature Story)</option>
-                    <option value="職人專訪">職人專訪 (Artisan Interview)</option>
+                    <option value="Event">Event</option>
+                    <option value="Review">Review</option>
+                    <option value="Feature">Feature</option>
+                    <option value="Interview">Interview</option>
                 </select>
+            </div>
+
+            <div id="event-dates-container" style="display: none; margin-bottom: 1.5rem;">
+                <label class="info-label">Event Duration</label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div>
+                        <span style="font-size: 0.8rem; color: #666;">Start Date</span>
+                        <input type="date" id="event-start-date" class="search-input">
+                    </div>
+                    <div>
+                        <span style="font-size: 0.8rem; color: #666;">End Date</span>
+                        <input type="date" id="event-end-date" class="search-input">
+                    </div>
+                </div>
             </div>
 
             <div style="margin-bottom: 1.5rem;">

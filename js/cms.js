@@ -8,6 +8,9 @@ const titleInput = document.getElementById('article-title');
 const excerptInput = document.getElementById('article-excerpt');
 const tagsInput = document.getElementById('article-tags');
 const categoryInput = document.getElementById('article-category');
+const eventDatesContainer = document.getElementById('event-dates-container');
+const startDateInput = document.getElementById('event-start-date');
+const endDateInput = document.getElementById('event-end-date');
 const authorInput = document.getElementById('article-author');
 const coverInput = document.getElementById('cover-file');
 const coverPreview = document.getElementById('cover-preview');
@@ -77,12 +80,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Toggle Label Logic
-    // Toggle Label Logic
     publishToggle.addEventListener('change', () => {
         const label = publishToggle.parentElement.nextElementSibling;
         if (label) {
             label.textContent = publishToggle.checked ? 'Published' : 'Draft';
             label.style.color = publishToggle.checked ? '#4cd964' : '#666';
+        }
+    });
+
+    // Category Change Listener to Show/Hide Dates
+    categoryInput.addEventListener('change', () => {
+        if (categoryInput.value === 'Event') {
+            eventDatesContainer.style.display = 'block';
+        } else {
+            eventDatesContainer.style.display = 'none';
         }
     });
 });
@@ -712,7 +723,23 @@ async function loadArticle(id) {
         titleInput.style.height = (titleInput.scrollHeight) + 'px';
         excerptInput.value = article.excerpt || '';
         tagsInput.value = (article.tags || []).join(', ');
-        categoryInput.value = article.category || '';
+
+        // Legacy Category Mapping (Chinese -> English)
+        const categoryMap = {
+            '活動情報': 'Event',
+            '直擊體驗': 'Review',
+            '專題報導': 'Feature',
+            '職人專訪': 'Interview'
+        };
+        categoryInput.value = categoryMap[article.category] || article.category || '';
+
+        // Populate Event Dates if "Event"
+        if (article.start_date) startDateInput.value = article.start_date.split('T')[0];
+        if (article.end_date) endDateInput.value = article.end_date.split('T')[0];
+
+        // Trigger visibility update
+        categoryInput.dispatchEvent(new Event('change'));
+
         authorInput.value = article.author_name || '';
 
         if (article.cover_image) {
@@ -808,6 +835,8 @@ saveBtn.addEventListener('click', async () => {
             title,
             excerpt: excerptInput.value,
             category: categoryInput.value,
+            start_date: startDateInput.value || null,
+            end_date: endDateInput.value || null,
             author_name: authorInput.value,
             tags,
             content,
