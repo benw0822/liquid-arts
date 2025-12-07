@@ -12,6 +12,55 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+    <style>
+        .cropper-modal-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cropper-content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .img-container {
+            max-height: 60vh;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .img-container img {
+            max-width: 100%;
+            display: block;
+        }
+
+        .profile-input {
+            width: 100%;
+            margin-bottom: 1.5rem;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 1rem;
+        }
+    </style>
 </head>
 
 <body class="light-mode">
@@ -48,21 +97,31 @@
 
                         <!-- Avatar Section -->
                         <div style="text-align: center;">
-                            <img id="profile-avatar" src="" alt="Avatar"
-                                style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-color); margin-bottom: 1rem;">
-                            <br>
-                            <label style="font-size: 0.9rem; color: #666; display: block; margin-bottom: 0.5rem;">Upload
-                                Avatar (Image File)</label>
-                            <input type="file" id="edit-avatar-file" accept="image/*" class="search-input"
-                                style="width: 100%; max-width: 300px; margin-bottom: 1rem; padding: 10px;">
+                            <div style="position: relative; display: inline-block;">
+                                <img id="profile-avatar" src="" alt="Avatar"
+                                    style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-color);">
+                                <button type="button" onclick="document.getElementById('edit-avatar-file').click()"
+                                    class="camera-btn"
+                                    style="position: absolute; bottom: 0; right: 0; background: white; border: 1px solid #ddd; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <path
+                                            d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z">
+                                        </path>
+                                        <circle cx="12" cy="13" r="4"></circle>
+                                    </svg>
+                                </button>
+                            </div>
+                            <input type="file" id="edit-avatar-file" accept="image/*" style="display: none;"
+                                onchange="handleFileSelect(event)">
                         </div>
 
                         <!-- Info Section -->
                         <div style="width: 100%; max-width: 400px;">
                             <label
                                 style="font-size: 0.9rem; color: #666; display: block; margin-bottom: 0.5rem;">Nickname</label>
-                            <input type="text" id="edit-nickname" class="search-input"
-                                style="width: 100%; margin-bottom: 1.5rem;" placeholder="Enter nickname">
+                            <input type="text" id="edit-nickname" class="profile-input" placeholder="Enter nickname">
 
                             <label
                                 style="font-size: 0.9rem; color: #666; display: block; margin-bottom: 0.5rem;">Email</label>
@@ -130,11 +189,55 @@
                 document.getElementById('profile-avatar').src = avatar;
             }
 
-            // --- Handlers (Global Scope for onclick) ---
+            let cropper;
+            let avatarBlob = null;
+
+            // --- Handlers (Global Scope) ---
+            window.handleFileSelect = (event) => {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const image = document.getElementById('crop-image');
+                        image.src = e.target.result;
+                        document.getElementById('cropper-modal').style.display = 'flex';
+
+                        if (cropper) cropper.destroy();
+                        cropper = new Cropper(image, {
+                            aspectRatio: 1,
+                            viewMode: 1,
+                            autoCropArea: 1,
+                        });
+                    };
+                    reader.readAsDataURL(file);
+                }
+                event.target.value = ''; // Reset input to allow re-selecting same file
+            };
+
+            window.closeCropModal = () => {
+                document.getElementById('cropper-modal').style.display = 'none';
+                if (cropper) cropper.destroy();
+                cropper = null;
+            };
+
+            window.confirmCrop = () => {
+                if (!cropper) return;
+                cropper.getCroppedCanvas({
+                    width: 1080,
+                    height: 1080,
+                    fillColor: '#fff',
+                }).toBlob((blob) => {
+                    avatarBlob = blob;
+                    // Update preview
+                    const url = URL.createObjectURL(blob);
+                    document.getElementById('profile-avatar').src = url;
+                    closeCropModal();
+                }, 'image/jpeg', 0.9);
+            };
+
+            // Update ProfileLogic
             window.updateProfile = async () => {
                 const newNickname = document.getElementById('edit-nickname').value;
-                const fileInput = document.getElementById('edit-avatar-file');
-                const file = fileInput.files[0];
                 const btn = document.querySelector('button[onclick="updateProfile()"]');
                 const originalText = btn.textContent;
 
@@ -142,19 +245,17 @@
                     btn.textContent = 'Saving...';
                     btn.disabled = true;
 
-                    let newAvatarUrl = document.getElementById('profile-avatar').src;
+                    let newAvatarUrl = user.user_metadata.avatar_url; // Default to existing
 
-                    // 1. Upload File if selected
-                    if (file) {
-                        const fileExt = file.name.split('.').pop();
-                        const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+                    // 1. Upload Blob if exists (from Cropper)
+                    if (avatarBlob) {
+                        const fileName = `${user.id}/${Date.now()}.jpg`;
                         const { error: uploadError } = await supabase.storage
                             .from('avatars')
-                            .upload(fileName, file);
+                            .upload(fileName, avatarBlob);
 
                         if (uploadError) throw uploadError;
 
-                        // Get Public URL
                         const { data: { publicUrl } } = supabase.storage
                             .from('avatars')
                             .getPublicUrl(fileName);
@@ -173,10 +274,6 @@
                     });
 
                     if (error) throw error;
-
-                    // Update UI immediately (optimistic)
-                    document.getElementById('profile-avatar').src = newAvatarUrl;
-                    // Also update nickname display if it exists (though inputs are used now)
 
                     alert('Profile updated successfully!');
 
@@ -293,4 +390,19 @@
             }
         });
     </script>
+    <!-- Cropper Modal -->
+    <div id="cropper-modal" class="cropper-modal-container">
+        <div class="cropper-content">
+            <h3 style="margin-top: 0; margin-bottom: 1rem;">Crop Avatar (1:1)</h3>
+            <div class="img-container">
+                <img id="crop-image" src="" alt="To Crop">
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 1rem;">
+                <button type="button" onclick="closeCropModal()" class="btn"
+                    style="background: #ccc; color: #333; border: none; padding: 0.5rem 1rem;">Cancel</button>
+                <button type="button" onclick="confirmCrop()" class="btn"
+                    style="background: var(--bg-red); color: white; border: none; padding: 0.5rem 1rem;">Done</button>
+            </div>
+        </div>
+    </div>
 </body>
