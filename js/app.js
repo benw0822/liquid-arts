@@ -204,7 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const sortedImages = bar.bar_images.sort((a, b) => a.display_order - b.display_order);
             galleryHtml = `
                 <div class="content-card">
-                    <h3 class="section-title" style="text-align: center; font-size: 1.5rem; margin-bottom: 1.5rem; font-family: var(--font-display);">Gallery</h3>
+                    <h3 class="section-title" style="text-align: center; font-size: 1.5rem; margin-bottom: 1rem; font-family: var(--font-display);">Gallery</h3>
                     <div class="magazine-grid" style="grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px;">
                         ${sortedImages.map(img => `
                             <div class="grid-item" style="grid-column: span 1; margin-bottom: 0;">
@@ -253,7 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             signaturesHtml = `
                 <div class="content-card">
-                    <h3 class="section-title" style="text-align: center; font-size: 1.5rem; margin-bottom: 1.5rem; font-family: var(--font-display);">Signature Cocktails</h3>
+                    <h3 class="section-title" style="text-align: center; font-size: 1.5rem; margin-bottom: 1.5rem; font-family: var(--font-display);">Signature</h3>
                     
                     <div class="signature-carousel-container" style="position: relative; overflow: hidden;">
                         <div class="signature-track" id="sig-track-${bar.id}" style="display: flex; transition: transform 0.3s ease-in-out;">
@@ -392,7 +392,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     ${bar.bar_awards && bar.bar_awards.length > 0 ? `
                         <div class="content-card">
-                            <h3 class="section-title" style="text-align: center; font-size: 1.5rem; margin-bottom: 1.5rem; font-family: var(--font-display);">Awards</h3>
+                            <h3 class="section-title" style="text-align: center; font-size: 1.5rem; margin-bottom: 1.5rem; font-family: var(--font-display); border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 15px;">Awards</h3>
                             <div style="display: flex; flex-direction: column; gap: 12px;">
                                 ${bar.bar_awards.sort((a, b) => (b.year || 0) - (a.year || 0)).map(award => `
                                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 8px; font-weight: 700; color: #333;">
