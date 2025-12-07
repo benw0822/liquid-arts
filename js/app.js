@@ -249,25 +249,48 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- Signatures ---
         let signaturesHtml = '';
         if (bar.signatures && bar.signatures.length > 0) {
+            const hasMultiple = bar.signatures.length > 1;
+
             signaturesHtml = `
                 <div class="content-card">
                     <h3 class="section-title" style="text-align: center; font-size: 1.5rem; margin-bottom: 1.5rem; font-family: var(--font-display);">Signature Cocktails</h3>
-                    <div class="signatures-grid">
-                        ${bar.signatures.map(sig => `
-                            <div class="grid-item" style="margin-bottom: 0;">
-                                <div style="border: 1px solid #eee; border-radius: 8px; overflow: hidden; height: 100%; background: #f9f9f9; transition: transform 0.2s;">
-                                    <img src="${sig.image_url || 'assets/placeholder.jpg'}" alt="${sig.name}" style="width:100%; aspect-ratio: 4/5; object-fit:cover;">
-                                    <div style="padding: 15px;">
-                                        <h4 style="margin: 0 0 5px 0; font-family: var(--font-display); font-size: 1.1rem; color: var(--text-primary);">${sig.name}</h4>
-                                        <p style="font-size: 0.85rem; color: #666; margin: 0; line-height: 1.4;">${sig.description || ''}</p>
-                                        ${sig.review ? `<p style="margin-top: 8px; font-size: 0.8rem; color: var(--bg-red); font-style: italic;">"${sig.review}"</p>` : ''}
+                    
+                    <div class="signature-carousel-container" style="position: relative; overflow: hidden;">
+                        <div class="signature-track" id="sig-track-${bar.id}" style="display: flex; transition: transform 0.3s ease-in-out;">
+                            ${bar.signatures.map(sig => `
+                                <div class="signature-slide" style="min-width: 100%; box-sizing: border-box; padding: 0 5px;">
+                                    <div style="border: 1px solid #eee; border-radius: 8px; overflow: hidden; height: 100%; background: #f9f9f9; display: flex; flex-direction: column;">
+                                        <div style="position: relative; width: 100%; padding-top: 125%;"> <!-- 4:5 Aspect Ratio -->
+                                            <img src="${sig.image_url || 'assets/placeholder.jpg'}" alt="${sig.name}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
+                                        </div>
+                                        <div style="padding: 15px; flex: 1; display: flex; flex-direction: column;">
+                                            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px;">
+                                                <h4 style="margin: 0; font-family: var(--font-display); font-size: 1.2rem; color: var(--text-primary);">${sig.name}</h4>
+                                                ${sig.price ? `<span style="font-weight: 600; color: var(--bg-red); font-size: 1rem;">${sig.price}</span>` : ''}
+                                            </div>
+                                            <p style="font-size: 0.9rem; color: #666; margin: 0 0 10px 0; line-height: 1.4; flex: 1;">${sig.description || ''}</p>
+                                            ${sig.review ? `<p style="margin-top: auto; font-size: 0.85rem; color: var(--bg-red); font-style: italic; border-top: 1px solid #eee; padding-top: 8px;">"${sig.review}"</p>` : ''}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        `).join('')}
+                            `).join('')}
+                        </div>
+                        
+                        ${hasMultiple ? `
+                            <button onclick="prevSignature('${bar.id}')" style="position: absolute; top: 50%; left: 10px; transform: translateY(-50%); background: rgba(255,255,255,0.8); border: none; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; z-index: 10;">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                            </button>
+                            <button onclick="nextSignature('${bar.id}')" style="position: absolute; top: 50%; right: 10px; transform: translateY(-50%); background: rgba(255,255,255,0.8); border: none; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; z-index: 10;">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            </button>
+                        ` : ''}
                     </div>
                 </div>
             `;
+
+            // Initialize carousel state
+            window.carouselStates = window.carouselStates || {};
+            window.carouselStates[bar.id] = { index: 0, count: bar.signatures.length };
         }
 
         container.innerHTML = `
@@ -354,12 +377,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     <!-- Editorial Review Card -->
                     ${bar.editorial_review ? `
                         <div class="content-card" style="background-color: var(--bg-red); color: white; border: none;">
-                            <h3 class="section-title" style="text-align: center; font-size: 1.5rem; margin-bottom: 1.5rem; font-family: var(--font-display); color: white; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 10px;">Liquid Arts Review</h3>
-                            <p style="font-style: italic; font-size: 1.1rem; line-height: 1.6; margin-bottom: 1rem; text-align: center;">"${bar.editorial_review}"</p>
+                            <h3 class="section-title" style="text-align: center; font-size: 1.5rem; margin-bottom: 2rem; font-family: var(--font-display); color: white; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 15px;">Liquid Arts Review</h3>
+                            <p style="font-style: italic; font-size: 1.1rem; line-height: 1.6; margin-bottom: 1.5rem; text-align: center;">"${bar.editorial_review}"</p>
                             ${bar.editorial_rating ? `
                                 <div style="text-align: center;">
                                     <div style="color: #FFD700; font-size: 1.4rem; margin-bottom: 5px;">${'★'.repeat(bar.editorial_rating)}${'☆'.repeat(5 - bar.editorial_rating)}</div>
-                                    <div style="font-weight: 600; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px;">
+                                    <div style="font-weight: 600; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; font-family: var(--font-display);">
                                         ${['', 'Poor', 'Fair', 'Enjoyable', 'Remarkable', 'Masterpiece'][bar.editorial_rating] || ''}
                                     </div>
                                 </div>
@@ -441,6 +464,39 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
             }, 100);
         }
+
+        // Initialize Swiper for signatures carousel
+        if (bar.signatures && bar.signatures.length > 0) {
+            setTimeout(() => {
+                new Swiper('.signatures-carousel', {
+                    slidesPerView: 1,
+                    spaceBetween: 15,
+                    loop: true,
+                    pagination: {
+                        el: '.swiper-pagination',
+                        clickable: true,
+                    },
+                    navigation: {
+                        nextEl: '.swiper-button-next',
+                        prevEl: '.swiper-button-prev',
+                    },
+                    breakpoints: {
+                        640: {
+                            slidesPerView: 2,
+                            spaceBetween: 20,
+                        },
+                        768: {
+                            slidesPerView: 2,
+                            spaceBetween: 20,
+                        },
+                        1024: {
+                            slidesPerView: 3,
+                            spaceBetween: 20,
+                        },
+                    }
+                });
+            }, 200); // Small delay to ensure DOM is ready
+        }
     };
 
     // Helper: Reverse Geocoding
@@ -448,9 +504,13 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=en`);
             const data = await response.json();
-            return data.address.city || data.address.town || data.address.village || data.address.county || '';
+            if (data.address) {
+                // Try city, then town, then village, then county
+                return data.address.city || data.address.town || data.address.village || data.address.county || '';
+            }
+            return '';
         } catch (e) {
-            console.error('Geocoding error:', e);
+            console.error('City fetch error:', e);
             return '';
         }
     }
@@ -474,9 +534,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const weight = time ? '500' : 'normal';
                 const displayTime = time || 'Closed';
 
+                // Highlight Sat (5) and Sun (6)
+                const dayColor = (i === 5 || i === 6) ? '#ef4444' : '#333';
+
                 html += `
                     <tr style="border-bottom: 1px solid #f5f5f5;">
-                        <td style="padding: 8px 0; text-align: left; color: #333; font-weight: ${weight}; opacity: ${opacity}; width: 40%;">${days[i]}</td>
+                        <td style="padding: 8px 0; text-align: left; color: ${dayColor}; font-weight: ${weight}; opacity: ${opacity}; width: 40%;">${days[i]}</td>
                         <td style="padding: 8px 0; text-align: right; color: #333; opacity: ${opacity}; width: 60%;">${displayTime}</td>
                     </tr>
                 `;
@@ -718,5 +781,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const path = window.location.pathname;
     if (path.endsWith('index.html') || path === '/') window.initHome();
 });
+
+// --- Signature Carousel Logic ---
+window.updateCarousel = (barId) => {
+    const state = window.carouselStates[barId];
+    const track = document.getElementById(`sig-track-${barId}`);
+    if (track && state) {
+        track.style.transform = `translateX(-${state.index * 100}%)`;
+    }
+};
+
+window.prevSignature = (barId) => {
+    const state = window.carouselStates[barId];
+    if (state) {
+        state.index = (state.index - 1 + state.count) % state.count;
+        updateCarousel(barId);
+    }
+};
+
+window.nextSignature = (barId) => {
+    const state = window.carouselStates[barId];
+    if (state) {
+        state.index = (state.index + 1) % state.count;
+        updateCarousel(barId);
+    }
+};
 
 

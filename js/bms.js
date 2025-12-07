@@ -1024,6 +1024,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnSaveSig.addEventListener('click', async () => {
             const id = document.getElementById('sig-id').value;
             const name = document.getElementById('sig-name').value;
+            const price = document.getElementById('sig-price').value;
             const desc = document.getElementById('sig-description').value;
             const review = document.getElementById('sig-review').value;
 
@@ -1035,6 +1036,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const sigData = {
                 bar_id: currentBarId,
                 name: name,
+                price: price,
                 description: desc,
                 review: review,
                 image_url: currentSigImageUrl
@@ -1133,6 +1135,7 @@ function openSigModal(sig = null) {
     const sigModalTitle = document.getElementById('sig-modal-title');
     const sigIdInput = document.getElementById('sig-id');
     const sigNameInput = document.getElementById('sig-name');
+    const sigPriceInput = document.getElementById('sig-price');
     const sigDescInput = document.getElementById('sig-description');
     const sigReviewInput = document.getElementById('sig-review');
     const btnDeleteSig = document.getElementById('btn-delete-sig');
@@ -1141,6 +1144,7 @@ function openSigModal(sig = null) {
         sigModalTitle.textContent = 'Edit Signature';
         sigIdInput.value = sig.id;
         sigNameInput.value = sig.name;
+        sigPriceInput.value = sig.price || '';
         sigDescInput.value = sig.description || '';
         sigReviewInput.value = sig.review || '';
         currentSigImageUrl = sig.image_url || '';
@@ -1149,6 +1153,7 @@ function openSigModal(sig = null) {
         sigModalTitle.textContent = 'Add Signature';
         sigIdInput.value = '';
         sigNameInput.value = '';
+        sigPriceInput.value = '';
         sigDescInput.value = '';
         sigReviewInput.value = '';
         currentSigImageUrl = '';

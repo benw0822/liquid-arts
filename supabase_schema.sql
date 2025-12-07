@@ -95,6 +95,7 @@ create table if not exists signatures (
   bar_id bigint references bars(id) on delete cascade not null,
   name text not null,
   description text,
+  price text,
   review text,
   image_url text,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
