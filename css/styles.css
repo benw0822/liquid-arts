@@ -904,6 +904,13 @@ figure.article-figure figcaption {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 20px;
+    padding: 0;
+    /* Remove legacy padding */
+}
+
+.magazine-grid .grid-item {
+    margin-bottom: 0;
+    /* Remove legacy margin */
 }
 
 .gallery-grid {
