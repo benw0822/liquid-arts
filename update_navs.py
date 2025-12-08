@@ -1,54 +1,25 @@
-<!DOCTYPE html>
-<html lang="en">
+import glob
+import re
+import os
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Articles - Liquid Arts</title>
-    <link rel="stylesheet" href="css/styles.css">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:wght@400;700&display=swap"
-        rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</head>
+files = glob.glob("*.html")
 
-<body class="light-mode">
-    <nav class="navbar">
-        <div class="container nav-content">
-            <a href="index.html" class="logo">
-                <img src="assets/logo_horizontal.png" alt="Liquid Arts" class="logo-img">
-            </a>
-            <a href="admin.html" class="mobile-login-btn" id="mobile-login-btn">Login</a>
-            <div class="nav-links">
-                <a href="bars.html" class="nav-link">Bars</a>
-                <a href="map.html" class="nav-link">Map</a>
-                <a href="journal.html" class="nav-link active">Journal</a>
-                <a href="events.html" class="nav-link">Event</a>
+# Top Nav Replacement (Flexible Regex)
+# Match <a href="admin.html" ... >Login</a>, ignoring attributes order/content
+# This handles files that already have id="login-btn" or different styles
+top_nav_pattern = re.compile(r'<a\s+href="admin\.html"[^>]*class="nav-link"[^>]*>\s*Login\s*</a>', re.IGNORECASE)
 
-                <a href="profile.html" class="nav-link" id="nav-my-link">My</a>
-                <a href="profile.html" class="nav-link" id="login-btn" aria-label="Login" style="display: flex; align-items: center; color: var(--text-accent);">
+top_nav_new = r'''<a href="profile.html" class="nav-link" id="login-btn" aria-label="Login" style="display: flex; align-items: center; color: var(--text-accent);">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                         <circle cx="12" cy="7" r="4"></circle>
                     </svg>
-                </a>
-            </div>
-        </div>
-    </nav>
+                </a>'''
 
-    <main class="container" style="margin-top: 6rem;">
-        <div class="section-header">
-            <h2 class="section-title">Journal</h2>
-        </div>
+# Bottom Nav Pattern (Existing)
+bottom_nav_pattern = re.compile(r'<nav class="bottom-nav">[\s\S]*?</nav>', re.DOTALL)
 
-        <div id="articles-list-grid" class="magazine-grid">
-            <!-- Injected by JS -->
-            <p style="color: #888;">Loading articles...</p>
-        </div>
-    </main>
-
-    <!-- Bottom Navigation -->
-    <nav class="bottom-nav">
+bottom_nav_new = r'''<nav class="bottom-nav">
         <a href="bars.html" class="nav-item">
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M8 21h8m-4-12v12m-8-14h16l-5 5v3h-6v-3l-5-5z"></path>
@@ -84,20 +55,35 @@
             </svg>
             <span>Pocket</span>
         </a>
-    </nav>
+    </nav>'''
 
-    <footer>
-        <div class="container">
-            <p>&copy; 2024 Liquid Arts. All rights reserved.</p>
-        </div>
-    </footer>
+# Helper to find insertion point
+def update_or_insert_bottom_nav(content):
+    if '<nav class="bottom-nav">' in content:
+        return bottom_nav_pattern.sub(bottom_nav_new, content)
+    else:
+        # Insertion Logic (Order of preference)
+        # 1. Before Footer
+        if '<footer>' in content:
+            return content.replace('<footer>', bottom_nav_new + '\n    <footer>')
+        # 2. Before JS Scripts
+        elif '<script src="js/app.js">' in content:
+            return content.replace('<script src="js/app.js">', bottom_nav_new + '\n    <script src="js/app.js">')
+        # 3. Before Body End
+        elif '</body>' in content:
+            return content.replace('</body>', bottom_nav_new + '\n</body>')
+        return content
 
-    <script src="js/app.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            if (window.initArticlesList) window.initArticlesList();
-        });
-    </script>
-</body>
+for fpath in files:
+    if fpath.endswith("update_navs.py"): continue
+    
+    with open(fpath, 'r', encoding='utf-8') as f:
+        content = f.read()
 
-</html>
+    new_content = top_nav_pattern.sub(top_nav_new, content)
+    new_content = update_or_insert_bottom_nav(new_content)
+
+    if content != new_content:
+        with open(fpath, 'w', encoding='utf-8') as f:
+            f.write(new_content)
+        print(f"Updated {fpath}")
