@@ -29,6 +29,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
     window.logDebug = logDebug; // Expose global
 
+    // Global Error Handler
+    window.addEventListener('error', (e) => logDebug('Global Error: ' + e.message));
+    window.addEventListener('unhandledrejection', (e) => logDebug('Unhandled Promise: ' + e.reason));
+
+    logDebug('App: Loaded, starting init...');
+
     // Timeout Helper (Global in scope)
     const withTimeout = (promise, ms = 3000) => {
         return Promise.race([
@@ -39,7 +45,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 1. Auth & Saved Init (Global)
     window.initAuthAndSaved = async () => {
+        window.logDebug('Auth: initAuthAndSaved called');
         const { data: { session } } = await supabase.auth.getSession();
+        window.logDebug('Auth: Session retrieved');
         window.currentUser = session?.user || null;
 
         // Profile Sync Removed to prevent App Hang
