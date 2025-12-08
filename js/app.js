@@ -191,8 +191,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         // window.logDebug('FetchBars: Starting...');
         try {
             // Standard fetch, similar to fetchArticles
-            // We use maybeSingle() trick or just normal select
-            const { data, error } = await withTimeout(supabase.from('bars').select('*'), 5000);
+            // Added simple Join for images
+            const { data, error } = await withTimeout(supabase.from('bars').select('*, bar_images(image_url)'), 5000);
 
             if (error) {
                 console.warn('Fetch Bars Error:', error);
