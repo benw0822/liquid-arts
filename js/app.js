@@ -7,6 +7,14 @@ window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
 const supabase = window.supabaseClient;
 console.log('Connected to Supabase');
 
+// --- Timeout Helper (Global in scope) ---
+const withTimeout = (promise, ms = 10000) => {
+    return Promise.race([
+        promise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), ms))
+    ]);
+};
+
 document.addEventListener('DOMContentLoaded', async () => {
 
     // --- Save/Favorite Logic (Supabase) ---
