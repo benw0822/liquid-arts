@@ -157,14 +157,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const SUPABASE_KEY = 'sb_publishable_gcmYleFIGmwsLSKofS__Qg_62EXoP6P';
 
     // Init immediately for Auth to work
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    if (window.supabaseClient) {
+        supabase = window.supabaseClient;
+    } else {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    }
+
     // Pre-fill settings inputs just in case
     supabaseUrlInput.value = SUPABASE_URL;
     supabaseKeyInput.value = SUPABASE_KEY;
 
     function initSupabase() {
-        // Kept for settings modal re-init if needed
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        if (window.supabaseClient) {
+            supabase = window.supabaseClient;
+        } else {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        }
     }
 
     settingsBtn.addEventListener('click', () => {
