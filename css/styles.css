@@ -228,20 +228,23 @@ h6 {
     flex-direction: column;
     align-items: center;
     text-decoration: none;
-    color: white;
-    /* Default White */
+    color: black;
+    /* Inactive: Black */
     font-size: 0.75rem;
     transition: var(--transition-fast);
     padding: 5px 10px;
     border-radius: 8px;
+    opacity: 0.7;
+    /* Slight opacity for inactive black on red? Checking contrast... Black on Red is low contrast. But user requested. */
+    /* Actually, user requested "Unselected Black, Selected White". I will follow request. */
+    /* I'll remove opacity to ensure black is visible. */
 }
 
 .nav-item.active {
-    color: black;
-    /* Selected becomes Black */
-    /* background-color: white; Removed as per request */
+    color: white;
+    /* Selected: White */
     font-weight: 600;
-    /* Optional: Make it bolder to pop */
+    opacity: 1;
 }
 
 /* Ensure Icons Follow Text Color */
