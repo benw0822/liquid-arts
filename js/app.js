@@ -360,41 +360,65 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Helper Components ---
 
     function createBarCard(bar) {
+        // EXACT copy of window.createBarCard (Profile Style)
+        const city = bar.cityDisplay || null;
+        const displayCity = city || bar.location || '';
+        const description = bar.description || `Experience the finest mixology at ${bar.title}. Known for its ${bar.vibe} atmosphere, this spot in ${bar.location} offers a curated selection of cocktails and spirits.`;
+        const rating = bar.google_rating || bar.rating || 'N/A';
+        const reviewCount = bar.google_review_count || bar.rating_count || 0;
+        const price = '$'.repeat(bar.price || bar.price_level || 2);
+        const address = bar.address || bar.address_en || bar.location;
+        const mapUrl = bar.google_map_url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+
         const isSaved = window.savedBarIds.has(bar.id);
-        const saveIconFill = isSaved ? '#ef4444' : 'none';
-        const saveIconStroke = isSaved ? '#ef4444' : '#333';
-        const locationText = bar.cityDisplay || bar.location || 'Unknown';
 
         return `
-            <div class="grid-item">
-                <a href="bar-details.html?id=${bar.id}" class="magazine-card-link">
-                    <article class="magazine-card">
-                        <div class="card-image-container">
-                            <img src="${bar.image || 'assets/default_bar.png'}" alt="${bar.title}" class="card-image">
-                            <!-- Map Container: Populated by initHome/initBarList -->
-                            <div id="card-map-${bar.id}" class="card-map"></div> 
-                            <div class="card-badges">
-                                <span class="badge badge-vibe">${bar.vibe || 'Bar'}</span>
-                            </div>
+        <div class="art-card grid-item" style="position: relative; display: flex; flex-direction: column; height: 100%; margin-bottom: 3rem; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 380px; margin-left: auto; margin-right: auto;">
+             <!-- Save Button -->
+             <button class="save-btn-${bar.id}" onclick="window.toggleSaveBar(${bar.id}, event)" style="position: absolute; top: 15px; right: 15px; z-index: 20; background: white; border: none; border-radius: 50%; width: 36px; height: 36px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="${isSaved ? '#ef4444' : 'none'}" stroke="${isSaved ? '#ef4444' : '#333'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+             </button>
+
+             <!-- Main Link Wrapper -->
+            <a href="bar-details.html?id=${bar.id}" style="text-decoration: none; display: block; flex-grow: 1; display: flex; flex-direction: column;">
+                <div style="width: 100%; border-bottom: 1px solid #f0f0f0;">
+                    <img src="${bar.image}" alt="${bar.title}" style="width: 100%; height: auto; display: block; transition: transform 0.5s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                </div>
+                <div style="text-align: center; padding: 1.5rem 1rem 0.5rem 1rem;">
+                    <h3 style="font-family: var(--font-display); font-size: 1.8rem; margin: 0 0 0.5rem 0; color: #1b1b1b;">${bar.title}</h3>
+                    <p style="font-family: var(--font-main); font-size: 1rem; color: #888; margin: 0;">
+                        ${bar.vibe ? `<span style="color: var(--bg-red); font-weight: 600;">${bar.vibe}</span> • ` : ''}${displayCity}
+                    </p>
+                </div>
+            
+                <div style="padding: 0 1.5rem 1.5rem 1.5rem; text-align: center; flex: 1; display: flex; flex-direction: column;">
+                    
+                    ${bar.editorial_review ? `
+                        <div style="margin-bottom: 1.2rem; padding: 15px; background: var(--bg-red); color: white; border-radius: 12px; text-align: center;">
+                             <h4 style="margin: 0 0 5px 0; font-family: var(--font-display); font-size: 1rem; letter-spacing: 0.05em; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 5px; display: inline-block;">Liquid Arts Review</h4>
+                             <p style="font-size: 0.9rem; font-style: italic; margin: 10px 0; line-height: 1.5;">"${bar.editorial_review}"</p>
+                             ${bar.editorial_rating ? `
+                                <div style="margin-top: 5px;">
+                                    <div style="color: #FFD700; font-size: 1rem; margin-bottom: 2px;">${'★'.repeat(bar.editorial_rating)}${'☆'.repeat(5 - bar.editorial_rating)}</div>
+                                </div>
+                             ` : ''}
                         </div>
-                        <div class="card-content">
-                            <div class="card-meta">
-                                <span class="card-location">${locationText}</span>
-                                <span class="card-price">${'$'.repeat(bar.price || 1)}</span>
-                            </div>
-                            <h3 class="card-title">${bar.title}</h3>
-                            <div class="card-footer">
-                                <span class="rating">★ ${bar.rating || 'New'}</span>
-                                <button class="save-btn save-btn-${bar.id}" onclick="window.toggleSaveBar(${bar.id}, event)">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="${saveIconFill}" stroke="${saveIconStroke}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-                    </article>
-                </a>
-            </div>
+                    ` : ''}
+
+                    <p style="font-size: 0.95rem; color: #555; line-height: 1.6; margin-bottom: 1.5rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                        ${description}
+                    </p>
+                    
+                    <div style="margin-top: auto; padding-top: 15px; border-top: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; color: #444;">
+                         <div style="display: flex; align-items: center;">
+                            <span style="color: #fbbc04; margin-right: 5px;">★</span> 
+                            <strong>${rating}</strong> <span style="color: #888; font-size: 0.8rem; margin-left: 3px;">(${reviewCount})</span>
+                         </div>
+                         <div style="font-weight: 600; color: #333;">${price}</div>
+                    </div>
+                </div>
+            </a>
+        </div>
         `;
     }
 
