@@ -169,14 +169,18 @@ create table if not exists users (
 -- Enable RLS
 alter table users enable row level security;
 
+-- Policies (Drop first to avoid "already exists" error)
+drop policy if exists "Public profiles are viewable by everyone." on users;
 create policy "Public profiles are viewable by everyone."
   on users for select
   using ( true );
 
+drop policy if exists "Users can insert their own profile." on users;
 create policy "Users can insert their own profile."
   on users for insert
   with check ( auth.uid() = id );
 
+drop policy if exists "Users can update own profile." on users;
 create policy "Users can update own profile."
   on users for update
   using ( auth.uid() = id );
