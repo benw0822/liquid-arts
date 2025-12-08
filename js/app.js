@@ -36,17 +36,39 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Timeout Helper definition removed from here (moved to top)
 
         if (window.currentUser) {
-            // Fetch Saved Bars (With Timeout)
+            // 1. Profile Sync (Non-Blocking Promise)
+            // We start this but don't await it to block the main initialization
+            withTimeout(supabase
+                .from('users')
+                .select('full_name, avatar_url')
+                .eq('id', window.currentUser.id)
+                .maybeSingle(), 2000)
+                .then(({ data: profile }) => {
+                    if (profile) {
+                        // Update local object
+                        window.currentUser.user_metadata = {
+                            ...window.currentUser.user_metadata,
+                            ...profile
+                        };
+                        // Update Nav if it's already rendered
+                        const myLink = document.getElementById('nav-my-link');
+                        if (myLink && profile.avatar_url) {
+                            myLink.innerHTML = `<img src="${profile.avatar_url}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; vertical-align: middle; margin-right: 6px;"> ${profile.full_name || 'My'}`;
+                        }
+                    }
+                }).catch(err => console.warn('Profile sync background fail:', err));
+
+            // 2. Fetch Saved Bars (With Timeout)
             try {
-                const { data: bars } = await withTimeout(supabase.from('saved_bars').select('bar_id'), 3000);
+                const { data: bars } = await withTimeout(supabase.from('saved_bars').select('bar_id'), 2000);
                 if (bars) window.savedBarIds = new Set(bars.map(r => r.bar_id));
             } catch (err) {
                 console.warn('Saved bars fetch skipped/failed:', err);
             }
 
-            // Fetch Saved Articles (With Timeout)
+            // 3. Fetch Saved Articles (With Timeout)
             try {
-                const { data: articles } = await withTimeout(supabase.from('saved_articles').select('article_id'), 3000);
+                const { data: articles } = await withTimeout(supabase.from('saved_articles').select('article_id'), 2000);
                 if (articles) window.savedArticleIds = new Set(articles.map(r => r.article_id));
             } catch (err) {
                 console.warn('Saved articles fetch skipped/failed:', err);
@@ -1198,6 +1220,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const isSaved = window.savedBarIds.has(bar.id);
 
+        // Safety check for image
+        let displayImage = 'assets/placeholder_bar.jpg';
+        if (bar.image) {
+            displayImage = bar.image;
+        } else if (bar.bar_images && bar.bar_images.length > 0) {
+            displayImage = bar.bar_images[0].image_url;
+        }
+
         return `
         <div class="art-card grid-item" style="position: relative; display: flex; flex-direction: column; height: 100%; margin-bottom: 3rem; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 380px; margin-left: auto; margin-right: auto;">
              <!-- Save Button -->
@@ -1208,7 +1238,7 @@ document.addEventListener('DOMContentLoaded', async () => {
              <!-- Main Link Wrapper for Top Section -->
             <a href="bar-details.html?id=${bar.id}" style="text-decoration: none; display: block;">
                 <div style="width: 100%; border-bottom: 1px solid #f0f0f0;">
-                    <img src="${bar.image}" alt="${bar.title}" style="width: 100%; height: auto; display: block; transition: transform 0.5s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                    <img src="${displayImage}" alt="${bar.title}" style="width: 100%; height: auto; display: block; transition: transform 0.5s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                 </div>
                 <div style="text-align: center; padding: 1.5rem 1rem 0.5rem 1rem;">
                     <h3 style="font-family: var(--font-display); font-size: 1.8rem; margin: 0 0 0.5rem 0; color: #1b1b1b;">${bar.title}</h3>
