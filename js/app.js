@@ -328,44 +328,122 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3. Map Page
     // 3. Map Page
     window.initMap = async () => {
-        const bars = await fetchBars();
-        // Default to Taipei/Asia view if no user location
-        const map = L.map('map').setView([25.0330, 121.5654], 14);
+        // Ensure auth/saved state
+        await window.initAuthAndSaved();
 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        const allBars = await fetchBars();
+        // Default View
+        const map = L.map('map', { zoomControl: false }).setView([25.0330, 121.5654], 14);
+        L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+        // Dark Theme Tiles matching Bar Cards
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap &copy; CARTO',
+            subdomains: 'abcd',
             maxZoom: 20
         }).addTo(map);
 
-        bars.forEach(bar => {
-            if (bar.lat && bar.lng) {
-                // Custom Red Circle Icon with Label
-                const customIcon = L.divIcon({
-                    className: 'custom-map-marker',
-                    html: `
-                        <div style="display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%);">
-                            <div style="background: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 12px; color: #333; box-shadow: 0 2px 4px rgba(0,0,0,0.2); margin-bottom: 4px; white-space: nowrap;">
+        const markers = [];
+
+        // Helper: Haversine Distance (km)
+        const getDistance = (lat1, lon1, lat2, lon2) => {
+            const R = 6371;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        };
+
+        const renderBars = (barsToRender) => {
+            barsToRender.forEach(bar => {
+                if (bar.lat && bar.lng) {
+                    const isSaved = window.savedBarIds.has(bar.id);
+                    // Custom Marker
+                    const iconHtml = `
+                        <div style="display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%); cursor: pointer;">
+                            <div style="background: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; color: #333; box-shadow: 0 1px 4px rgba(0,0,0,0.5); margin-bottom: 3px; white-space: nowrap;">
                                 ${bar.title}
                             </div>
-                            <div style="width: 14px; height: 14px; background: #ef4444; border: 2px solid white; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>
+                            <div style="width: 14px; height: 14px; background: #ef4444; border: 2px solid white; border-radius: 50%; box-shadow: 0 0 10px rgba(239, 68, 68, 0.6);"></div>
                         </div>
-                    `,
-                    iconSize: [0, 0],
-                    iconAnchor: [0, 0]
+                    `;
+
+                    const customIcon = L.divIcon({
+                        className: 'custom-map-marker',
+                        html: iconHtml,
+                        iconSize: [0, 0],
+                        iconAnchor: [0, 0]
+                    });
+
+                    const marker = L.marker([bar.lat, bar.lng], { icon: customIcon }).addTo(map);
+                    marker.bindPopup(`
+                        <div style="color: #333; text-align: center; min-width: 150px;">
+                            <h3 style="margin: 0 0 5px 0; font-family: var(--font-display); font-size: 1.1rem;">${bar.title}</h3>
+                            <p style="margin: 0 0 10px 0; font-size: 0.85rem; color: #666;">${bar.location}</p>
+                            <a href="bar-details.html?id=${bar.id}" style="display: inline-block; padding: 6px 16px; background: #9c100f; color: white; border-radius: 20px; text-decoration: none; font-size: 0.8rem;">View Details</a>
+                        </div>
+                    `);
+                    markers.push(marker);
+                }
+            });
+        };
+
+        // Get Location Logic
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(position => {
+                const userLat = position.coords.latitude;
+                const userLng = position.coords.longitude;
+
+                // User "Golden A" Marker
+                const userIcon = L.divIcon({
+                    className: 'user-marker-a',
+                    html: `<div style="color: #D4AF37; font-family: 'Playfair Display', serif; font-size: 48px; font-weight: bold; line-height: 1; text-shadow: 0 2px 15px rgba(0,0,0,0.8); transform: translate(-50%, -50%);">A</div>`,
+                    iconSize: [50, 50],
+                    iconAnchor: [25, 25]
+                });
+                const userMarker = L.marker([userLat, userLng], { icon: userIcon, zIndexOffset: 1000 }).addTo(map);
+                userMarker.bindPopup('<div style="color:#333; font-weight:bold;">Current Location</div>');
+                markers.push(userMarker);
+
+                // Filter Nearest 5
+                const barsWithDist = allBars.map(b => {
+                    const dist = (b.lat && b.lng) ? getDistance(userLat, userLng, b.lat, b.lng) : Infinity;
+                    return { ...b, distance: dist };
                 });
 
-                const marker = L.marker([bar.lat, bar.lng], { icon: customIcon }).addTo(map);
-                marker.bindPopup(`
-                    <div style="color: #333; text-align: center;">
-                        <h3 style="margin: 0 0 5px 0;">${bar.title}</h3>
-                        <p style="margin: 0;">${bar.location}</p>
-                        <a href="bar-details.html?id=${bar.id}" style="color: #b91c1c; font-weight: bold;">View Details</a>
-                    </div>
-                `);
-            }
-        });
-    };
+                const nearestBars = barsWithDist
+                    .sort((a, b) => a.distance - b.distance)
+                    .slice(0, 5);
 
+                renderBars(nearestBars);
+
+                // Fit Bounds
+                if (markers.length > 0) {
+                    const group = new L.featureGroup(markers);
+                    map.fitBounds(group.getBounds().pad(0.1));
+                }
+
+            }, (err) => {
+                console.warn('Geolocation denied/error:', err);
+                // Fallback: Show All
+                renderBars(allBars);
+                if (markers.length > 0) {
+                    const group = new L.featureGroup(markers);
+                    map.fitBounds(group.getBounds().pad(0.1));
+                }
+            });
+        } else {
+            // No Geolocation support: Show All
+            renderBars(allBars);
+            if (markers.length > 0) {
+                const group = new L.featureGroup(markers);
+                map.fitBounds(group.getBounds().pad(0.1));
+            }
+        }
+    };
     // 4. Bar Details Page
     window.initBarDetails = async () => {
         await initAuthAndSaved();
