@@ -1117,35 +1117,3 @@ figure.article-figure figcaption {
 .card-map .leaflet-tile-pane {
     filter: brightness(1.7) contrast(0.85);
 }
-
-/* Bottom Nav Colors */
-.nav-item {
-    color: rgba(255, 255, 255, 0.7) !important;
-}
-
-.nav-item.active,
-.nav-item:hover {
-    color: black !important;
-}
-
-.nav-item svg {
-    fill: currentColor;
-}
-
-/* Mobile Login Button */
-.mobile-login-btn {
-    display: none;
-    color: white;
-    font-weight: 600;
-    text-transform: uppercase;
-    text-decoration: none;
-    font-size: 0.9rem;
-    margin-right: 15px;
-    /* Spacing from edge */
-}
-
-@media (max-width: 768px) {
-    .mobile-login-btn {
-        display: block;
-    }
-}
