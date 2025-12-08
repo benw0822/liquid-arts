@@ -228,21 +228,30 @@ h6 {
     flex-direction: column;
     align-items: center;
     text-decoration: none;
-    color: var(--text-secondary);
+    color: white;
+    /* Default White */
     font-size: 0.75rem;
     transition: var(--transition-fast);
+    padding: 5px 10px;
+    border-radius: 8px;
 }
 
-.nav-item.active,
-.nav-item:hover {
-    color: var(--text-primary);
+.nav-item.active {
+    color: black;
+    /* Selected becomes Black */
+    background-color: white;
+    /* Optional: adding white background to make black visible and "selected" */
 }
 
+/* Ensure Icons Follow Text Color */
 .nav-icon {
     width: 24px;
     height: 24px;
     margin-bottom: 4px;
-    fill: currentColor;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    /* Thinner line for "Fashionable/Wireframe" look */
 }
 
 /* Responsive Adjustments */
