@@ -203,3 +203,52 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
+
+-- FIX: Enable RLS and Add Policies for main tables
+-- This ensures that the Admin Dashboard can actually SEE the data.
+
+-- BARS Table Policies
+alter table bars enable row level security;
+
+drop policy if exists "Public bars are viewable by everyone." on bars;
+create policy "Public bars are viewable by everyone."
+  on bars for select
+  using ( true );
+
+drop policy if exists "Authenticated users can insert bars." on bars;
+create policy "Authenticated users can insert bars."
+  on bars for insert
+  with check ( auth.role() = 'authenticated' );
+
+drop policy if exists "Authenticated users can update bars." on bars;
+create policy "Authenticated users can update bars."
+  on bars for update
+  using ( auth.role() = 'authenticated' );
+
+drop policy if exists "Authenticated users can delete bars." on bars;
+create policy "Authenticated users can delete bars."
+  on bars for delete
+  using ( auth.role() = 'authenticated' );
+
+-- ARTICLES Table Policies
+alter table articles enable row level security;
+
+drop policy if exists "Public articles are viewable by everyone." on articles;
+create policy "Public articles are viewable by everyone."
+  on articles for select
+  using ( true );
+
+drop policy if exists "Authenticated users can insert articles." on articles;
+create policy "Authenticated users can insert articles."
+  on articles for insert
+  with check ( auth.role() = 'authenticated' );
+
+drop policy if exists "Authenticated users can update articles." on articles;
+create policy "Authenticated users can update articles."
+  on articles for update
+  using ( auth.role() = 'authenticated' );
+
+drop policy if exists "Authenticated users can delete articles." on articles;
+create policy "Authenticated users can delete articles."
+  on articles for delete
+  using ( auth.role() = 'authenticated' );

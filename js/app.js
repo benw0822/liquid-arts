@@ -164,11 +164,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     )
                 `);
 
-            if (error || !data || data.length === 0) return mockBars;
-            return data;
+            if (error) {
+                console.error('Error fetching bars:', error);
+                // Fallback to empty or simple select if relations fail?
+                // For now, return empty to avoid "Fake Data" confusion.
+                return [];
+            }
+
+            return data || [];
         } catch (err) {
-            console.error('Error fetching bars:', err);
-            return mockBars;
+            console.error('Unexpected error fetching bars:', err);
+            return [];
         }
     }
 
