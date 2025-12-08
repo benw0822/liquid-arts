@@ -1286,7 +1286,7 @@ figure.article-figure figcaption {
 }
 
 /* Ensure card map is visible in the content flow */
-.card-content .card-map {
+.card-content .card-map-display {
     display: block !important;
     opacity: 1 !important;
     height: 150px;
