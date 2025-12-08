@@ -36,8 +36,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Timeout Helper definition removed from here (moved to top)
 
         if (window.currentUser) {
-            // 1. Profile Sync (Non-Blocking Promise)
-            // We start this but don't await it to block the main initialization
+            // 1. Profile Sync (Temporarily Disabled to isolate crash)
+            /*
             withTimeout(supabase
                 .from('users')
                 .select('full_name, avatar_url')
@@ -45,14 +45,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 .maybeSingle(), 5000)
                 .then(({ data: profile }) => {
                     if (profile) {
-                        // Update local object
-                        window.currentUser.user_metadata = {
-                            ...window.currentUser.user_metadata,
-                            ...profile
-                        };
-                        // Update Nav if it's already rendered
-                        const myLink = document.getElementById('nav-my-link');
-                        if (myLink) {
+                         // Update local object
+                         window.currentUser.user_metadata = {
+                             ...window.currentUser.user_metadata,
+                             ...profile
+                         };
+                         // Update Nav if it's already rendered
+                         const myLink = document.getElementById('nav-my-link');
+                         if (myLink) {
                             // Smart Merge: Use DB data if valid (non-empty), else fallback to metadata/default
                             // Note: We check if trim() is not empty for strings
                             const dbName = profile.full_name && profile.full_name.trim() !== '' ? profile.full_name : null;
@@ -65,6 +65,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         }
                     }
                 }).catch(err => console.warn('Profile sync background fail:', err));
+            */
 
             // 2. Fetch Saved Bars (With Timeout)
             try {
