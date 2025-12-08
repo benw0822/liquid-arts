@@ -762,6 +762,10 @@ figure.article-figure figcaption {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     margin-bottom: 15px;
     border: 1px solid rgba(0, 0, 0, 0.05);
+    /* Prevent Overflow */
+    overflow-wrap: break-word;
+    word-break: break-word;
+    min-width: 0;
 }
 
 .content-card .section-title {
@@ -771,6 +775,18 @@ figure.article-figure figcaption {
     margin-bottom: 1.5rem;
     /* Standardized spacing */
     color: var(--text-primary);
+
+    /* Ensure title wraps in narrow columns */
+    overflow-wrap: break-word;
+    word-break: break-word;
+    line-height: 1.2;
+}
+
+@media (max-width: 768px) {
+    .content-card {
+        padding: 15px;
+        /* Reduce padding on mobile to give content more space */
+    }
 }
 
 .sidebar-info .content-card {

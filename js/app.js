@@ -611,10 +611,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 </p>
             </div>
 
-            <div class="container detail-grid" style="margin-top: 0;">
+            <div class="container detail-grid" style="margin-top: 0; display: flex; gap: 15px; align-items: flex-start;">
                 
                 <!-- Left Column -->
-                <div class="left-column">
+                <div class="left-column" style="flex: 1; min-width: 0;">
                     <!-- Hero Card (Image Only) -->
                     <div class="content-card hero-card" style="padding: 0; border: none; overflow: hidden; background: transparent; position: relative;">
                         <img id="hero-card-img" src="${bar.image}" alt="${bar.title}" style="width: 100%; height: auto; display: block;">
@@ -696,7 +696,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
 
                 <!-- Right Column -->
-                <div class="right-column">
+                <div class="right-column" style="flex: 1; min-width: 0;">
                     <!-- Editorial Review Card -->
                     ${bar.editorial_review ? `
                         <div class="content-card" style="background-color: var(--bg-red); color: white; border: none;">
