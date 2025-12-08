@@ -46,36 +46,64 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function verifyRole(userId) {
+    async function verifyRole(userId, email = '') {
         try {
-            const { data: user, error } = await supabase
+            let { data: user, error } = await supabase
                 .from('users')
                 .select('roles')
                 .eq('id', userId)
                 .single();
 
-            // Note: If user missing (no Trigger run), user matches null.
+            // Self-Repair: If user missing (e.g. Backfill didn't run), try to create it now
+            if (!user) {
+                console.log('User profile missing, attempting to create...');
+                const { error: insertError } = await supabase
+                    .from('users')
+                    .insert([{ id: userId, email: email, roles: ['reader'] }]);
+
+                if (!insertError) {
+                    // Refetch
+                    const { data: newUser } = await supabase.from('users').select('roles').eq('id', userId).single();
+                    user = newUser;
+                }
+            }
+
             const roles = user ? (user.roles || []) : [];
 
             // Allow access if admin, editor, or barOwner
             if (roles.includes('admin') || roles.includes('editor') || roles.includes('barOwner')) {
                 showDashboard(roles);
             } else {
-                // Determine rejection reason
-                let msg = 'Access Denied: You do not have permission.';
-                if (!user) {
-                    msg = 'Access Denied: User profile not found. Please contact support or ensure your account is set up correctly.';
+                // Access Denied UI - Don't sign out immediately, show them why
+                loginSection.style.display = 'none';
+                dashboardSection.style.display = 'none';
+
+                // Create or reveal a denied message
+                let deniedDiv = document.getElementById('access-denied-msg');
+                if (!deniedDiv) {
+                    deniedDiv = document.createElement('div');
+                    deniedDiv.id = 'access-denied-msg';
+                    deniedDiv.style.cssText = 'text-align: center; padding: 50px; color: #333;';
+                    document.body.appendChild(deniedDiv);
                 }
 
-                console.warn(msg);
-                alert(msg);
-                await supabase.auth.signOut();
-                loginSection.style.display = 'block';
-                dashboardSection.style.display = 'none';
+                deniedDiv.innerHTML = `
+                    <div style="background: white; padding: 30px; border-radius: 12px; max-width: 400px; margin: 50px auto; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+                        <h2 style="color: #ff3b30; margin-bottom: 10px;">Access Denied</h2>
+                        <p style="margin-bottom: 20px; color: #666;">You are logged in as <strong>${email}</strong>, but you do not have Admin permissions.</p>
+                        <p style="margin-bottom: 20px; font-size: 0.9em; background: #f5f5f7; padding: 10px; border-radius: 6px;">Current Roles: ${roles.length ? roles.join(', ') : 'None'}</p>
+                        <button id="denied-logout-btn" class="btn">Logout</button>
+                    </div>
+                `;
+
+                document.getElementById('denied-logout-btn').addEventListener('click', async () => {
+                    await supabase.auth.signOut();
+                    window.location.reload();
+                });
             }
         } catch (err) {
             console.error('Verify Role Error:', err);
-            alert('Error verifying user permissions: ' + err.message);
+            // Fallback to login if critical error
             loginSection.style.display = 'block';
         }
     }
@@ -810,11 +838,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Start Auth Listener
     supabase.auth.onAuthStateChange((event, session) => {
         if (session) {
-            verifyRole(session.user.id);
+            verifyRole(session.user.id, session.user.email);
         } else {
             // No session
             loginSection.style.display = 'block';
             dashboardSection.style.display = 'none';
+            // Clear denied message if exists
+            const deniedDiv = document.getElementById('access-denied-msg');
+            if (deniedDiv) deniedDiv.remove();
         }
     });
 });
