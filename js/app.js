@@ -1196,45 +1196,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div style="text-align: center; padding: 1.5rem 1rem 0.5rem 1rem;">
                     <h3 style="font-family: var(--font-display); font-size: 1.8rem; margin: 0 0 0.5rem 0; color: #1b1b1b;">${bar.title}</h3>
                     <p style="font-family: var(--font-main); font-size: 1rem; color: #888; margin: 0;">
-                        ${bar.vibe ? `<span style="color: var(--bg-red); font-weight: 600;">${bar.vibe}</span> • ` : ''}${displayCity}
-                    </p>
-                </div>
-            </a>
-            
-            <div style="padding: 0 1.5rem 1.5rem 1.5rem; text-align: center; flex: 1; display: flex; flex-direction: column;">
-                
-                ${bar.editorial_review ? `
-                    <div style="margin-bottom: 1.2rem; padding: 15px; background: var(--bg-red); color: white; border-radius: 12px; text-align: center;">
-                         <h4 style="margin: 0 0 5px 0; font-family: var(--font-display); font-size: 1rem; letter-spacing: 0.05em; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 5px; display: inline-block;">Liquid Arts Review</h4>
-                         <p style="font-size: 0.9rem; font-style: italic; margin: 10px 0; line-height: 1.5;">"${bar.editorial_review}"</p>
-                         ${bar.editorial_rating ? `
-                            <div style="margin-top: 5px;">
-                                <div style="color: #FFD700; font-size: 1rem; margin-bottom: 2px;">${'★'.repeat(bar.editorial_rating)}${'☆'.repeat(5 - bar.editorial_rating)}</div>
-                                <div style="font-weight: 600; font-size: 0.8rem; text-transform: uppercase;">${['', 'Poor', 'Fair', 'Enjoyable', 'Remarkable', 'Masterpiece'][bar.editorial_rating] || ''}</div>
-                            </div>
-                         ` : ''}
-                    </div>
-                ` : ''}
-
-                 <!-- Description -->
-                <p style="font-size: 0.95rem; color: #555; line-height: 1.6; margin-bottom: 1rem; display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden;">
-                    ${description}
-                </p>
-
-                <!-- Explore Button -->
-                <a href="bar-details.html?id=${bar.id}" class="btn" style="display: block; width: fit-content; margin: 0 auto 1.2rem auto; padding: 6px 20px; font-size: 0.9rem; border-radius: 20px; border: none; color: white; background: var(--bg-red); transition: all 0.3s; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">Explore</a>
-
-                 <!-- Rating & Price (Compact) -->
-                <div style="margin-bottom: 1.2rem; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.8rem;">
-                    <span style="font-weight: 600; color: #666;">Google Rating:</span>
-                    <strong style="color: #333;">${rating}</strong>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="#FFD700" viewBox="0 0 16 16"><path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/></svg>
-                    <span style="color:#888; display: flex; align-items: center; gap: 2px;">
-                        ${reviewCount}
-                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="currentColor" viewBox="0 0 16 16"><path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7Zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5.784 6A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216ZM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/></svg>
-                    </span>
-                    <span style="color: #ddd;">|</span>
-                    <span style="font-weight: 600; color: #666;">Price:</span>
+                <!-- Compact Meta Line (City | Vibe | Price) -->
+                <div style="margin-bottom: 1.2rem; text-align: center; font-size: 0.9rem; color: #666; font-weight: 500;">
+                    ${displayCity} 
+                    ${bar.vibe ? `<span style="margin: 0 6px; color: #ddd;">|</span> <span style="color: var(--bg-red); font-weight: 600;">${bar.vibe}</span>` : ''}
+                    <span style="margin: 0 6px; color: #ddd;">|</span> 
                     <strong style="color: #333;">${price}</strong>
                 </div>
 
@@ -1318,10 +1284,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- Custom Nav Logic ---
         const myLink = document.getElementById('nav-my-link');
         const loginBtn = document.getElementById('login-btn'); // New Query
+        const mobileLoginBtn = document.getElementById('mobile-login-btn'); // New Mobile Query
         const userMenu = document.getElementById('user-menu'); // New Query
 
         if (session) {
             if (loginBtn) loginBtn.style.display = 'none';
+            if (mobileLoginBtn) mobileLoginBtn.style.display = 'none'; // Hide Mobile Login
             if (userMenu) userMenu.style.display = 'none'; // Ensure old menu is hidden
 
             // Update "My" link to "Avatar + Name"
@@ -1336,6 +1304,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } else {
             if (loginBtn) loginBtn.style.display = 'inline-block';
+            if (mobileLoginBtn) mobileLoginBtn.style.display = 'block'; // Show Mobile Login
             if (userMenu) userMenu.style.display = 'none';
 
             // Reset "My" link
@@ -1351,6 +1320,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const path = window.location.pathname;
     if (path.endsWith('index.html') || path === '/') window.initHome();
 });
+
+
+// --- Handle Bottom Nav Pocket Click ---
+window.handlePocketClick = async (event) => {
+    event.preventDefault();
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+        window.location.href = 'profile.html';
+    } else {
+        window.location.href = 'admin.html';
+    }
+};
 
 // --- Signature Carousel Logic ---
 window.updateCarousel = (barId) => {
