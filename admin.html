@@ -431,6 +431,14 @@
     <script>
         async function signInWithGoogle() {
             try {
+                // Use global window.supabaseClient because 'supabase' is local to app.js
+                const supabase = window.supabaseClient;
+                if (!supabase) {
+                    console.error('Supabase client not initialized');
+                    alert('System Error: Supabase not ready. Please refresh.');
+                    return;
+                }
+
                 const { data, error } = await supabase.auth.signInWithOAuth({
                     provider: 'google',
                     options: {
