@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 .from('users')
                 .select('full_name, avatar_url')
                 .eq('id', window.currentUser.id)
-                .maybeSingle(), 2000)
+                .maybeSingle(), 5000)
                 .then(({ data: profile }) => {
                     if (profile) {
                         // Update local object
@@ -52,8 +52,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                         };
                         // Update Nav if it's already rendered
                         const myLink = document.getElementById('nav-my-link');
-                        if (myLink && profile.avatar_url) {
-                            myLink.innerHTML = `<img src="${profile.avatar_url}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; vertical-align: middle; margin-right: 6px;"> ${profile.full_name || 'My'}`;
+                        if (myLink) {
+                            // Use DB data if available, otherwise fallback to Google data
+                            const avatar = profile.avatar_url || window.currentUser.user_metadata.avatar_url || 'assets/default_avatar.png';
+                            const name = profile.full_name || window.currentUser.user_metadata.full_name || 'My';
+
+                            myLink.innerHTML = `<img src="${avatar}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; vertical-align: middle; margin-right: 6px;"> ${name}`;
                         }
                     }
                 }).catch(err => console.warn('Profile sync background fail:', err));
