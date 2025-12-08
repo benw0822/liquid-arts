@@ -187,33 +187,28 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- Data Fetching ---
     async function fetchBars() {
-        window.logDebug('FetchBars: Starting...');
+        // window.logDebug('FetchBars: Starting...');
         try {
-            // SIMPLIFIED FETCH: Only fetch Bars table to avoid RLS lockouts on related tables.
-            // (createBarCard will adapt gracefully)
-            const { data, error } = await withTimeout(supabase.from('bars').select('*'), 3000);
+            // Standard fetch, similar to fetchArticles
+            // We use maybeSingle() trick or just normal select
+            const { data, error } = await withTimeout(supabase.from('bars').select('*'), 5000);
 
             if (error) {
-                console.error('Fetch Bars Error:', error);
-                window.logDebug('FetchBars: Error ' + error.message);
-                alert('系統訊息：讀取酒吧資料失敗 (' + error.message + ')。請稍後再試。');
-                return mockBars;
-            }
-            if (!data || data.length === 0) {
-                window.logDebug('FetchBars: Empty Data');
-                // Warn if authenticated but empty (implies strict RLS)
-                if (window.currentUser) {
-                    console.warn('Authenticated but Bars empty. RLS?');
-                    window.logDebug('FetchBars: RLS Blocking?');
-                }
+                console.warn('Fetch Bars Error:', error);
+                // window.logDebug('FetchBars: Error ' + error.message);
                 return mockBars;
             }
 
-            window.logDebug('FetchBars: Success (' + data.length + ' items)');
+            if (!data || data.length === 0) {
+                // window.logDebug('FetchBars: Empty Data');
+                return mockBars; // FORCE MOCK if DB is empty (RLS or just empty)
+            }
+
+            // window.logDebug('FetchBars: Success (' + data.length + ' items)');
             return data;
         } catch (err) {
-            console.error('Error fetching bars:', err);
-            window.logDebug('FetchBars: Exception ' + err.message);
+            console.warn('Error fetching bars:', err);
+            // window.logDebug('FetchBars: Exception ' + err.message);
             return mockBars;
         }
     }
@@ -1420,32 +1415,32 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- Auto Init based on URL ---
     const path = window.location.pathname;
-    window.logDebug('App: Path detected -> ' + path);
+    // console.log('App: Path detected -> ' + path);
 
     // Ensure Auth is kicked off (but not awaited here)
     window.initAuthAndSaved().catch(err => {
-        window.logDebug('Auth: Init Logic Error ' + err.message);
+        console.warn('Auth: Init Logic Error ' + err.message);
     });
 
     // FORCE INIT HOME (Bypassing strict path check for debugging)
     // If it's NOT a specific sub-page (like admin, map, journal), assume it's Home/Index
     if (!path.includes('admin.html') && !path.includes('map.html') && !path.includes('journal') && !path.includes('detail') && !path.includes('profile')) {
-        window.logDebug('App: Triggering initHome...');
+        // console.log('App: Triggering initHome...');
         setTimeout(() => window.initHome(), 100); // Small delay to ensure DOM ready
     } else if (path.includes('index.html')) {
-        window.logDebug('App: Triggering initHome (Explicit)...');
+        // console.log('App: Triggering initHome (Explicit)...');
         setTimeout(() => window.initHome(), 100);
     }
 }); // End of DOMContentLoaded
 
 // --- Init Functions (Global Scope) ---
 window.initHome = async () => {
-    window.logDebug('Page: initHome called');
+    // console.log('Page: initHome called');
 
     // REMOVED RE-AWAIT of initAuthAndSaved to prevent double-wait logic
     // await window.initAuthAndSaved(); 
 
-    window.logDebug('Page: Fetching Bars...');
+    // console.log('Page: Fetching Bars...');
     const bars = await fetchBars();
     // ...
 
