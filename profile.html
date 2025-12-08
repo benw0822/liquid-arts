@@ -111,9 +111,10 @@
                             <div style="position: relative; display: inline-block;">
                                 <img id="profile-avatar" src="" alt="Avatar"
                                     style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-color);">
+                                <!-- Camera Btn Hidden for Stability -->
                                 <button type="button" onclick="document.getElementById('edit-avatar-file').click()"
                                     class="camera-btn"
-                                    style="position: absolute; bottom: 0; right: 0; background: white; border: 1px solid #ddd; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                                    style="display: none; position: absolute; bottom: 0; right: 0; background: white; border: 1px solid #ddd; border-radius: 50%; width: 36px; height: 36px; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
                                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                         stroke-linejoin="round">
@@ -132,7 +133,10 @@
                         <div style="width: 100%; max-width: 400px;">
                             <label
                                 style="font-size: 0.9rem; color: #666; display: block; margin-bottom: 0.5rem;">Nickname</label>
-                            <input type="text" id="edit-nickname" class="profile-input" placeholder="Enter nickname">
+                            <!-- Disabled for Stability -->
+                            <input type="text" id="edit-nickname" class="profile-input"
+                                placeholder="Google Name (Read-only)" disabled
+                                style="cursor: not-allowed; background: #eee;">
 
                             <label
                                 style="font-size: 0.9rem; color: #666; display: block; margin-bottom: 0.5rem;">Email</label>
@@ -143,8 +147,9 @@
                             <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1rem;">
                                 <div
                                     style="width: 100%; display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+                                    <!-- Save Button Hidden for Stability -->
                                     <button onclick="updateProfile()" class="btn"
-                                        style="background: var(--bg-red); color: white; border: none; padding: 0.8rem 2rem;">Save
+                                        style="display: none; background: var(--bg-red); color: white; border: none; padding: 0.8rem 2rem;">Save
                                         Changes</button>
                                     <button onclick="handleLogout()" class="btn"
                                         style="background: #333; color: white; border: none; padding: 0.8rem 2rem;">Sign
@@ -191,30 +196,12 @@
             const profileContent = document.getElementById('profile-content');
             const loading = document.getElementById('profile-loading');
 
-            // --- Render Profile Info ---
+            // --- Render Profile Info (Strictly Google Metadata) ---
             document.getElementById('profile-email').value = user.email;
+            document.getElementById('edit-nickname').value = user.user_metadata.full_name || 'My';
+            document.getElementById('profile-avatar').src = user.user_metadata.avatar_url || 'assets/logo_vertical.png';
 
-            // Populate Inputs (Prioritize DB)
-            let nickname = user.user_metadata.full_name || '';
-            let avatar = user.user_metadata.avatar_url || 'assets/logo_vertical.png';
-
-            try {
-                const { data: dbProfile } = await supabase
-                    .from('users')
-                    .select('full_name, avatar_url')
-                    .eq('id', user.id)
-                    .single();
-
-                if (dbProfile) {
-                    if (dbProfile.full_name) nickname = dbProfile.full_name;
-                    if (dbProfile.avatar_url) avatar = dbProfile.avatar_url;
-                }
-            } catch (e) {
-                console.warn('Profile Load Error:', e);
-            }
-
-            document.getElementById('edit-nickname').value = nickname;
-            document.getElementById('profile-avatar').src = avatar;
+            // DB Profile Sync REMOVED to prevent Lockout/Availability Issues
 
             let cropper;
             let avatarBlob = null;
