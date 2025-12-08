@@ -105,28 +105,43 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        barList.innerHTML = bars.map(bar => `
-            <div class="article-item" style="display: flex; gap: 1rem; margin-bottom: 1.5rem; background: #fff; padding: 1rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-decoration: none; color: inherit;">
-                <div style="width: 80px; height: 80px; background-image: url('${bar.image || ''}'); background-size: cover; background-position: center; border-radius: 8px; flex-shrink: 0; background-color: #eee;"></div>
+        barList.innerHTML = bars.map(bar => {
+            const isPublished = bar.is_published !== false; // Default true
+            const statusText = isPublished ? 'Published' : 'Hidden';
+
+            return `
+            <div class="article-item" style="display: flex; gap: 1rem; margin-bottom: 1.5rem; background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                <div style="width: 100px; height: 100px; background-image: url('${bar.image || ''}'); background-size: cover; background-position: center; border-radius: 8px; flex-shrink: 0; background-color: #eee;"></div>
                 <div style="flex: 1;">
-                    <h4 style="margin: 0 0 5px 0; font-size: 1.1rem;">${bar.title}</h4>
-                    <p style="margin: 0 0 10px 0; font-size: 0.85rem; color: #666;">${bar.location || 'No location'}</p>
-                    <div style="display: flex; gap: 8px;">
-                        <button onclick="editBar('${bar.id}')" class="btn btn-sm" style="padding: 4px 10px; font-size: 0.8rem; background: #eee;">Edit</button>
-                        <button onclick="deleteBar('${bar.id}')" class="btn btn-sm" style="padding: 4px 10px; font-size: 0.8rem; color: #ff3b30; background: transparent; border: 1px solid #ff3b30;">Delete</button>
+                    <h4 style="margin: 0 0 5px 0; font-size: 1.2rem; font-weight: 600;">${bar.title}</h4>
+                    <p style="margin: 0 0 5px 0; color: #555;">${bar.location || 'No location'}</p>
+                    <p class="meta-text" style="max-height: 40px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${bar.description || 'No description'}</p>
+                    
+                    <div style="margin-top: 10px; display: flex; align-items: center; gap: 15px;">
+                        <!-- Publish Toggle -->
+                        <label class="status-toggle" onclick="toggleBarStatus('${bar.id}', ${isPublished})">
+                            <input type="checkbox" ${isPublished ? 'checked' : ''}>
+                            <span class="status-slider"></span>
+                            <span class="status-label" style="color: ${isPublished ? '#ff3b30' : '#888'}">${statusText}</span>
+                        </label>
+
+                        <div style="margin-left: auto; display: flex; gap: 8px;">
+                            <button onclick="window.open('bar-details.html?id=${bar.id}', '_blank')" class="btn btn-secondary">View</button>
+                            <button onclick="editBar('${bar.id}')" class="btn">Edit</button>
+                            <button onclick="deleteBar('${bar.id}')" class="btn btn-secondary">Delete</button>
+                        </div>
                     </div>
                 </div>
             </div>
-        `).join('');
+        `;
+        }).join('');
     }
 
     async function loadArticles(user, roles) {
         articleList.innerHTML = '<p style="color:#888">Loading articles...</p>';
 
         let query = supabase.from('articles').select('*').order('published_at', { ascending: false });
-
-        // Editors only see their own? Or all? Usually Editors see all. 
-        // Let's assume Admin/Editor sees all for now based on requirements.
+        // Assume Admin sees all
 
         const { data: articles, error } = await query;
 
@@ -136,26 +151,74 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (!articles || articles.length === 0) {
-            articleList.innerHTML = '<p>No articles found.</p>';
+            articleList.innerHTML = '<p>No stories found.</p>';
             return;
         }
 
-        articleList.innerHTML = articles.map(art => `
-            <div class="article-item" style="display: flex; gap: 1rem; margin-bottom: 1.5rem; background: #fff; padding: 1rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-decoration: none; color: inherit;">
-                <div style="width: 80px; height: 80px; background-image: url('${art.cover_image || ''}'); background-size: cover; background-position: center; border-radius: 8px; flex-shrink: 0; background-color: #eee;"></div>
+        articleList.innerHTML = articles.map(art => {
+            const isPublished = art.status === 'published';
+            const statusText = isPublished ? 'Published' : 'Draft';
+
+            // Date Logic: If Event, show range. Else show published date.
+            let dateDisplay = '';
+            if (art.category === 'Event' && art.start_date) {
+                const start = new Date(art.start_date).toLocaleDateString();
+                const end = art.end_date ? new Date(art.end_date).toLocaleDateString() : 'TBD';
+                dateDisplay = `${start} - ${end}`;
+            } else {
+                dateDisplay = new Date(art.published_at || art.created_at).toLocaleDateString();
+            }
+
+            return `
+            <div class="article-item" style="display: flex; gap: 1rem; margin-bottom: 1.5rem; background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                <div style="width: 100px; height: 100px; background-image: url('${art.cover_image || ''}'); background-size: cover; background-position: center; border-radius: 8px; flex-shrink: 0; background-color: #eee;"></div>
                 <div style="flex: 1;">
-                    <h4 style="margin: 0 0 5px 0; font-size: 1.1rem;">${art.title}</h4>
-                    <p style="margin: 0 0 10px 0; font-size: 0.85rem; color: #666;">
-                        ${art.status === 'published' ? '<span style="color:#34c759">● Published</span>' : '<span style="color:#ff9500">○ Draft</span>'}
-                    </p>
-                    <div style="display: flex; gap: 8px;">
-                         <button onclick="editArticle('${art.id}')" class="btn btn-sm" style="padding: 4px 10px; font-size: 0.8rem; background: #eee;">Edit</button>
-                         <button onclick="deleteArticle('${art.id}')" class="btn btn-sm" style="padding: 4px 10px; font-size: 0.8rem; color: #ff3b30; background: transparent; border: 1px solid #ff3b30;">Delete</button>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <h4 style="margin: 0 0 5px 0; font-size: 1.2rem; font-weight: 600;">${art.title}</h4>
+                        <span style="font-size: 0.8rem; background: #eee; padding: 2px 8px; border-radius: 4px; color: #555;">${art.category || 'Uncategorized'}</span>
+                    </div>
+                    
+                    <div style="font-size: 0.85rem; color: #666; margin-bottom: 8px;">
+                        <span style="font-weight: 600; color: #333;">${dateDisplay}</span> • <span>${art.author_name || 'Unknown Author'}</span>
+                    </div>
+
+                    <div style="margin-top: 10px; display: flex; align-items: center; gap: 15px;">
+                        <!-- Publish Toggle -->
+                        <label class="status-toggle" onclick="toggleArticleStatus('${art.id}', '${art.status}')">
+                            <input type="checkbox" ${isPublished ? 'checked' : ''}>
+                            <span class="status-slider"></span>
+                            <span class="status-label" style="color: ${isPublished ? '#ff3b30' : '#888'}">${statusText}</span>
+                        </label>
+
+                         <div style="margin-left: auto; display: flex; gap: 8px;">
+                            <button onclick="window.open('journal-details.html?id=${art.id}', '_blank')" class="btn btn-secondary">View</button>
+                            <button onclick="editArticle('${art.id}')" class="btn">Edit</button>
+                            <button onclick="deleteArticle('${art.id}')" class="btn btn-secondary">Delete</button>
+                        </div>
                     </div>
                 </div>
             </div>
-        `).join('');
+        `;
+        }).join('');
     }
+
+    // --- Toggle Logic ---
+    window.toggleBarStatus = async (id, currentStatus) => {
+        // currentStatus is boolean
+        const newStatus = !currentStatus;
+        const { error } = await supabase.from('bars').update({ is_published: newStatus }).eq('id', id);
+        if (error) alert('Error: ' + error.message);
+        else loadBars();
+    };
+
+    window.toggleArticleStatus = async (id, currentStatus) => {
+        // currentStatus is string 'published'/'draft'
+        const newStatus = currentStatus === 'published' ? 'draft' : 'published';
+        const { error } = await supabase.from('articles').update({ status: newStatus }).eq('id', id);
+        if (error) alert('Error: ' + error.message);
+        else loadArticles(null, []); // Reload, args handled by closure access if needed or simple global
+        // Note: loadArticles doesn't actually use user/roles in the current impl (admin sees all), so it's safe.
+    };
 
     // --- Actions ---
 

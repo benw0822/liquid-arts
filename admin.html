@@ -334,6 +334,32 @@
             color: #666;
         }
 
+        /* Button Overrides - Red Theme */
+        .btn {
+            background-color: #ff3b30;
+            /* Red */
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background-color: #d63028;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: #ff3b30;
+            border: 1px solid #ff3b30;
+        }
+
+        .btn-secondary:hover {
+            background-color: rgba(255, 59, 48, 0.1);
+        }
+
         /* Toggle Switch (Small) */
         .status-toggle {
             position: relative;
@@ -372,7 +398,8 @@
         }
 
         input:checked+.status-slider {
-            background-color: #4cd964;
+            background-color: #ff3b30;
+            /* Red for ON/Published */
         }
 
         input:checked+.status-slider:before {
@@ -390,6 +417,15 @@
         #login-section,
         #dashboard-section {
             display: none;
+        }
+
+        /* Metadata Text */
+        .meta-text {
+            color: #888;
+            font-size: 0.85rem;
+            margin-top: 4px;
+            display: block;
+            line-height: 1.4;
         }
     </style>
 </head>
