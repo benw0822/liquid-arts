@@ -424,6 +424,61 @@ document.addEventListener('DOMContentLoaded', () => {
             maxZoom: 20
         }).addTo(map);
 
+        let userMarker = null;
+
+        // Custom Locate Control
+        const LocateControl = L.Control.extend({
+            options: { position: 'bottomright' },
+            onAdd: function (map) {
+                const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
+                container.style.backgroundColor = 'white';
+                container.style.width = '30px';
+                container.style.height = '30px';
+                container.style.cursor = 'pointer';
+                container.style.display = 'flex';
+                container.style.alignItems = 'center';
+                container.style.justifyContent = 'center';
+                container.title = "Center to my location";
+
+                // Hover effect
+                container.onmouseover = () => container.style.backgroundColor = '#f4f4f4';
+                container.onmouseout = () => container.style.backgroundColor = 'white';
+
+                container.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="#333" viewBox="0 0 16 16">
+                         <path d="M8 16a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm0-1A7 7 0 1 1 8 2a7 7 0 0 1 0 14zm0-7a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+                    </svg>
+                `;
+
+                container.onclick = function (e) {
+                    L.DomEvent.stopPropagation(e);
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(position => {
+                            const lat = position.coords.latitude;
+                            const lng = position.coords.longitude;
+
+                            map.flyTo([lat, lng], 15);
+
+                            if (userMarker) {
+                                userMarker.setLatLng([lat, lng]);
+                            } else {
+                                const userIcon = L.divIcon({
+                                    className: 'user-marker-a',
+                                    html: `<div style="color: #D4AF37; font-family: 'Playfair Display', serif; font-size: 32px; font-weight: bold; line-height: 1; text-shadow: 0 2px 10px rgba(0,0,0,0.6); transform: translate(-50%, -50%);">A</div>`,
+                                    iconSize: [40, 40],
+                                    iconAnchor: [20, 20]
+                                });
+                                userMarker = L.marker([lat, lng], { icon: userIcon, zIndexOffset: 1000 }).addTo(map);
+                                userMarker.bindPopup('<div style="color:#333; font-weight:bold;">Current Location</div>');
+                            }
+                        }, () => alert('Unable to retrieve location.'));
+                    }
+                };
+                return container;
+            }
+        });
+        map.addControl(new LocateControl());
+
         const markers = [];
 
         // Helper: Haversine Distance (km)
@@ -503,7 +558,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     iconSize: [40, 40],
                     iconAnchor: [20, 20]
                 });
-                const userMarker = L.marker([userLat, userLng], { icon: userIcon, zIndexOffset: 1000 }).addTo(map);
+                userMarker = L.marker([userLat, userLng], { icon: userIcon, zIndexOffset: 1000 }).addTo(map);
                 userMarker.bindPopup('<div style="color:#333; font-weight:bold;">Current Location</div>');
                 markers.push(userMarker);
 
