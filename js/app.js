@@ -32,8 +32,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             const result = await withTimeout(supabase.auth.getSession(), 10000);
             session = result.data.session;
         } catch (err) {
-            console.warn('Auth: Session Timeout - Resetting Token');
-            localStorage.removeItem('sb-wgnskednopbfngvjmviq-auth-token');
+            console.warn('Auth: Session Timeout (Slow Network)');
+            // DO NOT DELETE TOKEN. Just degrade to guest temporarily.
+            // localStorage.removeItem('sb-wgnskednopbfngvjmviq-auth-token'); 
         }
 
         window.currentUser = session?.user || null;
