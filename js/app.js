@@ -19,28 +19,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const { data: { session } } = await supabase.auth.getSession();
         window.currentUser = session?.user || null;
 
-        if (window.currentUser) {
-            try {
-                // Fetch profile data from public.users to ensure persistence
-                // (Google Auth sometimes overwrites Auth Metadata, so we prefer the DB)
-                const { data: profile } = await supabase
-                    .from('users')
-                    .select('full_name, avatar_url')
-                    .eq('id', window.currentUser.id)
-                    .single();
+        // Profile Sync Removed to prevent App Hang
+        // if (window.currentUser) { ... }
 
-                if (profile) {
-                    // Merge DB profile into user_metadata for consistent usage
-                    window.currentUser.user_metadata = {
-                        ...window.currentUser.user_metadata,
-                        ...profile
-                    };
-                }
-            } catch (err) {
-                console.warn('Profile sync failed usage:', err);
-                // Continue execution - do not block app load
-            }
-        }
         window.savedBarIds = new Set();
         window.savedArticleIds = new Set();
 
