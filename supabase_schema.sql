@@ -154,4 +154,5 @@ create policy "Authenticated users can delete bar_awards."
 -- Add start_date and end_date to articles for Event category
 alter table articles
 add column if not exists start_date timestamp with time zone,
-add column if not exists end_date timestamp with time zone;
+add column if not exists end_date timestamp with time zone,
+add column if not exists category text;
