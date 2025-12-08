@@ -738,9 +738,10 @@ figure.article-figure figcaption {
 /* --- Bar Details Page --- */
 .detail-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 15px;
     padding-bottom: 60px;
+    align-items: start;
 }
 
 .hero-card {
