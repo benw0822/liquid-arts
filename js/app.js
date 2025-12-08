@@ -267,7 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Init maps for featured bars
             featuredBars.forEach(bar => {
                 if (bar.lat && bar.lng) {
-                    setTimeout(() => window.initCardMapGlobal(bar.id, bar.lat, bar.lng, bar.title), 100);
+                    setTimeout(() => window.initCardMapGlobal(bar.id, bar.lat, bar.lng, bar.title, window.savedBarIds.has(bar.id)), 100);
                 }
             });
         }
@@ -337,7 +337,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Initialize maps
             items.forEach(bar => {
                 if (bar.lat && bar.lng) {
-                    setTimeout(() => initCardMapGlobal(bar.id, bar.lat, bar.lng, bar.title), 100);
+                    setTimeout(() => initCardMapGlobal(bar.id, bar.lat, bar.lng, bar.title, window.savedBarIds.has(bar.id)), 100);
                 }
             });
         }
@@ -403,7 +403,7 @@ document.addEventListener('DOMContentLoaded', () => {
         grid.innerHTML = savedBars.map(bar => createBarCard(bar, bar.cityDisplay)).join('');
 
         savedBars.forEach(bar => {
-            if (bar.lat && bar.lng) setTimeout(() => initCardMapGlobal(bar.id, bar.lat, bar.lng, bar.title), 100);
+            if (bar.lat && bar.lng) setTimeout(() => initCardMapGlobal(bar.id, bar.lat, bar.lng, bar.title, true), 100);
         });
     };
     // 3. Map Page
@@ -443,14 +443,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (bar.lat && bar.lng) {
                     const isSaved = window.savedBarIds.has(bar.id);
                     // Custom Marker
-                    const iconHtml = `
-                        <div style="display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%); cursor: pointer;">
-                            <div style="background: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; color: #333; box-shadow: 0 1px 4px rgba(0,0,0,0.5); margin-bottom: 3px; white-space: nowrap;">
-                                ${bar.title}
+                    let iconHtml;
+                    if (isSaved) {
+                        // Golden Heart with Label
+                        iconHtml = `
+                            <div style="display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%); cursor: pointer;">
+                                <div style="background: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; color: #333; box-shadow: 0 1px 4px rgba(0,0,0,0.5); margin-bottom: 3px; white-space: nowrap;">
+                                    ${bar.title}
+                                </div>
+                                <div style="display: flex; align-items: center; justify-content: center; filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.6));">
+                                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#FFD700" stroke="white" stroke-width="2" viewBox="0 0 16 16" style="overflow: visible;">
+                                        <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"/>
+                                    </svg>
+                                </div>
                             </div>
-                            <div style="width: 14px; height: 14px; background: #ef4444; border: 2px solid white; border-radius: 50%; box-shadow: 0 0 10px rgba(239, 68, 68, 0.6);"></div>
-                        </div>
-                    `;
+                        `;
+                    } else {
+                        // Red Dot with Label (Default)
+                        iconHtml = `
+                            <div style="display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%); cursor: pointer;">
+                                <div style="background: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; color: #333; box-shadow: 0 1px 4px rgba(0,0,0,0.5); margin-bottom: 3px; white-space: nowrap;">
+                                    ${bar.title}
+                                </div>
+                                <div style="width: 14px; height: 14px; background: #ef4444; border: 2px solid white; border-radius: 50%; box-shadow: 0 0 10px rgba(239, 68, 68, 0.6);"></div>
+                            </div>
+                        `;
+                    }
 
                     const customIcon = L.divIcon({
                         className: 'custom-map-marker',
@@ -1299,7 +1317,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Helper Functions ---
 
     // Expose for Profile usage
-    window.initCardMapGlobal = function (id, lat, lng, title) {
+    window.initCardMapGlobal = function (id, lat, lng, title, isSaved = false) {
         if (typeof L === 'undefined') return;
         const elId = `card-map-${id}`;
         const el = document.getElementById(elId);
@@ -1310,16 +1328,37 @@ document.addEventListener('DOMContentLoaded', () => {
             const map = L.map(elId, { zoomControl: false, scrollWheelZoom: false, dragging: false, doubleClickZoom: false, touchZoom: false }).setView([lat, lng], 15);
             L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 19 }).addTo(map);
 
-            const customIcon = L.divIcon({
-                className: 'custom-map-marker',
-                html: `
+            // Custom Marker: Golden Heart (Saved) vs Red Dot (Default)
+            let markerHtml;
+            if (isSaved) {
+                // Golden Heart
+                markerHtml = `
+                    <div style="display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%);">
+                        <div style="background: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; color: #333; box-shadow: 0 1px 2px rgba(0,0,0,0.15); margin-bottom: 3px; white-space: nowrap;">
+                            ${title || ''}
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: center; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));">
+                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#FFD700" stroke="white" stroke-width="2" viewBox="0 0 16 16" style="overflow: visible;">
+                                <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"/>
+                            </svg>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Red Dot
+                markerHtml = `
                     <div style="display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%);">
                         <div style="background: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; color: #333; box-shadow: 0 1px 2px rgba(0,0,0,0.15); margin-bottom: 3px; white-space: nowrap;">
                             ${title || ''}
                         </div>
                         <div style="width: 14px; height: 14px; background: #ef4444; border: 2px solid white; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,0.2);"></div>
                     </div>
-                `,
+                `;
+            }
+
+            const customIcon = L.divIcon({
+                className: 'custom-map-marker',
+                html: markerHtml,
                 iconSize: [0, 0],
                 iconAnchor: [0, 0]
             });
