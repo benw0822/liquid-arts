@@ -160,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     signatures (*),
                     bar_awards (*),
                     article_bars (
-                        article:articles (id, title, excerpt, cover_image, published_at, category, event_start, event_end)
+                        article:articles (id, title, excerpt, cover_image, published_at, category, start_date, end_date)
                     )
                 `);
 
@@ -1556,8 +1556,8 @@ document.addEventListener('DOMContentLoaded', () => {
         let dateDisplay;
         if (article.category && (article.category.toLowerCase() === 'event' || article.category.toLowerCase() === 'activity')) {
             // Event: Red Bold Date Range
-            const start = new Date(article.event_start).toLocaleDateString();
-            const end = new Date(article.event_end).toLocaleDateString();
+            const start = new Date(article.start_date).toLocaleDateString();
+            const end = article.end_date ? new Date(article.end_date).toLocaleDateString() : 'TBD';
             dateDisplay = `<span style="color: var(--bg-red); font-weight: 700;">${start} - ${end}</span>`;
         } else {
             // Standard Date
