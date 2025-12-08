@@ -44,8 +44,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (roles.includes('admin') || roles.includes('editor') || roles.includes('barOwner')) {
             showDashboard(roles);
         } else {
-            console.warn('Access Denied');
-            alert('Access Denied: You do not have permission to access the dashboard.');
+            console.warn('Access Denied', roles);
+            // If checking roles failed (e.g. table verify error), user has no roles.
+            if (error) {
+                alert('Role Verification Error: ' + error.message);
+            } else {
+                alert('Access Denied: You do not have permission (Roles: ' + roles.join(', ') + ')');
+            }
             await supabase.auth.signOut();
             loginSection.style.display = 'block';
             dashboardSection.style.display = 'none';
@@ -193,6 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (error) {
                 console.error('DB Error:', error);
+                alert('Failed to load bars: ' + error.message);
 
                 // Check if table is missing (Postgres error 42P01)
                 if (error.code === '42P01' || error.message.includes('does not exist')) {

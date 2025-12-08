@@ -20,20 +20,25 @@ document.addEventListener('DOMContentLoaded', () => {
         window.currentUser = session?.user || null;
 
         if (window.currentUser) {
-            // Fetch profile data from public.users to ensure persistence
-            // (Google Auth sometimes overwrites Auth Metadata, so we prefer the DB)
-            const { data: profile } = await supabase
-                .from('users')
-                .select('full_name, avatar_url')
-                .eq('id', window.currentUser.id)
-                .single();
+            try {
+                // Fetch profile data from public.users to ensure persistence
+                // (Google Auth sometimes overwrites Auth Metadata, so we prefer the DB)
+                const { data: profile } = await supabase
+                    .from('users')
+                    .select('full_name, avatar_url')
+                    .eq('id', window.currentUser.id)
+                    .single();
 
-            if (profile) {
-                // Merge DB profile into user_metadata for consistent usage
-                window.currentUser.user_metadata = {
-                    ...window.currentUser.user_metadata,
-                    ...profile
-                };
+                if (profile) {
+                    // Merge DB profile into user_metadata for consistent usage
+                    window.currentUser.user_metadata = {
+                        ...window.currentUser.user_metadata,
+                        ...profile
+                    };
+                }
+            } catch (err) {
+                console.warn('Profile sync failed usage:', err);
+                // Continue execution - do not block app load
             }
         }
         window.savedBarIds = new Set();
