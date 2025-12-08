@@ -27,12 +27,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (window.currentUser) {
             // Fetch Saved Bars
-            const { data: bars } = await supabase.from('saved_bars').select('bar_id');
-            if (bars) window.savedBarIds = new Set(bars.map(r => r.bar_id));
+            try {
+                const { data: bars } = await supabase.from('saved_bars').select('bar_id');
+                if (bars) window.savedBarIds = new Set(bars.map(r => r.bar_id));
+            } catch (err) {
+                console.warn('Saved bars fetch failed:', err);
+                // Continue execution
+            }
 
             // Fetch Saved Articles
-            const { data: articles } = await supabase.from('saved_articles').select('article_id');
-            if (articles) window.savedArticleIds = new Set(articles.map(r => r.article_id));
+            try {
+                const { data: articles } = await supabase.from('saved_articles').select('article_id');
+                if (articles) window.savedArticleIds = new Set(articles.map(r => r.article_id));
+            } catch (err) {
+                console.warn('Saved articles fetch failed:', err);
+                // Continue execution
+            }
         }
     };
 
@@ -1384,7 +1394,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             alert('DIAGNOSTIC: Error reading bars: ' + error.message);
         } else if (count === 0) {
             // Check if it's really 0 or RLS hidden
-            // alert('DIAGNOSTIC: Bars count is 0. RLS might be blocking.');
+            alert('偵測到資料庫已連線但沒有資料回傳。\n原因：權限設定 (RLS) 阻擋了您的讀取。\n解決方法：請務必執行剛剛提供的 "MASTER FIX SCRIPT" SQL 語法！');
         }
     }
 
