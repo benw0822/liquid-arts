@@ -239,8 +239,9 @@ h6 {
 .nav-item.active {
     color: black;
     /* Selected becomes Black */
-    background-color: white;
-    /* Optional: adding white background to make black visible and "selected" */
+    /* background-color: white; Removed as per request */
+    font-weight: 600;
+    /* Optional: Make it bolder to pop */
 }
 
 /* Ensure Icons Follow Text Color */

@@ -8,14 +8,8 @@ files = glob.glob("*.html")
 navbar_pattern = re.compile(r'<nav class="navbar">[\s\S]*?</nav>', re.DOTALL)
 bottom_nav_pattern = re.compile(r'<nav class="bottom-nav">[\s\S]*?</nav>', re.DOTALL)
 
-# New Icons (Thinner, Wireframe, Cleaner)
-# Removing 'stroke-width' inline to let CSS control it (or setting to inherit).
-# Actually, setting visual attributes in CSS is cleaner.
-# I will use 'stroke-width="1.5"' here or remove it?
-# styles.css sets .nav-icon { stroke-width: 1.5; }
-# So I will remove it from inline.
-
-# Navbar (Desktop/Mobile Header)
+# Default Auth Button (Mobile & Desktop)
+# ... Same as before ...
 navbar_new = r'''<nav class="navbar">
         <div class="container nav-content" style="display: flex; align-items: center; justify-content: space-between;">
             <a href="index.html" class="logo">
@@ -41,12 +35,16 @@ navbar_new = r'''<nav class="navbar">
         </div>
     </nav>'''
 
-# Bottom Nav (Mobile) - Wireframe Style
-# Colors controlled by CSS (White -> Black)
+# Bottom Nav - Refined Icons
+# Bars: Triangle Cocktail
+# Journal: News Report
 bottom_nav_new = r'''<nav class="bottom-nav">
         <a href="bars.html" class="nav-item">
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M8 21h8m-4-12v12m-8-14h16l-5 5v3h-6v-3l-5-5z"></path>
+                <!-- Triangle Cocktail Glass -->
+                <path d="M12 21v-8"></path>
+                <path d="M5 4l7 9 7-9H5z"></path>
+                <path d="M7 21h10"></path>
             </svg>
             <span>Bars</span>
         </a>
@@ -59,8 +57,12 @@ bottom_nav_new = r'''<nav class="bottom-nav">
         </a>
         <a href="journal.html" class="nav-item">
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                <!-- News Report / Article -->
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <line x1="10" y1="9" x2="8" y2="9"></line>
             </svg>
             <span>Journal</span>
         </a>
@@ -81,7 +83,7 @@ bottom_nav_new = r'''<nav class="bottom-nav">
         </a>
     </nav>'''
 
-# Insert Helper
+# Helper to find insertion point
 def update_or_insert_bottom_nav(content):
     if '<nav class="bottom-nav">' in content:
         return bottom_nav_pattern.sub(bottom_nav_new, content)
