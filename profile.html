@@ -6,6 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Profile - Liquid Arts</title>
     <link rel="stylesheet" href="css/styles.css">
+    <script>
+        window.onerror = function (msg, url, lineNo, columnNo, error) {
+            alert('Script Error: ' + msg + '\nLine: ' + lineNo + '\nURL: ' + url);
+            return false;
+        };
+        window.onunhandledrejection = function (event) {
+            alert('Unhandled Promise Rejection: ' + event.reason);
+        };
+    </script>
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:wght@400;700&display=swap"
         rel="stylesheet">
@@ -313,8 +322,8 @@
                     btn.textContent = originalText;
                     btn.disabled = false;
 
-                    // Force Reload to reflect changes
-                    location.reload();
+                    // Force Reload to reflect changes (Updated: Don't reload, just stay)
+                    // location.reload();
 
                 } catch (err) {
                     console.error('Update Error:', err);
