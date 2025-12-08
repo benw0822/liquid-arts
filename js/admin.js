@@ -109,7 +109,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (error) throw error;
 
-            await verifyRole(data.user.id);
+            console.log('Login successful');
+            window.location.href = 'profile.html'; // Redirect all users to profile
 
         } catch (err) {
             console.error('Login Error:', err);
