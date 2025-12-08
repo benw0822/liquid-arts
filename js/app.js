@@ -452,7 +452,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     ${bar.title}
                                 </div>
                                 <div style="display: flex; align-items: center; justify-content: center; filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.6));">
-                                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#FFD700" stroke="white" stroke-width="2" viewBox="0 0 16 16" style="overflow: visible;">
+                                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="#FFD700" stroke="white" stroke-width="1.5" viewBox="0 0 16 16" style="overflow: visible;">
                                         <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"/>
                                     </svg>
                                 </div>
@@ -1338,7 +1338,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             ${title || ''}
                         </div>
                         <div style="display: flex; align-items: center; justify-content: center; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));">
-                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#FFD700" stroke="white" stroke-width="2" viewBox="0 0 16 16" style="overflow: visible;">
+                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="#FFD700" stroke="white" stroke-width="1.5" viewBox="0 0 16 16" style="overflow: visible;">
                                 <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"/>
                             </svg>
                         </div>
