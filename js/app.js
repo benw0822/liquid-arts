@@ -46,8 +46,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 1. Auth & Saved Init (Global)
     window.initAuthAndSaved = async () => {
         window.logDebug('Auth: initAuthAndSaved called');
-        const { data: { session } } = await supabase.auth.getSession();
-        window.logDebug('Auth: Session retrieved');
+
+        let session = null;
+        try {
+            // CRITICAL FIX: Wrap Session Check in Timeout to catch Hanging Token logic
+            // If getSession hangs (due to corrupt local storage), we catch it here.
+            const result = await withTimeout(supabase.auth.getSession(), 3000);
+            session = result.data.session;
+            window.logDebug('Auth: Session retrieved');
+        } catch (err) {
+            window.logDebug('Auth: Session HANG DETECTED! ' + err.message);
+            window.logDebug('Auth: Resetting LocalStorage to unblock app...');
+
+            // Force Clear Token to unstick the app
+            localStorage.removeItem('sb-wgnskednopbfngvjmviq-auth-token'); // Clear specific Supabase key if possible, or all
+            // For now, let's clear likely culprits
+            // localStorage.clear(); // Too aggressive? Maybe just proceed as guest.
+        }
+
         window.currentUser = session?.user || null;
 
         // Profile Sync Removed to prevent App Hang
