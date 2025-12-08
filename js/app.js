@@ -1495,7 +1495,6 @@ document.addEventListener('DOMContentLoaded', () => {
             <a href="bar-details.html?id=${bar.id}" style="text-decoration: none; display: block; flex-grow: 1; display: flex; flex-direction: column;">
                 <div style="width: 100%; border-bottom: 1px solid #f0f0f0; position: relative;"> <!-- Added relative for map -->
                     <img src="${bar.image}" alt="${bar.title}" style="width: 100%; height: auto; display: block; transition: transform 0.5s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                    <div id="card-map-${bar.id}" class="card-map" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:5; background:#eee; display:none;"></div>
                 </div>
                 <div style="text-align: center; padding: 1.5rem 1rem 0.5rem 1rem;">
                     <h3 style="font-family: var(--font-display); font-size: 1.8rem; margin: 0 0 0.5rem 0; color: #1b1b1b;">${bar.title}</h3>
