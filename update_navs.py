@@ -109,6 +109,10 @@ for fpath in files:
     new_content = navbar_pattern.sub(navbar_new, content)
     new_content = update_or_insert_bottom_nav(new_content)
 
+    # Nuclear Cache Busting (Force Browser Reload)
+    new_content = re.sub(r'href="css/styles\.css.*?"', 'href="css/styles.css?v=force"', new_content)
+    new_content = re.sub(r'src="js/app\.js.*?"', 'src="js/app.js?v=force"', new_content)
+
     if content != new_content:
         with open(fpath, 'w', encoding='utf-8') as f:
             f.write(new_content)
