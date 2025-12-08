@@ -259,6 +259,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- Data Fetching ---
     async function fetchBars() {
+        window.logDebug('FetchBars: Starting...');
         try {
             // SIMPLIFIED FETCH: Only fetch Bars table to avoid RLS lockouts on related tables.
             // (createBarCard will adapt gracefully)
@@ -266,13 +267,25 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (error) {
                 console.error('Fetch Bars Error:', error);
+                window.logDebug('FetchBars: Error ' + error.message);
+                alert('系統訊息：讀取酒吧資料失敗 (' + error.message + ')。請稍後再試。');
                 return mockBars;
             }
-            if (!data || data.length === 0) return mockBars;
+            if (!data || data.length === 0) {
+                window.logDebug('FetchBars: Empty Data');
+                // Warn if authenticated but empty (implies strict RLS)
+                if (window.currentUser) {
+                    console.warn('Authenticated but Bars empty. RLS?');
+                    window.logDebug('FetchBars: RLS Blocking?');
+                }
+                return mockBars;
+            }
 
+            window.logDebug('FetchBars: Success (' + data.length + ' items)');
             return data;
         } catch (err) {
             console.error('Error fetching bars:', err);
+            window.logDebug('FetchBars: Exception ' + err.message);
             return mockBars;
         }
     }
@@ -291,6 +304,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 1. Home Page
     window.initHome = async () => {
+        window.logDebug('Page: initHome called');
         await window.initAuthAndSaved();
         const bars = await fetchBars();
         const articles = await fetchArticles();
@@ -1478,41 +1492,58 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- Auto Init based on URL ---
     const path = window.location.pathname;
+    window.logDebug('App: Path detected -> ' + path);
 
-    // Ensure Auth & Saved are loaded first (Run in background to prevent hanging)
+    // Ensure Auth is kicked off (but not awaited here)
     window.initAuthAndSaved().catch(err => {
-        console.warn('Init Auth Failed:', err);
+        window.logDebug('Auth: Init Logic Error ' + err.message);
     });
 
-    // DIAGNOSTIC SELECT REMOVED (Was blocking init)
-    // if (window.currentUser) { ... }
-
-    if (path.endsWith('index.html') || path === '/' || path.endsWith('liquidarts/') || path.endsWith('liquidarts')) window.initHome();
-});
-
-// --- Signature Carousel Logic ---
-window.updateCarousel = (barId) => {
-    const state = window.carouselStates[barId];
-    const track = document.getElementById(`sig-track-${barId}`);
-    if (track && state) {
-        track.style.transform = `translateX(-${state.index * 100}%)`;
+    // FORCE INIT HOME (Bypassing strict path check for debugging)
+    // If it's NOT a specific sub-page (like admin, map, journal), assume it's Home/Index
+    if (!path.includes('admin.html') && !path.includes('map.html') && !path.includes('journal') && !path.includes('detail') && !path.includes('profile')) {
+        window.logDebug('App: Triggering initHome...');
+        setTimeout(() => window.initHome(), 100); // Small delay to ensure DOM ready
+    } else if (path.includes('index.html')) {
+        window.logDebug('App: Triggering initHome (Explicit)...');
+        setTimeout(() => window.initHome(), 100);
     }
-};
+}); // End of DOMContentLoaded
 
-window.prevSignature = (barId) => {
-    const state = window.carouselStates[barId];
-    if (state) {
-        state.index = (state.index - 1 + state.count) % state.count;
-        updateCarousel(barId);
-    }
-};
+// --- Init Functions (Global Scope) ---
+window.initHome = async () => {
+    window.logDebug('Page: initHome called');
 
-window.nextSignature = (barId) => {
-    const state = window.carouselStates[barId];
-    if (state) {
-        state.index = (state.index + 1) % state.count;
-        updateCarousel(barId);
-    }
-};
+    // REMOVED RE-AWAIT of initAuthAndSaved to prevent double-wait logic
+    // await window.initAuthAndSaved(); 
+
+    window.logDebug('Page: Fetching Bars...');
+    const bars = await fetchBars();
+    // ...
+
+    // --- Signature Carousel Logic ---
+    window.updateCarousel = (barId) => {
+        const state = window.carouselStates[barId];
+        const track = document.getElementById(`sig-track-${barId}`);
+        if (track && state) {
+            track.style.transform = `translateX(-${state.index * 100}%)`;
+        }
+    };
+
+    window.prevSignature = (barId) => {
+        const state = window.carouselStates[barId];
+        if (state) {
+            state.index = (state.index - 1 + state.count) % state.count;
+            updateCarousel(barId);
+        }
+    };
+
+    window.nextSignature = (barId) => {
+        const state = window.carouselStates[barId];
+        if (state) {
+            state.index = (state.index + 1) % state.count;
+            updateCarousel(barId);
+        }
+    };
 
 
