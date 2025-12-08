@@ -1388,16 +1388,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.warn('Init Auth Failed:', err);
     });
 
-    // DIAGNOSTIC SELECT (Remove later)
-    if (window.currentUser) {
-        const { count, error } = await supabase.from('bars').select('*', { count: 'exact', head: true });
-        if (error) {
-            alert('DIAGNOSTIC: Error reading bars: ' + error.message);
-        } else if (count === 0) {
-            // Check if it's really 0 or RLS hidden
-            alert('偵測到資料庫已連線但沒有資料回傳。\n原因：權限設定 (RLS) 阻擋了您的讀取。\n解決方法：請務必執行剛剛提供的 "MASTER FIX SCRIPT" SQL 語法！');
-        }
-    }
+    // DIAGNOSTIC SELECT REMOVED (Was blocking init)
+    // if (window.currentUser) { ... }
 
     if (path.endsWith('index.html') || path === '/' || path.endsWith('liquidarts/') || path.endsWith('liquidarts')) window.initHome();
 });
