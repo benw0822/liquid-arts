@@ -360,13 +360,39 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Helper Components ---
 
     function createBarCard(bar) {
-        // Simple "Art Card" Layout matching styles.css and magazine-grid
+        const isSaved = window.savedBarIds.has(bar.id);
+        const saveIconFill = isSaved ? '#ef4444' : 'none';
+        const saveIconStroke = isSaved ? '#ef4444' : '#333';
+        const locationText = bar.cityDisplay || bar.location || 'Unknown';
+
         return `
             <div class="grid-item">
-                <a href="bar-details.html?id=${bar.id}" class="art-card">
-                    <img src="${bar.image || 'assets/default_bar.png'}" alt="${bar.title}" class="art-card-image">
-                    <h3 class="art-card-title">${bar.title}</h3>
-                    <div class="art-card-meta">${bar.location || ''}</div>
+                <a href="bar-details.html?id=${bar.id}" class="magazine-card-link">
+                    <article class="magazine-card">
+                        <div class="card-image-container">
+                            <img src="${bar.image || 'assets/default_bar.png'}" alt="${bar.title}" class="card-image">
+                            <!-- Map Container: Populated by initHome/initBarList -->
+                            <div id="card-map-${bar.id}" class="card-map"></div> 
+                            <div class="card-badges">
+                                <span class="badge badge-vibe">${bar.vibe || 'Bar'}</span>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div class="card-meta">
+                                <span class="card-location">${locationText}</span>
+                                <span class="card-price">${'$'.repeat(bar.price || 1)}</span>
+                            </div>
+                            <h3 class="card-title">${bar.title}</h3>
+                            <div class="card-footer">
+                                <span class="rating">★ ${bar.rating || 'New'}</span>
+                                <button class="save-btn save-btn-${bar.id}" onclick="window.toggleSaveBar(${bar.id}, event)">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="${saveIconFill}" stroke="${saveIconStroke}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </article>
                 </a>
             </div>
         `;
