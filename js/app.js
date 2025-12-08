@@ -408,22 +408,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 userMarker.bindPopup('<div style="color:#333; font-weight:bold;">Current Location</div>');
                 markers.push(userMarker);
 
-                // Filter Nearest 5
+                // Filter Distances for Zoom (but show ALL bars)
                 const barsWithDist = allBars.map(b => {
                     const dist = (b.lat && b.lng) ? getDistance(userLat, userLng, b.lat, b.lng) : Infinity;
                     return { ...b, distance: dist };
                 });
 
-                const nearestBars = barsWithDist
-                    .sort((a, b) => a.distance - b.distance)
-                    .slice(0, 5);
+                // Render ALL bars
+                renderBars(allBars);
 
-                renderBars(nearestBars);
+                // Find Nearest 3 for Zooming
+                const nearestForZoom = barsWithDist
+                    .sort((a, b) => a.distance - b.distance)
+                    .slice(0, 3); // Top 3
+
+                // Calculate Bounds for User + Nearest 3
+                // We need to access the MARKERS corresponding to these bars.
+                // Since renderBars pushes to 'markers' array in order of iteration (which was allbars),
+                // we can't easily index them by ID unless we find them.
+                // Easier: Create temporary LatLngBounds from User + Nearest 3 coords.
+                const bounds = L.latLngBounds();
+                bounds.extend([userLat, userLng]);
+                nearestForZoom.forEach(b => {
+                    if (b.lat && b.lng) bounds.extend([b.lat, b.lng]);
+                });
 
                 // Fit Bounds
-                if (markers.length > 0) {
-                    const group = new L.featureGroup(markers);
-                    map.fitBounds(group.getBounds().pad(0.2));
+                if (bounds.isValid()) {
+                    map.fitBounds(bounds.pad(0.2)); // Pad 0.2
+                } else {
+                    map.setView([userLat, userLng], 14);
                 }
 
             }, (err) => {
