@@ -7,7 +7,7 @@ window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
 const supabase = window.supabaseClient;
 console.log('Connected to Supabase');
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
 
     // --- Save/Favorite Logic (Supabase) ---
     window.savedBarIds = new Set();
@@ -1388,7 +1388,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Auto Init based on URL ---
     const path = window.location.pathname;
-    if (path.endsWith('index.html') || path === '/') window.initHome();
+
+    // Ensure Auth & Saved are loaded first
+    try {
+        await window.initAuthAndSaved();
+    } catch (err) {
+        console.warn('Init Auth Failed:', err);
+    }
+
+    // DIAGNOSTIC SELECT (Remove later)
+    if (window.currentUser) {
+        const { count, error } = await supabase.from('bars').select('*', { count: 'exact', head: true });
+        if (error) {
+            alert('DIAGNOSTIC: Error reading bars: ' + error.message);
+        } else if (count === 0) {
+            // Check if it's really 0 or RLS hidden
+            // alert('DIAGNOSTIC: Bars count is 0. RLS might be blocking.');
+        }
+    }
+
+    if (path.endsWith('index.html') || path === '/' || path.endsWith('liquidarts/') || path.endsWith('liquidarts')) window.initHome();
 });
 
 // --- Signature Carousel Logic ---
