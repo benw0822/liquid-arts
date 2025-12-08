@@ -601,58 +601,63 @@ document.addEventListener('DOMContentLoaded', () => {
             window.carouselStates[bar.id] = { index: 0, count: bar.signatures.length };
         }
 
-        container.innerHTML = `
-            <!-- Top Header (Title & Vibe) -->
-            <div class="container" style="margin-top: 100px; margin-bottom: 2rem; text-align: center;">
-                <h1 style="font-size: 3.5rem; margin-bottom: 0.5rem; color: var(--text-primary); line-height: 1.2;">${bar.title}</h1>
-                <p style="font-size: 1.2rem; color: #666; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; gap: 10px;">
-                    <span style="color: var(--bg-red); font-weight: 600; text-transform: uppercase; font-size: 0.9rem;">${bar.vibe}</span>
-                    <span id="header-city" style="font-size: 0.9rem; color: #888;"></span>
-                </p>
-            </div>
+        if (bar.editorial_review) {
+            // --- Masonry Grid Layout (Review Present) ---
+            container.innerHTML = `
+                <!-- Top Header -->
+                <div class="container" style="margin-top: 100px; margin-bottom: 2rem; text-align: center;">
+                    <h1 style="font-size: 3.5rem; margin-bottom: 0.5rem; color: var(--text-primary); line-height: 1.2;">${bar.title}</h1>
+                    <p style="font-size: 1.2rem; color: #666; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                        <span style="color: var(--bg-red); font-weight: 600; text-transform: uppercase; font-size: 0.9rem;">${bar.vibe}</span>
+                        <span id="header-city" style="font-size: 0.9rem; color: #888;"></span>
+                    </p>
+                </div>
 
-            <div class="container detail-grid" style="margin-top: 0;">
-                
-                <!-- Left Column -->
-                <div class="left-column">
-                    <!-- Hero Card (Image Only) -->
-                    <div class="content-card hero-card" style="padding: 0; border: none; overflow: hidden; background: transparent; position: relative;">
+                <div class="container masonry-grid" style="margin-top: 0;">
+                    <!-- 1. Hero Image Card -->
+                    <div class="grid-item content-card hero-card" style="padding: 0; border: none; overflow: hidden; background: transparent; position: relative; margin-bottom: 30px;">
                         <img id="hero-card-img" src="${bar.image}" alt="${bar.title}" style="width: 100%; height: auto; display: block;">
-                        
-                        <button class="save-btn-${bar.id}" onclick="toggleSaveBar(${bar.id}, event)" style="position: absolute; top: 20px; right: 20px; z-index: 20; background: white; border: none; border-radius: 50%; width: 44px; height: 44px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0;">
+                         <button class="save-btn-${bar.id}" onclick="toggleSaveBar(${bar.id}, event)" style="position: absolute; top: 20px; right: 20px; z-index: 20; background: white; border: none; border-radius: 50%; width: 44px; height: 44px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0;">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="${window.savedBarIds.has(bar.id) ? '#ef4444' : 'none'}" stroke="${window.savedBarIds.has(bar.id) ? '#ef4444' : '#333'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
                         </button>
                     </div>
 
-                    <div id="about-card" class="content-card" style="display: flex; flex-direction: column;">
+                    <!-- 2. Review Card (If present, which it is) -->
+                    <div class="grid-item content-card" style="background-color: var(--bg-red); color: white; border: none; margin-bottom: 30px;">
+                        <h3 class="section-title" style="color: white; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 15px;">Liquid Arts Review</h3>
+                        <p style="font-style: italic; font-size: 1.1rem; line-height: 1.6; margin-bottom: 1.5rem; text-align: center;">"${bar.editorial_review}"</p>
+                        ${bar.editorial_rating ? `
+                            <div style="text-align: center;">
+                                <div style="color: #FFD700; font-size: 1.4rem; margin-bottom: 5px;">${'★'.repeat(bar.editorial_rating)}${'☆'.repeat(5 - bar.editorial_rating)}</div>
+                                <div style="font-weight: 600; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; font-family: var(--font-display);">
+                                    ${['', 'Poor', 'Fair', 'Enjoyable', 'Remarkable', 'Masterpiece'][bar.editorial_rating] || ''}
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    <!-- 3. About/Info Card -->
+                    <div class="grid-item content-card" style="display: flex; flex-direction: column; margin-bottom: 30px;">
                         <h2 class="section-title" style="flex-shrink: 0;">About</h2>
-                        
                         <p style="line-height: 1.6; margin-bottom: 1.5rem;">
                             ${bar.description || `Experience the finest mixology at ${bar.title}. Known for its ${bar.vibe} atmosphere, this spot in ${bar.location} offers a curated selection of cocktails and spirits.`}
                         </p>
-
-                        <div style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 20px; justify-content: center;">
+                         <div style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 20px; justify-content: center;">
                             <div>
                                 <span style="font-weight: 600; color: var(--text-primary);">Google Rating:</span> 
                                 <span style="display: inline-flex; align-items: center; gap: 4px;">
                                     ${bar.google_rating || bar.rating || 'N/A'} 
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="#FFD700" viewBox="0 0 16 16">
-                                        <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
-                                    </svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="#FFD700" viewBox="0 0 16 16"><path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/></svg>
                                     <span style="color:#888; font-size:0.9em; margin-left: 4px; display: inline-flex; align-items: center; gap: 2px;">
-                                        (${bar.google_review_count || bar.rating_count || 0} 
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                                            <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7Zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5.784 6A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216ZM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/>
-                                        </svg>)
+                                        (${bar.google_review_count || bar.rating_count || 0} <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7Zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5.784 6A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216ZM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/></svg>)
                                     </span>
                                 </span>
                             </div>
-                            <div>
+                             <div>
                                 <span style="font-weight: 600; color: var(--text-primary);">Price:</span> 
                                 <span>${'$'.repeat(bar.price_level || bar.price || 2)}</span>
                             </div>
                         </div>
-
                         ${bar.instagram_url ? `
                             <div style="display: flex; justify-content: center; margin-bottom: 1rem;">
                                 <a href="${bar.instagram_url}" target="_blank" class="btn btn-secondary" style="font-size: 0.9rem; padding: 8px 16px; display: flex; align-items: center; gap: 8px;">
@@ -663,7 +668,6 @@ document.addEventListener('DOMContentLoaded', () => {
                                 </a>
                             </div>
                         ` : ''}
-
                         <div style="display: flex; gap: 2rem; margin-bottom: 1rem; justify-content: center;">
                             ${bar.owner_name ? `
                                 <div style="text-align: center;">
@@ -678,43 +682,20 @@ document.addEventListener('DOMContentLoaded', () => {
                                 </div>
                             ` : ''}
                         </div>
-
                         ${bar.tags ? `<p style="margin-bottom:1rem; color:var(--text-secondary); text-align: center;">Tags: ${bar.tags.join(', ')}</p>` : ''}
-
-                        <div style="margin-bottom: 0; margin-top: auto;">
+                        
+                        <!-- Address & Map in About Card -->
+                         <div style="margin-bottom: 0; margin-top: auto;">
                             <span class="info-label" style="font-size: 0.9rem; display: block; text-align: center;">Address</span>
                             <p style="margin-bottom: 1rem; text-align: center; font-weight: bold;">${bar.address || bar.address_en || bar.location}</p>
-                            
                             <div id="detail-map" style="height: 150px; width: 100%; border-radius: 8px; margin-bottom: 1rem; z-index: 1;"></div>
-                            
-                            ${bar.google_map_url ?
-                `<a href="${bar.google_map_url}" target="_blank" class="btn" style="width:100%; text-align:center; background-color: var(--bg-red); color: white; border: none;">Open in Google Maps</a>` :
-                `<div style="height: 50px; background: #eee; display: flex; align-items: center; justify-content: center; color: #666; border-radius: 4px;">Map Link Unavailable</div>`
-            }
+                            ${bar.google_map_url ? `<a href="${bar.google_map_url}" target="_blank" class="btn" style="width:100%; text-align:center; background-color: var(--bg-red); color: white; border: none;">Open in Google Maps</a>` : ''}
                         </div>
                     </div>
-                </div>
 
-                <!-- Right Column -->
-                <div class="right-column">
-                    <!-- Editorial Review Card -->
-                    ${bar.editorial_review ? `
-                        <div class="content-card" style="background-color: var(--bg-red); color: white; border: none;">
-                            <h3 class="section-title" style="color: white; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 15px;">Liquid Arts Review</h3>
-                            <p style="font-style: italic; font-size: 1.1rem; line-height: 1.6; margin-bottom: 1.5rem; text-align: center;">"${bar.editorial_review}"</p>
-                            ${bar.editorial_rating ? `
-                                <div style="text-align: center;">
-                                    <div style="color: #FFD700; font-size: 1.4rem; margin-bottom: 5px;">${'★'.repeat(bar.editorial_rating)}${'☆'.repeat(5 - bar.editorial_rating)}</div>
-                                    <div style="font-weight: 600; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; font-family: var(--font-display);">
-                                        ${['', 'Poor', 'Fair', 'Enjoyable', 'Remarkable', 'Masterpiece'][bar.editorial_rating] || ''}
-                                    </div>
-                                </div>
-                            ` : ''}
-                        </div>
-                    ` : ''}
-
+                    <!-- 4. Awards (Optional) -->
                     ${bar.bar_awards && bar.bar_awards.length > 0 ? `
-                        <div class="content-card">
+                        <div class="grid-item content-card" style="margin-bottom: 30px;">
                             <h3 class="section-title" style="border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 15px;">Awards</h3>
                             <div style="display: flex; flex-direction: column; gap: 12px;">
                                 ${bar.bar_awards.sort((a, b) => (b.year || 0) - (a.year || 0)).map(award => `
@@ -723,37 +704,191 @@ document.addEventListener('DOMContentLoaded', () => {
                                             <span style="margin-right: 10px;">${award.year || ''}</span>
                                             <span>${award.name}</span>
                                         </div>
-                                        <span>
-                                            ${award.rank ? `<span style="color: var(--bg-red);">${award.rank}</span>` : ''}
-                                        </span>
+                                        <span>${award.rank ? `<span style="color: var(--bg-red);">${award.rank}</span>` : ''}</span>
                                     </div>
                                 `).join('')}
                             </div>
                         </div>
                     ` : ''}
 
-                    <div class="content-card">
+                    <!-- 5. Opening Hours -->
+                    <div class="grid-item content-card" style="margin-bottom: 30px;">
                         <h3 class="section-title">Opening Hours</h3>
-                        
-                        <div style="margin-bottom: 1.5rem;">
-                            ${formatOpeningHours(bar.opening_hours || 'Mon-Sun: 18:00 - 02:00')}
-                        </div>
-
+                        <div style="margin-bottom: 1.5rem;">${formatOpeningHours(bar.opening_hours || 'Mon-Sun: 18:00 - 02:00')}</div>
                         ${bar.phone ? `<p style="text-align: center; margin-bottom: 1.5rem;"><strong>Phone:</strong> ${bar.phone}</p>` : ''}
-                        
                         <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
                             ${bar.facebook_url ? `<a href="${bar.facebook_url}" target="_blank" class="btn btn-secondary" style="font-size: 0.9rem; padding: 8px 16px;">Facebook</a>` : ''}
                             ${bar.website_url ? `<a href="${bar.website_url}" target="_blank" class="btn btn-primary" style="font-size: 0.9rem; padding: 8px 16px;">Book Now</a>` : ''}
                         </div>
                     </div>
-
-                    ${signaturesHtml}
                     
-                    ${articlesHtml}
-                    ${galleryHtml}
+                    <!-- 6. Signatures (If any, wrap as grid item) -->
+                    ${signaturesHtml ? `<div class="grid-item" style="width:100%; margin-bottom:30px;">${signaturesHtml}</div>` : ''}
+
+                    <!-- 7. Articles (If any) -->
+                    ${articlesHtml ? `<div class="grid-item" style="width:100%; margin-bottom:30px;">${articlesHtml}</div>` : ''}
+
+                    <!-- 8. Gallery (If any) -->
+                    ${galleryHtml ? `<div class="grid-item" style="width:100%; margin-bottom:30px;">${galleryHtml}</div>` : ''}
+
                 </div>
-            </div>
-        `;
+            `;
+        } else {
+            // --- Default 2-Column Grid Layout (No Review) ---
+            container.innerHTML = `
+                <!-- Top Header (Title & Vibe) -->
+                <div class="container" style="margin-top: 100px; margin-bottom: 2rem; text-align: center;">
+                    <h1 style="font-size: 3.5rem; margin-bottom: 0.5rem; color: var(--text-primary); line-height: 1.2;">${bar.title}</h1>
+                    <p style="font-size: 1.2rem; color: #666; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                        <span style="color: var(--bg-red); font-weight: 600; text-transform: uppercase; font-size: 0.9rem;">${bar.vibe}</span>
+                        <span id="header-city" style="font-size: 0.9rem; color: #888;"></span>
+                    </p>
+                </div>
+
+                <div class="container detail-grid" style="margin-top: 0;">
+                    
+                    <!-- Left Column -->
+                    <div class="left-column">
+                        <!-- Hero Card (Image Only) -->
+                        <div class="content-card hero-card" style="padding: 0; border: none; overflow: hidden; background: transparent; position: relative;">
+                            <img id="hero-card-img" src="${bar.image}" alt="${bar.title}" style="width: 100%; height: auto; display: block;">
+                            
+                            <button class="save-btn-${bar.id}" onclick="toggleSaveBar(${bar.id}, event)" style="position: absolute; top: 20px; right: 20px; z-index: 20; background: white; border: none; border-radius: 50%; width: 44px; height: 44px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="${window.savedBarIds.has(bar.id) ? '#ef4444' : 'none'}" stroke="${window.savedBarIds.has(bar.id) ? '#ef4444' : '#333'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                            </button>
+                        </div>
+
+                        <div id="about-card" class="content-card" style="display: flex; flex-direction: column;">
+                            <h2 class="section-title" style="flex-shrink: 0;">About</h2>
+                            <p style="line-height: 1.6; margin-bottom: 1.5rem;">
+                                ${bar.description || `Experience the finest mixology at ${bar.title}. Known for its ${bar.vibe} atmosphere, this spot in ${bar.location} offers a curated selection of cocktails and spirits.`}
+                            </p>
+
+                            <div style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 20px; justify-content: center;">
+                                <div>
+                                    <span style="font-weight: 600; color: var(--text-primary);">Google Rating:</span> 
+                                    <span style="display: inline-flex; align-items: center; gap: 4px;">
+                                        ${bar.google_rating || bar.rating || 'N/A'} 
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="#FFD700" viewBox="0 0 16 16">
+                                            <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
+                                        </svg>
+                                        <span style="color:#888; font-size:0.9em; margin-left: 4px; display: inline-flex; align-items: center; gap: 2px;">
+                                            (${bar.google_review_count || bar.rating_count || 0} 
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                                                <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7Zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5.784 6A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216ZM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/>
+                                            </svg>)
+                                        </span>
+                                    </span>
+                                </div>
+                                <div>
+                                    <span style="font-weight: 600; color: var(--text-primary);">Price:</span> 
+                                    <span>${'$'.repeat(bar.price_level || bar.price || 2)}</span>
+                                </div>
+                            </div>
+
+                            ${bar.instagram_url ? `
+                                <div style="display: flex; justify-content: center; margin-bottom: 1rem;">
+                                    <a href="${bar.instagram_url}" target="_blank" class="btn btn-secondary" style="font-size: 0.9rem; padding: 8px 16px; display: flex; align-items: center; gap: 8px;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                            <path d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.269.222 2.76.42a3.917 3.917 0 0 0-1.417.923A3.927 3.927 0 0 0 .42 2.76C.222 3.268.087 3.85.048 4.7.01 5.555 0 5.827 0 8.001c0 2.172.01 2.444.048 3.297.04.852.174 1.433.372 1.942.205.526.478.972.923 1.417.444.445.89.719 1.416.923.51.198 1.09.333 1.942.372C5.555 15.99 5.827 16 8 16s2.444-.01 3.298-.048c.851-.04 1.434-.174 1.943-.372a3.916 3.916 0 0 0 1.416-.923c.445-.445.718-.891.923-1.417.197-.509.332-1.09.372-1.942C15.99 10.445 16 10.173 16 8s-.01-2.445-.048-3.299c-.04-.851-.175-1.433-.372-1.941a3.926 3.926 0 0 0-.923-1.417A3.911 3.911 0 0 0 13.24.42c-.51-.198-1.092-.333-1.943-.372C10.443.01 10.172 0 7.998 0h.003zm-.717 1.442h.718c2.136 0 2.389.007 3.232.046.78.035 1.204.166 1.486.275.373.145.64.319.92.599.28.28.453.546.598.92.11.281.24.705.275 1.485.039.843.047 1.096.047 3.231s-.008 2.389-.047 3.232c-.035.78-.166 1.203-.275 1.485a2.47 2.47 0 0 1-.599.919c-.28.28-.546.453-.92.598-.281.11-.705.24-1.485.276-.843.038-1.096.047-3.232.047s-2.39-.009-3.233-.047c-.78-.036-1.203-.166-1.486-.276a2.478 2.478 0 0 1-.92-.598 2.48 2.48 0 0 1-.6-.92c-.109-.281-.24-.705-.275-1.485-.038-.843-.046-1.096-.046-3.233 0-2.136.008-2.388.046-3.231.036-.78.166-1.204.276-1.486.145-.373.319-.64.599-.92.28-.28.546-.453.92-.598.282-.11.705-.24 1.485-.276.738-.034 1.024-.044 2.515-.045v.002zm4.988 1.328a.96.96 0 1 0 0 1.92.96.96 0 0 0 0-1.92zm-4.27 1.122a4.109 4.109 0 1 0 0 8.217 4.109 4.109 0 0 0 0-8.217zm0 1.441a2.667 2.667 0 1 1 0 5.334 2.667 2.667 0 0 1 0-5.334z"/>
+                                    </svg>
+                                    Instagram
+                                </a>
+                            </div>
+                        ` : ''}
+    
+                            <div style="display: flex; gap: 2rem; margin-bottom: 1rem; justify-content: center;">
+                                ${bar.owner_name ? `
+                                    <div style="text-align: center;">
+                                        <span class="info-label" style="font-size: 0.9rem; display: block; text-align: center;">Owner</span>
+                                        <p style="font-weight: 600;">${bar.owner_name}</p>
+                                    </div>
+                                ` : ''}
+                                ${bar.bartender_name ? `
+                                    <div style="text-align: center;">
+                                        <span class="info-label" style="font-size: 0.9rem; display: block; text-align: center;">Head Bartender</span>
+                                        <p style="font-weight: 600;">${bar.bartender_name}</p>
+                                    </div>
+                                ` : ''}
+                            </div>
+    
+                            ${bar.tags ? `<p style="margin-bottom:1rem; color:var(--text-secondary); text-align: center;">Tags: ${bar.tags.join(', ')}</p>` : ''}
+    
+                            <div style="margin-bottom: 0; margin-top: auto;">
+                                <span class="info-label" style="font-size: 0.9rem; display: block; text-align: center;">Address</span>
+                                <p style="margin-bottom: 1rem; text-align: center; font-weight: bold;">${bar.address || bar.address_en || bar.location}</p>
+                                
+                                <div id="detail-map" style="height: 150px; width: 100%; border-radius: 8px; margin-bottom: 1rem; z-index: 1;"></div>
+                                
+                                ${bar.google_map_url ?
+                    `<a href="${bar.google_map_url}" target="_blank" class="btn" style="width:100%; text-align:center; background-color: var(--bg-red); color: white; border: none;">Open in Google Maps</a>` :
+                    `<div style="height: 50px; background: #eee; display: flex; align-items: center; justify-content: center; color: #666; border-radius: 4px;">Map Link Unavailable</div>`
+                }
+                            </div>
+                        </div>
+                    </div>
+    
+                    <!-- Right Column -->
+                    <div class="right-column">
+                        <!-- Editorial Review Card -->
+                        ${bar.editorial_review ? `
+                            <div class="content-card" style="background-color: var(--bg-red); color: white; border: none;">
+                                <h3 class="section-title" style="color: white; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 15px;">Liquid Arts Review</h3>
+                                <p style="font-style: italic; font-size: 1.1rem; line-height: 1.6; margin-bottom: 1.5rem; text-align: center;">"${bar.editorial_review}"</p>
+                                ${bar.editorial_rating ? `
+                                    <div style="text-align: center;">
+                                        <div style="color: #FFD700; font-size: 1.4rem; margin-bottom: 5px;">${'★'.repeat(bar.editorial_rating)}${'☆'.repeat(5 - bar.editorial_rating)}</div>
+                                        <div style="font-weight: 600; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; font-family: var(--font-display);">
+                                            ${['', 'Poor', 'Fair', 'Enjoyable', 'Remarkable', 'Masterpiece'][bar.editorial_rating] || ''}
+                                        </div>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        ` : ''}
+    
+                        ${bar.bar_awards && bar.bar_awards.length > 0 ? `
+                            <div class="content-card">
+                                <h3 class="section-title" style="border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 15px;">Awards</h3>
+                                <div style="display: flex; flex-direction: column; gap: 12px;">
+                                    ${bar.bar_awards.sort((a, b) => (b.year || 0) - (a.year || 0)).map(award => `
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; font-weight: 700; color: #333;">
+                                            <div style="display: flex; align-items: center;">
+                                                <span style="margin-right: 10px;">${award.year || ''}</span>
+                                                <span>${award.name}</span>
+                                            </div>
+                                            <span>
+                                                ${award.rank ? `<span style="color: var(--bg-red);">${award.rank}</span>` : ''}
+                                            </span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+    
+                        <div class="content-card">
+                            <h3 class="section-title">Opening Hours</h3>
+                            
+                            <div style="margin-bottom: 1.5rem;">
+                                ${formatOpeningHours(bar.opening_hours || 'Mon-Sun: 18:00 - 02:00')}
+                            </div>
+    
+                            ${bar.phone ? `<p style="text-align: center; margin-bottom: 1.5rem;"><strong>Phone:</strong> ${bar.phone}</p>` : ''}
+                            
+                            <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+                                ${bar.facebook_url ? `<a href="${bar.facebook_url}" target="_blank" class="btn btn-secondary" style="font-size: 0.9rem; padding: 8px 16px;">Facebook</a>` : ''}
+                                ${bar.website_url ? `<a href="${bar.website_url}" target="_blank" class="btn btn-primary" style="font-size: 0.9rem; padding: 8px 16px;">Book Now</a>` : ''}
+                            </div>
+                        </div>
+    
+                        ${signaturesHtml}
+                        
+                        ${articlesHtml}
+                        ${galleryHtml}
+                    </div>
+                </div>
+            `;
+        }
+
 
         // Async City Fetch
         if (bar.lat && bar.lng) {

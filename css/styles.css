@@ -1019,6 +1019,32 @@ figure.article-figure figcaption {
     }
 }
 
+/* Masonry Grid for Detail Page (Review present) */
+.masonry-grid {
+    column-count: 3;
+    column-gap: 30px;
+    padding-bottom: 60px;
+}
+
+.masonry-grid .grid-item {
+    display: inline-block;
+    width: 100%;
+    break-inside: avoid;
+    margin-bottom: 30px;
+}
+
+@media (max-width: 1024px) {
+    .masonry-grid {
+        column-count: 2;
+    }
+}
+
+@media (max-width: 768px) {
+    .masonry-grid {
+        column-count: 1;
+    }
+}
+
 .magazine-grid .grid-item {
     margin-bottom: 0;
     /* Remove legacy margin */
