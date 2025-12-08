@@ -1412,8 +1412,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 <!-- Map & Button (Map Removed, Button Only) -->
                 <div style="margin-top: auto;">
-                    <a href="${mapUrl}" target="_blank" class="btn" style="display: flex; justify-content: center; align-items: center; width: 100%; background-color: var(--bg-red); color: white; padding: 10px 0; border-radius: 4px; text-decoration: none; transition: background 0.3s; margin-top: 0;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M14.082 2.182a.5.5 0 0 1 .103.557L8.528 15.467a.5.5 0 0 1-.917-.007L5.57 10.694.803 8.652a.5.5 0 0 1-.006-.916l12.728-5.657a.5.5 0 0 1 .556.103z"/></svg>
+                    <a href="${mapUrl}" target="_blank" class="btn" style="display: flex; justify-content: center; align-items: center; gap: 8px; width: 100%; background-color: var(--bg-red); color: white; padding: 10px 0; border-radius: 4px; text-decoration: none; transition: background 0.3s; margin-top: 0;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M14.082 2.182a.5.5 0 0 1 .103.557L8.528 15.467a.5.5 0 0 1-.917-.007L5.57 10.694.803 8.652a.5.5 0 0 1-.006-.916l12.728-5.657a.5.5 0 0 1 .556.103z"/></svg>
+                        <span style="font-size: 0.9rem; font-weight: 600;">Google Map</span>
                     </a>
                 </div>
             </div>
