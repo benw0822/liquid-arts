@@ -32,68 +32,84 @@
     </nav>
 
     <main class="container" style="margin-top: 4rem;">
-        <!-- Profile Header Section -->
-        <div style="max-width: 600px; margin: 0 auto 4rem auto; text-align: center;">
-            <div class="section-header">
-                <h2 class="section-title">My Profile</h2>
-            </div>
+        <!-- Guest View -->
+        <div id="guest-view" style="display: none; text-align: center; padding: 6rem 0;">
+            <h2 class="section-title">Welcome to Liquid Arts</h2>
+            <p style="color: #666; margin-bottom: 2rem;">Sign in to save your favorite bars and articles.</p>
+            <button id="profile-login-btn" class="btn"
+                style="padding: 12px 30px; font-size: 1rem; border: none; cursor: pointer;">Login with Google</button>
+        </div>
 
-            <div
-                style="background: var(--bg-secondary); padding: 2rem; border-radius: 8px; border: 1px solid var(--border-color);">
-                <div id="profile-loading">Loading...</div>
-                <div id="profile-content" style="display: none;">
-                    <img id="profile-avatar" src="" alt="Avatar"
-                        style="width: 100px; height: 100px; border-radius: 50%; margin-bottom: 1rem; border: 2px solid var(--accent-color);">
-                    <h3 id="profile-name" style="margin-bottom: 0.5rem; font-family: var(--font-display);">User Name
-                    </h3>
-                    <p id="profile-email" style="color: var(--text-secondary); margin-bottom: 1.5rem;">user@example.com
-                    </p>
+        <!-- User View -->
+        <div id="user-view" style="display: none;">
+            <!-- Profile Header Section -->
+            <div style="max-width: 600px; margin: 0 auto 4rem auto; text-align: center;">
+                <div class="section-header">
+                    <h2 class="section-title">My Profile</h2>
+                </div>
+
+                <div
+                    style="background: var(--bg-secondary); padding: 2rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <div id="profile-loading">Loading...</div>
+                    <div id="profile-content" style="display: none;">
+                        <img id="profile-avatar" src="" alt="Avatar"
+                            style="width: 100px; height: 100px; border-radius: 50%; margin-bottom: 1rem; border: 2px solid var(--accent-color);">
+                        <h3 id="profile-name" style="margin-bottom: 0.5rem; font-family: var(--font-display);">User Name
+                        </h3>
+                        <p id="profile-email" style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                            user@example.com
+                        </p>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Saved Bars Section -->
-        <div class="section-header">
-            <h2 class="section-title" style="font-size: 2rem;">Saved Bars</h2>
-        </div>
+            <!-- Saved Bars Section -->
+            <div class="section-header">
+                <h2 class="section-title" style="font-size: 2rem;">Saved Bars</h2>
+            </div>
 
-        <!-- Masonry Grid (Reusing #bars-grid style) -->
-        <div id="bars-grid" style="min-height: 200px;">
-            <p style="text-align: center; color: #888; width: 100%;">Loading collection...</p>
-        </div>
+            <!-- Masonry Grid (Reusing #bars-grid style) -->
+            <div id="bars-grid" style="min-height: 200px;">
+                <p style="text-align: center; color: #888; width: 100%;">Loading collection...</p>
+            </div>
 
-        <!-- Saved Articles Section (Placeholder) -->
-        <div class="section-header" style="margin-top: 4rem;">
-            <h2 class="section-title" style="font-size: 2rem;">Saved Articles</h2>
-        </div>
-        <div id="saved-articles-grid" class="magazine-grid">
-            <p style="text-align: center; color: #888; width: 100%;">No saved articles yet.</p>
-        </div>
+            <!-- Saved Articles Section (Placeholder) -->
+            <div class="section-header" style="margin-top: 4rem;">
+                <h2 class="section-title" style="font-size: 2rem;">Saved Articles</h2>
+            </div>
+            <div id="saved-articles-grid" class="magazine-grid">
+                <p style="text-align: center; color: #888; width: 100%;">No saved articles yet.</p>
+            </div>
+        </div> <!-- End User View -->
     </main>
 
     <nav class="bottom-nav">
         <a href="bars.html" class="nav-item">
-            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <path d="M8 21h8m-4-12v12m-8-14h16l-5 5v3h-6v-3l-5-5z"></path>
             </svg>
             <span>Bars</span>
         </a>
         <a href="map.html" class="nav-item">
-            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
                 <circle cx="12" cy="10" r="3"></circle>
             </svg>
             <span>Map</span>
         </a>
         <a href="journal.html" class="nav-item">
-            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
                 <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
             </svg>
             <span>Journal</span>
         </a>
         <a href="events.html" class="nav-item">
-            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                 <line x1="16" y1="2" x2="16" y2="6"></line>
                 <line x1="8" y1="2" x2="8" y2="6"></line>
@@ -102,7 +118,8 @@
             <span>Event</span>
         </a>
         <a href="profile.html" class="nav-item">
-            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
             </svg>
             <span>Pocket</span>
@@ -115,10 +132,18 @@
             const { data: { session } } = await supabase.auth.getSession();
 
             if (!session) {
-                window.location.href = 'index.html';
+                document.getElementById('guest-view').style.display = 'block';
+                document.getElementById('profile-login-btn').addEventListener('click', async () => {
+                    const { error } = await supabase.auth.signInWithOAuth({
+                        provider: 'google',
+                        options: { redirectTo: window.location.origin + '/profile.html' }
+                    });
+                    if (error) console.error('Error:', error.message);
+                });
                 return;
             }
 
+            document.getElementById('user-view').style.display = 'block';
             const user = session.user;
             const profileContent = document.getElementById('profile-content');
             const loading = document.getElementById('profile-loading');
@@ -200,13 +225,13 @@
                 const { data: allArticles } = await supabase
                     .from('articles')
                     .select('id, title, excerpt, cover_image, published_at, created_at, date, image');
-                
+
                 if (allArticles) {
                     const savedArticles = allArticles.filter(a => window.savedArticleIds.has(a.id));
                     if (savedArticles.length > 0) {
                         savedArticlesGrid.innerHTML = savedArticles.map(a => window.createArticleCard(a)).join('');
                     } else {
-                         savedArticlesGrid.innerHTML = '<p style="text-align:center; color: #666; width: 100%;">No saved articles found.</p>';
+                        savedArticlesGrid.innerHTML = '<p style="text-align:center; color: #666; width: 100%;">No saved articles found.</p>';
                     }
                 }
             } else {

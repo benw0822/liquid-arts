@@ -1246,9 +1246,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (error) console.error('Error logging in:', error.message);
     }
 
-    if (loginBtn) {
-        loginBtn.addEventListener('click', signInWithGoogle);
-    }
+    // Login Button Listener Removed (Let <a> tag navigate to profile.html)
+    // if (loginBtn) {
+    //    loginBtn.addEventListener('click', signInWithGoogle);
+    // }
 
     // Check Auth State
     supabase.auth.onAuthStateChange((event, session) => {
