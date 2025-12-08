@@ -1241,6 +1241,16 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
 
+        // --- Global Cache Buster ---
+        window.clearAppCache = function () {
+            if (confirm('Clear all local data and reload?')) {
+                localStorage.clear();
+                sessionStorage.clear();
+                // Force reload ignoring cache (where supported)
+                window.location.href = window.location.href.split('?')[0] + '?t=' + new Date().getTime();
+            }
+        };
+
         // --- TOC Generation ---
         // Find the placeholder inserted by Quill (class: toc-embed-container)
         const tocPlaceholder = container.querySelector('.toc-embed-container');
