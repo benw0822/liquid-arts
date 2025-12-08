@@ -323,7 +323,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Initialize maps
             items.forEach(bar => {
                 if (bar.lat && bar.lng) {
-                    setTimeout(() => window.initCardMapGlobal(bar.id, bar.lat, bar.lng, bar.title), 200);
+                    setTimeout(() => initCardMapGlobal(bar.id, bar.lat, bar.lng, bar.title), 100);
                 }
             });
         }
@@ -386,10 +386,10 @@ document.addEventListener('DOMContentLoaded', () => {
             return { ...bar, cityDisplay: city };
         }));
 
-        grid.innerHTML = savedBars.map(bar => window.createBarCard(bar, bar.cityDisplay)).join('');
+        grid.innerHTML = savedBars.map(bar => createBarCard(bar, bar.cityDisplay)).join('');
 
         savedBars.forEach(bar => {
-            if (bar.lat && bar.lng) setTimeout(() => window.initCardMapGlobal(bar.id, bar.lat, bar.lng, bar.title), 200);
+            if (bar.lat && bar.lng) setTimeout(() => initCardMapGlobal(bar.id, bar.lat, bar.lng, bar.title), 100);
         });
     };
     // 3. Map Page
@@ -1241,16 +1241,6 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
 
-        // --- Global Cache Buster ---
-        window.clearAppCache = function () {
-            if (confirm('Clear all local data and reload?')) {
-                localStorage.clear();
-                sessionStorage.clear();
-                // Force reload ignoring cache (where supported)
-                window.location.href = window.location.href.split('?')[0] + '?t=' + new Date().getTime();
-            }
-        };
-
         // --- TOC Generation ---
         // Find the placeholder inserted by Quill (class: toc-embed-container)
         const tocPlaceholder = container.querySelector('.toc-embed-container');
@@ -1420,11 +1410,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${address}
                 </p>
                 
-                <!-- Map & Button (Merged, Padded) -->
+                <!-- Map & Button (Map Removed, Button Only) -->
                 <div style="margin-top: auto;">
-                    ${/* Debug Log */ console.log('Rendering Card for:', bar.title) || ''}
-                    <div id="card-map-${bar.id}" class="card-map-display" data-lat="${bar.lat}" data-lng="${bar.lng}" style="position: relative !important; top: auto !important; left: auto !important; height: 120px; width: 100%; border-radius: 4px; margin-bottom: 6px; background: #eee; opacity: 1 !important; display: block; z-index: 0; filter: brightness(1.2) contrast(1.1); pointer-events: none;"></div>
-                    <a href="${mapUrl}" target="_blank" class="btn" style="display: block; width: 100%; text-align: center; background-color: var(--bg-red); color: white; padding: 10px 0; border-radius: 4px; text-decoration: none; font-size: 0.9rem; font-weight: 600; transition: background 0.3s; margin-top: 0;">Google Map</a>
+                    <a href="${mapUrl}" target="_blank" class="btn" style="display: block; width: 100%; text-align: center; background-color: var(--bg-red); color: white; padding: 10px 0; border-radius: 4px; text-decoration: none; font-size: 0.9rem; font-weight: 600; transition: background 0.3s; margin-top: 0;">Open Google Maps</a>
                 </div>
             </div>
         </div>
