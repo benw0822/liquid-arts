@@ -280,20 +280,37 @@
 
                     if (error) throw error;
 
-                    alert('Profile updated successfully!');
+                    // 3. Persist to public.users (for persistence across logins)
+                    const { error: dbError } = await supabase
+                        .from('users')
+                        .upsert({
+                            id: user.id,
+                            full_name: newNickname,
+                            avatar_url: newAvatarUrl,
+                            email: user.email, // Ensure email is synced
+                            updated_at: new Date().toISOString()
+                        });
 
-                } catch (error) {
-                    console.error('Update Error:', error);
-                    if (error.statusCode === '404' || error.message.includes('bucket')) {
-                        alert('Storage Error: Please run storage_policy.sql to set up the avatars bucket.');
-                    } else {
-                        alert('Failed to update profile: ' + error.message);
+                    if (dbError) {
+                        console.error('DB Sync Error:', dbError);
+                        // We don't block success if DB fails, as Auth is primary, but warn
                     }
-                } finally {
+
+                    alert('Profile updated successfully!');
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+
+                    // Force Reload to reflect changes
+                    location.reload();
+
+                } catch (err) {
+                    console.error('Update Error:', err);
+                    alert('Error updating profile: ' + err.message);
                     btn.textContent = originalText;
                     btn.disabled = false;
                 }
             };
+
 
             window.handleLogout = async () => {
                 try {
