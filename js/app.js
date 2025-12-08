@@ -246,10 +246,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const featuredGrid = document.getElementById('featured-grid');
         const articleGrid = document.getElementById('article-grid');
+        const eventGrid = document.getElementById('event-grid');
 
         if (featuredGrid) {
             // Enrichment: Pre-calculate Cities for featured bars
-            let featuredBars = bars.slice(0, 3);
+            // USER REQUEST: Load 6 bars
+            let featuredBars = bars.slice(0, 6);
             featuredBars = await Promise.all(featuredBars.map(async (bar) => {
                 let city = bar.location;
                 if (bar.lat && bar.lng) {
@@ -269,8 +271,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         }
+
+        // Filter Articles into Events vs Journal
+        const eventCategories = ['event', 'activity'];
+        const events = articles.filter(a => a.category && eventCategories.includes(a.category.toLowerCase()));
+        const journal = articles.filter(a => !a.category || !eventCategories.includes(a.category.toLowerCase()));
+
         if (articleGrid) {
-            articleGrid.innerHTML = articles.slice(0, 3).map(article => createArticleCard(article)).join('');
+            // USER REQUEST: Load 6 journal articles (non-events)
+            articleGrid.innerHTML = journal.slice(0, 6).map(article => createArticleCard(article)).join('');
+        }
+
+        if (eventGrid) {
+            // USER REQUEST: Load 3 events
+            eventGrid.innerHTML = events.slice(0, 3).map(article => createArticleCard(article)).join('');
         }
     };
 
