@@ -14,6 +14,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.savedArticleIds = new Set();
     window.currentUser = null;
 
+    // Timeout Helper (Global in scope)
+    const withTimeout = (promise, ms = 3000) => {
+        return Promise.race([
+            promise,
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), ms))
+        ]);
+    };
+
     // 1. Auth & Saved Init (Global)
     window.initAuthAndSaved = async () => {
         const { data: { session } } = await supabase.auth.getSession();
@@ -25,23 +33,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.savedBarIds = new Set();
         window.savedArticleIds = new Set();
 
+        // Timeout Helper definition removed from here (moved to top)
+
         if (window.currentUser) {
-            // Fetch Saved Bars
+            // Fetch Saved Bars (With Timeout)
             try {
-                const { data: bars } = await supabase.from('saved_bars').select('bar_id');
+                const { data: bars } = await withTimeout(supabase.from('saved_bars').select('bar_id'), 3000);
                 if (bars) window.savedBarIds = new Set(bars.map(r => r.bar_id));
             } catch (err) {
-                console.warn('Saved bars fetch failed:', err);
-                // Continue execution
+                console.warn('Saved bars fetch skipped/failed:', err);
             }
 
-            // Fetch Saved Articles
+            // Fetch Saved Articles (With Timeout)
             try {
-                const { data: articles } = await supabase.from('saved_articles').select('article_id');
+                const { data: articles } = await withTimeout(supabase.from('saved_articles').select('article_id'), 3000);
                 if (articles) window.savedArticleIds = new Set(articles.map(r => r.article_id));
             } catch (err) {
-                console.warn('Saved articles fetch failed:', err);
-                // Continue execution
+                console.warn('Saved articles fetch skipped/failed:', err);
             }
         }
     };
@@ -164,21 +172,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- Data Fetching ---
     async function fetchBars() {
         try {
-            // Fetch bars with their related images and articles
-            // Note: Supabase join syntax depends on foreign keys
-            const { data, error } = await supabase
-                .from('bars')
-                .select(`
-                    *,
-                    bar_images (image_url, caption, display_order),
-                    signatures (*),
-                    bar_awards (*),
-                    article_bars (
-                        article:articles (id, title, excerpt, cover_image, published_at)
-                    )
-                `);
+            // SIMPLIFIED FETCH: Only fetch Bars table to avoid RLS lockouts on related tables.
+            // (createBarCard will adapt gracefully)
+            const { data, error } = await withTimeout(supabase.from('bars').select('*'), 3000);
 
-            if (error || !data || data.length === 0) return mockBars;
+            if (error) {
+                console.error('Fetch Bars Error:', error);
+                return mockBars;
+            }
+            if (!data || data.length === 0) return mockBars;
+
             return data;
         } catch (err) {
             console.error('Error fetching bars:', err);
@@ -1380,12 +1383,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- Auto Init based on URL ---
     const path = window.location.pathname;
 
-    // Ensure Auth & Saved are loaded first
-    try {
-        await window.initAuthAndSaved();
-    } catch (err) {
+    // Ensure Auth & Saved are loaded first (Run in background to prevent hanging)
+    window.initAuthAndSaved().catch(err => {
         console.warn('Init Auth Failed:', err);
-    }
+    });
 
     // DIAGNOSTIC SELECT (Remove later)
     if (window.currentUser) {
