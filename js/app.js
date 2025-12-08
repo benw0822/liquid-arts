@@ -400,9 +400,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 // User "Golden A" Marker
                 const userIcon = L.divIcon({
                     className: 'user-marker-a',
-                    html: `<div style="color: #D4AF37; font-family: 'Playfair Display', serif; font-size: 48px; font-weight: bold; line-height: 1; text-shadow: 0 2px 15px rgba(0,0,0,0.8); transform: translate(-50%, -50%);">A</div>`,
-                    iconSize: [50, 50],
-                    iconAnchor: [25, 25]
+                    html: `<div style="color: #D4AF37; font-family: 'Playfair Display', serif; font-size: 32px; font-weight: bold; line-height: 1; text-shadow: 0 2px 10px rgba(0,0,0,0.6); transform: translate(-50%, -50%);">A</div>`,
+                    iconSize: [40, 40],
+                    iconAnchor: [20, 20]
                 });
                 const userMarker = L.marker([userLat, userLng], { icon: userIcon, zIndexOffset: 1000 }).addTo(map);
                 userMarker.bindPopup('<div style="color:#333; font-weight:bold;">Current Location</div>');
@@ -423,7 +423,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Fit Bounds
                 if (markers.length > 0) {
                     const group = new L.featureGroup(markers);
-                    map.fitBounds(group.getBounds().pad(0.1));
+                    map.fitBounds(group.getBounds().pad(0.2));
                 }
 
             }, (err) => {
