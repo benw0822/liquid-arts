@@ -1546,4 +1546,6 @@ window.initHome = async () => {
         }
     };
 
+}; // END window.initHome
+
 
