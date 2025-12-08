@@ -53,9 +53,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                         // Update Nav if it's already rendered
                         const myLink = document.getElementById('nav-my-link');
                         if (myLink) {
-                            // Use DB data if available, otherwise fallback to Google data
-                            const avatar = profile.avatar_url || window.currentUser.user_metadata.avatar_url || 'assets/default_avatar.png';
-                            const name = profile.full_name || window.currentUser.user_metadata.full_name || 'My';
+                            // Smart Merge: Use DB data if valid (non-empty), else fallback to metadata/default
+                            // Note: We check if trim() is not empty for strings
+                            const dbName = profile.full_name && profile.full_name.trim() !== '' ? profile.full_name : null;
+                            const dbAvatar = profile.avatar_url && profile.avatar_url.trim() !== '' ? profile.avatar_url : null;
+
+                            const name = dbName || window.currentUser.user_metadata.full_name || 'My';
+                            const avatar = dbAvatar || window.currentUser.user_metadata.avatar_url || 'assets/default_avatar.png';
 
                             myLink.innerHTML = `<img src="${avatar}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; vertical-align: middle; margin-right: 6px;"> ${name}`;
                         }
@@ -85,7 +89,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (event) { event.preventDefault(); event.stopPropagation(); }
 
         if (!window.currentUser) {
-            alert('Please log in to save bars.');
+            alert('Please sign in to save bars.');
             return;
         }
 
