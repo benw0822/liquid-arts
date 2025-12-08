@@ -183,16 +183,29 @@
             const loading = document.getElementById('profile-loading');
 
             // --- Render Profile Info ---
-            document.getElementById('profile-email').value = user.email; // Updated to use input value
+            document.getElementById('profile-email').value = user.email;
 
-            // Populate Inputs
-            if (user.user_metadata) {
-                const nickname = user.user_metadata.full_name || '';
-                const avatar = user.user_metadata.avatar_url || 'assets/logo_vertical.png';
+            // Populate Inputs (Prioritize DB)
+            let nickname = user.user_metadata.full_name || '';
+            let avatar = user.user_metadata.avatar_url || 'assets/logo_vertical.png';
 
-                document.getElementById('edit-nickname').value = nickname;
-                document.getElementById('profile-avatar').src = avatar;
+            try {
+                const { data: dbProfile } = await supabase
+                    .from('users')
+                    .select('full_name, avatar_url')
+                    .eq('id', user.id)
+                    .single();
+
+                if (dbProfile) {
+                    if (dbProfile.full_name) nickname = dbProfile.full_name;
+                    if (dbProfile.avatar_url) avatar = dbProfile.avatar_url;
+                }
+            } catch (e) {
+                console.warn('Profile Load Error:', e);
             }
+
+            document.getElementById('edit-nickname').value = nickname;
+            document.getElementById('profile-avatar').src = avatar;
 
             let cropper;
             let avatarBlob = null;

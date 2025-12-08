@@ -1332,21 +1332,37 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Check Auth State
-    supabase.auth.onAuthStateChange((event, session) => {
+    supabase.auth.onAuthStateChange(async (event, session) => {
         // --- Custom Nav Logic ---
         const myLink = document.getElementById('nav-my-link');
-        const loginBtn = document.getElementById('login-btn'); // New Query
-        const userMenu = document.getElementById('user-menu'); // New Query
+        const loginBtn = document.getElementById('login-btn');
+        const userMenu = document.getElementById('user-menu');
 
         if (session) {
             if (loginBtn) loginBtn.style.display = 'none';
-            if (userMenu) userMenu.style.display = 'none'; // Ensure old menu is hidden
+            if (userMenu) userMenu.style.display = 'none';
 
             // Update "My" link to "Avatar + Name"
             if (myLink) {
                 const user = session.user;
-                const avatar = user.user_metadata.avatar_url || 'assets/default_avatar.png';
-                const name = user.user_metadata.full_name || 'My';
+                let avatar = user.user_metadata.avatar_url || 'assets/default_avatar.png';
+                let name = user.user_metadata.full_name || 'My';
+
+                // --- FETCH DB OVERRIDE ---
+                try {
+                    const { data: dbProfile } = await supabase
+                        .from('users')
+                        .select('full_name, avatar_url')
+                        .eq('id', user.id)
+                        .single();
+
+                    if (dbProfile) {
+                        if (dbProfile.full_name) name = dbProfile.full_name;
+                        if (dbProfile.avatar_url) avatar = dbProfile.avatar_url;
+                    }
+                } catch (e) {
+                    console.warn('Nav Profile Fetch Error:', e);
+                }
 
                 myLink.innerHTML = `<img src="${avatar}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; vertical-align: middle; margin-right: 6px;"> ${name}`;
                 myLink.style.display = 'inline-flex';
@@ -1359,7 +1375,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Reset "My" link
             if (myLink) {
                 myLink.innerHTML = 'My';
-                myLink.style.display = ''; // Reset display style
+                myLink.style.display = '';
                 myLink.style.alignItems = '';
             }
         }
