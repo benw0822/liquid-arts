@@ -738,8 +738,9 @@ figure.article-figure figcaption {
 /* --- Bar Details Page --- */
 .detail-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 15px;
+    grid-template-columns: 2fr 1fr;
+    gap: 30px;
+    /* Increased gap for better separation */
     padding-bottom: 60px;
     align-items: start;
 }
