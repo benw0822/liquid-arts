@@ -11,16 +11,44 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- Save/Favorite Logic (Supabase) ---
     window.savedBarIds = new Set();
-    window.savedArticleIds = new Set();
-    window.currentUser = null;
+    // --- Visual Status Bar (Debug) ---
+    const statusDiv = document.createElement('div');
+    statusDiv.id = 'app-status';
+    statusDiv.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; background: #222; color: #4ade80; font-family: monospace; font-size: 12px; padding: 5px 10px; z-index: 10000; text-align: center; border-bottom: 1px solid #444;';
+    statusDiv.textContent = 'App: Initializing...';
+    document.body.prepend(statusDiv);
 
-    // --- Timeout Helper (Global in scope) ---
-    const withTimeout = (promise, ms = 10000) => {
-        return Promise.race([
-            promise,
-            new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), ms))
-        ]);
+    window.updateStatus = (msg) => {
+        if (statusDiv) statusDiv.textContent = `App: ${msg}`;
+        // console.log(`[Status] ${msg}`);
     };
+
+    // --- Data Fetching ---
+    async function fetchBars() {
+        window.updateStatus('Fetching Bars from DB...');
+        try {
+            // Simplified: Direct Supabase Call (Proven working in Diagnostic)
+            const { data, error } = await supabase.from('bars').select('*, bar_images(image_url)');
+
+            if (error) {
+                console.warn('Fetch Bars Error:', error);
+                window.updateStatus('Error Fetching Bars: ' + error.message);
+                return mockBars;
+            }
+
+            if (!data || data.length === 0) {
+                window.updateStatus('Bars Fetched: 0 (Using Mock)');
+                return mockBars;
+            }
+
+            window.updateStatus(`Bars Fetched: ${data.length} items`);
+            return data;
+        } catch (err) {
+            console.warn('Error fetching bars:', err);
+            window.updateStatus('Exception Fetching Bars');
+            return mockBars;
+        }
+    }
 
     // 1. Auth & Saved Init (Global)
     window.initAuthAndSaved = async () => {
@@ -1436,13 +1464,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // --- Init Functions (Global Scope) ---
 window.initHome = async () => {
-    // console.log('Page: initHome called');
+    if (window.updateStatus) window.updateStatus('Page: initHome called');
+
+    const bars = await fetchBars();
+
+    if (window.updateStatus) window.updateStatus(`Home: Received ${bars.length} bars. Rendering...`);
 
     // REMOVED RE-AWAIT of initAuthAndSaved to prevent double-wait logic
     // await window.initAuthAndSaved(); 
 
-    // console.log('Page: Fetching Bars...');
-    const bars = await fetchBars();
+    const featuredGrid = document.getElementById('featured-grid');
+
     // ...
 
     // --- Signature Carousel Logic ---
