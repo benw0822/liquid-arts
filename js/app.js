@@ -404,13 +404,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const lng = position.coords.longitude;
                 const userLatLng = L.latLng(lat, lng);
 
-                // Wine Glass Icon
+                // Wine Glass Icon (Cocktail) - Gold, Filled, No Stroke
                 const locationIcon = L.divIcon({
                     className: 'user-location-marker',
                     html: `
                         <div style="transform: translate(-50%, -100%); filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4));">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="#ef4444" stroke="white" stroke-width="1.5">
-                                <path d="M17 3H7c-1.1 0-2 .9-2 2v1l1.6 3.2C6.9 10.5 8.1 12 11 12h2c2.9 0 4.1-1.5 4.4-2.8L19 6V5c0-1.1-.9-2-2-2zm-3 9v7h3v2H7v-2h3v-7"></path>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="#FFD700">
+                                <path d="M21 5V3H3v2l8 9v5H6v2h12v-2h-5v-5l8-9z"></path>
                             </svg>
                         </div>
                     `,
@@ -618,7 +618,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </p>
             </div>
 
-            <div class="container detail-grid" style="margin-top: 0; display: flex; gap: 15px; align-items: flex-start;">
+            <div class="container detail-grid" style="margin-top: 0;">
                 
                 <!-- Left Column -->
                 <div class="left-column" style="flex: 1; min-width: 0;">
