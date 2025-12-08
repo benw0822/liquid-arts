@@ -1548,7 +1548,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 <!-- Map & Button (Merged) -->
                 <div style="margin-top: auto;">
-                    <div id="card-map-${bar.id}" class="card-map" data-lat="${bar.lat}" data-lng="${bar.lng}" style="height: 150px; width: 100%; border-radius: 4px 4px 0 0; margin-bottom: 0; background: #eee;"></div>
+                    <div id="card-map-${bar.id}" class="card-map" data-lat="${bar.lat}" data-lng="${bar.lng}" style="height: 150px; width: 100%; border-radius: 4px 4px 0 0; margin-bottom: 0; background: #eee; opacity: 1 !important; display: block;"></div>
                     <a href="${mapUrl}" target="_blank" class="btn" style="display: block; width: 100%; text-align: center; background-color: var(--bg-red); color: white; padding: 10px 0; border-radius: 0 0 4px 4px; text-decoration: none; font-size: 0.9rem; font-weight: 600; transition: background 0.3s; margin-top: 0;">Open Google Maps</a>
                 </div>
             </div>
