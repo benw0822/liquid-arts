@@ -328,39 +328,62 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3. Map Page
     // 3. Map Page
     window.initMap = async () => {
+        // Ensure Saved Data is loaded
+        await window.initAuthAndSaved();
         const bars = await fetchBars();
-        // Default View (will be overridden by fitBounds if data exists)
+
+        // Default View (will be overridden)
         const map = L.map('map').setView([25.0330, 121.5654], 14);
 
-        // Dark Theme Tiles (Same as Card Maps)
+        // Dark Theme Tiles
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
             subdomains: 'abcd',
             maxZoom: 20
         }).addTo(map);
 
-        const markers = []; // Collection for Bounds
+        const markers = []; // All markers for fallback
+        const barMarkers = {}; // ID -> Marker mapping
 
+        // 1. Add Bar Markers
         bars.forEach(bar => {
             if (bar.lat && bar.lng) {
-                // Custom Icon Style (Red Dot with Label) - Matching Card Map
-                const customIcon = L.divIcon({
-                    className: 'custom-map-marker',
-                    html: `
+                const isSaved = window.savedBarIds.has(bar.id);
+
+                // --- Icon Logic ---
+                // Default: Red Dot
+                let iconHtml = `
+                    <div style="display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%);">
+                        <div style="background: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; color: #333; box-shadow: 0 1px 2px rgba(0,0,0,0.15); margin-bottom: 3px; white-space: nowrap;">
+                            ${bar.title}
+                        </div>
+                        <div style="width: 14px; height: 14px; background: #ef4444; border: 2px solid white; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,0.2);"></div>
+                    </div>
+                `;
+
+                // Saved: Heart Icon
+                if (isSaved) {
+                    iconHtml = `
                         <div style="display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%);">
-                            <div style="background: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; color: #333; box-shadow: 0 1px 2px rgba(0,0,0,0.15); margin-bottom: 3px; white-space: nowrap;">
+                            <div style="background: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; color: #ef4444; box-shadow: 0 1px 2px rgba(0,0,0,0.15); margin-bottom: 3px; white-space: nowrap;">
                                 ${bar.title}
                             </div>
-                            <div style="width: 14px; height: 14px; background: #ef4444; border: 2px solid white; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,0.2);"></div>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#ef4444" stroke="white" stroke-width="2" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                            </svg>
                         </div>
-                    `,
+                    `;
+                }
+
+                const customIcon = L.divIcon({
+                    className: 'custom-map-marker',
+                    html: iconHtml,
                     iconSize: [0, 0],
                     iconAnchor: [0, 0]
                 });
 
                 const marker = L.marker([bar.lat, bar.lng], { icon: customIcon }).addTo(map);
 
-                // Enhanced Popup
                 marker.bindPopup(`
                     <div style="color: #333; text-align: center; min-width: 150px;">
                         <h3 style="margin: 0 0 5px 0; font-size: 1rem;">${bar.title}</h3>
@@ -370,13 +393,75 @@ document.addEventListener('DOMContentLoaded', () => {
                 `);
 
                 markers.push(marker);
+                barMarkers[bar.id] = marker;
             }
         });
 
-        // Fit Bounds to show all bars
-        if (markers.length > 0) {
-            const group = new L.featureGroup(markers);
-            map.fitBounds(group.getBounds().pad(0.1));
+        // 2. Add User Location (Wine Glass)
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(position => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                const userLatLng = L.latLng(lat, lng);
+
+                // Wine Glass Icon
+                const locationIcon = L.divIcon({
+                    className: 'user-location-marker',
+                    html: `
+                        <div style="transform: translate(-50%, -100%); filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4));">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="#ef4444" stroke="white" stroke-width="1.5">
+                                <path d="M17 3H7c-1.1 0-2 .9-2 2v1l1.6 3.2C6.9 10.5 8.1 12 11 12h2c2.9 0 4.1-1.5 4.4-2.8L19 6V5c0-1.1-.9-2-2-2zm-3 9v7h3v2H7v-2h3v-7"></path>
+                            </svg>
+                        </div>
+                    `,
+                    iconSize: [0, 0],
+                    iconAnchor: [0, 0]
+                });
+
+                const userMarker = L.marker([lat, lng], { icon: locationIcon, zIndexOffset: 1000 }).addTo(map);
+                userMarker.bindPopup('<div style="color:#333; font-weight:bold;">Your Location</div>');
+
+                // --- Smart Zoom Logic (Nearest 3) ---
+                // Calculate distances
+                const barsWithDist = bars.map(bar => {
+                    if (!bar.lat || !bar.lng) return { ...bar, distance: Infinity };
+                    return {
+                        ...bar,
+                        distance: userLatLng.distanceTo(L.latLng(bar.lat, bar.lng))
+                    };
+                });
+
+                // Get Top 3 Nearest
+                const nearestBars = barsWithDist
+                    .filter(b => b.distance !== Infinity)
+                    .sort((a, b) => a.distance - b.distance)
+                    .slice(0, 3); // Top 3
+
+                // Default bounds: User + All Nearest Markers
+                const boundsMarkers = [userMarker];
+                nearestBars.forEach(b => {
+                    if (barMarkers[b.id]) boundsMarkers.push(barMarkers[b.id]);
+                });
+
+                if (boundsMarkers.length > 0) {
+                    const group = new L.featureGroup(boundsMarkers);
+                    map.fitBounds(group.getBounds().pad(0.2)); // Pad 20%
+                }
+
+            }, () => {
+                console.warn("Location access denied or error.");
+                // Fallback: Show all bars
+                if (markers.length > 0) {
+                    const group = new L.featureGroup(markers);
+                    map.fitBounds(group.getBounds().pad(0.1));
+                }
+            });
+        } else {
+            // Fallback: Show all bars
+            if (markers.length > 0) {
+                const group = new L.featureGroup(markers);
+                map.fitBounds(group.getBounds().pad(0.1));
+            }
         }
     };
 
