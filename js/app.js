@@ -420,8 +420,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const articleGrid = document.getElementById('article-grid');
 
         if (featuredGrid) {
-            const featuredBars = bars.slice(0, 3);
+            // Enrichment: Pre-calculate Cities for featured bars
+            let featuredBars = bars.slice(0, 3);
+            featuredBars = await Promise.all(featuredBars.map(async (bar) => {
+                let city = bar.location;
+                if (bar.lat && bar.lng) {
+                    const resolved = await fetchCityFromCoordsGlobal(bar.lat, bar.lng);
+                    if (resolved) city = resolved;
+                }
+                return { ...bar, cityDisplay: city };
+            }));
+
             featuredGrid.innerHTML = featuredBars.map(bar => createBarCard(bar)).join('');
+
             // Init maps for featured bars
             featuredBars.forEach(bar => {
                 if (bar.lat && bar.lng) {
