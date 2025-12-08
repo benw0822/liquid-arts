@@ -1296,12 +1296,7 @@ figure.article-figure figcaption {
 }
 
 /* --- Art Card Map Hover Effect --- */
-.art-card:hover .card-map {
-    opacity: 1 !important;
-    /* Force visible on hover */
-    pointer-events: auto !important;
-    /* Allow interaction */
-}
+
 
 /* Ensure card map is visible in the content flow */
 .card-content .card-map {
