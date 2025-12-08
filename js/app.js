@@ -323,7 +323,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Initialize maps
             items.forEach(bar => {
                 if (bar.lat && bar.lng) {
-                    setTimeout(() => initCardMapGlobal(bar.id, bar.lat, bar.lng, bar.title), 100);
+                    setTimeout(() => window.initCardMapGlobal(bar.id, bar.lat, bar.lng, bar.title), 200);
                 }
             });
         }
@@ -386,10 +386,10 @@ document.addEventListener('DOMContentLoaded', () => {
             return { ...bar, cityDisplay: city };
         }));
 
-        grid.innerHTML = savedBars.map(bar => createBarCard(bar, bar.cityDisplay)).join('');
+        grid.innerHTML = savedBars.map(bar => window.createBarCard(bar, bar.cityDisplay)).join('');
 
         savedBars.forEach(bar => {
-            if (bar.lat && bar.lng) setTimeout(() => initCardMapGlobal(bar.id, bar.lat, bar.lng, bar.title), 100);
+            if (bar.lat && bar.lng) setTimeout(() => window.initCardMapGlobal(bar.id, bar.lat, bar.lng, bar.title), 200);
         });
     };
     // 3. Map Page
