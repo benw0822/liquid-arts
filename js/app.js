@@ -186,37 +186,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
-    // --- Local Mock Data (Extended) ---
-    const mockBars = [
-        {
-            id: 1,
-            title: "Midnight Mixology",
-            location: "Taipei, Xinyi",
-            vibe: "Speakeasy",
-            image: "assets/gallery_1.png",
-            lat: 25.0330,
-            lng: 121.5654,
-            price: 2,
-            rating: 4.8,
-            owner_name: "Alex Chen",
-            bartender_name: "Sarah Lin",
-            opening_hours: "Mon-Sun: 20:00 - 02:00",
-            phone: "+886 2 1234 5678",
-            menu_url: "#",
-            description: "Hidden behind a bookshelf, Midnight Mixology offers an intimate atmosphere with bespoke cocktails inspired by classic literature."
-        },
-        { id: 2, title: "The Glass Sculptor", location: "Tokyo, Ginza", vibe: "High-End", image: "assets/gallery_2.png", lat: 35.6712, lng: 139.7665, price: 3, rating: 4.9 },
-        { id: 3, title: "Urban Nightlife", location: "New York, SoHo", vibe: "Lounge", image: "assets/gallery_3.png", lat: 40.7233, lng: -74.0030, price: 2, rating: 4.7 },
-        { id: 4, title: "Signature Pour", location: "London, Shoreditch", vibe: "Craft Cocktails", image: "assets/gallery_1.png", lat: 51.5260, lng: -0.0782, price: 2, rating: 4.6 },
-        { id: 5, title: "Amber Glow", location: "Seoul, Hongdae", vibe: "Jazz Bar", image: "assets/gallery_2.png", lat: 37.5575, lng: 126.9245, price: 1, rating: 4.8 },
-        { id: 6, title: "Cocktail Geometry", location: "Singapore, Marina", vibe: "Rooftop", image: "assets/gallery_3.png", lat: 1.2834, lng: 103.8607, price: 3, rating: 4.9 }
-    ];
+    // --- Local Mock Data (DISABLED - STRICT MODE) ---
+    const mockBars = [];
+    // const mockBars = [ ... ]; // Logic Removed to enforce DB Only
 
-    const mockArticles = [
-        { id: 1, title: "The Art of Ice", excerpt: "Why clear ice matters in modern mixology.", image: "assets/gallery_1.png", date: "2024-11-20" },
-        { id: 2, title: "Tokyo's Hidden Gems", excerpt: "Exploring the best speakeasies in Ginza.", image: "assets/gallery_2.png", date: "2024-11-18" },
-        { id: 3, title: "Sustainable Sipping", excerpt: "How bars are going zero-waste.", image: "assets/gallery_3.png", date: "2024-11-15" }
-    ];
+    const mockArticles = [];
 
     // --- Data Fetching ---
     async function fetchBars() {
@@ -227,32 +201,56 @@ document.addEventListener('DOMContentLoaded', async () => {
             const { data, error } = await withTimeout(supabase.from('bars').select('*, bar_images(image_url)'), 5000);
 
             if (error) {
-                console.warn('Fetch Bars Error:', error);
+                console.error('Fetch Bars Error:', error);
                 // window.logDebug('FetchBars: Error ' + error.message);
-                return mockBars;
+                window.updateStatus('CRITICAL ERROR: ' + error.message);
+                const statusDiv = document.getElementById('app-status');
+                if (statusDiv) statusDiv.style.color = '#ef4444'; // Red
+                return [];
             }
 
             if (!data || data.length === 0) {
                 // window.logDebug('FetchBars: Empty Data');
-                return mockBars; // FORCE MOCK if DB is empty (RLS or just empty)
+                window.updateStatus('Bars Fetched: 0 (DB Empty)');
+                return []; // FORCE MOCK if DB is empty (RLS or just empty)
             }
 
             // window.logDebug('FetchBars: Success (' + data.length + ' items)');
+            window.updateStatus(`Success: ${data.length} Real Bars`);
             return data;
         } catch (err) {
-            console.warn('Error fetching bars:', err);
+            console.error('Error fetching bars:', err);
             // window.logDebug('FetchBars: Exception ' + err.message);
-            return mockBars;
+            window.updateStatus('EXCEPTION: ' + err.message);
+            const statusDiv = document.getElementById('app-status');
+            if (statusDiv) statusDiv.style.color = '#ef4444'; // Red
+            return [];
         }
     }
 
     async function fetchArticles() {
+        if (window.updateStatus) window.updateStatus('Fetching Articles (Local Client)...');
         try {
-            const { data, error } = await supabase.from('articles').select('*');
-            if (error || !data || data.length === 0) return mockArticles;
+            const localClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            const { data, error } = await localClient.from('articles').select('*');
+
+            if (error) {
+                console.error('Fetch Articles Error:', error);
+                if (window.updateStatus) window.updateStatus('Error Fetching Articles: ' + error.message);
+                return [];
+            }
+
+            if (!data || data.length === 0) {
+                if (window.updateStatus) window.updateStatus('Articles Fetched: 0 (DB Empty)');
+                return [];
+            }
+
+            if (window.updateStatus) window.updateStatus(`Success: ${data.length} Real Articles`);
             return data;
         } catch (err) {
-            return mockArticles;
+            console.error('Error fetching articles:', err);
+            if (window.updateStatus) window.updateStatus('Exception: ' + err.message);
+            return [];
         }
     }
 

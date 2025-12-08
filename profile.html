@@ -373,12 +373,21 @@
             await window.initAuthAndSaved();
             const savedGrid = document.getElementById('bars-grid');
 
+            // Local Client for Profile Stability
+            const SUPABASE_URL = 'https://wgnskednopbfngvjmviq.supabase.co';
+            const SUPABASE_KEY = 'sb_publishable_gcmYleFIGmwsLSKofS__Qg_62EXoP6P';
+            const localClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
             if (window.savedBarIds.size > 0) {
-                const { data: allBars } = await supabase
+                // Use Local Client
+                const { data: allBars, error } = await localClient
                     .from('bars')
                     .select(`*, bar_images (image_url, caption, display_order), signatures (*), bar_awards (*), article_bars (article:articles (id, title, excerpt, cover_image, published_at))`);
 
-                if (allBars) {
+                if (error) {
+                    console.error('Profile Bars Fetch Error:', error);
+                    savedGrid.innerHTML = `<p style="text-align:center; color: #ef4444; width: 100%;">Error loading collection: ${error.message}</p>`;
+                } else if (allBars) {
                     // Filter saved
                     const savedBars = allBars.filter(bar => window.savedBarIds.has(bar.id));
 
