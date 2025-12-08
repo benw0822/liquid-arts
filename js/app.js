@@ -1491,10 +1491,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="${isSaved ? '#ef4444' : 'none'}" stroke="${isSaved ? '#ef4444' : '#333'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
              </button>
 
-             <!-- Main Link Wrapper for Top Section -->
-            <a href="bar-details.html?id=${bar.id}" style="text-decoration: none; display: block;">
-                <div style="width: 100%; border-bottom: 1px solid #f0f0f0;">
+             <!-- Main Link Wrapper -->
+            <a href="bar-details.html?id=${bar.id}" style="text-decoration: none; display: block; flex-grow: 1; display: flex; flex-direction: column;">
+                <div style="width: 100%; border-bottom: 1px solid #f0f0f0; position: relative;"> <!-- Added relative for map -->
                     <img src="${bar.image}" alt="${bar.title}" style="width: 100%; height: auto; display: block; transition: transform 0.5s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                    <div id="card-map-${bar.id}" class="card-map" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:5; background:#eee; display:none;"></div>
                 </div>
                 <div style="text-align: center; padding: 1.5rem 1rem 0.5rem 1rem;">
                     <h3 style="font-family: var(--font-display); font-size: 1.8rem; margin: 0 0 0.5rem 0; color: #1b1b1b;">${bar.title}</h3>
