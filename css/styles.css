@@ -1148,6 +1148,7 @@ figure.article-figure figcaption {
 .card-map .leaflet-tile-pane {
     filter: brightness(1.7) contrast(0.85);
 }
+
 /* --- Magazine Card Styling (Rich Information) --- */
 .magazine-card-link {
     text-decoration: none;
@@ -1158,24 +1159,26 @@ figure.article-figure figcaption {
 
 .magazine-card {
     background: white;
-    border-radius: 8px; /* Slightly rounded */
+    border-radius: 8px;
+    /* Slightly rounded */
     overflow: hidden;
     height: 100%;
     display: flex;
     flex-direction: column;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    border: 1px solid rgba(0,0,0,0.05);
+    border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .magazine-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
 }
 
 .card-image-container {
     position: relative;
     width: 100%;
-    aspect-ratio: 4/3; /* Standard card ratio */
+    aspect-ratio: 4/3;
+    /* Standard card ratio */
     overflow: hidden;
 }
 
@@ -1191,24 +1194,7 @@ figure.article-figure figcaption {
 }
 
 /* Map Toggle Overlay */
-.card-map {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 2;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease;
-    background: #1a1a1a; 
-}
-
-.magazine-card:hover .card-map {
-    opacity: 1; /* Show map on hover? Or maybe just keep it hidden until toggled. For now, let's assume JS handles map logic or keeps it minimal. Actually, looking at previous code, map was initialized. Let's allowing it to show if init. User feedback implies they want info. */
-    /* Wait, the map might be annoying on hover. Let's make it visible only if specifically targeted or just static image usually. 
-       Actually, previous logic had map initialized. I'll make it appear on hover for that "Discovery" feel */
-}
+/* Map Overlay Removed (Fixed Positioning Issue) */
 
 .card-badges {
     position: absolute;
@@ -1266,7 +1252,7 @@ figure.article-figure figcaption {
     justify-content: space-between;
     align-items: center;
     padding-top: 10px;
-    border-top: 1px solid rgba(0,0,0,0.05);
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .rating {
@@ -1288,19 +1274,22 @@ figure.article-figure figcaption {
 }
 
 .save-btn:hover {
-    background: rgba(0,0,0,0.05);
+    background: rgba(0, 0, 0, 0.05);
 }
 
 /* --- Art Card Map Hover Effect --- */
 .art-card:hover .card-map {
-    opacity: 1 !important; /* Force visible on hover */
-    pointer-events: auto !important; /* Allow interaction */
+    opacity: 1 !important;
+    /* Force visible on hover */
+    pointer-events: auto !important;
+    /* Allow interaction */
 }
 
 /* Ensure card map is visible in the content flow */
 .card-content .card-map {
     display: block !important;
     opacity: 1 !important;
-    height: 150px; /* Force height */
+    height: 150px;
+    /* Force height */
     background: #f0f0f0;
 }
