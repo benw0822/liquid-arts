@@ -133,18 +133,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // --- Google Login Logic ---
+    const googleLoginBtn = document.getElementById('google-login-btn');
+    if (googleLoginBtn) {
+        googleLoginBtn.addEventListener('click', async () => {
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: window.location.href // Redirect back to this page
+                }
+            });
+            if (error) {
+                console.error('Google Login Error:', error);
+                alert('Google Login Failed: ' + error.message);
+            }
+        });
+    }
+
     logoutBtn.addEventListener('click', async () => {
         await supabase.auth.signOut();
         location.reload();
     });
 
-    function showDashboard() {
-        loginSection.style.display = 'none';
-        dashboardSection.style.display = 'block';
-        logoutBtn.style.display = 'block';
-        // initSupabase is called at start now, or we ensure it's ready
-        loadBars();
-    }
+
 
     // --- Supabase Settings ---
     const SUPABASE_URL = 'https://wgnskednopbfngvjmviq.supabase.co';
