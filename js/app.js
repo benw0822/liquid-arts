@@ -24,28 +24,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // --- Data Fetching ---
+    // --- Data Fetching ---
     async function fetchBars() {
-        window.updateStatus('Fetching Bars from DB...');
+        window.updateStatus('Fetching Bars (Local Client)...');
         try {
-            // Simplified: Direct Supabase Call (Proven working in Diagnostic)
-            const { data, error } = await supabase.from('bars').select('*, bar_images(image_url)');
+            // EXPERIMENTAL: Create local client to rule out global scope issues
+            // Mirrors debug_auth.html exactly
+            const localClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+            const { data, error } = await localClient.from('bars').select('*, bar_images(image_url)');
 
             if (error) {
                 console.warn('Fetch Bars Error:', error);
-                window.updateStatus('Error Fetching Bars: ' + error.message);
+                window.updateStatus('Error: ' + error.message + ' (' + error.code + ')');
                 return mockBars;
             }
 
             if (!data || data.length === 0) {
-                window.updateStatus('Bars Fetched: 0 (Using Mock)');
+                window.updateStatus('Bars Fetched: 0 (DB Empty)');
                 return mockBars;
             }
 
-            window.updateStatus(`Bars Fetched: ${data.length} items`);
+            window.updateStatus(`Success: ${data.length} Real Bars`);
             return data;
         } catch (err) {
             console.warn('Error fetching bars:', err);
-            window.updateStatus('Exception Fetching Bars');
+            window.updateStatus('Exception: ' + err.message);
             return mockBars;
         }
     }
