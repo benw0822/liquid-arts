@@ -24,31 +24,59 @@ document.addEventListener('DOMContentLoaded', () => {
     let bars = [];
 
     // --- Auth Logic ---
+    // --- Auth Logic ---
     async function checkLogin() {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-            await verifyRole(session.user.id);
+        try {
+            // Show loading state, hide login/dashboard
+            loginSection.style.display = 'none';
+            dashboardSection.style.display = 'none';
+
+            const { data: { session }, error } = await supabase.auth.getSession();
+            if (error) throw error;
+
+            if (session) {
+                await verifyRole(session.user.id);
+            } else {
+                // No session, show login
+                loginSection.style.display = 'block';
+            }
+        } catch (err) {
+            console.error('Auth Check Error:', err);
+            loginSection.style.display = 'block'; // Fallback
         }
     }
 
     async function verifyRole(userId) {
-        const { data: user, error } = await supabase
-            .from('users')
-            .select('roles')
-            .eq('id', userId)
-            .single();
+        try {
+            const { data: user, error } = await supabase
+                .from('users')
+                .select('roles')
+                .eq('id', userId)
+                .single();
 
-        const roles = user ? (user.roles || []) : [];
+            // Note: If user missing (no Trigger run), user matches null.
+            const roles = user ? (user.roles || []) : [];
 
-        // Allow access if admin, editor, or barOwner
-        if (roles.includes('admin') || roles.includes('editor') || roles.includes('barOwner')) {
-            showDashboard(roles);
-        } else {
-            console.warn('Access Denied');
-            alert('Access Denied: You do not have permission to access the dashboard.');
-            await supabase.auth.signOut();
+            // Allow access if admin, editor, or barOwner
+            if (roles.includes('admin') || roles.includes('editor') || roles.includes('barOwner')) {
+                showDashboard(roles);
+            } else {
+                // Determine rejection reason
+                let msg = 'Access Denied: You do not have permission.';
+                if (!user) {
+                    msg = 'Access Denied: User profile not found. Please contact support or ensure your account is set up correctly.';
+                }
+
+                console.warn(msg);
+                alert(msg);
+                await supabase.auth.signOut();
+                loginSection.style.display = 'block';
+                dashboardSection.style.display = 'none';
+            }
+        } catch (err) {
+            console.error('Verify Role Error:', err);
+            alert('Error verifying user permissions: ' + err.message);
             loginSection.style.display = 'block';
-            dashboardSection.style.display = 'none';
         }
     }
 
@@ -63,21 +91,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Manage Users: Admin only
         if (!isAdmin) {
-            document.getElementById('manage-users-btn').style.display = 'none';
-            document.getElementById('settings-btn').style.display = 'none';
+            const usersBtn = document.getElementById('manage-users-btn');
+            const settingsBtn = document.getElementById('settings-btn');
+            if (usersBtn) usersBtn.style.display = 'none';
+            if (settingsBtn) settingsBtn.style.display = 'none';
         }
 
         // Manage Articles: Admin or Editor
         if (!isAdmin && !isEditor) {
-            document.getElementById('manage-articles-btn').style.display = 'none';
+            const articlesBtn = document.getElementById('manage-articles-btn');
+            if (articlesBtn) articlesBtn.style.display = 'none';
         }
 
         // Manage Bars: Admin or Owner
-        // (For now, we keep "Add Bar" visible but maybe restrict logic later if needed)
         if (!isAdmin && !isOwner) {
-            document.getElementById('add-bar-btn').style.display = 'none';
-            // Also might want to hide "Manage Bars" if they have 0 bars and can't add?
-            // But let's assume they can see the list or at least their own bars.
+            const addBarBtn = document.getElementById('add-bar-btn');
+            if (addBarBtn) addBarBtn.style.display = 'none';
         }
 
         // Load default view
@@ -108,24 +137,13 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (error) throw error;
-
+            // checkLogin will be triggered by onAuthStateChange or we call verify directly
             await verifyRole(data.user.id);
 
         } catch (err) {
             console.error('Login Error:', err);
-
             let msg = 'Login Failed: ' + err.message;
-
-            // Map common Supabase errors to user-friendly messages
-            if (err.message.includes('Invalid login credentials')) {
-                msg = '登入失敗：帳號或密碼錯誤 (Invalid login credentials)';
-            } else if (err.message.includes('Email not confirmed')) {
-                msg = '登入失敗：信箱尚未驗證，請檢查您的收件匣 (Email not confirmed)';
-            } else if (err.message.includes('User not found')) {
-                // Note: Supabase often returns "Invalid login credentials" for this too for security
-                msg = '登入失敗：找不到此使用者 (User not found)';
-            }
-
+            if (err.message.includes('Invalid login credentials')) msg = '登入失敗：帳號或密碼錯誤';
             alert(msg);
         } finally {
             loginBtn.textContent = 'Login';
@@ -140,7 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: window.location.href // Redirect back to this page
+                    redirectTo: window.location.href
                 }
             });
             if (error) {
@@ -152,8 +170,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     logoutBtn.addEventListener('click', async () => {
         await supabase.auth.signOut();
-        location.reload();
+        // Redirect to same page to clear state
+        window.location.reload();
     });
+
+
 
 
 
