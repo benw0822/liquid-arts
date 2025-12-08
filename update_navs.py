@@ -55,14 +55,10 @@ bottom_nav_new = r'''<nav class="bottom-nav">
         </a>
         <a href="journal.html" class="nav-item">
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                <!-- Single Sheet Newspaper with Image and Text -->
-                <!-- The Page Frame -->
-                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"></path>
-                <!-- Image Placeholder (Rect) -->
-                <rect x="7" y="7" width="10" height="6"></rect>
-                <!-- Text Lines -->
-                <path d="M7 15h10"></path>
-                <path d="M7 18h6"></path>
+                <!-- Telescope / Spyglass -->
+                <path d="M5 20l5-5 10-10a2.828 2.828 0 1 0-4-4L6 11l-5 5"></path>
+                <path d="M12 9l3 3"></path>
+                <path d="M9 12l3 3"></path>
             </svg>
             <span>Journal</span>
         </a>
