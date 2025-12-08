@@ -64,13 +64,14 @@
     <main>
         <!-- Featured Bars -->
         <section class="container section-padding">
-            <div class="section-header" style="border-bottom: none; margin-bottom: 0;">
+            <div class="section-header"
+                style="border-bottom: none; margin-bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; text-align: center;">
                 <h2 class="display-text" style="font-size: 4rem;">BARS</h2>
                 <a href="bars.html" class="btn"
                     style="color: var(--text-primary); border-color: var(--border-color);">View All</a>
             </div>
 
-            <div id="featured-grid" class="magazine-grid">
+            <div id="featured-grid" class="masonry-grid">
                 <!-- Injected by JS -->
             </div>
         </section>
@@ -112,10 +113,10 @@
 
         <!-- Latest Articles -->
         <section class="container section-padding">
-            <div class="section-header" style="border-bottom: none;">
+            <div class="section-header" style="border-bottom: none; text-align: center; justify-content: center;">
                 <h2 class="display-text" style="font-size: 4rem;">JOURNAL</h2>
             </div>
-            <div id="article-grid" class="magazine-grid">
+            <div id="article-grid" class="masonry-grid">
                 <!-- Injected by JS -->
             </div>
         </section>
