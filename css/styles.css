@@ -1027,7 +1027,7 @@ figure.article-figure figcaption {
 }
 
 .masonry-grid .grid-item {
-    display: inline-block;
+    display: inline-block !important;
     width: 100%;
     break-inside: avoid;
     margin-bottom: 30px;
