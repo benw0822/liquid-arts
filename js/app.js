@@ -14,6 +14,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.savedArticleIds = new Set();
     window.currentUser = null;
 
+    // --- DEBUG CONSOLE (Visual Inspector) ---
+    const debugConsole = document.createElement('div');
+    debugConsole.id = 'debug-console';
+    debugConsole.style.cssText = 'position: fixed; bottom: 10px; right: 10px; width: 300px; height: 150px; background: rgba(0,0,0,0.8); color: lime; font-family: monospace; font-size: 11px; padding: 10px; overflow-y: auto; z-index: 9999; border-radius: 8px; pointer-events: none;';
+    document.body.appendChild(debugConsole);
+
+    const logDebug = (msg) => {
+        const line = document.createElement('div');
+        line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+        debugConsole.appendChild(line);
+        debugConsole.scrollTop = debugConsole.scrollHeight;
+        console.log('[DEBUG]', msg);
+    };
+    window.logDebug = logDebug; // Expose global
+
     // Timeout Helper (Global in scope)
     const withTimeout = (promise, ms = 3000) => {
         return Promise.race([
@@ -36,25 +51,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Timeout Helper definition removed from here (moved to top)
 
         if (window.currentUser) {
-            // 1. Profile Sync (Temporarily Disabled to isolate crash)
-            /*
+            window.logDebug('Auth: Logged In as ' + window.currentUser.id.substring(0, 6) + '...');
+
+            // 1. Profile Sync (Non-Blocking)
+            window.logDebug('Sync: Fetching Profile...');
             withTimeout(supabase
                 .from('users')
                 .select('full_name, avatar_url')
                 .eq('id', window.currentUser.id)
                 .maybeSingle(), 5000)
-                .then(({ data: profile }) => {
-                    if (profile) {
-                         // Update local object
-                         window.currentUser.user_metadata = {
-                             ...window.currentUser.user_metadata,
-                             ...profile
-                         };
-                         // Update Nav if it's already rendered
-                         const myLink = document.getElementById('nav-my-link');
-                         if (myLink) {
-                            // Smart Merge: Use DB data if valid (non-empty), else fallback to metadata/default
-                            // Note: We check if trim() is not empty for strings
+                .then(({ data: profile, error }) => {
+                    if (error) {
+                        window.logDebug('Sync: Profile Error ' + error.message);
+                    } else if (profile) {
+                        window.logDebug('Sync: Profile Found');
+                        // Update local object
+                        window.currentUser.user_metadata = {
+                            ...window.currentUser.user_metadata,
+                            ...profile
+                        };
+                        // Update Nav if it's already rendered
+                        const myLink = document.getElementById('nav-my-link');
+                        if (myLink) {
+                            // Smart Merge
                             const dbName = profile.full_name && profile.full_name.trim() !== '' ? profile.full_name : null;
                             const dbAvatar = profile.avatar_url && profile.avatar_url.trim() !== '' ? profile.avatar_url : null;
 
@@ -62,26 +81,40 @@ document.addEventListener('DOMContentLoaded', async () => {
                             const avatar = dbAvatar || window.currentUser.user_metadata.avatar_url || 'assets/default_avatar.png';
 
                             myLink.innerHTML = `<img src="${avatar}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; vertical-align: middle; margin-right: 6px;"> ${name}`;
+                            window.logDebug('Sync: Nav Updated');
                         }
+                    } else {
+                        window.logDebug('Sync: No Profile Record (Using Google Default)');
                     }
-                }).catch(err => console.warn('Profile sync background fail:', err));
-            */
+                }).catch(err => window.logDebug('Sync: Profile Exception ' + err.message));
 
             // 2. Fetch Saved Bars (With Timeout)
             try {
-                const { data: bars } = await withTimeout(supabase.from('saved_bars').select('bar_id'), 2000);
-                if (bars) window.savedBarIds = new Set(bars.map(r => r.bar_id));
+                window.logDebug('Sync: Fetching Saved Bars...');
+                const { data: bars, error } = await withTimeout(supabase.from('saved_bars').select('bar_id'), 2000);
+                if (error) window.logDebug('Sync: SavedBars DB Error ' + error.message);
+                if (bars) {
+                    window.savedBarIds = new Set(bars.map(r => r.bar_id));
+                    window.logDebug(`Sync: SavedBars Loaded (${bars.length})`);
+                }
             } catch (err) {
-                console.warn('Saved bars fetch skipped/failed:', err);
+                window.logDebug('Sync: SavedBars Fail/Skip');
             }
 
             // 3. Fetch Saved Articles (With Timeout)
             try {
-                const { data: articles } = await withTimeout(supabase.from('saved_articles').select('article_id'), 2000);
-                if (articles) window.savedArticleIds = new Set(articles.map(r => r.article_id));
+                window.logDebug('Sync: Fetching Saved Articles...');
+                const { data: articles, error } = await withTimeout(supabase.from('saved_articles').select('article_id'), 2000);
+                if (error) window.logDebug('Sync: SavedArticles DB Error ' + error.message);
+                if (articles) {
+                    window.savedArticleIds = new Set(articles.map(r => r.article_id));
+                    window.logDebug(`Sync: SavedArticles Loaded (${articles.length})`);
+                }
             } catch (err) {
-                console.warn('Saved articles fetch skipped/failed:', err);
+                window.logDebug('Sync: SavedArticles Fail/Skip');
             }
+        } else {
+            window.logDebug('Auth: Guest Mode');
         }
     };
 
