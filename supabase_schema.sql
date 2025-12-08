@@ -156,3 +156,46 @@ alter table articles
 add column if not exists start_date timestamp with time zone,
 add column if not exists end_date timestamp with time zone,
 add column if not exists category text;
+
+-- Create a table for public profiles (synced with auth.users)
+create table if not exists users (
+  id uuid references auth.users on delete cascade not null primary key,
+  email text,
+  name text,
+  roles text[] default array['reader'], -- 'admin', 'editor', 'barOwner', 'reader'
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Enable RLS
+alter table users enable row level security;
+
+create policy "Public profiles are viewable by everyone."
+  on users for select
+  using ( true );
+
+create policy "Users can insert their own profile."
+  on users for insert
+  with check ( auth.uid() = id );
+
+create policy "Users can update own profile."
+  on users for update
+  using ( auth.uid() = id );
+
+-- Internal function to handle new user entries
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  insert into public.users (id, email, name, roles)
+  values (new.id, new.email, split_part(new.email, '@', 1), array['reader']);
+  return new;
+end;
+$$;
+
+-- Trigger to call the function on signup
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();
