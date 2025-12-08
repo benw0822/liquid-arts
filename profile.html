@@ -336,23 +336,29 @@
             };
 
             // Admin Button Logic (Modified for new layout if needed, inserting after action buttons if preferred, keeping as is for now)
-            const { data: dbUser } = await supabase.from('users').select('roles').eq('id', user.id).single();
-            const roles = dbUser ? (dbUser.roles || []) : [];
-            if (roles.includes('admin') || roles.includes('editor') || roles.includes('barOwner')) {
-                const btnContainer = document.createElement('div');
-                btnContainer.style.marginTop = '1rem';
-                btnContainer.style.textAlign = 'center'; // Center align
-                const link = document.createElement('a');
-                link.href = 'admin.html';
-                link.className = 'btn';
-                link.style.display = 'inline-block';
-                link.style.textDecoration = 'none';
-                link.style.background = '#000'; // distinct from others
-                link.style.color = '#fff';
-                link.textContent = roles.includes('admin') ? 'Go to Admin Dashboard' : 'Manage Content';
-                btnContainer.appendChild(link);
-                // Insert after info section
-                document.querySelector('#profile-content > div > div:nth-child(2)').appendChild(btnContainer);
+            try {
+                const { data: dbUser } = await supabase.from('users').select('roles').eq('id', user.id).single();
+                const roles = dbUser ? (dbUser.roles || []) : [];
+                if (roles.includes('admin') || roles.includes('editor') || roles.includes('barOwner')) {
+                    const btnContainer = document.createElement('div');
+                    btnContainer.style.marginTop = '1rem';
+                    btnContainer.style.textAlign = 'center'; // Center align
+                    const link = document.createElement('a');
+                    link.href = 'admin.html';
+                    link.className = 'btn';
+                    link.style.display = 'inline-block';
+                    link.style.textDecoration = 'none';
+                    link.style.background = '#000'; // distinct from others
+                    link.style.color = '#fff';
+                    link.textContent = roles.includes('admin') ? 'Go to Admin Dashboard' : 'Manage Content';
+                    btnContainer.appendChild(link);
+                    // Insert after info section
+                    // Check if target exists
+                    const targetDiv = document.querySelector('#profile-content > div > div:nth-child(2)');
+                    if (targetDiv) targetDiv.appendChild(btnContainer);
+                }
+            } catch (roleErr) {
+                console.warn('Role Check Failed:', roleErr);
             }
 
             loading.style.display = 'none';
