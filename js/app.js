@@ -1413,8 +1413,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 <!-- Map & Button (Merged, Padded) -->
                 <div style="margin-top: auto;">
                     ${/* Debug Log */ console.log('Rendering Card for:', bar.title) || ''}
-                    <div id="card-map-${bar.id}" class="card-map-display" data-lat="${bar.lat}" data-lng="${bar.lng}" style="position: relative !important; top: auto !important; left: auto !important; height: 150px; width: 100%; border-radius: 4px 4px 0 0; margin-bottom: 0; background: #eee; opacity: 1 !important; display: block; z-index: 0;"></div>
-                    <a href="${mapUrl}" target="_blank" class="btn" style="display: block; width: 100%; text-align: center; background-color: var(--bg-red); color: white; padding: 10px 0; border-radius: 0 0 4px 4px; text-decoration: none; font-size: 0.9rem; font-weight: 600; transition: background 0.3s; margin-top: 0;">Locate on Google Maps</a>
+                    <div id="card-map-${bar.id}" class="card-map-display" data-lat="${bar.lat}" data-lng="${bar.lng}" style="position: relative !important; top: auto !important; left: auto !important; height: 120px; width: 100%; border-radius: 4px; margin-bottom: 6px; background: #eee; opacity: 1 !important; display: block; z-index: 0; filter: brightness(1.2) contrast(1.1); pointer-events: none;"></div>
+                    <a href="${mapUrl}" target="_blank" class="btn" style="display: block; width: 100%; text-align: center; background-color: var(--bg-red); color: white; padding: 10px 0; border-radius: 4px; text-decoration: none; font-size: 0.9rem; font-weight: 600; transition: background 0.3s; margin-top: 0;">Google Map</a>
                 </div>
             </div>
         </div>
