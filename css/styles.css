@@ -228,14 +228,14 @@ h6 {
     flex-direction: column;
     align-items: center;
     text-decoration: none;
-    color: var(--text-secondary);
+    color: white;
     font-size: 0.75rem;
     transition: var(--transition-fast);
 }
 
 .nav-item.active,
 .nav-item:hover {
-    color: var(--text-primary);
+    color: black;
 }
 
 .nav-icon {
