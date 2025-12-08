@@ -6,87 +6,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Profile - Liquid Arts</title>
     <link rel="stylesheet" href="css/styles.css">
-    <script>
-        window.onerror = function (msg, url, lineNo, columnNo, error) {
-            alert('Script Error: ' + msg + '\nLine: ' + lineNo + '\nURL: ' + url);
-            return false;
-        };
-        window.onunhandledrejection = function (event) {
-            alert('Unhandled Promise Rejection: ' + event.reason);
-        };
-    </script>
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:wght@400;700&display=swap"
         rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
-    <style>
-        .cropper-modal-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 10000;
-            display: none;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .cropper-content {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            width: 90%;
-            max-width: 500px;
-            max-height: 90vh;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .img-container {
-            max-height: 60vh;
-            overflow: hidden;
-            margin-bottom: 20px;
-        }
-
-        .img-container img {
-            max-width: 100%;
-            display: block;
-        }
-
-        .profile-input {
-            width: 100%;
-            margin-bottom: 1.5rem;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-family: inherit;
-            font-size: 1rem;
-        }
-    </style>
 </head>
 
-<body class="light-mode">
+<body>
     <nav class="navbar">
         <div class="container nav-content">
             <a href="index.html" class="logo">
                 <img src="assets/logo_horizontal.png" alt="Liquid Arts" class="logo-img">
             </a>
-            <a href="admin.html" class="mobile-login-btn" id="mobile-login-btn">Login</a>
             <div class="nav-links">
                 <a href="bars.html" class="nav-link">Bars</a>
                 <a href="map.html" class="nav-link">Map</a>
                 <a href="journal.html" class="nav-link">Journal</a>
-                <a href="events.html" class="nav-link">Event</a>
-
-                <a href="profile.html" class="nav-link" id="nav-my-link">My</a>
-                <a href="admin.html" class="nav-link" id="login-btn" style="color: var(--text-accent);">Login</a>
+                <a href="about.html" class="nav-link">About</a>
+                <a href="profile.html" class="nav-link">My</a>
+                <a href="#" id="logout-btn" class="nav-link" style="color: var(--text-accent);">Logout</a>
             </div>
         </div>
     </nav>
@@ -99,65 +39,15 @@
             </div>
 
             <div
-                style="background: var(--bg-secondary); padding: 2rem; border-radius: 8px; border: 1px solid var(--border-color); text-align: left;">
-                <div id="profile-loading" style="text-align: center;">Loading...</div>
-
+                style="background: var(--bg-secondary); padding: 2rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                <div id="profile-loading">Loading...</div>
                 <div id="profile-content" style="display: none;">
-                    <!-- User Info & Edit Form -->
-                    <div style="display: flex; flex-direction: column; align-items: center; gap: 1.5rem;">
-
-                        <!-- Avatar Section -->
-                        <div style="text-align: center;">
-                            <div style="position: relative; display: inline-block;">
-                                <img id="profile-avatar" src="" alt="Avatar"
-                                    style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-color);">
-                                <!-- Camera Btn Hidden for Stability -->
-                                <button type="button" onclick="document.getElementById('edit-avatar-file').click()"
-                                    class="camera-btn"
-                                    style="display: none; position: absolute; bottom: 0; right: 0; background: white; border: 1px solid #ddd; border-radius: 50%; width: 36px; height: 36px; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                        stroke-linejoin="round">
-                                        <path
-                                            d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z">
-                                        </path>
-                                        <circle cx="12" cy="13" r="4"></circle>
-                                    </svg>
-                                </button>
-                            </div>
-                            <input type="file" id="edit-avatar-file" accept="image/*" style="display: none;"
-                                onchange="handleFileSelect(event)">
-                        </div>
-
-                        <!-- Info Section -->
-                        <div style="width: 100%; max-width: 400px;">
-                            <label
-                                style="font-size: 0.9rem; color: #666; display: block; margin-bottom: 0.5rem;">Nickname</label>
-                            <!-- Disabled for Stability -->
-                            <input type="text" id="edit-nickname" class="profile-input"
-                                placeholder="Google Name (Read-only)" disabled
-                                style="cursor: not-allowed; background: #eee;">
-
-                            <label
-                                style="font-size: 0.9rem; color: #666; display: block; margin-bottom: 0.5rem;">Email</label>
-                            <input type="text" id="profile-email" disabled class="search-input"
-                                style="width: 100%; margin-bottom: 1.5rem; background: #eee; cursor: not-allowed;">
-
-                            <!-- Action Buttons -->
-                            <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1rem;">
-                                <div
-                                    style="width: 100%; display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
-                                    <!-- Save Button Hidden for Stability -->
-                                    <button onclick="updateProfile()" class="btn"
-                                        style="display: none; background: var(--bg-red); color: white; border: none; padding: 0.8rem 2rem;">Save
-                                        Changes</button>
-                                    <button onclick="handleLogout()" class="btn"
-                                        style="background: #333; color: white; border: none; padding: 0.8rem 2rem;">Sign
-                                        Out</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <img id="profile-avatar" src="" alt="Avatar"
+                        style="width: 100px; height: 100px; border-radius: 50%; margin-bottom: 1rem; border: 2px solid var(--accent-color);">
+                    <h3 id="profile-name" style="margin-bottom: 0.5rem; font-family: var(--font-display);">User Name
+                    </h3>
+                    <p id="profile-email" style="color: var(--text-secondary); margin-bottom: 1.5rem;">user@example.com
+                    </p>
                 </div>
             </div>
         </div>
@@ -188,7 +78,7 @@
             const { data: { session } } = await supabase.auth.getSession();
 
             if (!session) {
-                window.location.href = 'admin.html';
+                window.location.href = 'index.html';
                 return;
             }
 
@@ -196,198 +86,49 @@
             const profileContent = document.getElementById('profile-content');
             const loading = document.getElementById('profile-loading');
 
-            // --- Render Profile Info (Strictly Google Metadata) ---
-            document.getElementById('profile-email').value = user.email;
-            document.getElementById('edit-nickname').value = user.user_metadata.full_name || 'My';
-            document.getElementById('profile-avatar').src = user.user_metadata.avatar_url || 'assets/logo_vertical.png';
+            // --- Render Profile Info ---
+            document.getElementById('profile-email').textContent = user.email;
+            if (user.user_metadata) {
+                if (user.user_metadata.full_name) document.getElementById('profile-name').textContent = user.user_metadata.full_name;
+                if (user.user_metadata.avatar_url) document.getElementById('profile-avatar').src = user.user_metadata.avatar_url;
+                else document.getElementById('profile-avatar').src = 'assets/logo_vertical.png';
+            }
 
-            // DB Profile Sync REMOVED to prevent Lockout/Availability Issues
-
-            let cropper;
-            let avatarBlob = null;
-
-            // --- Handlers (Global Scope) ---
-            window.handleFileSelect = (event) => {
-                const file = event.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        const image = document.getElementById('crop-image');
-                        image.src = e.target.result;
-                        document.getElementById('cropper-modal').style.display = 'flex';
-
-                        if (cropper) cropper.destroy();
-                        cropper = new Cropper(image, {
-                            aspectRatio: 1,
-                            viewMode: 1,
-                            autoCropArea: 1,
-                        });
-                    };
-                    reader.readAsDataURL(file);
-                }
-                event.target.value = ''; // Reset input to allow re-selecting same file
-            };
-
-            window.closeCropModal = () => {
-                document.getElementById('cropper-modal').style.display = 'none';
-                if (cropper) cropper.destroy();
-                cropper = null;
-            };
-
-            window.confirmCrop = () => {
-                if (!cropper) return;
-                cropper.getCroppedCanvas({
-                    width: 1080,
-                    height: 1080,
-                    fillColor: '#fff',
-                }).toBlob((blob) => {
-                    avatarBlob = blob;
-                    // Update preview
-                    const url = URL.createObjectURL(blob);
-                    document.getElementById('profile-avatar').src = url;
-                    closeCropModal();
-                }, 'image/jpeg', 0.9);
-            };
-
-            // Update ProfileLogic
-            window.updateProfile = async () => {
-                const newNickname = document.getElementById('edit-nickname').value;
-                const btn = document.querySelector('button[onclick="updateProfile()"]');
-                const originalText = btn.textContent;
-
-                try {
-                    btn.textContent = 'Saving...';
-                    btn.disabled = true;
-
-                    let newAvatarUrl = user.user_metadata.avatar_url; // Default to existing
-
-                    // 1. Upload Blob if exists (from Cropper)
-                    if (avatarBlob) {
-                        const fileName = `${user.id}/${Date.now()}.jpg`;
-                        const { error: uploadError } = await supabase.storage
-                            .from('avatars')
-                            .upload(fileName, avatarBlob);
-
-                        if (uploadError) throw uploadError;
-
-                        const { data: { publicUrl } } = supabase.storage
-                            .from('avatars')
-                            .getPublicUrl(fileName);
-
-                        newAvatarUrl = publicUrl;
-                    }
-
-                    // 2. Update Auth Metadata
-                    const updates = {
-                        full_name: newNickname,
-                        avatar_url: newAvatarUrl
-                    };
-
-                    const { error } = await supabase.auth.updateUser({
-                        data: updates
-                    });
-
-                    if (error) throw error;
-
-                    // 3. Persist to public.users (for persistence across logins)
-                    const { error: dbError } = await supabase
-                        .from('users')
-                        .upsert({
-                            id: user.id,
-                            full_name: newNickname,
-                            avatar_url: newAvatarUrl,
-                            email: user.email, // Ensure email is synced
-                            updated_at: new Date().toISOString()
-                        });
-
-                    if (dbError) {
-                        console.error('DB Sync Error:', dbError);
-                        // We don't block success if DB fails, as Auth is primary, but warn
-                    }
-
-                    alert('Profile updated successfully!');
-                    btn.textContent = originalText;
-                    btn.disabled = false;
-
-                    // Force Reload to reflect changes (Updated: Don't reload, just stay)
-                    // location.reload();
-
-                } catch (err) {
-                    console.error('Update Error:', err);
-                    alert('Error updating profile: ' + err.message);
-                    btn.textContent = originalText;
-                    btn.disabled = false;
-                }
-            };
-
-
-            window.handleLogout = async () => {
-                try {
-                    await supabase.auth.signOut();
-                    window.location.href = 'index.html';
-                } catch (error) {
-                    console.error('Logout Error:', error);
-                    alert('Error logging out');
-                }
-            };
-
-            // Admin Button Logic (Modified for new layout if needed, inserting after action buttons if preferred, keeping as is for now)
-            try {
-                const { data: dbUser } = await supabase.from('users').select('roles').eq('id', user.id).single();
-                const roles = dbUser ? (dbUser.roles || []) : [];
-                if (roles.includes('admin') || roles.includes('editor') || roles.includes('barOwner')) {
-                    const btnContainer = document.createElement('div');
-                    btnContainer.style.marginTop = '1rem';
-                    btnContainer.style.textAlign = 'center'; // Center align
-                    const link = document.createElement('a');
-                    link.href = 'admin.html';
-                    link.className = 'btn';
-                    link.style.display = 'inline-block';
-                    link.style.textDecoration = 'none';
-                    link.style.background = '#000'; // distinct from others
-                    link.style.color = '#fff';
-                    link.textContent = roles.includes('admin') ? 'Go to Admin Dashboard' : 'Manage Content';
-                    btnContainer.appendChild(link);
-                    // Insert after info section
-                    // Check if target exists
-                    const targetDiv = document.querySelector('#profile-content > div > div:nth-child(2)');
-                    if (targetDiv) targetDiv.appendChild(btnContainer);
-                }
-            } catch (roleErr) {
-                console.warn('Role Check Failed:', roleErr);
+            // Admin Button Logic
+            const { data: dbUser } = await supabase.from('users').select('roles').eq('id', user.id).single();
+            const roles = dbUser ? (dbUser.roles || []) : [];
+            if (roles.includes('admin') || roles.includes('editor') || roles.includes('barOwner')) {
+                const btnContainer = document.createElement('div');
+                btnContainer.style.marginTop = '1.5rem';
+                const link = document.createElement('a');
+                link.href = 'admin.html';
+                link.className = 'btn';
+                link.style.display = 'inline-block';
+                link.style.textDecoration = 'none';
+                link.textContent = roles.includes('admin') ? 'Admin Dashboard' : 'Manage Content';
+                btnContainer.appendChild(link);
+                document.getElementById('profile-name').parentNode.insertBefore(btnContainer, document.getElementById('profile-email').nextSibling);
             }
 
             loading.style.display = 'none';
             profileContent.style.display = 'block';
 
-            // Navbar Logout (Keep for compatibility)
-            const navLogout = document.getElementById('logout-btn');
-            if (navLogout) {
-                navLogout.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    window.handleLogout();
-                });
-            }
+            document.getElementById('logout-btn').addEventListener('click', async (e) => {
+                e.preventDefault();
+                await supabase.auth.signOut();
+                window.location.href = 'index.html';
+            });
 
             // --- Load Saved Bars (Masonry) ---
             await window.initAuthAndSaved();
             const savedGrid = document.getElementById('bars-grid');
 
-            // Local Client for Profile Stability
-            const SUPABASE_URL = 'https://wgnskednopbfngvjmviq.supabase.co';
-            const SUPABASE_KEY = 'sb_publishable_gcmYleFIGmwsLSKofS__Qg_62EXoP6P';
-            const localClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
             if (window.savedBarIds.size > 0) {
-                // Use Local Client
-                const { data: allBars, error } = await localClient
+                const { data: allBars } = await supabase
                     .from('bars')
                     .select(`*, bar_images (image_url, caption, display_order), signatures (*), bar_awards (*), article_bars (article:articles (id, title, excerpt, cover_image, published_at))`);
 
-                if (error) {
-                    console.error('Profile Bars Fetch Error:', error);
-                    savedGrid.innerHTML = `<p style="text-align:center; color: #ef4444; width: 100%;">Error loading collection: ${error.message}</p>`;
-                } else if (allBars) {
+                if (allBars) {
                     // Filter saved
                     const savedBars = allBars.filter(bar => window.savedBarIds.has(bar.id));
 
@@ -422,13 +163,13 @@
                 const { data: allArticles } = await supabase
                     .from('articles')
                     .select('id, title, excerpt, cover_image, published_at, created_at, date, image');
-
+                
                 if (allArticles) {
                     const savedArticles = allArticles.filter(a => window.savedArticleIds.has(a.id));
                     if (savedArticles.length > 0) {
                         savedArticlesGrid.innerHTML = savedArticles.map(a => window.createArticleCard(a)).join('');
                     } else {
-                        savedArticlesGrid.innerHTML = '<p style="text-align:center; color: #666; width: 100%;">No saved articles found.</p>';
+                         savedArticlesGrid.innerHTML = '<p style="text-align:center; color: #666; width: 100%;">No saved articles found.</p>';
                     }
                 }
             } else {
@@ -436,19 +177,4 @@
             }
         });
     </script>
-    <!-- Cropper Modal -->
-    <div id="cropper-modal" class="cropper-modal-container">
-        <div class="cropper-content">
-            <h3 style="margin-top: 0; margin-bottom: 1rem;">Crop Avatar (1:1)</h3>
-            <div class="img-container">
-                <img id="crop-image" src="" alt="To Crop">
-            </div>
-            <div style="display: flex; justify-content: flex-end; gap: 1rem;">
-                <button type="button" onclick="closeCropModal()" class="btn"
-                    style="background: #ccc; color: #333; border: none; padding: 0.5rem 1rem;">Cancel</button>
-                <button type="button" onclick="confirmCrop()" class="btn"
-                    style="background: var(--bg-red); color: white; border: none; padding: 0.5rem 1rem;">Done</button>
-            </div>
-        </div>
-    </div>
 </body>

@@ -44,13 +44,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (roles.includes('admin') || roles.includes('editor') || roles.includes('barOwner')) {
             showDashboard(roles);
         } else {
-            console.warn('Access Denied', roles);
-            // If checking roles failed (e.g. table verify error), user has no roles.
-            if (error) {
-                alert('Role Verification Error: ' + error.message);
-            } else {
-                alert('Access Denied: You do not have permission (Roles: ' + roles.join(', ') + ')');
-            }
+            console.warn('Access Denied');
+            alert('Access Denied: You do not have permission to access the dashboard.');
             await supabase.auth.signOut();
             loginSection.style.display = 'block';
             dashboardSection.style.display = 'none';
@@ -114,8 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (error) throw error;
 
-            console.log('Login successful');
-            window.location.href = 'profile.html'; // Redirect all users to profile
+            await verifyRole(data.user.id);
 
         } catch (err) {
             console.error('Login Error:', err);
@@ -157,22 +151,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const SUPABASE_KEY = 'sb_publishable_gcmYleFIGmwsLSKofS__Qg_62EXoP6P';
 
     // Init immediately for Auth to work
-    if (window.supabaseClient) {
-        supabase = window.supabaseClient;
-    } else {
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    }
-
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     // Pre-fill settings inputs just in case
     supabaseUrlInput.value = SUPABASE_URL;
     supabaseKeyInput.value = SUPABASE_KEY;
 
     function initSupabase() {
-        if (window.supabaseClient) {
-            supabase = window.supabaseClient;
-        } else {
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        }
+        // Kept for settings modal re-init if needed
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     }
 
     settingsBtn.addEventListener('click', () => {
@@ -206,7 +192,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (error) {
                 console.error('DB Error:', error);
-                alert('Failed to load bars: ' + error.message);
 
                 // Check if table is missing (Postgres error 42P01)
                 if (error.code === '42P01' || error.message.includes('does not exist')) {

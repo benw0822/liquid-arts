@@ -7,107 +7,28 @@ window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
 const supabase = window.supabaseClient;
 console.log('Connected to Supabase');
 
-// --- Timeout Helper (Global in scope) ---
-const withTimeout = (promise, ms = 10000) => {
-    return Promise.race([
-        promise,
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), ms))
-    ]);
-};
-
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
 
     // --- Save/Favorite Logic (Supabase) ---
     window.savedBarIds = new Set();
-    // --- Visual Status Bar (Debug) ---
-    const statusDiv = document.createElement('div');
-    statusDiv.id = 'app-status';
-    statusDiv.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; background: #222; color: #4ade80; font-family: monospace; font-size: 12px; padding: 5px 10px; z-index: 10000; text-align: center; border-bottom: 1px solid #444;';
-    statusDiv.textContent = 'App: Initializing...';
-    document.body.prepend(statusDiv);
-
-    window.updateStatus = (msg) => {
-        if (statusDiv) statusDiv.textContent = `App: ${msg}`;
-        // console.log(`[Status] ${msg}`);
-    };
-
-    // --- Data Fetching ---
-    // --- Data Fetching ---
-    async function fetchBars() {
-        window.updateStatus('Fetching Bars (Local Client)...');
-        try {
-            // EXPERIMENTAL: Create local client to rule out global scope issues
-            // Mirrors debug_auth.html exactly
-            const localClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-            const { data, error } = await localClient.from('bars').select('*, bar_images(image_url)');
-
-            if (error) {
-                console.warn('Fetch Bars Error:', error);
-                window.updateStatus('Error: ' + error.message + ' (' + error.code + ')');
-                return mockBars;
-            }
-
-            if (!data || data.length === 0) {
-                window.updateStatus('Bars Fetched: 0 (DB Empty)');
-                return mockBars;
-            }
-
-            window.updateStatus(`Success: ${data.length} Real Bars`);
-            return data;
-        } catch (err) {
-            console.warn('Error fetching bars:', err);
-            window.updateStatus('Exception: ' + err.message);
-            return mockBars;
-        }
-    }
+    window.savedArticleIds = new Set();
+    window.currentUser = null;
 
     // 1. Auth & Saved Init (Global)
     window.initAuthAndSaved = async () => {
-        // console.log('Auth: initAuthAndSaved called');
-
-        let session = null;
-        try {
-            // CRITICAL: Keep Timeout protection for slow networks
-            const result = await withTimeout(supabase.auth.getSession(), 10000);
-            session = result.data.session;
-        } catch (err) {
-            console.warn('Auth: Session Timeout (Slow Network)');
-            // DO NOT DELETE TOKEN. Just degrade to guest temporarily.
-            // localStorage.removeItem('sb-wgnskednopbfngvjmviq-auth-token'); 
-        }
-
+        const { data: { session } } = await supabase.auth.getSession();
         window.currentUser = session?.user || null;
+        window.savedBarIds = new Set();
+        window.savedArticleIds = new Set();
 
         if (window.currentUser) {
-            // console.log('Auth: Logged In', window.currentUser.email);
+            // Fetch Saved Bars
+            const { data: bars } = await supabase.from('saved_bars').select('bar_id');
+            if (bars) window.savedBarIds = new Set(bars.map(r => r.bar_id));
 
-            // --- PURE GOOGLE AUTH MODE (Stability First) ---
-            // We DO NOT fetch from 'users' table to avoid RLS/Schema crashes.
-            // Using Google Metadata strictly.
-
-            const myLink = document.getElementById('nav-my-link');
-            if (myLink) {
-                const avatar = window.currentUser.user_metadata.avatar_url || 'assets/default_avatar.png';
-                const name = window.currentUser.user_metadata.full_name || 'My';
-                myLink.innerHTML = `<img src="${avatar}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; vertical-align: middle; margin-right: 6px;"> ${name}`;
-            }
-
-            // 2. Fetch Saved Bars (With Timeout)
-            try {
-                const { data: bars } = await withTimeout(supabase.from('saved_bars').select('bar_id'), 3000);
-                if (bars) window.savedBarIds = new Set(bars.map(r => r.bar_id));
-            } catch (err) {
-                console.warn('Saved bars fetch skipped:', err);
-            }
-
-            // 3. Fetch Saved Articles (With Timeout)
-            try {
-                const { data: articles } = await withTimeout(supabase.from('saved_articles').select('article_id'), 3000);
-                if (articles) window.savedArticleIds = new Set(articles.map(r => r.article_id));
-            } catch (err) {
-                console.warn('Saved articles fetch skipped:', err);
-            }
+            // Fetch Saved Articles
+            const { data: articles } = await supabase.from('saved_articles').select('article_id');
+            if (articles) window.savedArticleIds = new Set(articles.map(r => r.article_id));
         }
     };
 
@@ -116,7 +37,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (event) { event.preventDefault(); event.stopPropagation(); }
 
         if (!window.currentUser) {
-            alert('Please sign in to save bars.');
+            alert('Please log in to save bars.');
             return;
         }
 
@@ -194,71 +115,70 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
-    // --- Local Mock Data (DISABLED - STRICT MODE) ---
-    const mockBars = [];
-    // const mockBars = [ ... ]; // Logic Removed to enforce DB Only
+    // --- Local Mock Data (Extended) ---
+    const mockBars = [
+        {
+            id: 1,
+            title: "Midnight Mixology",
+            location: "Taipei, Xinyi",
+            vibe: "Speakeasy",
+            image: "assets/gallery_1.png",
+            lat: 25.0330,
+            lng: 121.5654,
+            price: 2,
+            rating: 4.8,
+            owner_name: "Alex Chen",
+            bartender_name: "Sarah Lin",
+            opening_hours: "Mon-Sun: 20:00 - 02:00",
+            phone: "+886 2 1234 5678",
+            menu_url: "#",
+            description: "Hidden behind a bookshelf, Midnight Mixology offers an intimate atmosphere with bespoke cocktails inspired by classic literature."
+        },
+        { id: 2, title: "The Glass Sculptor", location: "Tokyo, Ginza", vibe: "High-End", image: "assets/gallery_2.png", lat: 35.6712, lng: 139.7665, price: 3, rating: 4.9 },
+        { id: 3, title: "Urban Nightlife", location: "New York, SoHo", vibe: "Lounge", image: "assets/gallery_3.png", lat: 40.7233, lng: -74.0030, price: 2, rating: 4.7 },
+        { id: 4, title: "Signature Pour", location: "London, Shoreditch", vibe: "Craft Cocktails", image: "assets/gallery_1.png", lat: 51.5260, lng: -0.0782, price: 2, rating: 4.6 },
+        { id: 5, title: "Amber Glow", location: "Seoul, Hongdae", vibe: "Jazz Bar", image: "assets/gallery_2.png", lat: 37.5575, lng: 126.9245, price: 1, rating: 4.8 },
+        { id: 6, title: "Cocktail Geometry", location: "Singapore, Marina", vibe: "Rooftop", image: "assets/gallery_3.png", lat: 1.2834, lng: 103.8607, price: 3, rating: 4.9 }
+    ];
 
-    const mockArticles = [];
+    const mockArticles = [
+        { id: 1, title: "The Art of Ice", excerpt: "Why clear ice matters in modern mixology.", image: "assets/gallery_1.png", date: "2024-11-20" },
+        { id: 2, title: "Tokyo's Hidden Gems", excerpt: "Exploring the best speakeasies in Ginza.", image: "assets/gallery_2.png", date: "2024-11-18" },
+        { id: 3, title: "Sustainable Sipping", excerpt: "How bars are going zero-waste.", image: "assets/gallery_3.png", date: "2024-11-15" }
+    ];
 
     // --- Data Fetching ---
     async function fetchBars() {
-        // window.logDebug('FetchBars: Starting...');
         try {
-            // Standard fetch, similar to fetchArticles
-            // Added simple Join for images
-            const { data, error } = await withTimeout(supabase.from('bars').select('*, bar_images(image_url)'), 5000);
+            // Fetch bars with their related images and articles
+            // Note: Supabase join syntax depends on foreign keys
+            const { data, error } = await supabase
+                .from('bars')
+                .select(`
+                    *,
+                    bar_images (image_url, caption, display_order),
+                    signatures (*),
+                    bar_awards (*),
+                    article_bars (
+                        article:articles (id, title, excerpt, cover_image, published_at)
+                    )
+                `);
 
-            if (error) {
-                console.error('Fetch Bars Error:', error);
-                // window.logDebug('FetchBars: Error ' + error.message);
-                window.updateStatus('CRITICAL ERROR: ' + error.message);
-                const statusDiv = document.getElementById('app-status');
-                if (statusDiv) statusDiv.style.color = '#ef4444'; // Red
-                return [];
-            }
-
-            if (!data || data.length === 0) {
-                // window.logDebug('FetchBars: Empty Data');
-                window.updateStatus('Bars Fetched: 0 (DB Empty)');
-                return []; // FORCE MOCK if DB is empty (RLS or just empty)
-            }
-
-            // window.logDebug('FetchBars: Success (' + data.length + ' items)');
-            window.updateStatus(`Success: ${data.length} Real Bars`);
+            if (error || !data || data.length === 0) return mockBars;
             return data;
         } catch (err) {
             console.error('Error fetching bars:', err);
-            // window.logDebug('FetchBars: Exception ' + err.message);
-            window.updateStatus('EXCEPTION: ' + err.message);
-            const statusDiv = document.getElementById('app-status');
-            if (statusDiv) statusDiv.style.color = '#ef4444'; // Red
-            return [];
+            return mockBars;
         }
     }
 
     async function fetchArticles() {
-        if (window.updateStatus) window.updateStatus('Fetching Articles (Local Client)...');
         try {
-            const localClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            const { data, error } = await localClient.from('articles').select('*');
-
-            if (error) {
-                console.error('Fetch Articles Error:', error);
-                if (window.updateStatus) window.updateStatus('Error Fetching Articles: ' + error.message);
-                return [];
-            }
-
-            if (!data || data.length === 0) {
-                if (window.updateStatus) window.updateStatus('Articles Fetched: 0 (DB Empty)');
-                return [];
-            }
-
-            if (window.updateStatus) window.updateStatus(`Success: ${data.length} Real Articles`);
+            const { data, error } = await supabase.from('articles').select('*');
+            if (error || !data || data.length === 0) return mockArticles;
             return data;
         } catch (err) {
-            console.error('Error fetching articles:', err);
-            if (window.updateStatus) window.updateStatus('Exception: ' + err.message);
-            return [];
+            return mockArticles;
         }
     }
 
@@ -266,7 +186,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 1. Home Page
     window.initHome = async () => {
-        window.logDebug('Page: initHome called');
         await window.initAuthAndSaved();
         const bars = await fetchBars();
         const articles = await fetchArticles();
@@ -409,141 +328,42 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 3. Map Page
     // 3. Map Page
     window.initMap = async () => {
-        // Ensure Saved Data is loaded
-        await window.initAuthAndSaved();
         const bars = await fetchBars();
-
-        // Default View (will be overridden)
+        // Default to Taipei/Asia view if no user location
         const map = L.map('map').setView([25.0330, 121.5654], 14);
 
-        // Dark Theme Tiles
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-            subdomains: 'abcd',
             maxZoom: 20
         }).addTo(map);
 
-        const markers = []; // All markers for fallback
-        const barMarkers = {}; // ID -> Marker mapping
-
-        // 1. Add Bar Markers
         bars.forEach(bar => {
             if (bar.lat && bar.lng) {
-                const isSaved = window.savedBarIds.has(bar.id);
-
-                // --- Icon Logic ---
-                // Default: Red Dot
-                let iconHtml = `
-                    <div style="display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%);">
-                        <div style="background: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; color: #333; box-shadow: 0 1px 2px rgba(0,0,0,0.15); margin-bottom: 3px; white-space: nowrap;">
-                            ${bar.title}
-                        </div>
-                        <div style="width: 14px; height: 14px; background: #ef4444; border: 2px solid white; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,0.2);"></div>
-                    </div>
-                `;
-
-                // Saved: Heart Icon
-                if (isSaved) {
-                    iconHtml = `
-                        <div style="display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%);">
-                            <div style="background: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; color: #ef4444; box-shadow: 0 1px 2px rgba(0,0,0,0.15); margin-bottom: 3px; white-space: nowrap;">
-                                ${bar.title}
-                            </div>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#ef4444" stroke="white" stroke-width="2" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
-                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                            </svg>
-                        </div>
-                    `;
-                }
-
+                // Custom Red Circle Icon with Label
                 const customIcon = L.divIcon({
                     className: 'custom-map-marker',
-                    html: iconHtml,
-                    iconSize: [0, 0],
-                    iconAnchor: [0, 0]
-                });
-
-                const marker = L.marker([bar.lat, bar.lng], { icon: customIcon }).addTo(map);
-
-                marker.bindPopup(`
-                    <div style="color: #333; text-align: center; min-width: 150px;">
-                        <h3 style="margin: 0 0 5px 0; font-size: 1rem;">${bar.title}</h3>
-                        <p style="margin: 0 0 8px 0; font-size: 0.85rem; color: #666;">${bar.location}</p>
-                        <a href="bar-details.html?id=${bar.id}" style="display: inline-block; padding: 4px 12px; background: #ef4444; color: white; border-radius: 4px; text-decoration: none; font-size: 0.8rem;">View Details</a>
-                    </div>
-                `);
-
-                markers.push(marker);
-                barMarkers[bar.id] = marker;
-            }
-        });
-
-        // 2. Add User Location (Wine Glass)
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(position => {
-                const lat = position.coords.latitude;
-                const lng = position.coords.longitude;
-                const userLatLng = L.latLng(lat, lng);
-
-                // Wine Glass Icon (Cocktail) - Gold, Filled, No Stroke
-                const locationIcon = L.divIcon({
-                    className: 'user-location-marker',
                     html: `
-                        <div style="transform: translate(-50%, -100%); filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4));">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="#FFD700">
-                                <path d="M21 5V3H3v2l8 9v5H6v2h12v-2h-5v-5l8-9z"></path>
-                            </svg>
+                        <div style="display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%);">
+                            <div style="background: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 12px; color: #333; box-shadow: 0 2px 4px rgba(0,0,0,0.2); margin-bottom: 4px; white-space: nowrap;">
+                                ${bar.title}
+                            </div>
+                            <div style="width: 14px; height: 14px; background: #ef4444; border: 2px solid white; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>
                         </div>
                     `,
                     iconSize: [0, 0],
                     iconAnchor: [0, 0]
                 });
 
-                const userMarker = L.marker([lat, lng], { icon: locationIcon, zIndexOffset: 1000 }).addTo(map);
-                userMarker.bindPopup('<div style="color:#333; font-weight:bold;">Your Location</div>');
-
-                // --- Smart Zoom Logic (Nearest 3) ---
-                // Calculate distances
-                const barsWithDist = bars.map(bar => {
-                    if (!bar.lat || !bar.lng) return { ...bar, distance: Infinity };
-                    return {
-                        ...bar,
-                        distance: userLatLng.distanceTo(L.latLng(bar.lat, bar.lng))
-                    };
-                });
-
-                // Get Top 3 Nearest
-                const nearestBars = barsWithDist
-                    .filter(b => b.distance !== Infinity)
-                    .sort((a, b) => a.distance - b.distance)
-                    .slice(0, 3); // Top 3
-
-                // Default bounds: User + All Nearest Markers
-                const boundsMarkers = [userMarker];
-                nearestBars.forEach(b => {
-                    if (barMarkers[b.id]) boundsMarkers.push(barMarkers[b.id]);
-                });
-
-                if (boundsMarkers.length > 0) {
-                    const group = new L.featureGroup(boundsMarkers);
-                    map.fitBounds(group.getBounds().pad(0.2)); // Pad 20%
-                }
-
-            }, () => {
-                console.warn("Location access denied or error.");
-                // Fallback: Show all bars
-                if (markers.length > 0) {
-                    const group = new L.featureGroup(markers);
-                    map.fitBounds(group.getBounds().pad(0.1));
-                }
-            });
-        } else {
-            // Fallback: Show all bars
-            if (markers.length > 0) {
-                const group = new L.featureGroup(markers);
-                map.fitBounds(group.getBounds().pad(0.1));
+                const marker = L.marker([bar.lat, bar.lng], { icon: customIcon }).addTo(map);
+                marker.bindPopup(`
+                    <div style="color: #333; text-align: center;">
+                        <h3 style="margin: 0 0 5px 0;">${bar.title}</h3>
+                        <p style="margin: 0;">${bar.location}</p>
+                        <a href="bar-details.html?id=${bar.id}" style="color: #b91c1c; font-weight: bold;">View Details</a>
+                    </div>
+                `);
             }
-        }
+        });
     };
 
     // 4. Bar Details Page
@@ -699,7 +519,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 </p>
             </div>
 
-            <div class="container detail-grid" style="margin-top: 0;">
+            <div class="container detail-grid" style="margin-top: 0; display: flex; gap: 15px; align-items: flex-start;">
                 
                 <!-- Left Column -->
                 <div class="left-column" style="flex: 1; min-width: 0;">
@@ -1038,34 +858,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
-    // 5.1 Event List
-    window.initEventList = async () => {
-        await initAuthAndSaved();
-        const grid = document.getElementById('articles-list-grid');
-        if (!grid) return;
-
-        grid.innerHTML = '<p style="color:#888;">Loading events...</p>';
-
-        try {
-            const { data: events, error } = await supabase
-                .from('articles')
-                .select('*')
-                .eq('category', 'Event')
-                .order('published_at', { ascending: false });
-
-            if (error) throw error;
-
-            if (events && events.length > 0) {
-                grid.innerHTML = events.map(event => createArticleCard(event)).join('');
-            } else {
-                grid.innerHTML = '<p style="width:100%; text-align:center;">No upcoming events found.</p>';
-            }
-        } catch (err) {
-            console.error('Error loading events:', err);
-            grid.innerHTML = '<p style="color:red;">Failed to load events.</p>';
-        }
-    };
-
     // 6. Article Details
     window.initArticleDetails = async () => {
         const params = new URLSearchParams(window.location.search);
@@ -1262,14 +1054,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const isSaved = window.savedBarIds.has(bar.id);
 
-        // Safety check for image
-        let displayImage = 'assets/placeholder_bar.jpg';
-        if (bar.image) {
-            displayImage = bar.image;
-        } else if (bar.bar_images && bar.bar_images.length > 0) {
-            displayImage = bar.bar_images[0].image_url;
-        }
-
         return `
         <div class="art-card grid-item" style="position: relative; display: flex; flex-direction: column; height: 100%; margin-bottom: 3rem; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 380px; margin-left: auto; margin-right: auto;">
              <!-- Save Button -->
@@ -1280,7 +1064,7 @@ document.addEventListener('DOMContentLoaded', async () => {
              <!-- Main Link Wrapper for Top Section -->
             <a href="bar-details.html?id=${bar.id}" style="text-decoration: none; display: block;">
                 <div style="width: 100%; border-bottom: 1px solid #f0f0f0;">
-                    <img src="${displayImage}" alt="${bar.title}" style="width: 100%; height: auto; display: block; transition: transform 0.5s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                    <img src="${bar.image}" alt="${bar.title}" style="width: 100%; height: auto; display: block; transition: transform 0.5s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                 </div>
                 <div style="text-align: center; padding: 1.5rem 1rem 0.5rem 1rem;">
                     <h3 style="font-family: var(--font-display); font-size: 1.8rem; margin: 0 0 0.5rem 0; color: #1b1b1b;">${bar.title}</h3>
@@ -1345,21 +1129,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.createArticleCard = function (article) {
         // Handle both mock data (image, date) and real data (cover_image, published_at)
         const imgUrl = article.cover_image || article.image || 'assets/placeholder.jpg';
-
-        let dateStr = new Date(article.published_at || article.created_at || article.date).toLocaleDateString();
-        let dateStyle = 'margin-bottom: 0.5rem; font-size: 0.85rem; color: #888;';
-
-        // Event Logic: Custom Date Range & Styling
-        if (article.category === 'Event' || article.category === '活動情報') {
-            if (article.start_date && article.end_date) {
-                const formatDate = (iso) => {
-                    const d = new Date(iso);
-                    return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
-                };
-                dateStr = `${formatDate(article.start_date)} - ${formatDate(article.end_date)}`;
-                dateStyle = 'margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--bg-red); font-weight: bold;';
-            }
-        }
+        const dateStr = new Date(article.published_at || article.created_at || article.date).toLocaleDateString();
 
         // Check saved state
         const isSaved = window.savedArticleIds ? window.savedArticleIds.has(article.id) : false;
@@ -1374,7 +1144,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             <a href="journal-details.html?id=${article.id}" style="text-decoration: none; color: inherit; display: block;">
                 <img src="${imgUrl}" alt="${article.title}" class="art-card-image" style="width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 0;">
                 <div style="padding: 1.5rem;">
-                    <div class="art-card-meta" style="${dateStyle}">${dateStr}</div>
+                    <div class="art-card-meta" style="margin-bottom: 0.5rem; font-size: 0.85rem; color: #888;">${dateStr}</div>
                     <h3 class="art-card-title" style="font-size: 1.4rem; margin: 0 0 0.5rem 0; font-family: var(--font-display);">${article.title}</h3>
                     <p class="serif-caption" style="font-size: 1rem; margin: 0; color: #555; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">${article.excerpt || ''}</p>
                 </div>
@@ -1403,115 +1173,48 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Check Auth State
-    supabase.auth.onAuthStateChange(async (event, session) => {
-        // --- Custom Nav Logic ---
-        const myLink = document.getElementById('nav-my-link');
-        const loginBtn = document.getElementById('login-btn');
-        const userMenu = document.getElementById('user-menu');
-
+    supabase.auth.onAuthStateChange((event, session) => {
         if (session) {
             if (loginBtn) loginBtn.style.display = 'none';
-            if (userMenu) userMenu.style.display = 'none';
-
-            // Update "My" link to "Avatar + Name"
-            if (myLink) {
-                const user = session.user;
-                let avatar = user.user_metadata.avatar_url || 'assets/default_avatar.png';
-                let name = user.user_metadata.full_name || 'My';
-
-                // --- FETCH DB OVERRIDE ---
-                try {
-                    const { data: dbProfile } = await supabase
-                        .from('users')
-                        .select('full_name, avatar_url')
-                        .eq('id', user.id)
-                        .single();
-
-                    if (dbProfile) {
-                        if (dbProfile.full_name) name = dbProfile.full_name;
-                        if (dbProfile.avatar_url) avatar = dbProfile.avatar_url;
-                    }
-                } catch (e) {
-                    console.warn('Nav Profile Fetch Error:', e);
-                }
-
-                myLink.innerHTML = `<img src="${avatar}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; vertical-align: middle; margin-right: 6px;"> ${name}`;
-                myLink.style.display = 'inline-flex';
-                myLink.style.alignItems = 'center';
+            if (userMenu) {
+                userMenu.style.display = 'inline-block';
+                // Optional: Fetch profile to get name/avatar if needed
+                // For now just show "Profile" link
             }
         } else {
             if (loginBtn) loginBtn.style.display = 'inline-block';
             if (userMenu) userMenu.style.display = 'none';
-
-            // Reset "My" link
-            if (myLink) {
-                myLink.innerHTML = 'My';
-                myLink.style.display = '';
-                myLink.style.alignItems = '';
-            }
         }
     });
 
     // --- Auto Init based on URL ---
     const path = window.location.pathname;
-    // console.log('App: Path detected -> ' + path);
+    if (path.endsWith('index.html') || path === '/') window.initHome();
+});
 
-    // Ensure Auth is kicked off (but not awaited here)
-    window.initAuthAndSaved().catch(err => {
-        console.warn('Auth: Init Logic Error ' + err.message);
-    });
-
-    // FORCE INIT HOME (Bypassing strict path check for debugging)
-    // If it's NOT a specific sub-page (like admin, map, journal), assume it's Home/Index
-    if (!path.includes('admin.html') && !path.includes('map.html') && !path.includes('journal') && !path.includes('detail') && !path.includes('profile')) {
-        // console.log('App: Triggering initHome...');
-        setTimeout(() => window.initHome(), 100); // Small delay to ensure DOM ready
-    } else if (path.includes('index.html')) {
-        // console.log('App: Triggering initHome (Explicit)...');
-        setTimeout(() => window.initHome(), 100);
+// --- Signature Carousel Logic ---
+window.updateCarousel = (barId) => {
+    const state = window.carouselStates[barId];
+    const track = document.getElementById(`sig-track-${barId}`);
+    if (track && state) {
+        track.style.transform = `translateX(-${state.index * 100}%)`;
     }
-}); // End of DOMContentLoaded
+};
 
-// --- Init Functions (Global Scope) ---
-window.initHome = async () => {
-    if (window.updateStatus) window.updateStatus('Page: initHome called');
+window.prevSignature = (barId) => {
+    const state = window.carouselStates[barId];
+    if (state) {
+        state.index = (state.index - 1 + state.count) % state.count;
+        updateCarousel(barId);
+    }
+};
 
-    const bars = await fetchBars();
-
-    if (window.updateStatus) window.updateStatus(`Home: Received ${bars.length} bars. Rendering...`);
-
-    // REMOVED RE-AWAIT of initAuthAndSaved to prevent double-wait logic
-    // await window.initAuthAndSaved(); 
-
-    const featuredGrid = document.getElementById('featured-grid');
-
-    // ...
-
-    // --- Signature Carousel Logic ---
-    window.updateCarousel = (barId) => {
-        const state = window.carouselStates[barId];
-        const track = document.getElementById(`sig-track-${barId}`);
-        if (track && state) {
-            track.style.transform = `translateX(-${state.index * 100}%)`;
-        }
-    };
-
-    window.prevSignature = (barId) => {
-        const state = window.carouselStates[barId];
-        if (state) {
-            state.index = (state.index - 1 + state.count) % state.count;
-            updateCarousel(barId);
-        }
-    };
-
-    window.nextSignature = (barId) => {
-        const state = window.carouselStates[barId];
-        if (state) {
-            state.index = (state.index + 1) % state.count;
-            updateCarousel(barId);
-        }
-    };
-
-}; // END window.initHome
+window.nextSignature = (barId) => {
+    const state = window.carouselStates[barId];
+    if (state) {
+        state.index = (state.index + 1) % state.count;
+        updateCarousel(barId);
+    }
+};
 
 
