@@ -329,7 +329,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3. Map Page
     window.initMap = async () => {
         const bars = await fetchBars();
-        // Default to Taipei/Asia view if no user location
+        // Default View (will be overridden by fitBounds if data exists)
         const map = L.map('map').setView([25.0330, 121.5654], 14);
 
         // Dark Theme Tiles (Same as Card Maps)
@@ -338,6 +338,8 @@ document.addEventListener('DOMContentLoaded', () => {
             subdomains: 'abcd',
             maxZoom: 20
         }).addTo(map);
+
+        const markers = []; // Collection for Bounds
 
         bars.forEach(bar => {
             if (bar.lat && bar.lng) {
@@ -366,8 +368,16 @@ document.addEventListener('DOMContentLoaded', () => {
                         <a href="bar-details.html?id=${bar.id}" style="display: inline-block; padding: 4px 12px; background: #ef4444; color: white; border-radius: 4px; text-decoration: none; font-size: 0.8rem;">View Details</a>
                     </div>
                 `);
+
+                markers.push(marker);
             }
         });
+
+        // Fit Bounds to show all bars
+        if (markers.length > 0) {
+            const group = new L.featureGroup(markers);
+            map.fitBounds(group.getBounds().pad(0.1));
+        }
     };
 
     // 4. Bar Details Page
