@@ -807,6 +807,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Start Auth Check
-    checkLogin();
+    // Start Auth Listener
+    supabase.auth.onAuthStateChange((event, session) => {
+        if (session) {
+            verifyRole(session.user.id);
+        } else {
+            // No session
+            loginSection.style.display = 'block';
+            dashboardSection.style.display = 'none';
+        }
+    });
 });
