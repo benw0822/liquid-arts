@@ -1382,7 +1382,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </a>
             
-            <div style="padding: 0 1.5rem 1.5rem 1.5rem; text-align: center; flex: 1; display: flex; flex-direction: column;">
+            <div class="card-content" style="padding: 0 1.5rem 1.5rem 1.5rem; text-align: center; flex: 1; display: flex; flex-direction: column;">
                 
                 ${bar.editorial_review ? `
                     <div style="margin-bottom: 1.2rem; padding: 15px; background: var(--bg-red); color: white; border-radius: 12px; text-align: center;">
