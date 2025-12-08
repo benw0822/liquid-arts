@@ -14,23 +14,27 @@
 
 <body class="light-mode">
     <nav class="navbar">
-        <div class="container nav-content">
+        <div class="container nav-content" style="display: flex; align-items: center; justify-content: space-between;">
             <a href="index.html" class="logo">
                 <img src="assets/logo_horizontal.png" alt="Liquid Arts" class="logo-img">
             </a>
-            <a href="profile.html" class="mobile-login-btn" id="mobile-login-btn">Login</a>
-            <div class="nav-links">
+
+            <!-- Desktop Nav Links -->
+            <div class="nav-links" style="margin-left: 2rem;">
                 <a href="bars.html" class="nav-link">Bars</a>
                 <a href="map.html" class="nav-link">Map</a>
-                <a href="journal.html" class="nav-link">Articles</a>
-
-                <a href="profile.html" class="nav-link" id="login-btn" aria-label="Login" style="display: flex; align-items: center; color: var(--text-accent);">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
-                </a>
+                <a href="journal.html" class="nav-link">Journal</a>
+                <a href="events.html" class="nav-link">Event</a>
+                <a href="about.html" class="nav-link">About</a>
             </div>
+
+            <!-- Global Auth Button (Visible on Mobile & Desktop) -->
+            <a href="profile.html" id="global-auth-btn" class="nav-link" aria-label="Profile" style="margin-left: auto; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; color: var(--text-accent);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+            </a>
         </div>
     </nav>
 

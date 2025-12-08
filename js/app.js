@@ -1233,8 +1233,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Auth Logic (Member) ---
     const loginBtn = document.getElementById('login-btn');
-    const userMenu = document.getElementById('user-menu');
-    const userAvatar = document.getElementById('user-avatar');
+    // const userMenu = document.getElementById('user-menu'); // Removed, replaced by global-auth-btn
+    // const userAvatar = document.getElementById('user-avatar'); // Removed, replaced by global-auth-btn
 
     async function signInWithGoogle() {
         const { data, error } = await supabase.auth.signInWithOAuth({
@@ -1253,16 +1253,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Check Auth State
     supabase.auth.onAuthStateChange((event, session) => {
+        // Global Auth Button Logic (Mobile & Desktop)
+        const authBtn = document.getElementById('global-auth-btn');
+        const navMyLink = document.getElementById('nav-my-link'); // Legacy check
+        const loginBtn = document.getElementById('login-btn'); // Legacy check
+        const logoutBtn = document.getElementById('logout-btn');
+
         if (session) {
-            if (loginBtn) loginBtn.style.display = 'none';
-            if (userMenu) {
-                userMenu.style.display = 'inline-block';
-                // Optional: Fetch profile to get name/avatar if needed
-                // For now just show "Profile" link
+            const avatar = session.user.user_metadata.avatar_url || 'assets/logo_vertical.png';
+
+            if (authBtn) {
+                authBtn.innerHTML = `<img src="${avatar}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-color);">`;
             }
+
+            // Legacy Fallbacks (if navbar not updated yet)
+            if (loginBtn) loginBtn.style.display = 'none';
+            if (navMyLink) {
+                navMyLink.style.display = 'inline-flex'; // Or keep hidden if we rely on authBtn
+                // If navMyLink is visible, update it too
+                navMyLink.innerHTML = `<img src="${avatar}" style="width: 24px; height: 24px; border-radius: 50%; margin-right: 8px;"> <span>My</span>`;
+            }
+            if (logoutBtn) logoutBtn.style.display = 'inline-block';
+
         } else {
-            if (loginBtn) loginBtn.style.display = 'inline-block';
-            if (userMenu) userMenu.style.display = 'none';
+            // Logged Out
+            if (authBtn) {
+                // Reset to Icon
+                authBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>`;
+            }
+
+            if (loginBtn) loginBtn.style.display = 'inline-block'; // Or 'flex'
+            if (navMyLink) navMyLink.style.display = 'none';
+            if (logoutBtn) logoutBtn.style.display = 'none';
         }
     });
 
