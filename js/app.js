@@ -1560,7 +1560,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Category Label
-        const categoryLabel = article.category ? `<span style="display:inline-block; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--bg-red); border: 1px solid var(--bg-red); padding: 2px 8px; border-radius: 4px; margin-bottom: 6px;">${article.category}</span>` : '';
+        const categoryMap = {
+            'Event': '活動情報', 'Review': '直擊體驗', 'Feature': '專題報導', 'Interview': '職人專訪',
+            '活動情報': 'Event', '直擊體驗': 'Review', '專題報導': 'Feature', '職人專訪': 'Interview'
+        };
+
+        const displayCategory = categoryMap[article.category] || article.category;
+        const categoryLabel = displayCategory ? `<span style="display:inline-block; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--bg-red); border: 1px solid var(--bg-red); padding: 2px 8px; border-radius: 4px; margin-bottom: 6px;">${displayCategory}</span>` : '';
 
         // Check saved state
         const isSaved = window.savedArticleIds ? window.savedArticleIds.has(article.id) : false;
