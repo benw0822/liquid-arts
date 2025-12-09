@@ -479,7 +479,73 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         map.addControl(new LocateControl());
 
-        const markers = [];
+        const markersLayer = L.featureGroup().addTo(map);
+        let isFilteringSaved = false;
+
+        // Custom Saved Filter Control
+        const SavedFilterControl = L.Control.extend({
+            options: { position: 'topright' },
+            onAdd: function (map) {
+                const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
+                container.style.backgroundColor = 'white';
+                container.style.width = '34px';
+                container.style.height = '34px';
+                container.style.cursor = 'pointer';
+                container.style.display = 'flex';
+                container.style.alignItems = 'center';
+                container.style.justifyContent = 'center';
+                container.style.position = 'relative'; // For badge
+                container.title = "Show Saved Bars Only";
+
+                // Hover effect
+                container.onmouseover = () => container.style.backgroundColor = '#f4f4f4';
+                container.onmouseout = () => {
+                    if (!isFilteringSaved) container.style.backgroundColor = 'white';
+                };
+
+                const savedCount = window.savedBarIds ? window.savedBarIds.size : 0;
+
+                container.innerHTML = `
+                    <svg id="saved-filter-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#333" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                    </svg>
+                    <div id="saved-filter-badge" style="position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; font-size: 10px; font-weight: bold; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.3); ${savedCount > 0 ? '' : 'display: none;'}">
+                        ${savedCount}
+                    </div>
+                `;
+
+                container.onclick = function (e) {
+                    L.DomEvent.stopPropagation(e);
+                    isFilteringSaved = !isFilteringSaved;
+
+                    const icon = container.querySelector('#saved-filter-icon');
+                    if (isFilteringSaved) {
+                        container.style.backgroundColor = '#FFF0F0'; // Light red bg
+                        icon.style.fill = '#ef4444';
+                        icon.style.stroke = '#ef4444';
+                    } else {
+                        container.style.backgroundColor = 'white';
+                        icon.style.fill = 'none';
+                        icon.style.stroke = '#333';
+                    }
+
+                    const barsToRender = isFilteringSaved
+                        ? allBars.filter(bar => window.savedBarIds.has(bar.id))
+                        : allBars;
+
+                    renderBars(barsToRender);
+
+                    if (markersLayer.getLayers().length > 0) {
+                        map.fitBounds(markersLayer.getBounds().pad(0.2));
+                    }
+                };
+                return container;
+            }
+        });
+        map.addControl(new SavedFilterControl());
+
+
+
 
         // Helper: Haversine Distance (km)
         const getDistance = (lat1, lon1, lat2, lon2) => {
@@ -494,6 +560,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         const renderBars = (barsToRender) => {
+            markersLayer.clearLayers();
             barsToRender.forEach(bar => {
                 if (bar.lat && bar.lng) {
                     const isSaved = window.savedBarIds.has(bar.id);
@@ -532,7 +599,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         iconAnchor: [0, 0]
                     });
 
-                    const marker = L.marker([bar.lat, bar.lng], { icon: customIcon }).addTo(map);
+                    const marker = L.marker([bar.lat, bar.lng], { icon: customIcon }).addTo(markersLayer);
                     marker.bindPopup(`
                         <div style="color: #333; text-align: center; min-width: 150px;">
                             <h3 style="margin: 0 0 5px 0; font-family: var(--font-display); font-size: 1.1rem;">${bar.title}</h3>
@@ -540,7 +607,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <a href="bar-details.html?id=${bar.id}" style="display: inline-block; padding: 6px 16px; background: #9c100f; color: white; border-radius: 20px; text-decoration: none; font-size: 0.8rem;">View Details</a>
                         </div>
                     `);
-                    markers.push(marker);
+                    // No need to push to markers array anymore
                 }
             });
         };
@@ -560,7 +627,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 userMarker = L.marker([userLat, userLng], { icon: userIcon, zIndexOffset: 1000 }).addTo(map);
                 userMarker.bindPopup('<div style="color:#333; font-weight:bold;">Current Location</div>');
-                markers.push(userMarker);
+                // markers.push(userMarker); // User marker works independently
+
 
                 // Filter Distances for Zoom (but show ALL bars)
                 const barsWithDist = allBars.map(b => {
@@ -598,17 +666,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.warn('Geolocation denied/error:', err);
                 // Fallback: Show All
                 renderBars(allBars);
-                if (markers.length > 0) {
-                    const group = new L.featureGroup(markers);
-                    map.fitBounds(group.getBounds().pad(0.1));
+                if (markersLayer.getLayers().length > 0) {
+                    map.fitBounds(markersLayer.getBounds().pad(0.1));
                 }
             });
         } else {
             // No Geolocation support: Show All
             renderBars(allBars);
-            if (markers.length > 0) {
-                const group = new L.featureGroup(markers);
-                map.fitBounds(group.getBounds().pad(0.1));
+            if (markersLayer.getLayers().length > 0) {
+                map.fitBounds(markersLayer.getBounds().pad(0.1));
             }
         }
     };
