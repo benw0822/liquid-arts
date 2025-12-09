@@ -437,6 +437,46 @@ h6 {
     color: var(--bg-red);
 }
 
+/* Hopping Badge Styles */
+.hopping-badge {
+    position: absolute;
+    bottom: -15px;
+    /* Stick out bottom edge */
+    left: 20px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 3px solid white;
+    object-fit: cover;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    z-index: 10;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.hopping-badge:hover {
+    transform: scale(1.1);
+}
+
+.hopping-date {
+    position: absolute;
+    bottom: 35px;
+    /* Above the badge */
+    left: 15px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none;
+}
+
+.art-card:hover .hopping-date {
+    opacity: 1;
+}
+
 /* Buttons */
 .btn {
     display: inline-block;

@@ -269,6 +269,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (bar.lat && bar.lng) {
                     setTimeout(() => window.initCardMapGlobal(bar.id, bar.lat, bar.lng, bar.title, window.savedBarIds.has(bar.id)), 100);
                 }
+                // Hopping Badge
+                setTimeout(() => { if (window.renderHoppingBadge) window.renderHoppingBadge(bar.id); }, 500);
             });
         }
 
@@ -339,6 +341,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (bar.lat && bar.lng) {
                     setTimeout(() => initCardMapGlobal(bar.id, bar.lat, bar.lng, bar.title, window.savedBarIds.has(bar.id)), 100);
                 }
+                // Hopping Badge
+                setTimeout(() => { if (window.renderHoppingBadge) window.renderHoppingBadge(bar.id); }, 500);
             });
         }
 
@@ -1533,6 +1537,8 @@ document.addEventListener('DOMContentLoaded', () => {
             <a href="bar-details.html?id=${bar.id}" style="text-decoration: none; display: block; flex-grow: 1; display: flex; flex-direction: column;">
                 <div style="width: 100%; border-bottom: 1px solid #f0f0f0; position: relative;"> <!-- Added relative for map -->
                     <img src="${bar.image}" alt="${bar.title}" style="width: 100%; height: auto; display: block; transition: transform 0.5s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                    <!-- Hopping Badge Container -->
+                    <div id="hop-badge-${bar.id}" class="hop-badge-container"></div>
                 </div>
                 <div style="text-align: center; padding: 1.5rem 1rem 0.5rem 1rem;">
                     <h3 style="font-family: var(--font-display); font-size: 1.8rem; margin: 0 0 0.5rem 0; color: #1b1b1b;">${bar.title}</h3>
@@ -1562,8 +1568,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${description}
                 </p>
 
-                <!-- Explore Button -->
-                <a href="bar-details.html?id=${bar.id}" class="btn" style="display: block; width: fit-content; margin: 0 auto 1.2rem auto; padding: 6px 20px; font-size: 0.9rem; border-radius: 20px; border: none; color: white; background: var(--bg-red); transition: all 0.3s; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">Explore</a>
+                <!-- Explore & Hop Button Group -->
+                <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 1.2rem;">
+                    <a href="bar-details.html?id=${bar.id}" class="btn" style="padding: 6px 20px; font-size: 0.9rem; border-radius: 20px; border: none; color: white; background: var(--bg-red); transition: all 0.3s; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">Explore</a>
+                    
+                    <button onclick="window.openHoppingModal(${bar.id})" style="padding: 6px 15px; font-size: 0.9rem; border-radius: 20px; border: 1px solid var(--text-primary); background: transparent; color: var(--text-primary); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 4px;">
+                        <span>📷</span> Hop
+                    </button>
+                </div>
 
                  <!-- Rating & Price (Compact) -->
                 <div style="margin-bottom: 1.2rem; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.8rem;">
