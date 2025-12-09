@@ -160,45 +160,63 @@ function initHoppingLogic() {
         try {
             // 1. Get Crop Blob
             cropper.getCroppedCanvas({ width: 1080, height: 1080 }).toBlob(async (blob) => {
-                if (!blob) throw new Error('Image crop failed');
+                if (!blob) {
+                    alert('Error: Image crop failed.');
+                    submitBtn.textContent = 'Check In';
+                    submitBtn.disabled = false;
+                    return;
+                }
 
-                // 2. Upload to Supabase Storage
-                const fileName = `${window.currentUser.id}_${Date.now()}.jpg`;
-                const { data: uploadData, error: uploadError } = await window.supabaseClient
-                    .storage
-                    .from('hoppings')
-                    .upload(fileName, blob);
+                try {
+                    // 2. Upload to Supabase Storage
+                    const fileName = `${window.currentUser.id}_${Date.now()}.jpg`;
+                    const { data: uploadData, error: uploadError } = await window.supabaseClient
+                        .storage
+                        .from('hoppings')
+                        .upload(fileName, blob);
 
-                if (uploadError) throw uploadError;
+                    if (uploadError) {
+                        if (uploadError.statusCode === '404' || uploadError.error === 'Bucket not found') {
+                            throw new Error('Storage Bucket "hoppings" not found. Please contact Admin.');
+                        }
+                        throw uploadError;
+                    }
 
-                const publicUrl = window.supabaseClient.storage.from('hoppings').getPublicUrl(fileName).data.publicUrl;
+                    const publicUrl = window.supabaseClient.storage.from('hoppings').getPublicUrl(fileName).data.publicUrl;
 
-                // 3. Insert Record
-                const record = {
-                    user_id: window.currentUser.id,
-                    bar_id: document.getElementById('hopping-bar-id').value,
-                    image_url: publicUrl,
-                    rating: parseInt(ratingInput.value),
-                    description: document.getElementById('hopping-desc').value,
-                    is_public: document.getElementById('hopping-public').checked,
-                    hopped_at: `${document.getElementById('hopping-date').value}T${document.getElementById('hopping-time').value}:00`
-                };
+                    // 3. Insert Record
+                    const record = {
+                        user_id: window.currentUser.id,
+                        bar_id: document.getElementById('hopping-bar-id').value,
+                        image_url: publicUrl,
+                        rating: parseInt(ratingInput.value),
+                        description: document.getElementById('hopping-desc').value,
+                        is_public: document.getElementById('hopping-public').checked,
+                        hopped_at: `${document.getElementById('hopping-date').value}T${document.getElementById('hopping-time').value}:00`
+                    };
 
-                const { error: insertError } = await window.supabaseClient
-                    .from('hoppings')
-                    .insert([record]);
+                    const { error: insertError } = await window.supabaseClient
+                        .from('hoppings')
+                        .insert([record]);
 
-                if (insertError) throw insertError;
+                    if (insertError) throw insertError;
 
-                alert('Hopping Check-In Successful! / 打卡成功！');
-                modal.style.display = 'none';
-                resetForm();
-                location.reload(); // Simple reload to refresh UI
+                    alert('Hopping Check-In Successful! / 打卡成功！');
+                    modal.style.display = 'none';
+                    resetForm();
+                    location.reload();
+
+                } catch (innerErr) {
+                    console.error('Upload Process Error:', innerErr);
+                    alert('Upload Failed / 上傳失敗: ' + (innerErr.message || 'Unknown Error'));
+                    submitBtn.textContent = 'Check In';
+                    submitBtn.disabled = false;
+                }
 
             }, 'image/jpeg', 0.8);
         } catch (err) {
-            console.error(err);
-            alert('Error / 錯誤: ' + err.message);
+            console.error('Setup Error:', err);
+            alert('Error: ' + err.message);
             submitBtn.textContent = 'Check In';
             submitBtn.disabled = false;
         }
