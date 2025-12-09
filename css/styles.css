@@ -191,31 +191,18 @@ h6 {
     /* Remove underline */
 }
 
-/* Masonry Optimization - Aggressive Breakpoints */
+/* Masonry Optimization - Auto-Responsive */
 .unified-grid {
-    column-count: 4;
+    column-width: 300px;
+    /* Force minimum column width */
     column-gap: 1.5rem;
     width: 100%;
     margin: 0 auto;
+    display: block;
+    /* Ensure block-level for columns to work */
 }
 
-@media (max-width: 1280px) {
-    .unified-grid {
-        column-count: 3;
-    }
-}
-
-@media (max-width: 1000px) {
-    .unified-grid {
-        column-count: 2;
-    }
-}
-
-@media (max-width: 600px) {
-    .unified-grid {
-        column-count: 1;
-    }
-}
+/* Remove explicit media queries for column-count as column-width handles it */
 
 /* Force all cards to respect max-width and behave as inline-block for masonry */
 .unified-grid .art-card {
