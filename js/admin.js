@@ -257,13 +257,238 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Navigation Buttons
-    addBarBtn.addEventListener('click', () => {
-        window.location.href = 'bms.html';
+    addBarBtn.addEventListener('click', () => { window.location.href = 'bms.html'; });
+    addJournalBtn.addEventListener('click', () => { window.location.href = 'cms.html'; });
+
+    // --- User Management Logic ---
+    const usersSection = document.getElementById('users-section');
+    const userList = document.getElementById('user-list');
+    const userModal = document.getElementById('user-modal');
+    const addUserBtn = document.getElementById('add-user-btn');
+    const saveUserBtn = document.getElementById('save-user-btn');
+    const closeUserBtn = document.getElementById('close-user-btn');
+
+    // Show Users Section if Admin // TODO: Add a button/tab to toggle views if needed, for now just load it
+    // Actually, we need a way to navigate to "Users". Let's add it to Dashboard if Admin.
+
+    // Function to check and load Users section
+    function initUserManagement(roles) {
+        if (roles.includes('admin')) {
+            // Create "Manage Users" button in Dashboard if not exists
+            if (!document.getElementById('manage-users-btn')) {
+                const btn = document.createElement('button');
+                btn.id = 'manage-users-btn';
+                btn.className = 'btn btn-secondary';
+                btn.textContent = 'Manage Users';
+                btn.style.marginLeft = '10px';
+                btn.onclick = () => {
+                    document.querySelector('.dash-grid').style.display = 'none';
+                    document.getElementById('articles-section').style.display = 'none';
+                    usersSection.style.display = 'block';
+                    loadUsers();
+                };
+                // Add to header actions
+                document.querySelector('.dash-header > div').appendChild(btn);
+            }
+        }
+    }
+
+    // Hook into showDashboard
+    const originalShowDashboard = showDashboard;
+    showDashboard = function (user, roles) {
+        originalShowDashboard(user, roles);
+        initUserManagement(roles);
+    };
+
+    addUserBtn.addEventListener('click', () => {
+        openUserModal();
     });
 
-    addJournalBtn.addEventListener('click', () => {
-        window.location.href = 'cms.html';
+    closeUserBtn.addEventListener('click', () => {
+        userModal.classList.remove('active');
     });
+
+    async function loadUsers() {
+        userList.innerHTML = '<tr><td colspan="4" style="padding:1rem;">Loading...</td></tr>';
+
+        // Fetch Users and their Linked Bars (if any)
+        // Note: 'users' table doesn't strictly have a foreign key to bars in the schema shown, 
+        // but 'bars' has 'owner_user_id'.
+
+        const { data: users, error } = await supabase.from('users').select('*').order('created_at', { ascending: false });
+        // Fetch bars to map owners
+        const { data: bars } = await supabase.from('bars').select('id, title, owner_user_id');
+
+        if (error) {
+            userList.innerHTML = `<tr><td colspan="4" style="color:red;">Error: ${error.message}</td></tr>`;
+            return;
+        }
+
+        userList.innerHTML = users.map(u => {
+            const linkedBar = bars ? bars.find(b => b.owner_user_id === u.id) : null;
+            const roleBadges = (u.roles || []).map(r =>
+                `<span class="tag-badge" style="background:${getRoleColor(r)}; color:white;">${r}</span>`
+            ).join(' ');
+
+            return `
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 1rem;">
+                        <div style="font-weight:600;">${u.email || 'No Email'}</div>
+                        <div style="font-size:0.8rem; color:#888;">${u.name || ''}</div>
+                    </td>
+                    <td style="padding: 1rem;">${roleBadges}</td>
+                    <td style="padding: 1rem;">${linkedBar ? linkedBar.title : '-'}</td>
+                    <td style="padding: 1rem; text-align: right;">
+                        <button onclick="editUser('${u.id}')" class="btn btn-secondary" style="padding:4px 8px; font-size:0.8rem;">Edit</button>
+                        <button onclick="deleteUser('${u.id}')" class="btn btn-secondary" style="padding:4px 8px; font-size:0.8rem; color:red; border-color:red;">Delete</button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    function getRoleColor(role) {
+        switch (role) {
+            case 'admin': return '#000';
+            case 'editor': return '#4caf50';
+            case 'talent': return '#9c100f'; // Brand Red
+            case 'kol': return '#9c27b0';
+            default: return '#999';
+        }
+    }
+
+    async function openUserModal(userId = null) {
+        // Reset Form
+        document.getElementById('user-id').value = '';
+        document.getElementById('user-email').value = '';
+        document.getElementById('user-password').value = '';
+        document.querySelectorAll('.role-checkbox').forEach(cb => cb.checked = false);
+
+        // Load Bars logic for Multi-Select
+        const barContainer = document.getElementById('bar-select-container');
+        barContainer.innerHTML = '<p style="color: #999; font-size: 0.9rem;">Loading bars...</p>';
+
+        const { data: allBars } = await supabase.from('bars').select('id, title, owner_user_id').order('title');
+
+        // If editing, find currently owned bars
+        let ownedBarIds = new Set();
+        if (userId) {
+            const { data: userBars } = await supabase.from('bars').select('id').eq('owner_user_id', userId);
+            if (userBars) userBars.forEach(b => ownedBarIds.add(b.id));
+        }
+
+        if (allBars) {
+            barContainer.innerHTML = '';
+            if (allBars.length === 0) {
+                barContainer.innerHTML = '<p style="color: #999; font-size: 0.9rem;">No bars available.</p>';
+            } else {
+                allBars.forEach(b => {
+                    const isChecked = ownedBarIds.has(b.id);
+                    // Show if owned by THIS user, OR if not owned by anyone (available)
+                    // But actually, Admin might want to override ownership. 
+                    // Let's show ALL bars, but mark if owned by someone else?
+                    // For simplicity: Show All.
+
+                    const div = document.createElement('div');
+                    div.style.marginBottom = '5px';
+                    div.innerHTML = `
+                        <label style="display: flex; align-items: center; cursor: pointer; font-size: 0.9rem; color: #333;">
+                            <input type="checkbox" class="bar-checkbox" value="${b.id}" ${isChecked ? 'checked' : ''} style="margin-right: 8px;">
+                            ${b.title} 
+                            ${(b.owner_user_id && b.owner_user_id !== userId) ? '<span style="color:red; font-size:0.8rem; margin-left:5px;">(Owned by other)</span>' : ''}
+                        </label>
+                    `;
+                    barContainer.appendChild(div);
+                });
+            }
+        }
+
+        if (userId) {
+            document.getElementById('user-modal-title').textContent = 'Edit User';
+            document.getElementById('user-id').value = userId;
+
+            const { data: user, error } = await supabase.from('users').select('*').eq('id', userId).single();
+            if (user) {
+                document.getElementById('user-email').value = user.email;
+                if (user.roles) {
+                    user.roles.forEach(r => {
+                        const cb = document.querySelector(`.role-checkbox[value="${r}"]`);
+                        if (cb) cb.checked = true;
+                    });
+                }
+            }
+        } else {
+            document.getElementById('user-modal-title').textContent = 'Add User';
+            const memberCb = document.querySelector(`.role-checkbox[value="member"]`);
+            if (memberCb) memberCb.checked = true;
+        }
+
+        userModal.classList.add('active');
+    }
+
+    saveUserBtn.onclick = async () => {
+        const id = document.getElementById('user-id').value;
+        const email = document.getElementById('user-email').value;
+        const password = document.getElementById('user-password').value;
+
+        // Multi-Bar Selection
+        const selectedBarIds = Array.from(document.querySelectorAll('.bar-checkbox:checked')).map(cb => cb.value);
+
+        const roles = Array.from(document.querySelectorAll('.role-checkbox:checked')).map(cb => cb.value);
+
+        saveUserBtn.textContent = 'Saving...';
+
+        try {
+            let targetUserId = id;
+
+            if (!id) {
+                alert("Creating new users purely client-side logs you out. For this demo, please create user via Supabase Dashboard or Signup page.");
+                saveUserBtn.textContent = 'Save';
+                return;
+            } else {
+                // Update User Roles
+                const { error } = await supabase.from('users').update({ roles: roles, email: email }).eq('id', id);
+                if (error) throw error;
+
+                if (password) {
+                    alert('Password update only possible by user themselves or Admin API.');
+                }
+            }
+
+            // Handle Multi-Bar Linking
+            // 1. Unlink ALL bars currently owned by this user
+            await supabase.from('bars').update({ owner_user_id: null }).eq('owner_user_id', targetUserId);
+
+            // 2. Link SELECTED bars to this user
+            if (selectedBarIds.length > 0) {
+                // Supabase 'in' filter for batch update?
+                // update bars set owner_user_id = targetUserId where id in (selectedBarIds)
+                const { error: linkError } = await supabase
+                    .from('bars')
+                    .update({ owner_user_id: targetUserId })
+                    .in('id', selectedBarIds);
+
+                if (linkError) throw linkError;
+            }
+
+            userModal.classList.remove('active');
+            loadUsers();
+
+        } catch (e) {
+            alert('Error: ' + e.message);
+        } finally {
+            saveUserBtn.textContent = 'Save';
+        }
+    };
+
+    window.editUser = (id) => openUserModal(id);
+    window.deleteUser = async (id) => {
+        if (confirm('Delete user? This removes them from the public table but Auth account remains.')) {
+            await supabase.from('users').delete().eq('id', id);
+            loadUsers();
+        }
+    };
+
 
     // --- Global Helpers for Onclick ---
     window.editBar = (id) => { window.location.href = `bms.html?id=${id}`; };

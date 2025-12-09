@@ -35,13 +35,13 @@ window.initLogin = () => {
             // Check Role
             const { data: userData, error: userError } = await supabase
                 .from('users')
-                .select('role')
+                .select('roles')
                 .eq('id', data.user.id)
                 .single();
 
-            if (userError || !userData || userData.role !== 'barOwner') {
+            if (userError || !userData || !userData.roles || !userData.roles.includes('talent')) {
                 await supabase.auth.signOut();
-                throw new Error('Unauthorized: You are not a Bar Owner.');
+                throw new Error('Unauthorized: You do not have Talent access.');
             }
 
             window.location.href = 'index.html';
@@ -61,31 +61,64 @@ window.initDashboard = async () => {
 
     const userNameEl = document.getElementById('user-name');
     const barNameEl = document.getElementById('bar-name');
+    const barSelector = document.getElementById('bar-selector');
     const actionsEl = document.getElementById('dashboard-actions');
     const noBarMsg = document.getElementById('no-bar-msg');
     const logoutBtn = document.getElementById('logout-btn');
 
     // Display User Info
-    userNameEl.textContent = currentUser.email; // Ideally fetch name from users table
+    userNameEl.textContent = currentUser.email;
 
-    // Fetch Linked Bar
+    // Fetch Linked Bars (ALL)
     try {
-        const { data: bar, error } = await supabase
+        const { data: bars, error } = await supabase
             .from('bars')
             .select('*')
-            .eq('owner_user_id', currentUser.id)
-            .single();
+            .eq('owner_user_id', currentUser.id);
 
-        if (bar) {
-            currentBar = bar;
-            barNameEl.textContent = bar.name_en || bar.name_zh || bar.title; // Fallback to title if new schema not fully populated
+        if (bars && bars.length > 0) {
             actionsEl.style.display = 'grid';
 
-            // Store bar ID for other pages
-            sessionStorage.setItem('owner_bar_id', bar.id);
+            // Logic for Multiple Bars
+            if (bars.length > 1) {
+                barSelector.style.display = 'block';
+
+                // Get stored selection or default to first
+                let selectedBarId = sessionStorage.getItem('owner_bar_id');
+                // Verify stored ID belongs to user
+                if (!selectedBarId || !bars.some(b => b.id == selectedBarId)) {
+                    selectedBarId = bars[0].id;
+                }
+
+                // Populate Selector
+                barSelector.innerHTML = bars.map(b =>
+                    `<option value="${b.id}">${b.name_en || b.name_zh || b.title}</option>`
+                ).join('');
+
+                barSelector.value = selectedBarId;
+                selectedBarId = parseInt(selectedBarId); // Ensure type match if needed
+
+                currentBar = bars.find(b => b.id == selectedBarId);
+                barNameEl.textContent = currentBar.name_en || currentBar.name_zh || currentBar.title;
+                sessionStorage.setItem('owner_bar_id', currentBar.id);
+
+                // Handle Change
+                barSelector.addEventListener('change', (e) => {
+                    sessionStorage.setItem('owner_bar_id', e.target.value);
+                    window.location.reload();
+                });
+
+            } else {
+                // Single Bar
+                currentBar = bars[0];
+                barNameEl.textContent = currentBar.name_en || currentBar.name_zh || currentBar.title;
+                sessionStorage.setItem('owner_bar_id', currentBar.id);
+            }
+
         } else {
             barNameEl.textContent = 'No Bar Linked';
             noBarMsg.style.display = 'block';
+            sessionStorage.removeItem('owner_bar_id');
         }
     } catch (err) {
         console.error('Error fetching bar:', err);
