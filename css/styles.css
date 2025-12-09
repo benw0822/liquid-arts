@@ -463,6 +463,172 @@ h6 {
     border-color: var(--bg-red);
 }
 
+/* --- Hopping Modal Design System --- */
+.hopping-modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    /* Slightly more transparent for glass feel */
+    backdrop-filter: blur(8px);
+    /* Frosted glass effect */
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+}
+
+.hopping-modal-card {
+    background: #fff;
+    width: 90%;
+    max-width: 480px;
+    max-height: 90vh;
+    overflow-y: auto;
+    border-radius: 12px;
+    /* Smooth corners */
+    padding: 2.5rem 2rem;
+    position: relative;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+    font-family: var(--font-main);
+}
+
+.hopping-title {
+    font-family: var(--font-display);
+    font-size: 2.5rem;
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #1b1b1b;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.hopping-label {
+    display: block;
+    margin-bottom: 0.8rem;
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #888;
+    font-weight: 600;
+}
+
+/* Upload Zone */
+.upload-zone-stylish {
+    width: 100%;
+    aspect-ratio: 1/1;
+    background: #fafafa;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    margin: 0 auto 1.5rem auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.upload-zone-stylish:hover {
+    background: #f5f5f5;
+    border-color: #ccc;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.02);
+}
+
+.upload-placeholder-text {
+    color: #aaa;
+    font-family: var(--font-display);
+    font-size: 1rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    pointer-events: none;
+}
+
+/* Inputs */
+.hopping-input-minimal {
+    width: 100%;
+    padding: 12px 0;
+    border: none;
+    border-bottom: 1px solid #ddd;
+    border-radius: 0;
+    background: transparent;
+    font-family: var(--font-main);
+    font-size: 1rem;
+    color: #333;
+    transition: border-color 0.3s;
+    margin-bottom: 1.5rem;
+}
+
+.hopping-input-minimal:focus {
+    outline: none;
+    border-bottom-color: var(--bg-red);
+}
+
+/* Rating Stars */
+.hop-star {
+    font-size: 2rem;
+    cursor: pointer;
+    transition: transform 0.2s, color 0.2s;
+    color: #ddd;
+}
+
+.hop-star:hover {
+    transform: scale(1.1);
+}
+
+/* Submit Button */
+.btn-hop-submit {
+    width: 100%;
+    background: #1b1b1b;
+    /* Minimalist Black */
+    color: white;
+    border: none;
+    height: 50px;
+    border-radius: 25px;
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
+    margin-top: 1rem;
+}
+
+.btn-hop-submit:hover {
+    background: var(--bg-red);
+    /* Hover Red */
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(239, 68, 68, 0.3);
+}
+
+.btn-hop-submit:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Close Button */
+.btn-close-minimal {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 2rem;
+    line-height: 1;
+    color: #ccc;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.btn-close-minimal:hover {
+    color: #333;
+}
+
 /* Buttons */
 .btn {
     display: inline-block;

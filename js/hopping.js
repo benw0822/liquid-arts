@@ -1,23 +1,23 @@
 // Hopping Feature Logic
 
-// 1. Inject Modal HTML on Load
+// 1. Inject Modal HTML on Load (Redesigned)
 document.addEventListener('DOMContentLoaded', () => {
     const modalHTML = `
-    <div id="hopping-modal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center;">
-        <div class="modal-content" style="background: white; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; border-radius: 12px; padding: 20px; position: relative; color: #333;">
-            <button id="close-hopping-btn" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
-            <h2 style="margin-bottom: 20px; font-family: var(--font-display); text-align: center;">Hop In!</h2>
+    <div id="hopping-modal" class="hopping-modal-overlay">
+        <div class="hopping-modal-card">
+            <button id="close-hopping-btn" class="btn-close-minimal">&times;</button>
+            <h2 class="hopping-title">Hop In</h2>
             
             <input type="hidden" id="hopping-bar-id">
 
-            <!-- 1. Image Upload & Crop (Square Zone) -->
-            <div style="margin-bottom: 20px; text-align: center;">
-                <label style="display: block; margin-bottom: 8px; font-weight: 600; text-align: left;">1. Photo (Required)</label>
+            <!-- 1. Image Upload (Square) -->
+            <div style="margin-bottom: 2rem;">
+                <label class="hopping-label">1. Capture the Moment</label>
                 <input type="file" id="hopping-file-input" accept="image/*" style="display: none;">
                 
-                <div id="upload-zone" style="width: 100%; max-width: 300px; aspect-ratio: 1/1; background: #f0f0f0; border: 2px dashed #ccc; border-radius: 8px; margin: 0 auto; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; overflow: hidden;">
-                    <span id="upload-placeholder" style="color: #888; font-size: 1.2rem; pointer-events: none;">
-                        📷 Click to Upload
+                <div id="upload-zone" class="upload-zone-stylish">
+                    <span id="upload-placeholder" class="upload-placeholder-text">
+                        + Update Photo
                     </span>
                     <div id="cropper-wrapper" style="width: 100%; height: 100%; display: none;">
                         <img id="cropper-image" src="" style="max-width: 100%;">
@@ -26,46 +26,46 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
 
             <!-- 2. Rating -->
-            <div style="margin-bottom: 20px;">
-                <label style="display: block; margin-bottom: 8px; font-weight: 600;">2. Rating</label>
-                <div class="star-rating" style="display: flex; gap: 5px; font-size: 1.5rem; cursor: pointer;">
+            <div style="margin-bottom: 2rem; text-align: center;">
+                <label class="hopping-label" style="text-align: center; margin-bottom: 1rem;">2. Experience</label>
+                <div class="star-rating" style="display: flex; gap: 8px; justify-content: center; margin-bottom: 0.5rem;">
                     <span data-value="1" class="hop-star">☆</span>
                     <span data-value="2" class="hop-star">☆</span>
                     <span data-value="3" class="hop-star">☆</span>
                     <span data-value="4" class="hop-star">☆</span>
                     <span data-value="5" class="hop-star">☆</span>
                 </div>
-                <p id="rating-desc" style="font-size: 0.9rem; color: #666; margin-top: 5px; min-height: 20px;">Select a rating</p>
+                <p id="rating-desc" style="font-size: 0.85rem; color: var(--bg-red); min-height: 20px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase;">SELECT RATING</p>
                 <input type="hidden" id="hopping-rating" value="0">
             </div>
 
             <!-- 3. Description -->
-            <div style="margin-bottom: 20px;">
-                <label style="display: block; margin-bottom: 8px; font-weight: 600;">3. Description (Optional)</label>
-                <textarea id="hopping-desc" maxlength="150" placeholder="Max 150 chars..." style="width: 100%; height: 80px; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"></textarea>
+            <div style="margin-bottom: 1.5rem;">
+                <label class="hopping-label">3. Thoughts (Optional)</label>
+                <textarea id="hopping-desc" class="hopping-input-minimal" maxlength="150" placeholder="Describe the vibe..." style="height: auto; min-height: 40px; resize: none; overflow-y: hidden;"></textarea>
             </div>
 
-            <!-- 4. Date & Time -->
-            <div style="margin-bottom: 20px; display: flex; gap: 10px;">
+            <!-- 4. Date & Time (Row) -->
+            <div style="display: flex; gap: 2rem; margin-bottom: 2rem;">
                 <div style="flex: 1;">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Date</label>
-                    <input type="date" id="hopping-date" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                    <label class="hopping-label">Date</label>
+                    <input type="date" id="hopping-date" class="hopping-input-minimal" style="margin-bottom: 0;">
                 </div>
                 <div style="flex: 1;">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Time</label>
-                    <input type="time" id="hopping-time" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                    <label class="hopping-label">Time</label>
+                    <input type="time" id="hopping-time" class="hopping-input-minimal" style="margin-bottom: 0;">
                 </div>
             </div>
 
             <!-- 5. Public Toggle -->
-            <div style="margin-bottom: 20px;">
-                 <label style="display: flex; align-items: center; cursor: pointer;">
-                    <input type="checkbox" id="hopping-public" checked style="width: 20px; height: 20px; margin-right: 10px;">
-                    <span>Make Public</span>
+            <div style="margin-bottom: 2.5rem; display: flex; align-items: center; justify-content: center;">
+                 <label style="display: flex; align-items: center; cursor: pointer; gap: 10px;">
+                    <input type="checkbox" id="hopping-public" checked style="accent-color: var(--bg-red); width: 18px; height: 18px;">
+                    <span style="font-size: 0.9rem; color: #555; letter-spacing: 0.05em;">Make this Hop Public</span>
                  </label>
             </div>
 
-            <button id="submit-hopping-btn" class="btn" style="width: 100%; background: var(--bg-red); color: white; border: none; border-radius: 4px; padding: 12px;">Check In</button>
+            <button id="submit-hopping-btn" class="btn-hop-submit">Confirm Check-In</button>
         </div>
     </div>
     `;
@@ -105,7 +105,7 @@ function initHoppingLogic() {
                 cropperImage.src = evt.target.result;
                 cropperWrapper.style.display = 'block';
                 placeholder.style.display = 'none'; // Hide text
-                uploadZone.style.border = 'none'; // Remove dashed border
+                // Removed manual border manipulation - rely on CSS hover effects
 
                 if (cropper) cropper.destroy();
                 cropper = new Cropper(cropperImage, {
@@ -144,7 +144,7 @@ function initHoppingLogic() {
         stars.forEach(s => {
             const v = parseInt(s.getAttribute('data-value'));
             s.textContent = v <= val ? '★' : '☆';
-            s.style.color = v <= val ? '#ffd700' : '#ccc'; // Gold vs Gray
+            s.style.color = v <= val ? '#ef4444' : '#ddd'; // Red vs Gray
         });
     }
 
@@ -227,13 +227,20 @@ function resetForm() {
     if (cropper) { cropper.destroy(); cropper = null; }
     document.getElementById('cropper-wrapper').style.display = 'none';
     document.getElementById('upload-placeholder').style.display = 'block';
-    document.getElementById('upload-zone').style.border = '2px dashed #ccc';
+
+    // Reset inputs
     document.getElementById('hopping-file-input').value = '';
     document.getElementById('hopping-desc').value = '';
     document.getElementById('hopping-rating').value = 0;
-    document.querySelectorAll('.hop-star').forEach(s => { s.textContent = '☆'; s.style.color = '#ccc'; });
-    document.getElementById('rating-desc').textContent = 'Select a rating';
-    document.getElementById('submit-hopping-btn').textContent = 'Check In';
+
+    // Reset Stars
+    document.querySelectorAll('.hop-star').forEach(s => {
+        s.textContent = '☆';
+        s.style.color = '#ddd';
+    });
+
+    document.getElementById('rating-desc').textContent = 'SELECT RATING';
+    document.getElementById('submit-hopping-btn').textContent = 'Confirm Check-In';
     document.getElementById('submit-hopping-btn').disabled = false;
 }
 
