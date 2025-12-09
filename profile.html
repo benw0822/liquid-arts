@@ -181,7 +181,7 @@
             const fetchHops = async () => {
                 const { data } = await window.supabaseClient
                     .from('hoppings')
-                    .select('*')
+                    .select('*, bars (id, title, lat, lng, location)')
                     .eq('user_id', user.id)
                     .order('hopped_at', { ascending: false });
                 return (data || []).map(item => ({
@@ -260,10 +260,13 @@
                 unifiedGrid.innerHTML = filtered.map(item => {
                     if (item.type === 'hopping') {
                         const hop = item.data;
+                        const bar = hop.bars || {}; // Associated Bar Data
                         const dateStr = new Date(hop.hopped_at).toLocaleDateString();
                         const stars = '★'.repeat(parseInt(hop.rating)) + '☆'.repeat(5 - parseInt(hop.rating));
+                        const ratingLabels = ['', 'Poor', 'Fair', 'Enjoyable', 'Remarkable', 'Masterpiece'];
+                        const ratingText = ratingLabels[parseInt(hop.rating)] || '';
 
-                        // Hop-Card Style: Match Bar Card (White Bg at bottom)
+                        // Hop-Card Style
                         return `
                         <div class="art-card" onclick="window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', '${hop.rating}', '${hop.description ? hop.description.replace(/'/g, "\\'") : ''}', '${hop.id}', '${hop.user_id}')" style="cursor: pointer; display: flex; flex-direction: column; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
                              <div style="width: 100%; aspect-ratio: 1/1; overflow: hidden; position: relative;">
@@ -272,9 +275,17 @@
                                     HOPPING
                                 </div>
                              </div>
-                             <div style="padding: 1.5rem 1rem; text-align: center; background: white;">
-                                <div style="color: var(--bg-red); font-size: 1.2rem; margin-bottom: 0.4rem; letter-spacing: 2px;">${stars}</div>
-                                <div style="font-family: var(--font-display); font-size: 0.9rem; color: #666; letter-spacing: 0.1em; text-transform: uppercase;">${dateStr}</div>
+                             <div style="padding: 1.5rem 1rem; text-align: center; background: white; flex: 1; display: flex; flex-direction: column;">
+                                <!-- Bar Title -->
+                                ${bar.title ? `<h3 style="font-family: var(--font-display); font-size: 1.4rem; margin: 0 0 0.5rem 0; color: #1b1b1b;">${bar.title}</h3>` : ''}
+
+                                <div style="color: var(--bg-red); font-size: 1.2rem; margin-bottom: 0.2rem; letter-spacing: 2px;">${stars}</div>
+                                ${ratingText ? `<div style="font-weight: 600; font-size: 0.8rem; text-transform: uppercase; color: #333; margin-bottom: 0.5rem;">${ratingText}</div>` : ''}
+
+                                <div style="font-family: var(--font-display); font-size: 0.9rem; color: #666; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1rem;">${dateStr}</div>
+
+                                <!-- Mini Map -->
+                                <div id="hop-map-${hop.id}" class="card-map" style="height: 120px; width: 100%; border-radius: 4px; margin-top: auto;"></div>
                              </div>
                         </div>`;
                     } else if (item.type === 'bar') {
@@ -284,12 +295,41 @@
                     }
                 }).join('');
 
-                // Re-init maps (if any)
-                filtered.filter(i => i.type === 'bar').forEach(item => {
-                    const bar = item.data;
-                    if (bar.lat && bar.lng) setTimeout(() => initCardMapGlobal(bar.id, bar.lat, bar.lng, bar.title), 100);
-                    // Init Hopping Badge
-                    setTimeout(() => { if (window.renderHoppingBadge) window.renderHoppingBadge(bar.id); }, 100);
+                // Re-init maps
+                filtered.forEach(item => {
+                    if (item.type === 'bar') {
+                        const bar = item.data;
+                        if (bar.lat && bar.lng) {
+                            setTimeout(() => initCardMapGlobal(bar.id, bar.lat, bar.lng, bar.title, window.savedBarIds.has(bar.id)), 100);
+                            setTimeout(() => { if (window.renderHoppingBadge) window.renderHoppingBadge(bar.id); }, 100);
+                        }
+                    } else if (item.type === 'hopping') {
+                        const hop = item.data;
+                        const bar = hop.bars || {};
+                        if (bar.lat && bar.lng) {
+                            setTimeout(() => {
+                                // Initialize Hop Map (using unique ID hop-map-${hop.id})
+                                // We reuse initCardMapGlobal logic but need to pass correct ID.
+                                // initCardMapGlobal expects 'card-map-ID'.
+                                // We used 'hop-map-ID'. Creating a custom init or reusing?
+                                // Let's quickly define a helper for hop maps or assume initCardMapGlobal can handle raw ID?
+                                // initCardMapGlobal uses `L.map('card-map-' + barId)`.
+                                // This won't work for Hops directly.
+                                // I will inline the map creation for hops OR update HTML ID to 'card-map-hop-'.
+                                // But simpler: Inline simple map logic here or call a modified helper.
+                                // Actually, I'll update HTML ID to use `card-map-hop-${hop.id}` and define a specific initializer.
+
+                                const mapId = `hop-map-${hop.id}`;
+                                const el = document.getElementById(mapId);
+                                if (el && !el._leaflet_id) { // Check if already initialized
+                                    const map = L.map(mapId, { zoomControl: false, dragging: false, scrollWheelZoom: false, doubleClickZoom: false }).setView([bar.lat, bar.lng], 15);
+                                    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 19 }).addTo(map);
+                                    L.marker([bar.lat, bar.lng]).addTo(map);
+                                    el.style.pointerEvents = 'none'; // Static map
+                                }
+                            }, 200);
+                        }
+                    }
                 });
             }
 
