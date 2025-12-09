@@ -147,19 +147,71 @@ h6 {
     height: 100%;
 }
 
-.logo {
+/* --- Profile Filter Tabs --- */
+.profile-filter-nav {
     display: flex;
-    align-items: center;
-    /* Vertical Center Logic */
-    height: 100%;
+    justify-content: center;
+    gap: 3rem;
+    margin-bottom: 3rem;
+    border-bottom: none;
+    /* Removed border */
+    padding-bottom: 1rem;
+}
+
+.filter-tab {
+    background: none;
+    border: none;
     font-family: var(--font-display);
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: white !important;
-    /* Force white text */
-    text-decoration: none;
+    font-size: 1.8rem;
+    /* Much Larger */
+    color: white;
+    /* Default White */
+    cursor: pointer;
+    padding: 0.5rem 0;
+    position: relative;
+    transition: all 0.3s;
     text-transform: uppercase;
     letter-spacing: 0.1em;
+    opacity: 0.7;
+}
+
+.filter-tab:hover {
+    opacity: 1;
+}
+
+.filter-tab.active {
+    color: var(--bg-red);
+    /* Active Red */
+    font-weight: 700;
+    opacity: 1;
+}
+
+.filter-tab.active::after {
+    display: none;
+    /* Remove underline */
+}
+
+/* --- Unify Grid Spacing --- */
+.unified-grid {
+    min-height: 300px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 2rem;
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    .unified-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Force all cards to respect the original Bar Card max-width */
+.unified-grid .art-card {
+    width: 100%;
+    max-width: 380px !important;
+    margin: 0 auto !important;
+    /* Center in grid cell */
 }
 
 .nav-links {
@@ -629,7 +681,8 @@ h6 {
 .hop-detail-card {
     background: #fff;
     width: 90%;
-    max-width: 420px;
+    max-width: 380px;
+    /* Match Grid Card Max-width */
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);

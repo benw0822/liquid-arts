@@ -305,14 +305,18 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
                 <div class="hop-detail-image-wrapper">
                     <button onclick="document.getElementById('hopping-details-modal').style.display='none'" class="btn-close-detail">&times;</button>
                     <img id="hd-img" class="hop-detail-image" src="">
+                    <!-- Hopping Label -->
+                    <div style="position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.6); color: white; padding: 2px 8px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase;">
+                        HOPPING
+                    </div>
                     <!-- Delete Button Injection Point -->
-                    <button id="hd-delete-btn" class="btn-close-detail" style="right: auto; left: 15px; background: rgba(220, 38, 38, 0.8); display: none;">
+                    <button id="hd-delete-btn" class="btn-close-detail" style="right: auto; left: 15px; top: auto; bottom: 15px; background: rgba(220, 38, 38, 0.8); display: none;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                     </button>
                 </div>
                 <div class="hop-detail-content">
-                    <span id="hd-date" class="hop-detail-date"></span>
                     <div id="hd-rating" class="hop-detail-stars"></div>
+                    <span id="hd-date" class="hop-detail-date"></span>
                     <div id="hd-desc" class="hop-detail-desc"></div>
                 </div>
             </div>
@@ -341,26 +345,32 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
     // Delete Button Logic
     const deleteBtn = document.getElementById('hd-delete-btn');
     if (hopId && window.currentUser) {
-        // Check if Owner OR Admin
-        const isOwner = window.currentUser.id === ownerId;
-        // Verify admin role from DB fetch if needed, but for UI local check:
-        // note: window.currentUser.user_metadata or roles might be needed. 
-        // For now, reliance on RLS is key, but UI needs to know to show button. 
-        // We'll rely on our earlier fetched roles if available, or just simply show if owner.
-        // For Admin, since we don't have roles in window.currentUser easily without fetch, 
-        // we'll fetch roles if ownerId != current and user might be admin.
+        let canDelete = window.currentUser.id === ownerId;
 
-        // Simplified Logic: Show if Owner. 
-        // TODO: For 'Admin' visibility, we need to check session roles. 
-        // Assuming simple 'admin' checking logic exists or we just try-delete.
+        // Check if Admin (Async check)
+        if (!canDelete) {
+            const { data: dbUser } = await window.supabaseClient
+                .from('users')
+                .select('roles')
+                .eq('id', window.currentUser.id)
+                .single();
+            if (dbUser && dbUser.roles && dbUser.roles.includes('admin')) {
+                canDelete = true;
+            }
+        }
 
-        deleteBtn.style.display = 'flex';
-        deleteBtn.onclick = () => window.deleteHopping(hopId);
+        if (canDelete) {
+            deleteBtn.style.display = 'flex';
+            deleteBtn.onclick = () => window.deleteHopping(hopId);
+        } else {
+            deleteBtn.style.display = 'none';
+        }
     } else {
         deleteBtn.style.display = 'none';
     }
+}
 
-    modal.style.display = 'flex';
+modal.style.display = 'flex';
 };
 
 // Delete Hopping
