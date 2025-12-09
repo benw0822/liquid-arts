@@ -10,12 +10,18 @@ document.addEventListener('DOMContentLoaded', () => {
             
             <input type="hidden" id="hopping-bar-id">
 
-            <!-- 1. Image Upload & Crop -->
-            <div style="margin-bottom: 20px;">
-                <label style="display: block; margin-bottom: 8px; font-weight: 600;">1. Photo (Required)</label>
-                <input type="file" id="hopping-file-input" accept="image/*" style="margin-bottom: 10px;">
-                <div id="cropper-wrapper" style="width: 100%; height: 300px; background: #eee; display: none;">
-                    <img id="cropper-image" src="" style="max-width: 100%;">
+            <!-- 1. Image Upload & Crop (Square Zone) -->
+            <div style="margin-bottom: 20px; text-align: center;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 600; text-align: left;">1. Photo (Required)</label>
+                <input type="file" id="hopping-file-input" accept="image/*" style="display: none;">
+                
+                <div id="upload-zone" style="width: 100%; max-width: 300px; aspect-ratio: 1/1; background: #f0f0f0; border: 2px dashed #ccc; border-radius: 8px; margin: 0 auto; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; overflow: hidden;">
+                    <span id="upload-placeholder" style="color: #888; font-size: 1.2rem; pointer-events: none;">
+                        📷 Click to Upload
+                    </span>
+                    <div id="cropper-wrapper" style="width: 100%; height: 100%; display: none;">
+                        <img id="cropper-image" src="" style="max-width: 100%;">
+                    </div>
                 </div>
             </div>
 
@@ -84,7 +90,13 @@ function initHoppingLogic() {
     closeBtn.onclick = () => { modal.style.display = 'none'; resetForm(); };
     window.onclick = (e) => { if (e.target == modal) { modal.style.display = 'none'; resetForm(); } };
 
-    // Image & Cropper
+    // Image & Cropper Logic
+    const uploadZone = document.getElementById('upload-zone');
+    const placeholder = document.getElementById('upload-placeholder');
+
+    // Click zone triggers input
+    uploadZone.onclick = () => fileInput.click();
+
     fileInput.onchange = (e) => {
         const file = e.target.files[0];
         if (file) {
@@ -92,11 +104,18 @@ function initHoppingLogic() {
             reader.onload = (evt) => {
                 cropperImage.src = evt.target.result;
                 cropperWrapper.style.display = 'block';
+                placeholder.style.display = 'none'; // Hide text
+                uploadZone.style.border = 'none'; // Remove dashed border
+
                 if (cropper) cropper.destroy();
                 cropper = new Cropper(cropperImage, {
                     aspectRatio: 1, // 1080x1080 square
                     viewMode: 1,
                     autoCropArea: 1,
+                    dragMode: 'move',
+                    guides: false,
+                    center: false,
+                    background: false
                 });
             };
             reader.readAsDataURL(file);
@@ -105,11 +124,11 @@ function initHoppingLogic() {
 
     // Rating Star Logic
     const ratingTexts = {
-        1: "Not my cup of tea",
-        2: "It was okay",
-        3: "Good experience",
-        4: "Really liked it!",
-        5: "Absolutely amazing!"
+        1: "POOR",
+        2: "FAIR",
+        3: "ENJOYABLE",
+        4: "REMARKABLE",
+        5: "MASTERPIECE"
     };
 
     stars.forEach(star => {
@@ -171,7 +190,7 @@ function initHoppingLogic() {
 
                 if (insertError) throw insertError;
 
-                alert('Hopping Check-In Successful!');
+                alert('Hopping Check-In Successful! / 打卡成功！');
                 modal.style.display = 'none';
                 resetForm();
                 location.reload(); // Simple reload to refresh UI
@@ -179,7 +198,7 @@ function initHoppingLogic() {
             }, 'image/jpeg', 0.8);
         } catch (err) {
             console.error(err);
-            alert('Error: ' + err.message);
+            alert('Error / 錯誤: ' + err.message);
             submitBtn.textContent = 'Check In';
             submitBtn.disabled = false;
         }
@@ -189,6 +208,8 @@ function initHoppingLogic() {
 function resetForm() {
     if (cropper) { cropper.destroy(); cropper = null; }
     document.getElementById('cropper-wrapper').style.display = 'none';
+    document.getElementById('upload-placeholder').style.display = 'block';
+    document.getElementById('upload-zone').style.border = '2px dashed #ccc';
     document.getElementById('hopping-file-input').value = '';
     document.getElementById('hopping-desc').value = '';
     document.getElementById('hopping-rating').value = 0;

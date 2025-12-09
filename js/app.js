@@ -1533,6 +1533,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="${isSaved ? '#ef4444' : 'none'}" stroke="${isSaved ? '#ef4444' : '#333'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
              </button>
 
+             <!-- Hopping Button (Top Left) -->
+             <button onclick="event.preventDefault(); window.openHoppingModal(${bar.id})" style="position: absolute; top: 15px; left: 15px; z-index: 20; background: rgba(255,255,255,0.9); border: none; border-radius: 20px; padding: 6px 12px; font-size: 0.85rem; font-weight: 600; color: #333; box-shadow: 0 4px 10px rgba(0,0,0,0.15); cursor: pointer; display: flex; align-items: center; gap: 4px; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                <span>📷</span> Hop
+             </button>
+
              <!-- Main Link Wrapper -->
             <a href="bar-details.html?id=${bar.id}" style="text-decoration: none; display: block; flex-grow: 1; display: flex; flex-direction: column;">
                 <div style="width: 100%; border-bottom: 1px solid #f0f0f0; position: relative;"> <!-- Added relative for map -->
@@ -1568,13 +1573,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${description}
                 </p>
 
-                <!-- Explore & Hop Button Group -->
-                <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 1.2rem;">
+                <!-- Explore Button Only (Hop moved to top left) -->
+                <div style="display: flex; justify-content: center; margin-bottom: 1.2rem;">
                     <a href="bar-details.html?id=${bar.id}" class="btn" style="padding: 6px 20px; font-size: 0.9rem; border-radius: 20px; border: none; color: white; background: var(--bg-red); transition: all 0.3s; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">Explore</a>
-                    
-                    <button onclick="window.openHoppingModal(${bar.id})" style="padding: 6px 15px; font-size: 0.9rem; border-radius: 20px; border: 1px solid var(--text-primary); background: transparent; color: var(--text-primary); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 4px;">
-                        <span>📷</span> Hop
-                    </button>
                 </div>
 
                  <!-- Rating & Price (Compact) -->
