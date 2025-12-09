@@ -419,8 +419,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } else {
             document.getElementById('user-modal-title').textContent = 'Add User';
-            const memberCb = document.querySelector(`.role-checkbox[value="member"]`);
-            if (memberCb) memberCb.checked = true;
+        }
+
+        // Enforce 'member' role: Always checked and disabled
+        const memberCb = document.querySelector(`.role-checkbox[value="member"]`);
+        if (memberCb) {
+            memberCb.checked = true;
+            memberCb.disabled = true; // User cannot uncheck it
         }
 
         userModal.classList.add('active');
@@ -434,7 +439,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Multi-Bar Selection
         const selectedBarIds = Array.from(document.querySelectorAll('.bar-checkbox:checked')).map(cb => cb.value);
 
-        const roles = Array.from(document.querySelectorAll('.role-checkbox:checked')).map(cb => cb.value);
+        // Get selected roles AND ensure 'member' is included
+        const rolesSet = new Set(Array.from(document.querySelectorAll('.role-checkbox:checked')).map(cb => cb.value));
+        rolesSet.add('member'); // Force member role
+        const roles = Array.from(rolesSet);
 
         saveUserBtn.textContent = 'Saving...';
 
