@@ -46,10 +46,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!profile) {
                 console.warn('Profile missing. Backfilling...');
                 const { error: insertError } = await supabase.from('users').insert([
-                    { id: user.id, email: user.email, roles: ['reader'] }
+                    { id: user.id, email: user.email, roles: ['member'] }
                 ]);
                 if (!insertError) {
-                    profile = { roles: ['reader'] }; // Assume reader default
+                    profile = { roles: ['member'] }; // Assume reader default
                 } else {
                     console.error('Backfill failed:', insertError);
                     alert('Error setting up user profile. Please contact support.');

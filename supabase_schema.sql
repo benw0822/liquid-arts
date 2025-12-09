@@ -162,7 +162,7 @@ create table if not exists users (
   id uuid references auth.users on delete cascade not null primary key,
   email text,
   name text,
-  roles text[] default array['reader'], -- 'admin', 'editor', 'barOwner', 'reader'
+  roles text[] default array['member'], -- 'admin', 'editor', 'talent', 'member', 'kol'
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
@@ -193,7 +193,7 @@ security definer set search_path = public
 as $$
 begin
   insert into public.users (id, email, name, roles)
-  values (new.id, new.email, split_part(new.email, '@', 1), array['reader']);
+  values (new.id, new.email, split_part(new.email, '@', 1), array['member']);
   return new;
 end;
 $$;
