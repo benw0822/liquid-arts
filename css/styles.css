@@ -928,6 +928,30 @@ figure.article-figure figcaption {
     font-size: 1.1rem;
 }
 
+/* --- Unify Grid Spacing --- */
+.unified-grid {
+    min-height: 300px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    /* Standard width */
+    gap: 2rem;
+    /* Consistent gap */
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    .unified-grid {
+        grid-template-columns: 1fr;
+        /* Stack on mobile */
+    }
+}
+
+/* Ensure all cards in grid fill the column */
+.unified-grid .art-card {
+    width: 100%;
+    margin: 0;
+}
+
 /* --- Related Bars Selection --- */
 .bar-list-container {
     max-height: 200px;

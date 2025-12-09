@@ -257,29 +257,24 @@
                     return;
                 }
 
-                if (filtered.length === 0) {
-                    unifiedGrid.innerHTML = '<p style="text-align: center; color: #888; width: 100%; margin-top: 3rem;">Nothing to show here yet.</p>';
-                    return;
-                }
-
                 unifiedGrid.innerHTML = filtered.map(item => {
                     if (item.type === 'hopping') {
                         const hop = item.data;
                         const dateStr = new Date(hop.hopped_at).toLocaleDateString();
                         const stars = '★'.repeat(parseInt(hop.rating)) + '☆'.repeat(5 - parseInt(hop.rating));
-                        
-                        // Hop-Card Style for Grid (Matches Bar Card Structure)
+
+                        // Hop-Card Style: Match Bar Card (White Bg at bottom)
                         return `
-                        <div class="art-card" onclick="window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', '${hop.rating}', '${hop.description ? hop.description.replace(/'/g, "\\'") : ''}', '${hop.id}', '${hop.user_id}')" style="cursor: pointer; display: flex; flex-direction: column;">
+                        <div class="art-card" onclick="window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', '${hop.rating}', '${hop.description ? hop.description.replace(/'/g, "\\'") : ''}', '${hop.id}', '${hop.user_id}')" style="cursor: pointer; display: flex; flex-direction: column; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
                              <div style="width: 100%; aspect-ratio: 1/1; overflow: hidden; position: relative;">
                                 <img src="${hop.image_url}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                                 <div style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.6); color: white; padding: 2px 8px; border-radius: 20px; font-size: 0.6rem; font-weight: 600; text-transform: uppercase;">
                                     HOPPING
                                 </div>
                              </div>
-                             <div style="padding: 1rem 0; text-align: center;">
-                                <div style="color: var(--bg-red); font-size: 0.9rem; margin-bottom: 0.3rem;">${stars}</div>
-                                <div style="font-family: var(--font-display); font-size: 0.8rem; color: #888; letter-spacing: 0.1em;">${dateStr}</div>
+                             <div style="padding: 1.5rem 1rem; text-align: center; background: white;">
+                                <div style="color: var(--bg-red); font-size: 1.2rem; margin-bottom: 0.4rem; letter-spacing: 2px;">${stars}</div>
+                                <div style="font-family: var(--font-display); font-size: 0.9rem; color: #666; letter-spacing: 0.1em; text-transform: uppercase;">${dateStr}</div>
                              </div>
                         </div>`;
                     } else if (item.type === 'bar') {
@@ -291,40 +286,46 @@
 
                 // Re-init maps (if any)
                 filtered.filter(i => i.type === 'bar').forEach(item => {
-                     const bar = item.data;
-                     if (bar.lat && bar.lng) setTimeout(() => initCardMapGlobal(bar.id, bar.lat, bar.lng, bar.title), 100);
+                    const bar = item.data;
+                    if (bar.lat && bar.lng) setTimeout(() => initCardMapGlobal(bar.id, bar.lat, bar.lng, bar.title), 100);
                 });
             }
 
-            // --- RESTORED: Admin/Talent Button Logic ---
-            const { data: dbUser } = await window.supabaseClient.from('users').select('roles').eq('id', user.id).single();
-            const roles = dbUser ? (dbUser.roles || []) : [];
-            const isAdmin = roles.includes('admin');
-            const isEditor = roles.includes('editor');
-            const isTalent = roles.includes('talent');
+            // --- Admin/Talent Button Logic (Prevent Loading Hanging) ---
+            try {
+                const { data: dbUser } = await window.supabaseClient.from('users').select('roles').eq('id', user.id).single();
+                const roles = dbUser ? (dbUser.roles || []) : [];
+                const isAdmin = roles.includes('admin');
+                const isEditor = roles.includes('editor');
+                const isTalent = roles.includes('talent');
 
-            if (isAdmin || isEditor || isTalent) {
-                const btnContainer = document.createElement('div');
-                btnContainer.style.marginTop = '1.5rem';
-                const link = document.createElement('a');
-                link.className = 'btn';
-                link.style.display = 'inline-block';
-                link.style.textDecoration = 'none';
+                if (isAdmin || isEditor || isTalent) {
+                    const btnContainer = document.createElement('div');
+                    btnContainer.style.marginTop = '1.5rem';
+                    const link = document.createElement('a');
+                    link.className = 'btn';
+                    link.style.display = 'inline-block';
+                    link.style.textDecoration = 'none';
 
-                if (isAdmin || isEditor) {
-                    link.href = 'admin.html';
-                    link.textContent = isAdmin ? 'Admin Dashboard' : 'Manage Content';
-                } else if (isTalent) {
-                    link.href = 'owner/index.html';
-                    link.textContent = 'Manage My Bar';
+                    if (isAdmin || isEditor) {
+                        link.href = 'admin.html';
+                        link.textContent = isAdmin ? 'Admin Dashboard' : 'Manage Content';
+                    } else if (isTalent) {
+                        link.href = 'owner/index.html';
+                        link.textContent = 'Manage My Bar';
+                    }
+
+                    btnContainer.appendChild(link);
+                    const emailEl = document.getElementById('profile-email');
+                    if (emailEl) emailEl.parentNode.insertBefore(btnContainer, emailEl.nextSibling);
                 }
-
-                btnContainer.appendChild(link);
-                // Insert after Profile Email
-                const emailEl = document.getElementById('profile-email');
-                if (emailEl) emailEl.parentNode.insertBefore(btnContainer, emailEl.nextSibling);
+            } catch (e) {
+                console.warn('Admin button injection failed:', e);
+            } finally {
+                // Ensure Loading is hidden regardless of Admin logic success
+                loading.style.display = 'none';
+                profileContent.style.display = 'block';
             }
-
 
             // --- Filter Event Listeners ---
             document.querySelectorAll('.filter-tab').forEach(btn => {
