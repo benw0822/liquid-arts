@@ -1533,17 +1533,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="${isSaved ? '#ef4444' : 'none'}" stroke="${isSaved ? '#ef4444' : '#333'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
              </button>
 
-             <!-- Hopping Button (Top Left) -->
-             <button onclick="event.preventDefault(); window.openHoppingModal(${bar.id})" style="position: absolute; top: 15px; left: 15px; z-index: 20; background: rgba(255,255,255,0.9); border: none; border-radius: 20px; padding: 6px 12px; font-size: 0.85rem; font-weight: 600; color: #333; box-shadow: 0 4px 10px rgba(0,0,0,0.15); cursor: pointer; display: flex; align-items: center; gap: 4px; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                <span>📷</span> Hop
-             </button>
+             <!-- Hopping Interaction Wrapper (Top Left) -->
+             <div style="position: absolute; top: 15px; left: 15px; z-index: 30; display: flex; align-items: center; gap: 12px; pointer-events: auto;">
+                 <!-- Hop Button -->
+                 <button onclick="event.preventDefault(); event.stopPropagation(); window.openHoppingModal(${bar.id})" style="background: rgba(255,255,255,0.95); border: none; border-radius: 20px; padding: 6px 14px; font-size: 0.85rem; font-weight: 700; color: #333; box-shadow: 0 4px 10px rgba(0,0,0,0.15); cursor: pointer; display: flex; align-items: center; gap: 6px; transition: transform 0.2s;">
+                    <span>📷</span> Hop
+                 </button>
+                 
+                 <!-- Badges Row -->
+                 <div id="hop-badge-${bar.id}" style="display: flex; align-items: center; padding-left: 5px;"></div>
+             </div>
 
              <!-- Main Link Wrapper -->
             <a href="bar-details.html?id=${bar.id}" style="text-decoration: none; display: block; flex-grow: 1; display: flex; flex-direction: column;">
                 <div style="width: 100%; border-bottom: 1px solid #f0f0f0; position: relative;"> <!-- Added relative for map -->
                     <img src="${bar.image}" alt="${bar.title}" style="width: 100%; height: auto; display: block; transition: transform 0.5s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                    <!-- Hopping Badge Container -->
-                    <div id="hop-badge-${bar.id}" class="hop-badge-container"></div>
                 </div>
                 <div style="text-align: center; padding: 1.5rem 1rem 0.5rem 1rem;">
                     <h3 style="font-family: var(--font-display); font-size: 1.8rem; margin: 0 0 0.5rem 0; color: #1b1b1b;">${bar.title}</h3>

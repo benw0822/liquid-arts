@@ -239,34 +239,33 @@ window.openHoppingModal = (barId) => {
     modal.style.display = 'flex';
 };
 
-// Helper: Fetch latest hopping for a bar
-window.fetchLatestHopping = async (barId) => {
+// Helper: Fetch recent hoppings for a bar (Max 3)
+window.fetchRecentHoppings = async (barId) => {
     const { data } = await window.supabaseClient
         .from('hoppings')
         .select('*')
         .eq('bar_id', barId)
         .eq('is_public', true)
         .order('hopped_at', { ascending: false })
-        .limit(1)
-        .single();
+        .limit(3);
     return data;
 };
 
-// Render Badge (Called from app.js)
+// Render Badge Row (Called from app.js)
 window.renderHoppingBadge = async (barId) => {
-    const data = await window.fetchLatestHopping(barId);
-    if (!data) return;
+    const data = await window.fetchRecentHoppings(barId);
+    if (!data || data.length === 0) return;
 
     const container = document.getElementById(`hop-badge-${barId}`);
     if (!container) return;
 
-    const dateStr = new Date(data.hopped_at).toLocaleDateString();
-
-    // Create Badge Elements
-    container.innerHTML = `
-        <img src="${data.image_url}" class="hopping-badge" onclick="event.preventDefault(); window.showHoppingDetails(event, '${data.image_url}', '${data.hopped_at}', '${data.rating}', '${data.description}')">
-        <div class="hopping-date">${dateStr}</div>
-    `;
+    // Render badges
+    container.innerHTML = data.map(hop => `
+        <img src="${hop.image_url}" 
+             class="hopping-badge-mini" 
+             title="${new Date(hop.hopped_at).toLocaleDateString()}"
+             onclick="event.preventDefault(); event.stopPropagation(); window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', '${hop.rating}', '${hop.description}')">
+    `).join('');
 };
 
 // Show Details Modal
