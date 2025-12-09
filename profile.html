@@ -76,30 +76,17 @@
                 </div>
             </div>
 
-            <!-- My Hoppings Section -->
-            <div class="section-header">
-                <h2 class="section-title">My Hops</h2>
-            </div>
-            <div id="my-hoppings-grid" class="masonry-grid" style="min-height: 150px; margin-bottom: 4rem;">
-                <p style="text-align: center; color: #888; width: 100%;">Loading hops...</p>
-            </div>
-
-            <!-- Saved Bars Section -->
-            <div class="section-header">
-                <h2 class="section-title">Saved Bars</h2>
+            <!-- Filter Navigation -->
+            <div class="profile-filter-nav">
+                <button class="filter-tab active" data-filter="all">All</button>
+                <button class="filter-tab" data-filter="hopping">Hopping</button>
+                <button class="filter-tab" data-filter="bar">Bar</button>
+                <button class="filter-tab" data-filter="journal">Journal</button>
             </div>
 
-            <!-- Masonry Grid (Reusing #bars-grid style) -->
-            <div id="bars-grid" style="min-height: 200px;">
-                <p style="text-align: center; color: #888; width: 100%;">Loading collection...</p>
-            </div>
-
-            <!-- Saved Articles Section (Placeholder) -->
-            <div class="section-header" style="margin-top: 4rem;">
-                <h2 class="section-title" style="font-size: 2rem;">Saved Articles</h2>
-            </div>
-            <div id="saved-articles-grid" class="magazine-grid">
-                <p style="text-align: center; color: #888; width: 100%;">No saved articles yet.</p>
+            <!-- Unified Grid -->
+            <div id="unified-grid" class="masonry-grid unified-grid">
+                <p style="text-align: center; color: #888; width: 100%; margin-top: 2rem;">Loading collection...</p>
             </div>
         </div> <!-- End User View -->
     </main>
@@ -185,98 +172,132 @@
                 else document.getElementById('profile-avatar').src = 'assets/logo_vertical.png';
             }
 
-            // Admin/Talent Button Logic
-            const { data: dbUser } = await supabase.from('users').select('roles').eq('id', user.id).single();
-            const roles = dbUser ? (dbUser.roles || []) : [];
-            const isAdmin = roles.includes('admin');
-            const isEditor = roles.includes('editor');
-            const isTalent = roles.includes('talent');
-
-            if (isAdmin || isEditor || isTalent) {
-                const btnContainer = document.createElement('div');
-                btnContainer.style.marginTop = '1.5rem';
-                const link = document.createElement('a');
-                link.className = 'btn';
-                link.style.display = 'inline-block';
-                link.style.textDecoration = 'none';
-
-                if (isAdmin || isEditor) {
-                    link.href = 'admin.html';
-                    link.textContent = isAdmin ? 'Admin Dashboard' : 'Manage Content';
-                } else if (isTalent) {
-                    link.href = 'owner/index.html';
-                    link.textContent = 'Manage My Bar';
-                }
-
-                btnContainer.appendChild(link);
-                document.getElementById('profile-name').parentNode.insertBefore(btnContainer, document.getElementById('profile-email').nextSibling);
-            }
-
-            loading.style.display = 'none';
-            profileContent.style.display = 'block';
-
-            document.getElementById('logout-btn').addEventListener('click', async (e) => {
-                e.preventDefault();
-                await supabase.auth.signOut();
-                window.location.href = 'index.html';
-            });
-
-            // --- Load Saved Bars (Masonry) ---
+            // --- Unified Data Fetching ---
             await window.initAuthAndSaved();
-            const savedGrid = document.getElementById('bars-grid');
+            const unifiedGrid = document.getElementById('unified-grid');
+            let allItems = [];
 
-            if (window.savedBarIds.size > 0) {
-                const { data: allBars } = await supabase
+            // 1. Fetch My Hops
+            const fetchHops = async () => {
+                const { data } = await window.supabaseClient
+                    .from('hoppings')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .order('hopped_at', { ascending: false });
+                return (data || []).map(item => ({
+                    type: 'hopping',
+                    date: new Date(item.hopped_at),
+                    data: item
+                }));
+            };
+
+            // 2. Fetch Saved Bars
+            const fetchBars = async () => {
+                if (window.savedBarIds.size === 0) return [];
+                const { data } = await supabase
                     .from('bars')
                     .select(`*, bar_images (image_url, caption, display_order), signatures (*), bar_awards (*), article_bars (article:articles (id, title, excerpt, cover_image, published_at))`);
 
-                if (allBars) {
-                    // Filter saved
-                    const savedBars = allBars.filter(bar => window.savedBarIds.has(bar.id));
+                if (!data) return [];
 
-                    // Pre-calculate cities for consistent display
-                    const barsWithCity = await Promise.all(savedBars.map(async (bar) => {
-                        let city = bar.location;
-                        if (bar.lat && bar.lng) {
-                            const resolved = await fetchCityFromCoordsGlobal(bar.lat, bar.lng);
-                            if (resolved) city = resolved;
-                        }
-                        return { ...bar, cityDisplay: city };
-                    }));
-
-                    if (barsWithCity.length > 0) {
-                        savedGrid.innerHTML = barsWithCity.map(bar => createBarCard(bar, bar.cityDisplay)).join('');
-
-                        // Init Maps
-                        barsWithCity.forEach(bar => {
-                            if (bar.lat && bar.lng) setTimeout(() => initCardMapGlobal(bar.id, bar.lat, bar.lng, bar.title), 100);
-                        });
-                    } else {
-                        savedGrid.innerHTML = '<p style="text-align:center; color: #666; width: 100%;">No saved bars found.</p>';
+                // Client-side filter for saved IDs & fetch cities
+                const savedBars = data.filter(b => window.savedBarIds.has(b.id));
+                const barsWithCity = await Promise.all(savedBars.map(async (bar) => {
+                    let city = bar.location;
+                    if (bar.lat && bar.lng) {
+                        const resolved = await fetchCityFromCoordsGlobal(bar.lat, bar.lng);
+                        if (resolved) city = resolved;
                     }
-                }
-            } else {
-                savedGrid.innerHTML = '<p style="text-align:center; color: #666; width: 100%;">You haven\'t saved any bars yet.</p>';
-            }
+                    return { ...bar, cityDisplay: city };
+                }));
 
-            // --- Load Saved Articles ---
-            const savedArticlesGrid = document.getElementById('saved-articles-grid');
-            if (window.savedArticleIds.size > 0) {
-                const { data: allArticles } = await supabase
+                return barsWithCity.map(item => ({
+                    type: 'bar',
+                    date: new Date(item.created_at || Date.now()), // Bars don't strictly have a 'date' relevant to timeline, using created_at or fallback
+                    data: item
+                }));
+            };
+
+            // 3. Fetch Saved Articles
+            const fetchArticles = async () => {
+                if (window.savedArticleIds.size === 0) return [];
+                const { data } = await supabase
                     .from('articles')
-                    .select('id, title, excerpt, cover_image, published_at, created_at, date, image');
+                    .select('id, title, excerpt, cover_image, published_at, created_at, date, image, category');
 
-                if (allArticles) {
-                    const savedArticles = allArticles.filter(a => window.savedArticleIds.has(a.id));
-                    if (savedArticles.length > 0) {
-                        savedArticlesGrid.innerHTML = savedArticles.map(a => window.createArticleCard(a)).join('');
-                    } else {
-                        savedArticlesGrid.innerHTML = '<p style="text-align:center; color: #666; width: 100%;">No saved articles found.</p>';
-                    }
-                }
-            } else {
-                savedArticlesGrid.innerHTML = '<p style="text-align:center; color: #666; width: 100%;">You haven\'t saved any articles yet.</p>';
+                if (!data) return [];
+
+                return data.filter(a => window.savedArticleIds.has(a.id)).map(item => ({
+                    type: 'journal',
+                    date: new Date(item.published_at || item.date || item.created_at),
+                    data: item
+                }));
+            };
+
+            try {
+                const [hops, bars, articles] = await Promise.all([fetchHops(), fetchBars(), fetchArticles()]);
+                allItems = [...hops, ...bars, ...articles];
+
+                // Sort by Date Descending
+                allItems.sort((a, b) => b.date - a.date);
+
+                renderUnifiedGrid('all');
+
+            } catch (err) {
+                console.error('Error fetching profile data:', err);
+                unifiedGrid.innerHTML = '<p style="text-align:center; color: #ef4444;">Failed to load connection.</p>';
             }
+
+            // --- Render Function ---
+            function renderUnifiedGrid(filter) {
+                const filtered = filter === 'all' ? allItems : allItems.filter(item => item.type === filter);
+
+                if (filtered.length === 0) {
+                    unifiedGrid.innerHTML = '<p style="text-align: center; color: #888; width: 100%; margin-top: 3rem;">Nothing to show here yet.</p>';
+                    return;
+                }
+
+                unifiedGrid.innerHTML = filtered.map(item => {
+                    if (item.type === 'hopping') {
+                        const hop = item.data;
+                        return `
+                        <div class="art-card" onclick="window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', '${hop.rating}', '${hop.description ? hop.description.replace(/'/g, "\\'") : ''}', '${hop.id}', '${hop.user_id}')" style="cursor: pointer; position: relative; margin-bottom: 20px;">
+                             <div style="width: 100%; aspect-ratio: 1/1; overflow: hidden; border-radius: 8px;">
+                                <img src="${hop.image_url}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                             </div>
+                            <div style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.6); color: white; padding: 2px 8px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; border: 1px solid rgba(255,255,255,0.3);">
+                                HOPPING
+                            </div>
+                            <div style="position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.6); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-family: var(--font-display);">
+                                ${new Date(hop.hopped_at).toLocaleDateString()}
+                            </div>
+                        </div>`;
+                    } else if (item.type === 'bar') {
+                        // Reuse createBarCard logic but manually ensuring it fits grid or calling window.createBarCard
+                        return window.createBarCard(item.data, item.data.cityDisplay);
+                    } else if (item.type === 'journal') {
+                        return window.createArticleCard(item.data);
+                    }
+                }).join('');
+
+                // Re-init maps for bars
+                filtered.filter(i => i.type === 'bar').forEach(item => {
+                    const bar = item.data;
+                    if (bar.lat && bar.lng) setTimeout(() => initCardMapGlobal(bar.id, bar.lat, bar.lng, bar.title), 100);
+                });
+            }
+
+            // --- Filter Event Listeners ---
+            document.querySelectorAll('.filter-tab').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Update Active State
+                    document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+
+                    // Render
+                    renderUnifiedGrid(btn.getAttribute('data-filter'));
+                });
+            });
         });
     </script>
 </body>
