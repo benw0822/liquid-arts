@@ -257,35 +257,74 @@
                     return;
                 }
 
+                if (filtered.length === 0) {
+                    unifiedGrid.innerHTML = '<p style="text-align: center; color: #888; width: 100%; margin-top: 3rem;">Nothing to show here yet.</p>';
+                    return;
+                }
+
                 unifiedGrid.innerHTML = filtered.map(item => {
                     if (item.type === 'hopping') {
                         const hop = item.data;
+                        const dateStr = new Date(hop.hopped_at).toLocaleDateString();
+                        const stars = '★'.repeat(parseInt(hop.rating)) + '☆'.repeat(5 - parseInt(hop.rating));
+                        
+                        // Hop-Card Style for Grid (Matches Bar Card Structure)
                         return `
-                        <div class="art-card" onclick="window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', '${hop.rating}', '${hop.description ? hop.description.replace(/'/g, "\\'") : ''}', '${hop.id}', '${hop.user_id}')" style="cursor: pointer; position: relative; margin-bottom: 20px;">
-                             <div style="width: 100%; aspect-ratio: 1/1; overflow: hidden; border-radius: 8px;">
+                        <div class="art-card" onclick="window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', '${hop.rating}', '${hop.description ? hop.description.replace(/'/g, "\\'") : ''}', '${hop.id}', '${hop.user_id}')" style="cursor: pointer; display: flex; flex-direction: column;">
+                             <div style="width: 100%; aspect-ratio: 1/1; overflow: hidden; position: relative;">
                                 <img src="${hop.image_url}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                                <div style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.6); color: white; padding: 2px 8px; border-radius: 20px; font-size: 0.6rem; font-weight: 600; text-transform: uppercase;">
+                                    HOPPING
+                                </div>
                              </div>
-                            <div style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.6); color: white; padding: 2px 8px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; border: 1px solid rgba(255,255,255,0.3);">
-                                HOPPING
-                            </div>
-                            <div style="position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.6); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-family: var(--font-display);">
-                                ${new Date(hop.hopped_at).toLocaleDateString()}
-                            </div>
+                             <div style="padding: 1rem 0; text-align: center;">
+                                <div style="color: var(--bg-red); font-size: 0.9rem; margin-bottom: 0.3rem;">${stars}</div>
+                                <div style="font-family: var(--font-display); font-size: 0.8rem; color: #888; letter-spacing: 0.1em;">${dateStr}</div>
+                             </div>
                         </div>`;
                     } else if (item.type === 'bar') {
-                        // Reuse createBarCard logic but manually ensuring it fits grid or calling window.createBarCard
                         return window.createBarCard(item.data, item.data.cityDisplay);
                     } else if (item.type === 'journal') {
                         return window.createArticleCard(item.data);
                     }
                 }).join('');
 
-                // Re-init maps for bars
+                // Re-init maps (if any)
                 filtered.filter(i => i.type === 'bar').forEach(item => {
-                    const bar = item.data;
-                    if (bar.lat && bar.lng) setTimeout(() => initCardMapGlobal(bar.id, bar.lat, bar.lng, bar.title), 100);
+                     const bar = item.data;
+                     if (bar.lat && bar.lng) setTimeout(() => initCardMapGlobal(bar.id, bar.lat, bar.lng, bar.title), 100);
                 });
             }
+
+            // --- RESTORED: Admin/Talent Button Logic ---
+            const { data: dbUser } = await window.supabaseClient.from('users').select('roles').eq('id', user.id).single();
+            const roles = dbUser ? (dbUser.roles || []) : [];
+            const isAdmin = roles.includes('admin');
+            const isEditor = roles.includes('editor');
+            const isTalent = roles.includes('talent');
+
+            if (isAdmin || isEditor || isTalent) {
+                const btnContainer = document.createElement('div');
+                btnContainer.style.marginTop = '1.5rem';
+                const link = document.createElement('a');
+                link.className = 'btn';
+                link.style.display = 'inline-block';
+                link.style.textDecoration = 'none';
+
+                if (isAdmin || isEditor) {
+                    link.href = 'admin.html';
+                    link.textContent = isAdmin ? 'Admin Dashboard' : 'Manage Content';
+                } else if (isTalent) {
+                    link.href = 'owner/index.html';
+                    link.textContent = 'Manage My Bar';
+                }
+
+                btnContainer.appendChild(link);
+                // Insert after Profile Email
+                const emailEl = document.getElementById('profile-email');
+                if (emailEl) emailEl.parentNode.insertBefore(btnContainer, emailEl.nextSibling);
+            }
+
 
             // --- Filter Event Listeners ---
             document.querySelectorAll('.filter-tab').forEach(btn => {
