@@ -288,6 +288,8 @@
                 filtered.filter(i => i.type === 'bar').forEach(item => {
                     const bar = item.data;
                     if (bar.lat && bar.lng) setTimeout(() => initCardMapGlobal(bar.id, bar.lat, bar.lng, bar.title), 100);
+                    // Init Hopping Badge
+                    setTimeout(() => { if (window.renderHoppingBadge) window.renderHoppingBadge(bar.id); }, 100);
                 });
             }
 

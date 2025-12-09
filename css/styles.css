@@ -193,25 +193,43 @@ h6 {
 
 /* --- Unify Grid Spacing --- */
 .unified-grid {
+    column-count: 4;
+    /* Desktop default */
+    column-gap: 2rem;
     min-height: 300px;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 2rem;
     width: 100%;
+}
+
+@media (max-width: 1400px) {
+    .unified-grid {
+        column-count: 3;
+    }
+}
+
+@media (max-width: 1024px) {
+    .unified-grid {
+        column-count: 2;
+    }
 }
 
 @media (max-width: 768px) {
     .unified-grid {
-        grid-template-columns: 1fr;
+        column-count: 1;
     }
 }
 
-/* Force all cards to respect the original Bar Card max-width */
+/* Force all cards to respect max-width and behave as inline-block for masonry */
 .unified-grid .art-card {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    /* Prevent split across columns */
     width: 100%;
     max-width: 380px !important;
-    margin: 0 auto !important;
-    /* Center in grid cell */
+    margin: 0 auto 2rem auto !important;
+    /* Bottom margin for spacing */
+    display: inline-block;
+    /* Essential for column-count */
+    vertical-align: top;
 }
 
 .nav-links {
