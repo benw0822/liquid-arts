@@ -333,14 +333,14 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
     const modal = document.getElementById('hopping-details-modal');
     document.getElementById('hd-img').src = img;
 
-    // Format Date: "OCT 24, 2023"
+    // Format Date
     const dateObj = new Date(date);
     const dateString = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     const timeString = dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
     document.getElementById('hd-date').textContent = `${dateString} • ${timeString}`;
 
     document.getElementById('hd-rating').textContent = '★'.repeat(parseInt(rating)) + '☆'.repeat(5 - parseInt(rating));
-    document.getElementById('hd-desc').textContent = desc === 'null' || desc === 'undefined' ? '' : desc;
+    document.getElementById('hd-desc').textContent = (!desc || desc === 'null' || desc === 'undefined') ? '' : desc;
 
     // Delete Button Logic
     const deleteBtn = document.getElementById('hd-delete-btn');
@@ -349,13 +349,17 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
 
         // Check if Admin (Async check)
         if (!canDelete) {
-            const { data: dbUser } = await window.supabaseClient
-                .from('users')
-                .select('roles')
-                .eq('id', window.currentUser.id)
-                .single();
-            if (dbUser && dbUser.roles && dbUser.roles.includes('admin')) {
-                canDelete = true;
+            try {
+                const { data: dbUser } = await window.supabaseClient
+                    .from('users')
+                    .select('roles')
+                    .eq('id', window.currentUser.id)
+                    .single();
+                if (dbUser && dbUser.roles && dbUser.roles.includes('admin')) {
+                    canDelete = true;
+                }
+            } catch (e) {
+                console.warn('Admin check failed:', e);
             }
         }
 
@@ -368,9 +372,8 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
     } else {
         deleteBtn.style.display = 'none';
     }
-}
 
-modal.style.display = 'flex';
+    modal.style.display = 'flex';
 };
 
 // Delete Hopping

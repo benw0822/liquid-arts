@@ -144,13 +144,14 @@
         </div>
     </footer>
 
-    <script src="js/app.js?v=force"></script>
-    <script src="js/hopping.js?v=force"></script>
+    <script src="js/app.js"></script>
+    <script src="js/hopping.js"></script>
+    <script> src = "js/hopping.js?v=force" ></script>
     <script>
-        // Simple page-specific init
-        document.addEventListener('DOMContentLoaded', () => {
-            if (window.initBarList) window.initBarList();
-        });
+            // Simple page-specific init
+            document.addEventListener('DOMContentLoaded', () => {
+                if (window.initBarList) window.initBarList();
+            });
     </script>
 </body>
 
