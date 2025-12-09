@@ -191,28 +191,27 @@ h6 {
     /* Remove underline */
 }
 
-/* --- Unify Grid Spacing --- */
+/* Masonry Optimization - Aggressive Breakpoints */
 .unified-grid {
     column-count: 4;
-    /* Desktop default */
-    column-gap: 2rem;
-    min-height: 300px;
+    column-gap: 1.5rem;
     width: 100%;
+    margin: 0 auto;
 }
 
-@media (max-width: 1400px) {
+@media (max-width: 1280px) {
     .unified-grid {
         column-count: 3;
     }
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1000px) {
     .unified-grid {
         column-count: 2;
     }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 600px) {
     .unified-grid {
         column-count: 1;
     }
