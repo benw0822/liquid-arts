@@ -330,6 +330,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 `<span class="tag-badge" style="background:${getRoleColor(r)}; color:white;">${r}</span>`
             ).join(' ');
 
+            const isTalent = (u.roles || []).some(r => ['talent', 'kol'].includes(r));
+
             return `
                 <tr style="border-bottom: 1px solid #eee;">
                     <td style="padding: 1rem;">
@@ -339,7 +341,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td style="padding: 1rem;">${roleBadges}</td>
                     <td style="padding: 1rem;">${linkedBar ? linkedBar.title : '-'}</td>
                     <td style="padding: 1rem; text-align: right;">
-                        <button onclick="editUser('${u.id}')" class="btn btn-secondary" style="padding:4px 8px; font-size:0.8rem;">Edit</button>
+                        ${isTalent ? `<button onclick="window.openTalentEditor('${u.id}')" class="btn btn-secondary" style="padding:4px 8px; font-size:0.8rem; margin-right: 5px;">Talent</button>` : ''}
+                        <button onclick="editUser('${u.id}')" class="btn btn-secondary" style="padding:4px 8px; font-size:0.8rem; margin-right: 5px;">Edit</button>
                         <button onclick="deleteUser('${u.id}')" class="btn btn-secondary" style="padding:4px 8px; font-size:0.8rem; color:red; border-color:red;">Delete</button>
                     </td>
                 </tr>

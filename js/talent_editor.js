@@ -5,6 +5,7 @@ console.log('Talent Editor Loaded');
 let talentCropper = null;
 let talentBlob = null;
 let currentTalentId = null; // If editing existing
+let targetUserId = null; // The user we are editing (Self or Other)
 
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
@@ -37,27 +38,48 @@ async function checkTalentEligibility() {
 
 // --- UI Actions ---
 
-window.openTalentEditor = async () => {
+// Modified to accept userId (optional). If null, defaults to current user.
+window.openTalentEditor = async (userId = null) => {
     const modal = document.getElementById('talent-modal');
+    if (!modal) return console.error('Talent Modal not found');
     modal.style.display = 'flex';
+
+    if (userId) {
+        targetUserId = userId;
+    } else {
+        const user = window.currentUser || (await window.supabaseClient.auth.getUser()).data.user;
+        targetUserId = user ? user.id : null;
+    }
+
+    if (!targetUserId) {
+        alert('User not identified');
+        return window.closeTalentEditor();
+    }
 
     // Fetch existing data
     await loadTalentData();
 };
 
 window.closeTalentEditor = () => {
-    document.getElementById('talent-modal').style.display = 'none';
+    const modal = document.getElementById('talent-modal');
+    if (modal) modal.style.display = 'none';
+
+    // Cleanup
+    if (talentCropper) {
+        talentCropper.destroy();
+        talentCropper = null;
+    }
+    talentBlob = null;
 };
 
 // --- Data Loading ---
 async function loadTalentData() {
-    const user = window.currentUser || (await window.supabaseClient.auth.getUser()).data.user;
-    if (!user) return;
+    if (!targetUserId) return;
 
     const { data, error } = await window.supabaseClient
         .from('talents')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', targetUserId) // Use targetUserId
         .maybeSingle();
 
     if (error) {
@@ -75,6 +97,11 @@ async function loadTalentData() {
             document.getElementById('talent-preview').src = data.image_url;
             document.getElementById('talent-preview').style.display = 'block';
             document.getElementById('talent-upload-placeholder').style.display = 'none';
+        } else {
+            // Reset Image UI
+            document.getElementById('talent-preview').src = '';
+            document.getElementById('talent-preview').style.display = 'none';
+            document.getElementById('talent-upload-placeholder').style.display = 'block';
         }
 
         // Lists
@@ -84,6 +111,14 @@ async function loadTalentData() {
     } else {
         // New Profile
         currentTalentId = null;
+        document.getElementById('talent-name').value = '';
+        document.getElementById('talent-quote').value = '';
+        document.getElementById('talent-desc').value = '';
+
+        document.getElementById('talent-preview').src = '';
+        document.getElementById('talent-preview').style.display = 'none';
+        document.getElementById('talent-upload-placeholder').style.display = 'block';
+
         renderList('talent-roles-list', [], roleItemTemplate);
         renderList('talent-exp-list', [], expItemTemplate);
         renderList('talent-award-list', [], awardItemTemplate);
@@ -95,6 +130,7 @@ async function loadTalentData() {
 // Helper to render lists
 function renderList(containerId, items, templateFn) {
     const container = document.getElementById(containerId);
+    if (!container) return;
     container.innerHTML = '';
     items.forEach((item, index) => {
         container.appendChild(createListItem(item, index, templateFn));
@@ -213,13 +249,13 @@ window.confirmTalentCrop = () => {
 
 // --- Save ---
 window.saveTalentProfile = async () => {
-    const user = window.currentUser || (await window.supabaseClient.auth.getUser()).data.user;
-    if (!user) return alert('Session expired');
+    if (!targetUserId) return alert('No target user selected');
 
     // 1. Upload Image (if changed)
     let imageUrl = document.getElementById('talent-preview').src;
+    // Check if it is a blob URL vs remote URL
     if (talentBlob) {
-        const fileName = `talent_${user.id}_${Date.now()}.jpg`;
+        const fileName = `talent_${targetUserId}_${Date.now()}.jpg`;
         const { data: uploadData, error: uploadError } = await window.supabaseClient
             .storage
             .from('avatars') // Reusing avatars bucket
@@ -239,7 +275,7 @@ window.saveTalentProfile = async () => {
 
     // 2. Gather Data
     const payload = {
-        user_id: user.id,
+        user_id: targetUserId, // Use targetUserId
         display_name: document.getElementById('talent-name').value,
         quote: document.getElementById('talent-quote').value,
         description: document.getElementById('talent-desc').value,
@@ -255,9 +291,7 @@ window.saveTalentProfile = async () => {
 
     let query = window.supabaseClient.from('talents');
 
-    // We can use 'upsert' but need to Specify 'onConflict' if we rely on user_id unique constraint
-    // The table definition has: user_id uuid ... unique. So we can use onConflict: 'user_id'
-
+    // We rely on RLS to allow if Admin/Editor or Self
     const { error } = await query.upsert(payload, { onConflict: 'user_id' });
 
     if (error) {
