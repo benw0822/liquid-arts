@@ -737,7 +737,8 @@ h6 {
 }
 
 .hop-detail-content {
-    padding: 2rem 2rem 0 2rem;
+    padding: 4.5rem 2rem 0 2rem;
+    /* Increased top padding to clear hopper profile */
 }
 
 .hop-detail-date {
