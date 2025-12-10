@@ -284,7 +284,10 @@
                                 <div style="color: var(--bg-red); font-size: 1.2rem; margin-bottom: 0.2rem; letter-spacing: 2px;">${stars}</div>
                                 ${ratingText ? `<div style="font-weight: 600; font-size: 0.8rem; text-transform: uppercase; color: #333; margin-bottom: 0.5rem;">${ratingText}</div>` : ''}
 
-                                <div style="font-family: var(--font-display); font-size: 0.9rem; color: #666; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1rem;">${dateStr}</div>
+                                <div style="font-family: var(--font-display); font-size: 0.9rem; color: #666; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.5rem;">${dateStr}</div>
+
+                                <!-- Description / Review -->
+                                ${hop.description ? `<p style="font-size: 0.95rem; color: #555; margin: 0 0 1rem 0; line-height: 1.4; font-style: italic;">"${hop.description}"</p>` : ''}
 
                                 <!-- Mini Map (Dark Theme) -->
                                 <div id="hop-map-${hop.id}" class="card-map" style="height: 150px; width: 100%; border-radius: 4px; margin-bottom: 8px;"></div>
