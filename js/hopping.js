@@ -328,20 +328,19 @@ window.openHoppingGallery = (event, startHopId, barId) => {
         if (!prevBtn) {
             const wrapper = modal.querySelector('.hop-detail-image-wrapper');
 
+            // Updated Style: Transparent BG, Red Color
+            const arrowStyle = 'position: absolute; top: 50%; transform: translateY(-50%); background: transparent; color: #ef4444; border: none; padding: 20px; cursor: pointer; font-size: 2.5rem; z-index: 50; transition: transform 0.2s; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));';
+
             prevBtn = document.createElement('button');
             prevBtn.id = 'hd-prev-btn';
             prevBtn.innerHTML = '&#10094;';
-            prevBtn.style.cssText = 'position: absolute; top: 50%; left: 10px; transform: translateY(-50%); background: rgba(0,0,0,0.3); color: white; border: none; padding: 10px; cursor: pointer; border-radius: 50%; font-size: 1.5rem; z-index: 10; transition: background 0.2s;';
-            prevBtn.onmouseover = () => prevBtn.style.background = 'rgba(0,0,0,0.6)';
-            prevBtn.onmouseout = () => prevBtn.style.background = 'rgba(0,0,0,0.3)';
+            prevBtn.style.cssText = arrowStyle + 'left: 0;';
             wrapper.appendChild(prevBtn);
 
             nextBtn = document.createElement('button');
             nextBtn.id = 'hd-next-btn';
             nextBtn.innerHTML = '&#10095;';
-            nextBtn.style.cssText = 'position: absolute; top: 50%; right: 10px; transform: translateY(-50%); background: rgba(0,0,0,0.3); color: white; border: none; padding: 10px; cursor: pointer; border-radius: 50%; font-size: 1.5rem; z-index: 10; transition: background 0.2s;';
-            nextBtn.onmouseover = () => nextBtn.style.background = 'rgba(0,0,0,0.6)';
-            nextBtn.onmouseout = () => nextBtn.style.background = 'rgba(0,0,0,0.3)';
+            nextBtn.style.cssText = arrowStyle + 'right: 0;';
             wrapper.appendChild(nextBtn);
         }
 
@@ -361,57 +360,43 @@ window.openHoppingGallery = (event, startHopId, barId) => {
             renderCurrent();
         };
 
-        // Swipe Logic (Touch) - Robust Implementation
-        const wrapper = modal.querySelector('.hop-detail-image-wrapper');
+        // Swipe Logic (Touch) - Full Screen (Modal Level)
+        // We attach to the modal container to cover "everything between top/bottom bars"
+        // But we must be careful not to block clicks on close buttons or content.
+
+        // Reset listeners (Overwrite properties)
         let touchStartX = 0;
         let touchStartY = 0;
         let touchEndX = 0;
 
-        // Clean up old listeners to avoid duplicates if called multiple times
-        // (Note: Anonymous functions can't be removed easily, but overwriting via property is one way, 
-        // OR we can just rely on the fact that we create new logic per open. 
-        // Actually, updateNavigationUI is called on *every* render. We should be careful not to stack listeners.
-        // A simple way is to check if we already attached a marker, or just re-clone the element, 
-        // BUT cloning breaks internal references.
-        // BETTER: Attach listeners ONCE in showHoppingDetails HTML creation? 
-        // But renderCurret changes.
-        // OK, I'll attach listeners to the *static* wrapper from the DOM, and use a closure variable for the current data.
-        // But `updateNavigationUI` is inside `openHoppingGallery` which has `currentIndex` in closure.
-        // IF we attach listeners every time, we get duplicates.
-        // FIX: Check if we already attached listeners?
-        // OR: Assign to `wrapper.ontouchstart` (property assignment replaces old handler).
-
-        wrapper.ontouchstart = (e) => {
+        modal.ontouchstart = (e) => {
             touchStartX = e.touches[0].clientX;
             touchStartY = e.touches[0].clientY;
         };
 
-        wrapper.ontouchmove = (e) => {
-            // Check direction
+        modal.ontouchmove = (e) => {
             const x = e.touches[0].clientX;
             const y = e.touches[0].clientY;
             const xDiff = Math.abs(x - touchStartX);
             const yDiff = Math.abs(y - touchStartY);
 
+            // If moving horizontally significantly more than vertically, treat as swipe
             if (xDiff > yDiff && xDiff > 10) {
-                // Horizontal intent dominant -> Prevent Scrolling
-                if (e.cancelable) e.preventDefault();
+                if (e.cancelable) e.preventDefault(); // Lock Scroll
             }
         };
 
-        wrapper.ontouchend = (e) => {
+        modal.ontouchend = (e) => {
             touchEndX = e.changedTouches[0].clientX;
-            handleSwipe();
-        };
+            const xDiff = touchEndX - touchStartX;
 
-        const handleSwipe = () => {
             // Threshold 50px
-            if (touchEndX < touchStartX - 50) { // Swipe Left -> Next
-                currentIndex = (currentIndex + 1) % hops.length;
-                renderCurrent();
-            }
-            if (touchEndX > touchStartX + 50) { // Swipe Right -> Prev
-                currentIndex = (currentIndex - 1 + hops.length) % hops.length;
+            if (Math.abs(xDiff) > 50) {
+                if (xDiff < 0) { // Swipe Left -> Next
+                    currentIndex = (currentIndex + 1) % hops.length;
+                } else { // Swipe Right -> Prev
+                    currentIndex = (currentIndex - 1 + hops.length) % hops.length;
+                }
                 renderCurrent();
             }
         };
@@ -424,20 +409,23 @@ window.openHoppingGallery = (event, startHopId, barId) => {
 window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null, ownerId = null, internal = false) => {
     if (event) { event.preventDefault(); event.stopPropagation(); }
 
+    // Lock Body Scroll
+    document.body.style.overflow = 'hidden';
+
     // Create Modal if not exists (Lazy Load)
     if (!document.getElementById('hopping-details-modal')) {
         const html = `
-        <div id="hopping-details-modal" class="hopping-modal-overlay">
+        <div id="hopping-details-modal" class="hopping-modal-overlay" style="z-index: 9999;">
             <div class="hop-detail-card" onclick="event.stopPropagation()">
                 <div class="hop-detail-image-wrapper">
-                    <button onclick="document.getElementById('hopping-details-modal').style.display='none'" class="btn-close-detail">&times;</button>
+                    <button onclick="window.closeHoppingDetails()" class="btn-close-detail" style="z-index: 60;">&times;</button>
                     <img id="hd-img" class="hop-detail-image" src="">
                     <!-- Hopping Label -->
                     <div style="position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.6); color: white; padding: 2px 8px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase;">
                         HOPPING
                     </div>
                     <!-- Delete Button Injection Point -->
-                    <button id="hd-delete-btn" class="btn-close-detail" style="right: auto; left: 15px; top: auto; bottom: 15px; background: rgba(220, 38, 38, 0.8); display: none;">
+                    <button id="hd-delete-btn" class="btn-close-detail" style="right: auto; left: 15px; top: auto; bottom: 15px; background: rgba(220, 38, 38, 0.8); display: none; z-index: 60;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                     </button>
                 </div>
@@ -452,10 +440,20 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
         document.body.insertAdjacentHTML('beforeend', html);
 
         // Close on BG click
-        document.getElementById('hopping-details-modal').onclick = (e) => {
-            if (e.target.id === 'hopping-details-modal') e.target.style.display = 'none';
+        const modalEl = document.getElementById('hopping-details-modal');
+        modalEl.onclick = (e) => {
+            if (e.target.id === 'hopping-details-modal') window.closeHoppingDetails();
         };
     }
+
+    // Define Close Function Globally within scope or attached to window
+    window.closeHoppingDetails = () => {
+        const m = document.getElementById('hopping-details-modal');
+        if (m) m.style.display = 'none';
+        document.body.style.overflow = ''; // Unlock Scroll
+        // Clear touch listeners to avoid interference if reused differently?
+        // Actually, we overwrite them on open, so it's fine.
+    };
 
     const modal = document.getElementById('hopping-details-modal');
     document.getElementById('hd-img').src = img;
@@ -466,9 +464,13 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
         const next = document.getElementById('hd-next-btn');
         if (prev) prev.style.display = 'none';
         if (next) next.style.display = 'none';
+        // Clear Swipe Listeners for single view to prevent errors?
+        modal.ontouchstart = null;
+        modal.ontouchmove = null;
+        modal.ontouchend = null;
     }
 
-    // Format Date
+    // Format Date: "OCT 24, 2023"
     const dateObj = new Date(date);
     const dateString = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     const timeString = dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
