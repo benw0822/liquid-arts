@@ -43,9 +43,8 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
 
             <!-- 3. Description -->
-            <div style="margin-bottom: 0.8rem;">
-                <label class="hopping-label">Vibe (optional)</label>
-                <textarea id="hopping-desc" class="hopping-input-minimal" maxlength="150" placeholder="Describe the vibe..." style="height: auto; min-height: 40px; resize: none; overflow-y: hidden;"></textarea>
+            <div style="margin-bottom: 0.5rem;">
+                <textarea id="hopping-desc" class="hopping-input-minimal" maxlength="150" placeholder="Describe the vibe (optional)..." style="height: auto; min-height: 40px; resize: none; overflow-y: hidden;"></textarea>
             </div>
 
             <!-- 4. Date & Time (Row) -->
