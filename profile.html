@@ -97,7 +97,7 @@
                 </div>
 
                 <!-- Edit Modal (Stylish) -->
-                <div id="hopper-modal" class="hopping-modal-overlay">
+                <div id="hopper-modal" class="hopping-modal-overlay" style="display: none;">
                     <div class="hopping-modal-card">
                         <button onclick="document.getElementById('hopper-modal').style.display='none'"
                             class="btn-close-minimal">&times;</button>
@@ -525,6 +525,7 @@
 
                 const isAdmin = roles?.some(r => r.role === 'admin');
                 const isOwner = roles?.some(r => r.role === 'barOwner');
+                console.log('Admin Check:', { roles, isAdmin, isOwner });
 
                 if (isAdmin || isOwner) {
                     const container = document.getElementById('admin-action-container');
