@@ -514,14 +514,13 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
     // Reset Buttons
     interactionContainer.innerHTML = `
         <button id="btn-cheers" class="btn-interaction">
-            <svg class="interaction-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <!-- Two Glasses Clinking Icon -->
-                <path d="M8 21h8m-4-4v4" />
-                <path d="M8 5a2 2 0 0 1-2-2" />
-                <path d="M16 5a2 2 0 0 0 2-2" />
-                <path d="M10.84 14.33a3 3 0 0 0 2.32 0" />
-                <path d="M6 3 L6 9 C6 11.5 7.5 13.5 10 14" />
-                <path d="M18 3 L18 9 C18 11.5 16.5 13.5 14 14" />
+            <svg class="interaction-icon cheers-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <!-- Glass Outline -->
+                <path d="M8 21h8" class="glass-base"/>
+                <path d="M12 15v6" class="glass-stem"/>
+                <path d="M6 3v6c0 3.314 2.686 6 6 6s6-2.686 6-6V3" class="glass-bowl-outline"/>
+                <!-- Liquid (Initially Hidden/Scaled Down via CSS) -->
+                <path d="M6 9c0 3.314 2.686 6 6 6s6-2.686 6-6V6H6v3z" class="cheers-liquid" fill="currentColor" stroke="none" />
             </svg>
             <span id="cheers-count">0</span>
         </button>
@@ -601,10 +600,7 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
                     }
                 } else {
                     // Add Cheer
-                    // 1. Play Animation
-                    cheersBtn.classList.add('cheers-animating');
-                    setTimeout(() => cheersBtn.classList.remove('cheers-animating'), 500);
-
+                    // Simply adding 'active' class triggers the CSS fill animation
                     const { error } = await window.supabaseClient
                         .from('hopping_cheers')
                         .insert([{ hopping_id: hopId, user_id: window.currentUser.id }]);
