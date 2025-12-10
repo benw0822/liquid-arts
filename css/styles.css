@@ -1816,27 +1816,31 @@ figure.article-figure figcaption {
 
 .hop-interactions {
     display: flex;
-    gap: 12px;
-    margin-top: 8px;
+    gap: 16px;
+    /* Larger gap */
+    margin-top: 10px;
     align-items: center;
     justify-content: center;
 }
 
 .btn-interaction {
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.95);
     border: none;
     border-radius: 20px;
-    padding: 6px 12px;
+    padding: 8px 16px;
+    /* Larger padding */
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
+    /* Larger gap */
     cursor: pointer;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
     transition: transform 0.2s, background 0.2s;
     color: #555;
     font-family: var(--font-main);
     font-weight: 600;
-    font-size: 0.8rem;
+    font-size: 0.9rem;
+    /* Larger font */
 }
 
 .btn-interaction:hover {
@@ -1850,12 +1854,34 @@ figure.article-figure figcaption {
     background: #fff0f0;
 }
 
-.btn-interaction.active .interaction-icon {
-    fill: currentColor;
-    /* Fill icon when active */
+.btn-interaction.cheers-animating .interaction-icon {
+    animation: clink 0.4s ease-in-out;
 }
 
 .interaction-icon {
-    width: 16px;
-    height: 16px;
+    width: 24px;
+    /* Larger icon */
+    height: 24px;
+}
+
+@keyframes clink {
+    0% {
+        transform: rotate(0);
+    }
+
+    25% {
+        transform: rotate(-20deg) scale(1.1);
+    }
+
+    50% {
+        transform: rotate(10deg) scale(1.1);
+    }
+
+    75% {
+        transform: rotate(-5deg);
+    }
+
+    100% {
+        transform: rotate(0);
+    }
 }

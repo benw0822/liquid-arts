@@ -510,151 +510,161 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
         interactionContainer.className = 'hop-interactions';
         // Append to profile container so it sits below name
         profileContainer.appendChild(interactionContainer);
-    }
-
-    // Reset Buttons
-    interactionContainer.innerHTML = `
+        // Reset Buttons
+        interactionContainer.innerHTML = `
         <button id="btn-cheers" class="btn-interaction">
-            <svg class="interaction-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2h8a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"></path><line x1="12" y1="16" x2="12" y2="22"></line><line x1="8" y1="22" x2="16" y2="22"></line></svg>
+            <svg class="interaction-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <!-- Two Glasses Clinking Icon -->
+                <path d="M8 21h8m-4-4v4" />
+                <path d="M8 5a2 2 0 0 1-2-2" />
+                <path d="M16 5a2 2 0 0 0 2-2" />
+                <path d="M10.84 14.33a3 3 0 0 0 2.32 0" />
+                <path d="M6 3 L6 9 C6 11.5 7.5 13.5 10 14" />
+                <path d="M18 3 L18 9 C18 11.5 16.5 13.5 14 14" />
+            </svg>
             <span id="cheers-count">0</span>
         </button>
         <button id="btn-message" class="btn-interaction">
-            <svg class="interaction-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            <svg class="interaction-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
         </button>
     `;
 
-    if (ownerId) {
-        try {
-            const { data: userData, error } = await window.supabaseClient
-                .from('users')
-                .select('name, hopper_nickname, hopper_image_url')
-                .eq('id', ownerId)
-                .single();
-
-            if (userData && !error) {
-                // Determine Name: Hopper Nickname > Name > Anonymous
-                const displayName = userData.hopper_nickname || userData.name || 'Anonymous Hopper';
-                // Determine Avatar: Hopper Image > Default Placeholder
-                const displayAvatar = userData.hopper_image_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(displayName) + '&background=random';
-
-                nameEl.textContent = displayName;
-                avatarEl.src = displayAvatar;
-                profileContainer.style.display = 'flex'; // Show container
-            }
-        } catch (err) {
-            console.warn('Error fetching hopper profile:', err);
-        }
-    }
-
-    // Cheers Logic
-    const cheersBtn = document.getElementById('btn-cheers');
-    const cheersCountEl = document.getElementById('cheers-count');
-    const msgBtn = document.getElementById('btn-message');
-
-    if (hopId) {
-        // Fetch Cheers Count
-        const { count, error: countErr } = await window.supabaseClient
-            .from('hopping_cheers')
-            .select('*', { count: 'exact', head: true })
-            .eq('hopping_id', hopId);
-
-        if (!countErr) cheersCountEl.textContent = count;
-
-        // Check if I cheered
-        if (window.currentUser) {
-            const { data: myCheer } = await window.supabaseClient
-                .from('hopping_cheers')
-                .select('id')
-                .eq('hopping_id', hopId)
-                .eq('user_id', window.currentUser.id)
-                .single();
-
-            if (myCheer) {
-                cheersBtn.classList.add('active');
-            }
-
-            // Click Handler
-            cheersBtn.onclick = async (e) => {
-                e.stopPropagation();
-                if (!window.currentUser) { alert('Please login to Cheers!'); return; }
-
-                // Toggle
-                const isActive = cheersBtn.classList.contains('active');
-                if (isActive) {
-                    // Remove Cheer
-                    const { error } = await window.supabaseClient
-                        .from('hopping_cheers')
-                        .delete()
-                        .eq('hopping_id', hopId)
-                        .eq('user_id', window.currentUser.id);
-
-                    if (!error) {
-                        cheersBtn.classList.remove('active');
-                        cheersCountEl.textContent = Math.max(0, parseInt(cheersCountEl.textContent) - 1);
-                    }
-                } else {
-                    // Add Cheer
-                    const { error } = await window.supabaseClient
-                        .from('hopping_cheers')
-                        .insert([{ hopping_id: hopId, user_id: window.currentUser.id }]);
-
-                    if (!error) {
-                        cheersBtn.classList.add('active');
-                        cheersCountEl.textContent = parseInt(cheersCountEl.textContent) + 1;
-                    }
-                }
-            };
-        }
-    }
-
-    // Message Logic
-    msgBtn.onclick = (e) => {
-        e.stopPropagation();
-        alert('Messaging feature coming soon! / 訊息功能即將推出！');
-    };
-
-    // Delete Button Logic
-    const deleteBtn = document.getElementById('hd-delete-btn');
-    if (hopId && window.currentUser) {
-        let canDelete = window.currentUser.id === ownerId;
-
-        // Check if Admin (Async check)
-        if (!canDelete) {
+        if (ownerId) {
             try {
-                const { data: dbUser } = await window.supabaseClient.from('users').select('roles').eq('id', window.currentUser.id).single();
-                if (dbUser && dbUser.roles && dbUser.roles.includes('admin')) canDelete = true;
-            } catch (e) {
-                console.warn('Admin check failed:', e);
+                const { data: userData, error } = await window.supabaseClient
+                    .from('users')
+                    .select('name, hopper_nickname, hopper_image_url')
+                    .eq('id', ownerId)
+                    .single();
+
+                if (userData && !error) {
+                    // Determine Name: Hopper Nickname > Name > Anonymous
+                    const displayName = userData.hopper_nickname || userData.name || 'Anonymous Hopper';
+                    // Determine Avatar: Hopper Image > Default Placeholder
+                    const displayAvatar = userData.hopper_image_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(displayName) + '&background=random';
+
+                    nameEl.textContent = displayName;
+                    avatarEl.src = displayAvatar;
+                    profileContainer.style.display = 'flex'; // Show container
+                }
+            } catch (err) {
+                console.warn('Error fetching hopper profile:', err);
             }
         }
 
-        if (canDelete) {
-            deleteBtn.style.display = 'flex';
-            deleteBtn.onclick = () => window.deleteHopping(hopId);
+        // Cheers Logic
+        const cheersBtn = document.getElementById('btn-cheers');
+        const cheersCountEl = document.getElementById('cheers-count');
+        const msgBtn = document.getElementById('btn-message');
+
+        if (hopId) {
+            // Fetch Cheers Count
+            const { count, error: countErr } = await window.supabaseClient
+                .from('hopping_cheers')
+                .select('*', { count: 'exact', head: true })
+                .eq('hopping_id', hopId);
+
+            if (!countErr) cheersCountEl.textContent = count;
+
+            // Check if I cheered
+            if (window.currentUser) {
+                const { data: myCheer } = await window.supabaseClient
+                    .from('hopping_cheers')
+                    .select('id')
+                    .eq('hopping_id', hopId)
+                    .eq('user_id', window.currentUser.id)
+                    .single();
+
+                if (myCheer) {
+                    cheersBtn.classList.add('active');
+                }
+
+                // Click Handler
+                cheersBtn.onclick = async (e) => {
+                    e.stopPropagation();
+                    if (!window.currentUser) { alert('Please login to Cheers!'); return; }
+
+                    // Toggle
+                    const isActive = cheersBtn.classList.contains('active');
+                    if (isActive) {
+                        // Remove Cheer
+                        const { error } = await window.supabaseClient
+                            .from('hopping_cheers')
+                            .delete()
+                            .eq('hopping_id', hopId)
+                            .eq('user_id', window.currentUser.id);
+
+                        if (!error) {
+                            cheersBtn.classList.remove('active');
+                            cheersCountEl.textContent = Math.max(0, parseInt(cheersCountEl.textContent) - 1);
+                        }
+                    } else {
+                        // Add Cheer
+                        // 1. Play Animation
+                        cheersBtn.classList.add('cheers-animating');
+                        setTimeout(() => cheersBtn.classList.remove('cheers-animating'), 500);
+
+                        const { error } = await window.supabaseClient
+                            .from('hopping_cheers')
+                            .insert([{ hopping_id: hopId, user_id: window.currentUser.id }]);
+
+                        if (!error) {
+                            cheersBtn.classList.add('active');
+                            cheersCountEl.textContent = parseInt(cheersCountEl.textContent) + 1;
+                        }
+                    }
+                };
+            }
+        }
+
+        // Message Logic
+        msgBtn.onclick = (e) => {
+            e.stopPropagation();
+            alert('Messaging feature coming soon! / 訊息功能即將推出！');
+        };
+
+        // Delete Button Logic
+        const deleteBtn = document.getElementById('hd-delete-btn');
+        if (hopId && window.currentUser) {
+            let canDelete = window.currentUser.id === ownerId;
+
+            // Check if Admin (Async check)
+            if (!canDelete) {
+                try {
+                    const { data: dbUser } = await window.supabaseClient.from('users').select('roles').eq('id', window.currentUser.id).single();
+                    if (dbUser && dbUser.roles && dbUser.roles.includes('admin')) canDelete = true;
+                } catch (e) {
+                    console.warn('Admin check failed:', e);
+                }
+            }
+
+            if (canDelete) {
+                deleteBtn.style.display = 'flex';
+                deleteBtn.onclick = () => window.deleteHopping(hopId);
+            } else {
+                deleteBtn.style.display = 'none';
+            }
         } else {
             deleteBtn.style.display = 'none';
         }
-    } else {
-        deleteBtn.style.display = 'none';
-    }
 
-    modal.style.display = 'flex';
-};
+        modal.style.display = 'flex';
+    };
 
-// Delete Hopping
-window.deleteHopping = async (hopId) => {
-    if (!confirm('Are you sure you want to delete this Hop? / 確定要刪除這個打卡紀錄嗎？')) return;
+    // Delete Hopping
+    window.deleteHopping = async (hopId) => {
+        if (!confirm('Are you sure you want to delete this Hop? / 確定要刪除這個打卡紀錄嗎？')) return;
 
-    const { error } = await window.supabaseClient
-        .from('hoppings')
-        .delete()
-        .eq('id', hopId);
+        const { error } = await window.supabaseClient
+            .from('hoppings')
+            .delete()
+            .eq('id', hopId);
 
-    if (error) {
-        alert('Delete Failed: ' + error.message);
-    } else {
-        alert('Hop deleted.');
-        document.getElementById('hopping-details-modal').style.display = 'none';
-        window.location.reload();
-    }
-};
+        if (error) {
+            alert('Delete Failed: ' + error.message);
+        } else {
+            alert('Hop deleted.');
+            document.getElementById('hopping-details-modal').style.display = 'none';
+            window.location.reload();
+        }
+    };
