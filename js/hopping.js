@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <input type="hidden" id="hopping-bar-id">
 
             <!-- 1. Image Upload (Square) -->
-            <div style="margin-bottom: 1rem;">
+            <div style="margin-bottom: 0.5rem;">
                 <!-- Label removed -->
                 <input type="file" id="hopping-file-input" accept="image/*" style="display: none;">
                 
@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             <!-- 2. Rating -->
             <!-- 2. Rating -->
-            <div style="margin-bottom: 1rem; text-align: center;">
+            <div style="margin-bottom: 0.5rem; text-align: center;">
                 <!-- Label removed -->
                 <div class="star-rating" style="display: flex; gap: 8px; justify-content: center; margin-bottom: 0.2rem;">
                     <span data-value="1" class="hop-star">☆</span>
@@ -43,20 +43,18 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
 
             <!-- 3. Description -->
-            <div style="margin-bottom: 1rem;">
+            <div style="margin-bottom: 0.8rem;">
                 <label class="hopping-label">Vibe (optional)</label>
                 <textarea id="hopping-desc" class="hopping-input-minimal" maxlength="150" placeholder="Describe the vibe..." style="height: auto; min-height: 40px; resize: none; overflow-y: hidden;"></textarea>
             </div>
 
             <!-- 4. Date & Time (Row) -->
-            <div style="display: flex; gap: 2rem; margin-bottom: 1.5rem;">
+            <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
                 <div style="flex: 1;">
-                    <label class="hopping-label">Date</label>
-                    <input type="date" id="hopping-date" class="hopping-input-minimal" style="margin-bottom: 0;">
+                    <input type="date" id="hopping-date" class="hopping-input-minimal" style="margin-bottom: 0; text-align: center;">
                 </div>
                 <div style="flex: 1;">
-                    <label class="hopping-label">Time</label>
-                    <input type="time" id="hopping-time" class="hopping-input-minimal" style="margin-bottom: 0;">
+                    <input type="time" id="hopping-time" class="hopping-input-minimal" style="margin-bottom: 0; text-align: center;">
                 </div>
             </div>
 
