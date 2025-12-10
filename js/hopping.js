@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span data-value="4" class="hop-star">☆</span>
                     <span data-value="5" class="hop-star">☆</span>
                 </div>
-                <p id="rating-desc" style="font-size: 0.85rem; color: var(--bg-red); min-height: 20px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase;">SELECT RATING</p>
+                <p id="rating-desc" style="font-size: 0.85rem; color: var(--bg-red); min-height: 20px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; margin: 0;">SELECT RATING</p>
                 <input type="hidden" id="hopping-rating" value="0">
             </div>
 
@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </button>
 
             <!-- 5. Public Toggle (Moved Below) -->
-            <div style="margin-top: 1rem; display: flex; align-items: center; justify-content: center;">
+            <div style="margin-top: 0.5rem; display: flex; align-items: center; justify-content: center;">
                  <label style="display: flex; align-items: center; cursor: pointer; gap: 8px;">
                     <input type="checkbox" id="hopping-public" checked style="accent-color: var(--bg-red); width: 16px; height: 16px;">
                     <span style="font-size: 0.85rem; color: #888; letter-spacing: 0.05em; font-weight: 500;">Public</span>
