@@ -6,12 +6,12 @@ document.addEventListener('DOMContentLoaded', () => {
     <div id="hopping-modal" class="hopping-modal-overlay">
         <div class="hopping-modal-card">
             <button id="close-hopping-btn" class="btn-close-minimal">&times;</button>
-            <h2 class="hopping-title" style="font-size: 1.5rem;">HOP IN !</h2>
+            <h2 class="hopping-title" style="font-size: 1.5rem; margin-bottom: 0.5rem;">HOP IN !</h2>
             
             <input type="hidden" id="hopping-bar-id">
 
             <!-- 1. Image Upload (Square) -->
-            <div style="margin-bottom: 0.5rem;">
+            <div style="margin-bottom: 0.2rem;">
                 <!-- Label removed -->
                 <input type="file" id="hopping-file-input" accept="image/*" style="display: none;">
                 
@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             <!-- 2. Rating -->
             <!-- 2. Rating -->
-            <div style="margin-bottom: 0.5rem; text-align: center;">
+            <div style="margin-bottom: 0.2rem; text-align: center;">
                 <!-- Label removed -->
                 <div class="star-rating" style="display: flex; gap: 8px; justify-content: center; margin-bottom: 0.2rem;">
                     <span data-value="1" class="hop-star">☆</span>
