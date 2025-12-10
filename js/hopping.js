@@ -429,6 +429,7 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
                     <div id="hd-hopper-profile" class="hopper-profile-container" style="display: none;">
                         <img id="hd-hopper-avatar" class="hopper-avatar" src="" alt="Hopper">
                         <span id="hd-hopper-name" class="hopper-name"></span>
+                        <span id="hd-hopper-role" class="hopper-role"></span>
                     </div>
 
                     <!-- Delete Button Injection Point -->
@@ -487,6 +488,7 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
     const profileContainer = document.getElementById('hd-hopper-profile');
     const avatarEl = document.getElementById('hd-hopper-avatar');
     const nameEl = document.getElementById('hd-hopper-name');
+    const roleEl = document.getElementById('hd-hopper-role');
 
     // Hide initially
     profileContainer.style.display = 'none';
@@ -533,7 +535,7 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
         try {
             const { data: userData, error } = await window.supabaseClient
                 .from('users')
-                .select('name, hopper_nickname, hopper_image_url')
+                .select('name, hopper_nickname, hopper_image_url, roles')
                 .eq('id', ownerId)
                 .single();
 
@@ -545,6 +547,19 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
 
                 nameEl.textContent = displayName;
                 avatarEl.src = displayAvatar;
+
+                // Determine Role Label
+                let roleLabel = 'Hopper'; // Default
+                if (userData.roles && Array.isArray(userData.roles)) {
+                    if (userData.roles.includes('admin')) roleLabel = 'Admin';
+                    else if (userData.roles.includes('editor')) roleLabel = 'Editor';
+                    else if (userData.roles.includes('talent')) roleLabel = 'Talent';
+                    else if (userData.roles.includes('kol')) roleLabel = 'Hoppest';
+                    else if (userData.roles.includes('member')) roleLabel = 'Hopper';
+                }
+
+                if (roleEl) roleEl.textContent = roleLabel;
+
                 profileContainer.style.display = 'flex'; // Show container
             }
         } catch (err) {

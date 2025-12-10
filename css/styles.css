@@ -1781,8 +1781,8 @@ figure.article-figure figcaption {
     position: absolute;
     bottom: 0;
     left: 50%;
-    transform: translate(-50%, 35%);
-    /* Moved higher UP */
+    transform: translate(-50%, 50%);
+    /* Centered on boundary */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1816,9 +1816,21 @@ figure.article-figure figcaption {
     /* Readability */
 }
 
+.hopper-role {
+    font-size: 0.75rem;
+    color: #666;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+    margin-top: -2px;
+    /* Close to name */
+    background: rgba(255, 255, 255, 0.9);
+    padding: 1px 6px;
+    border-radius: 8px;
+}
+
 .hop-detail-content {
-    padding: 8.5rem 25px 25px;
-    /* Increased padding to create larger gap */
+    padding: 9.5rem 25px 25px;
+    /* Increased padding for role + boundary pos */
     flex-grow: 1;
     overflow-y: auto;
     background: #fff;
