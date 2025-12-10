@@ -479,38 +479,14 @@
                 });
             }
 
-            // --- Admin/Talent Button Logic (Prevent Loading Hanging) ---
-            try {
-                const { data: dbUser } = await window.supabaseClient.from('users').select('roles').eq('id', user.id).single();
-                const roles = dbUser ? (dbUser.roles || []) : [];
-                const isAdmin = roles.includes('admin');
-                const isEditor = roles.includes('editor');
-                const isTalent = roles.includes('talent');
-
-                if (isAdmin || isEditor || isTalent) {
-                    const btnContainer = document.createElement('div');
-                    btnContainer.style.marginTop = '1.5rem';
-                    const link = document.createElement('a');
-                    link.className = 'btn';
-                    link.style.display = 'inline-block';
-                    link.style.textDecoration = 'none';
-
-                    if (isAdmin || isEditor) {
-                        link.href = 'admin.html';
-                        link.textContent = isAdmin ? 'Admin Dashboard' : 'Manage Content';
-                    } else if (isTalent) {
-                        link.href = 'owner/index.html';
-                        link.textContent = 'Manage My Bar';
-                    }
-
-                    btnContainer.appendChild(link);
-                    const emailEl = document.getElementById('profile-email');
-                    if (emailEl) emailEl.parentNode.insertBefore(btnContainer, emailEl.nextSibling);
-                }
-            } catch (e) {
-                console.warn('Admin button injection failed:', e);
+            // --- Logout Logic ---
+            const logoutBtn = document.getElementById('logout-btn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', async () => {
+                    const { error } = await supabase.auth.signOut();
+                    if (!error) window.location.reload();
+                });
             }
-            // Removed finally block that toggled non-existent elements
 
             // --- Filter Event Listeners ---
             // --- Admin Check ---
