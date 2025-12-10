@@ -1779,15 +1779,17 @@ figure.article-figure figcaption {
 /* Hopper Profile on Card */
 .hopper-profile-container {
     position: absolute;
-    bottom: 0;
+    top: 100%;
+    /* Align top edge to bottom of image */
+    margin-top: -40px;
+    /* Pull up by half the avatar height (80px/2) to center exactly on line */
     left: 50%;
-    transform: translate(-50%, 50%);
-    /* Centered on boundary */
+    transform: translateX(-50%);
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
-    /* Increased gap for equidistant feel */
+    gap: 6px;
+    /* Compact gap */
     z-index: 20;
     width: 100%;
 }
@@ -1829,8 +1831,8 @@ figure.article-figure figcaption {
 }
 
 .hop-detail-content {
-    padding: 9.5rem 25px 25px;
-    /* Increased padding for role + boundary pos */
+    padding: 7.5rem 25px 25px;
+    /* Reduced to ~120px for compact feel */
     flex-grow: 1;
     overflow-y: auto;
     background: #fff;
