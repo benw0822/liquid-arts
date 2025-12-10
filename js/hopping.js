@@ -299,57 +299,6 @@ window.renderHoppingBadge = async (barId) => {
     `).join('');
 };
 
-// Helper to generate Card HTML
-const generateCardHtml = (img, date, rating, desc, hopId, ownerId) => {
-    // Format Date
-    const dateObj = new Date(date);
-    const dateString = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    const timeString = dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-    const ratingStars = '★'.repeat(parseInt(rating)) + '☆'.repeat(5 - parseInt(rating));
-    const description = (!desc || desc === 'null' || desc === 'undefined') ? '' : desc;
-
-    return `
-    <div class="hop-detail-card" onclick="event.stopPropagation()">
-        <div class="hop-detail-image-wrapper">
-            <button onclick="window.closeHoppingDetails()" class="btn-close-detail" style="z-index: 60;">&times;</button>
-            <img class="hop-detail-image" src="${img}">
-            <div style="position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.6); color: white; padding: 2px 8px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase;">
-                HOPPING
-            </div>
-            <button class="hd-delete-btn-dynamic btn-close-detail" data-hop-id="${hopId}" data-owner-id="${ownerId}" style="right: auto; left: 15px; top: auto; bottom: 15px; background: rgba(220, 38, 38, 0.8); display: none; z-index: 60;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-            </button>
-        </div>
-        <div class="hop-detail-content">
-            <div class="hop-detail-stars">${ratingStars}</div>
-            <span class="hop-detail-date">${dateString} • ${timeString}</span>
-            <div class="hop-detail-desc">${description}</div>
-        </div>
-    </div>
-    `;
-};
-
-// Helper to check delete permission (Async update)
-const updateDeleteButton = async (btn) => {
-    if (!btn || !window.currentUser) return;
-    const hopId = btn.getAttribute('data-hop-id');
-    const ownerId = btn.getAttribute('data-owner-id');
-
-    let canDelete = window.currentUser.id === ownerId;
-    if (!canDelete) {
-        try {
-            const { data: dbUser } = await window.supabaseClient.from('users').select('roles').eq('id', window.currentUser.id).single();
-            if (dbUser && dbUser.roles && dbUser.roles.includes('admin')) canDelete = true;
-        } catch (e) { console.warn('Admin check failed:', e); }
-    }
-
-    if (canDelete) {
-        btn.style.display = 'flex';
-        btn.onclick = (e) => { e.stopPropagation(); window.deleteHopping(hopId); };
-    }
-};
-
-// Open Gallery
 // Open Gallery
 window.openHoppingGallery = (event, startHopId, barId) => {
     if (event) { event.preventDefault(); event.stopPropagation(); }
@@ -360,47 +309,14 @@ window.openHoppingGallery = (event, startHopId, barId) => {
     let currentIndex = hops.findIndex(h => h.id === startHopId);
     if (currentIndex === -1) currentIndex = 0;
 
-    // Initial Render
-    window.showHoppingDetails(null, hops[currentIndex].image_url, hops[currentIndex].hopped_at, hops[currentIndex].rating, hops[currentIndex].description, hops[currentIndex].id, hops[currentIndex].user_id, true);
-
-    // Transition Helper
-    const animateTransition = (direction) => {
-        const container = document.querySelector('#hopping-details-modal .hop-slide-container');
-        if (!container) return;
-
-        const currentCard = container.querySelector('.hop-detail-card:not(.exiting)');
-        if (!currentCard) return;
-
-        // Prepare Next Data
+    // Helper to render current index
+    const renderCurrent = () => {
         const hop = hops[currentIndex];
-        const newCardHtml = generateCardHtml(hop.image_url, hop.hopped_at, hop.rating, hop.description, hop.id, hop.user_id);
-
-        // Insert New Card
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = newCardHtml;
-        const newCard = tempDiv.firstElementChild;
-
-        // Setup Animation Classes
-        if (direction === 'next') {
-            currentCard.classList.add('slide-out-to-left', 'exiting');
-            newCard.classList.add('slide-in-from-right');
-        } else {
-            currentCard.classList.add('slide-out-to-right', 'exiting');
-            newCard.classList.add('slide-in-from-left');
-        }
-
-        container.appendChild(newCard);
-
-        // Update Delete Button for new card
-        updateDeleteButton(newCard.querySelector('.hd-delete-btn-dynamic'));
-
-        // Cleanup
-        setTimeout(() => {
-            if (currentCard && currentCard.parentElement) currentCard.remove();
-            newCard.classList.remove('slide-in-from-right', 'slide-in-from-left');
-        }, 350); // Match animation duration
+        window.showHoppingDetails(null, hop.image_url, hop.hopped_at, hop.rating, hop.description, hop.id, hop.user_id, true); // true = internal call
+        updateNavigationUI();
     };
 
+    // Helper to update arrows
     const updateNavigationUI = () => {
         const modal = document.getElementById('hopping-details-modal');
         if (!modal) return;
@@ -408,200 +324,190 @@ window.openHoppingGallery = (event, startHopId, barId) => {
         let prevBtn = document.getElementById('hd-prev-btn');
         let nextBtn = document.getElementById('hd-next-btn');
 
-        // Styles
-        const arrowStyle = 'position: absolute; top: 50%; transform: translateY(-50%); background: transparent; color: #ef4444; border: none; padding: 20px; cursor: pointer; font-size: 2.5rem; z-index: 50; transition: transform 0.2s; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));';
-
+        // Create arrows if missing
         if (!prevBtn) {
-            // Append arrows to Modal Overlay (outside container to stay fixed)
+            const wrapper = modal.querySelector('.hop-detail-image-wrapper');
+
+            // Updated Style: Transparent BG, Red Color
+            const arrowStyle = 'position: absolute; top: 50%; transform: translateY(-50%); background: transparent; color: #ef4444; border: none; padding: 20px; cursor: pointer; font-size: 2.5rem; z-index: 50; transition: transform 0.2s; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));';
+
             prevBtn = document.createElement('button');
             prevBtn.id = 'hd-prev-btn';
             prevBtn.innerHTML = '&#10094;';
             prevBtn.style.cssText = arrowStyle + 'left: 0;';
-            modal.appendChild(prevBtn);
-        }
-        if (!nextBtn) {
+            wrapper.appendChild(prevBtn);
+
             nextBtn = document.createElement('button');
             nextBtn.id = 'hd-next-btn';
             nextBtn.innerHTML = '&#10095;';
             nextBtn.style.cssText = arrowStyle + 'right: 0;';
-            modal.appendChild(nextBtn);
+            wrapper.appendChild(nextBtn);
         }
 
+        // Logic
         prevBtn.style.display = hops.length > 1 ? 'block' : 'none';
         nextBtn.style.display = hops.length > 1 ? 'block' : 'none';
 
-        // Override clicks to animate
         prevBtn.onclick = (e) => {
             e.stopPropagation();
             currentIndex = (currentIndex - 1 + hops.length) % hops.length;
-            animateTransition('prev');
+            renderCurrent();
         };
 
         nextBtn.onclick = (e) => {
             e.stopPropagation();
             currentIndex = (currentIndex + 1) % hops.length;
-            animateTransition('next');
+            renderCurrent();
         };
 
-        // Swipe (Modal Level)
+        // Swipe Logic (Touch) - Full Screen (Modal Level)
+        // We attach to the modal container to cover "everything between top/bottom bars"
+        // But we must be careful not to block clicks on close buttons or content.
+
+        // Reset listeners (Overwrite properties)
         let touchStartX = 0;
-        // let touchStartY = 0; // Not used for now in simplified logic or derived
+        let touchStartY = 0;
+        let touchEndX = 0;
 
         modal.ontouchstart = (e) => {
             touchStartX = e.touches[0].clientX;
-            // touchStartY = e.touches[0].clientY;
+            touchStartY = e.touches[0].clientY;
         };
 
         modal.ontouchmove = (e) => {
-            // simplified scroll locking handled elsewhere or by css?
-            // Actually re-adding logic
             const x = e.touches[0].clientX;
             const y = e.touches[0].clientY;
-            // if horizontal, prevent
-            // For now relying on user's previous satisfaction with scroll lock + sensitivity
-            // Re-adding the scroll lock logic for safety
-            if (Math.abs(x - touchStartX) > 10) {
-                if (e.cancelable && e.cancelable) e.preventDefault();
+            const xDiff = Math.abs(x - touchStartX);
+            const yDiff = Math.abs(y - touchStartY);
+
+            // If moving horizontally significantly more than vertically, treat as swipe
+            if (xDiff > yDiff && xDiff > 10) {
+                if (e.cancelable) e.preventDefault(); // Lock Scroll
             }
         };
 
         modal.ontouchend = (e) => {
-            const touchEndX = e.changedTouches[0].clientX;
+            touchEndX = e.changedTouches[0].clientX;
             const xDiff = touchEndX - touchStartX;
+
+            // Threshold 50px
             if (Math.abs(xDiff) > 50) {
-                if (xDiff < 0) { // Next
+                if (xDiff < 0) { // Swipe Left -> Next
                     currentIndex = (currentIndex + 1) % hops.length;
-                    animateTransition('next');
-                } else { // Prev
+                } else { // Swipe Right -> Prev
                     currentIndex = (currentIndex - 1 + hops.length) % hops.length;
-                    animateTransition('prev');
                 }
+                renderCurrent();
             }
         };
     };
 
-    updateNavigationUI();
+    renderCurrent();
 };
 
 // Show Details Modal (Modified for HopCard + Delete)
 window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null, ownerId = null, internal = false) => {
     if (event) { event.preventDefault(); event.stopPropagation(); }
 
+    // Lock Body Scroll
     document.body.style.overflow = 'hidden';
 
-    // Create Modal Structure if missing
+    // Create Modal if not exists (Lazy Load)
     if (!document.getElementById('hopping-details-modal')) {
         const html = `
         <div id="hopping-details-modal" class="hopping-modal-overlay" style="z-index: 9999;">
-            <div class="hop-slide-container">
-                 <!-- Cards will be injected here -->
+            <div class="hop-detail-card" onclick="event.stopPropagation()">
+                <div class="hop-detail-image-wrapper">
+                    <button onclick="window.closeHoppingDetails()" class="btn-close-detail" style="z-index: 60;">&times;</button>
+                    <img id="hd-img" class="hop-detail-image" src="">
+                    <!-- Hopping Label -->
+                    <div style="position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.6); color: white; padding: 2px 8px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase;">
+                        HOPPING
+                    </div>
+                    <!-- Delete Button Injection Point -->
+                    <button id="hd-delete-btn" class="btn-close-detail" style="right: auto; left: 15px; top: auto; bottom: 15px; background: rgba(220, 38, 38, 0.8); display: none; z-index: 60;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    </button>
+                </div>
+                <div class="hop-detail-content">
+                    <div id="hd-rating" class="hop-detail-stars"></div>
+                    <span id="hd-date" class="hop-detail-date"></span>
+                    <div id="hd-desc" class="hop-detail-desc"></div>
+                </div>
             </div>
         </div>
         `;
         document.body.insertAdjacentHTML('beforeend', html);
 
+        // Close on BG click
         const modalEl = document.getElementById('hopping-details-modal');
         modalEl.onclick = (e) => {
-            if (e.target.id === 'hopping-details-modal' || e.target.classList.contains('hop-slide-container')) window.closeHoppingDetails();
+            if (e.target.id === 'hopping-details-modal') window.closeHoppingDetails();
         };
     }
 
-    // Global Close
+    // Define Close Function Globally within scope or attached to window
     window.closeHoppingDetails = () => {
         const m = document.getElementById('hopping-details-modal');
         if (m) m.style.display = 'none';
-        document.body.style.overflow = '';
-        // Remove arrows to prevent duplication/mess when reopening
-        const p = document.getElementById('hd-prev-btn');
-        const n = document.getElementById('hd-next-btn');
-        if (p) p.remove();
-        if (n) n.remove();
+        document.body.style.overflow = ''; // Unlock Scroll
+        // Clear touch listeners to avoid interference if reused differently?
+        // Actually, we overwrite them on open, so it's fine.
     };
 
-    const container = document.querySelector('#hopping-details-modal .hop-slide-container');
-
-    // Generate Card
-    const cardHtml = generateCardHtml(img, date, rating, desc, hopId, ownerId);
-    container.innerHTML = cardHtml; // Clear previous and set new
-
-    // Init Delete Button logic for this card
-    const btn = container.querySelector('.hd-delete-btn-dynamic');
-    updateDeleteButton(btn);
-
     const modal = document.getElementById('hopping-details-modal');
-    modal.style.display = 'flex';
+    document.getElementById('hd-img').src = img;
 
-    // Clear listeners if single view
+    // Reset arrows if not internal (single view)
     if (!internal) {
+        const prev = document.getElementById('hd-prev-btn');
+        const next = document.getElementById('hd-next-btn');
+        if (prev) prev.style.display = 'none';
+        if (next) next.style.display = 'none';
+        // Clear Swipe Listeners for single view to prevent errors?
         modal.ontouchstart = null;
         modal.ontouchmove = null;
         modal.ontouchend = null;
     }
-};
 
-// Helper: Generate Card HTML
-function generateCardHtml(img, date, rating, desc, hopId, ownerId) {
-    // Format Date
-    const d = new Date(date);
-    const dateStr = d.toLocaleDateString();
+    // Format Date: "OCT 24, 2023"
+    const dateObj = new Date(date);
+    const dateString = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const timeString = dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    document.getElementById('hd-date').textContent = `${dateString} • ${timeString}`;
 
-    // Stars
-    const stars = '★'.repeat(parseInt(rating)) + '☆'.repeat(5 - parseInt(rating));
+    document.getElementById('hd-rating').textContent = '★'.repeat(parseInt(rating)) + '☆'.repeat(5 - parseInt(rating));
+    document.getElementById('hd-desc').textContent = (!desc || desc === 'null' || desc === 'undefined') ? '' : desc;
 
-    // Escape description to prevent HTML injection
-    const safeDesc = desc ? desc.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;") : '';
+    // Delete Button Logic
+    const deleteBtn = document.getElementById('hd-delete-btn');
+    if (hopId && window.currentUser) {
+        let canDelete = window.currentUser.id === ownerId;
 
-    return `
-    <div class="hop-detail-card" style="display: flex; flex-direction: column;">
-        <button class="btn-close-detail" onclick="window.closeHoppingDetails()">×</button>
-        
-        <div class="hop-detail-image-wrapper">
-             <img src="${img}" class="hop-detail-image">
-        </div>
-        
-        <div class="hop-detail-content" style="flex: 1; display: flex; flex-direction: column; align-items: center;">
-             <span class="hop-detail-date">${dateStr}</span>
-             <div class="hop-detail-stars">${stars}</div>
-             ${safeDesc ? `<p class="hop-detail-desc">${safeDesc}</p>` : ''}
-             
-             <!-- Delete Button Placeholder -->
-             <button class="hd-delete-btn-dynamic" 
-                     data-id="${hopId}" 
-                     data-owner-id="${ownerId}"
-                     style="display: none; margin-top: auto; background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 8px 20px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s; align-items: center; gap: 8px;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                Delete Hop
-             </button>
-        </div>
-    </div>
-    `;
-}
+        // Check if Admin (Async check)
+        if (!canDelete) {
+            try {
+                // ... (simplified for brevity logic kept same)
+                // Note: We skip re-fetching user role here to keep it snappy, relying on previous logic or session
+                const { data: dbUser } = await window.supabaseClient.from('users').select('roles').eq('id', window.currentUser.id).single();
+                if (dbUser && dbUser.roles && dbUser.roles.includes('admin')) canDelete = true;
+            } catch (e) {
+                console.warn('Admin check failed:', e);
+            }
+        }
 
-// Helper: Update Delete Button Visibility
-function updateDeleteButton(btn) {
-    if (!btn || !window.currentUser) return;
-
-    const ownerId = btn.getAttribute('data-owner-id');
-    const hopId = btn.getAttribute('data-id');
-
-    // Check if owner
-    const isOwner = window.currentUser.id === ownerId;
-
-    // Note: Admin check happens on backend via RLS.
-    // For UI, we show it if user is owner.
-    // To support Admin UI delete, we'd need to check roles here too, but for now we prioritize Owner.
-
-    if (isOwner) {
-        btn.style.display = 'inline-flex';
-        btn.onclick = (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            window.deleteHopping(hopId);
-        };
+        if (canDelete) {
+            deleteBtn.style.display = 'flex';
+            deleteBtn.onclick = () => window.deleteHopping(hopId);
+        } else {
+            deleteBtn.style.display = 'none';
+        }
     } else {
-        btn.style.display = 'none';
+        deleteBtn.style.display = 'none';
     }
-}
+
+    modal.style.display = 'flex';
+};
 
 // Delete Hopping
 window.deleteHopping = async (hopId) => {
