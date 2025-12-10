@@ -101,11 +101,11 @@
                     <div class="hopping-modal-card">
                         <button onclick="document.getElementById('hopper-modal').style.display='none'"
                             class="btn-close-minimal">&times;</button>
-                        <h2 class="hopping-title">Edit Card</h2>
+                        <h2 class="hopping-title" style="text-align: center;">Hopper Card</h2>
 
                         <!-- Image Upload -->
-                        <div style="margin-bottom: 2rem;">
-                            <label class="hopping-label">Profile Photo</label>
+                        <div style="margin-bottom: 1.5rem; text-align: center;">
+                            <label class="hopping-label" style="text-align: center;">Profile Photo</label>
                             <input type="file" id="hopper-file-input" accept="image/*" style="display: none;"
                                 onchange="window.handleHopperFile(this)">
 
@@ -130,28 +130,30 @@
                         </div>
 
                         <!-- Fields -->
-                        <div style="margin-bottom: 1.5rem;">
-                            <label class="hopping-label">Nickname</label>
+                        <div style="margin-bottom: 1rem; text-align: center;">
+                            <label class="hopping-label" style="text-align: center;">Hopper Name</label>
                             <input type="text" id="edit-hopper-nickname" class="hopping-input-minimal"
-                                placeholder="Your hopping name">
+                                placeholder="Enter hopper name" style="text-align: center;">
                         </div>
 
-                        <div style="margin-bottom: 1.5rem;">
-                            <label class="hopping-label">Bio (Max 140)</label>
+                        <div style="margin-bottom: 1rem; text-align: center;">
+                            <label class="hopping-label" style="text-align: center;">Bio (Max 140)</label>
                             <textarea id="edit-hopper-bio" class="hopping-input-minimal" rows="3" maxlength="140"
-                                placeholder="Describe yourself..."></textarea>
+                                placeholder="Describe yourself..." style="text-align: center;"></textarea>
                         </div>
 
-                        <div style="margin-bottom: 2rem;">
-                            <div style="display: flex; justify-content: space-between;">
-                                <label class="hopping-label">Privacy Level</label>
+                        <div style="margin-bottom: 1.5rem; text-align: center;">
+                            <div
+                                style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 5px;">
+                                <label class="hopping-label" style="margin: 0;">Privacy Level</label>
                                 <span id="edit-level-val" style="color: var(--bg-red); font-weight: bold;">1</span>
                             </div>
                             <input type="range" id="edit-hopper-level" min="1" max="5" value="1"
                                 style="width: 100%; accent-color: var(--bg-red);">
                         </div>
 
-                        <button onclick="window.saveHopperCard()" class="btn-submit-hop">Save Changes</button>
+                        <button onclick="window.saveHopperCard()" class="btn-submit-hop"
+                            style="width: 100%; background-color: var(--bg-red); color: white; font-size: 1.1rem; padding: 12px; font-weight: 700; letter-spacing: 1px;">SAVE</button>
                         <p id="hopper-save-status"
                             style="text-align: center; color: #888; font-size: 0.8rem; margin-top: 10px;"></p>
                     </div>
