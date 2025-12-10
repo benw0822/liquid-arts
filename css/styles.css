@@ -1683,4 +1683,101 @@ figure.article-figure figcaption {
     height: 150px;
     /* Force height */
     background: #f0f0f0;
+}/* --- Hopping Gallery Transitions --- */
+.hop-slide-container {
+    position: relative;
+    width: 90%;
+    max-width: 380px;
+    height: auto;
+    display: grid;
+    grid-template-areas: "stack";
+    align-items: center;
+    justify-content: center;
+    perspective: 1000px;
+    /* Optional for depth */
+}
+
+.hop-detail-card {
+    grid-area: stack;
+    width: 100%;
+    /* Fill container */
+    max-width: none;
+    /* Let container control width */
+    margin: 0;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    backface-visibility: hidden;
+}
+
+/* Animations */
+.slide-out-to-left {
+    animation: slideOutLeft 0.35s forwards ease-in;
+}
+
+.slide-out-to-right {
+    animation: slideOutRight 0.35s forwards ease-in;
+}
+
+.slide-in-from-right {
+    animation: slideInRight 0.35s forwards ease-out;
+}
+
+.slide-in-from-left {
+    animation: slideInLeft 0.35s forwards ease-out;
+}
+
+@keyframes slideOutLeft {
+    0% {
+        transform: translateX(0) scale(1);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateX(-120%) scale(0.9);
+        opacity: 0;
+    }
+}
+
+@keyframes slideOutRight {
+    0% {
+        transform: translateX(0) scale(1);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateX(120%) scale(0.9);
+        opacity: 0;
+    }
+}
+
+@keyframes slideInRight {
+    0% {
+        transform: translateX(120%) scale(0.9);
+        opacity: 0;
+    }
+
+    100% {
+        transform: translateX(0) scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes slideInLeft {
+    0% {
+        transform: translateX(-120%) scale(0.9);
+        opacity: 0;
+    }
+
+    100% {
+        transform: translateX(0) scale(1);
+        opacity: 1;
+    }
+}
+
+/* Ensure only one card handles events during transition */
+.hop-detail-card.exiting {
+    pointer-events: none;
+    position: absolute;
+    /* Take out of flow to prevent height jumping if supported */
+    top: 0;
+    left: 0;
 }
