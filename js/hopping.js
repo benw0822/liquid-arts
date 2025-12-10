@@ -306,7 +306,7 @@ window.openHoppingGallery = (event, startHopId, barId) => {
     const hops = window.barHoppingsCache[barId];
     if (!hops || hops.length === 0) return;
 
-    let currentIndex = hops.findIndex(h => h.id === startHopId);
+    let currentIndex = hops.findIndex(h => h.id == startHopId); // Use loose equality for String vs Number
     if (currentIndex === -1) currentIndex = 0;
 
     // Helper to render current index
@@ -602,17 +602,9 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
                 // Toggle
                 const isActive = cheersBtn.classList.contains('active');
                 if (isActive) {
-                    // Remove Cheer
-                    const { error } = await window.supabaseClient
-                        .from('hopping_cheers')
-                        .delete()
-                        .eq('hopping_id', hopId)
-                        .eq('user_id', window.currentUser.id);
-
-                    if (!error) {
-                        cheersBtn.classList.remove('active');
-                        cheersCountEl.textContent = Math.max(0, parseInt(cheersCountEl.textContent) - 1);
-                    }
+                    // Already Cheered - Do Nothing/Alert
+                    // alert('You have already cheered!');
+                    return;
                 } else {
                     // Add Cheer
                     // Simply adding 'active' class triggers the CSS fill animation

@@ -752,12 +752,17 @@ h6 {
 }
 
 .hop-detail-stars {
-    color: #ffd700;
+    color: #ef4444;
+    /* Standard Red */
     font-size: 1.2rem;
     letter-spacing: 2px;
     margin-bottom: 5px;
     margin-top: 4px;
     /* Ensure minimal gap from padding top */
+    display: flex;
+    /* Ensure flex for centering */
+    justify-content: center;
+    /* Horizontally Center */
 }
 
 .hop-detail-desc {
