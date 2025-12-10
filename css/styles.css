@@ -229,8 +229,10 @@ h6 {
     max-width: 380px !important;
     margin: 0 auto 2rem auto !important;
     /* Bottom margin for spacing */
-    display: inline-block;
-    /* Essential for column-count */
+    display: inline-flex !important;
+    /* Fix Flex vs Column issue */
+    flex-direction: column;
+    /* Ensure vertical stack if inline-flex overrides inline style */
     vertical-align: top;
 }
 
