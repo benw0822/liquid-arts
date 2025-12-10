@@ -1,0 +1,270 @@
+// Talent Editor Logic
+
+console.log('Talent Editor Loaded');
+
+let talentCropper = null;
+let talentBlob = null;
+let currentTalentId = null; // If editing existing
+
+// --- Initialization ---
+document.addEventListener('DOMContentLoaded', () => {
+    // We wait for profile.js checkAdmin/checkRoles kind of logic to verify eligibility
+    // But since this is a separate module, we can expose a function to show the button
+    setTimeout(checkTalentEligibility, 1000); // Simple delay check after auth
+});
+
+async function checkTalentEligibility() {
+    const user = window.currentUser || (window.supabaseClient && (await window.supabaseClient.auth.getSession()).data.session?.user);
+    if (!user) return;
+
+    // Fetch Roles
+    const { data: userData } = await window.supabaseClient
+        .from('users')
+        .select('roles')
+        .eq('id', user.id)
+        .single();
+
+    if (!userData) return;
+
+    const roles = Array.isArray(userData.roles) ? userData.roles : [userData.roles];
+    const canEdit = roles.some(r => ['admin', 'editor', 'talent', 'kol'].includes(r));
+
+    if (canEdit) {
+        const container = document.getElementById('talent-action-container');
+        if (container) container.style.display = 'flex';
+    }
+}
+
+// --- UI Actions ---
+
+window.openTalentEditor = async () => {
+    const modal = document.getElementById('talent-modal');
+    modal.style.display = 'flex';
+
+    // Fetch existing data
+    await loadTalentData();
+};
+
+window.closeTalentEditor = () => {
+    document.getElementById('talent-modal').style.display = 'none';
+};
+
+// --- Data Loading ---
+async function loadTalentData() {
+    const user = window.currentUser || (await window.supabaseClient.auth.getUser()).data.user;
+    if (!user) return;
+
+    const { data, error } = await window.supabaseClient
+        .from('talents')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+    if (error) {
+        console.error('Error loading talent:', error);
+        return;
+    }
+
+    if (data) {
+        currentTalentId = data.id;
+        document.getElementById('talent-name').value = data.display_name || '';
+        document.getElementById('talent-quote').value = data.quote || '';
+        document.getElementById('talent-desc').value = data.description || '';
+
+        if (data.image_url) {
+            document.getElementById('talent-preview').src = data.image_url;
+            document.getElementById('talent-preview').style.display = 'block';
+            document.getElementById('talent-upload-placeholder').style.display = 'none';
+        }
+
+        // Lists
+        renderList('talent-roles-list', data.bar_roles || [], roleItemTemplate);
+        renderList('talent-exp-list', data.experiences || [], expItemTemplate);
+        renderList('talent-award-list', data.awards || [], awardItemTemplate);
+    } else {
+        // New Profile
+        currentTalentId = null;
+        renderList('talent-roles-list', [], roleItemTemplate);
+        renderList('talent-exp-list', [], expItemTemplate);
+        renderList('talent-award-list', [], awardItemTemplate);
+    }
+}
+
+// --- Dynamic Lists Logic ---
+
+// Helper to render lists
+function renderList(containerId, items, templateFn) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = '';
+    items.forEach((item, index) => {
+        container.appendChild(createListItem(item, index, templateFn));
+    });
+}
+
+function createListItem(data, index, templateFn) {
+    const div = document.createElement('div');
+    div.className = 'talent-list-item';
+    div.style.cssText = 'background: #f9f9f9; padding: 10px; border-radius: 6px; position: relative; border: 1px solid #eee;';
+    div.innerHTML = templateFn(data);
+
+    // Delete Button
+    const delBtn = document.createElement('button');
+    delBtn.innerHTML = '&times;';
+    delBtn.style.cssText = 'position: absolute; top: 5px; right: 5px; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #999;';
+    delBtn.onclick = function () { div.remove(); };
+    div.appendChild(delBtn);
+
+    return div;
+}
+
+// RESTORED HELPERS for adding blank items
+window.addTalentRoleItem = () => {
+    const container = document.getElementById('talent-roles-list');
+    container.appendChild(createListItem({}, container.children.length, roleItemTemplate));
+};
+window.addTalentExpItem = () => {
+    const container = document.getElementById('talent-exp-list');
+    container.appendChild(createListItem({}, container.children.length, expItemTemplate));
+};
+window.addTalentAwardItem = () => {
+    const container = document.getElementById('talent-award-list');
+    container.appendChild(createListItem({}, container.children.length, awardItemTemplate));
+};
+
+
+// Templates
+const roleItemTemplate = (data) => `
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+        <input type="text" class="hopping-input-minimal list-input-bar" placeholder="Bar Name" value="${data.bar_name || ''}" style="margin:0; font-size: 0.9rem;">
+        <input type="text" class="hopping-input-minimal list-input-role" placeholder="Role (e.g. Owner)" value="${data.role || ''}" style="margin:0; font-size: 0.9rem;">
+    </div>
+`;
+
+const expItemTemplate = (data) => `
+    <div style="display: grid; grid-template-columns: 80px 1fr 1fr; gap: 8px;">
+        <input type="text" class="hopping-input-minimal list-input-year" placeholder="Year" value="${data.year || ''}" style="margin:0; font-size: 0.9rem;">
+        <input type="text" class="hopping-input-minimal list-input-unit" placeholder="Unit (Company)" value="${data.unit || ''}" style="margin:0; font-size: 0.9rem;">
+        <input type="text" class="hopping-input-minimal list-input-title" placeholder="Title" value="${data.title || ''}" style="margin:0; font-size: 0.9rem;">
+    </div>
+`;
+
+const awardItemTemplate = (data) => `
+    <div style="display: grid; grid-template-columns: 80px 1fr 1fr; gap: 8px;">
+        <input type="text" class="hopping-input-minimal list-input-year" placeholder="Year" value="${data.year || ''}" style="margin:0; font-size: 0.9rem;">
+        <input type="text" class="hopping-input-minimal list-input-name" placeholder="Award Name" value="${data.name || ''}" style="margin:0; font-size: 0.9rem;">
+        <input type="text" class="hopping-input-minimal list-input-rank" placeholder="Rank/Title" value="${data.rank || ''}" style="margin:0; font-size: 0.9rem;">
+    </div>
+`;
+
+// --- Scrape Data from DOM ---
+function scrapeList(containerId, selectors) {
+    const container = document.getElementById(containerId);
+    const items = [];
+    Array.from(container.children).forEach(div => {
+        const item = {};
+        // selectors is map: { key: className }
+        for (const [key, cls] of Object.entries(selectors)) {
+            const input = div.querySelector('.' + cls);
+            if (input) item[key] = input.value;
+        }
+        // Filter empty
+        if (Object.values(item).some(v => v && v.trim() !== '')) {
+            items.push(item);
+        }
+    });
+    return items;
+}
+
+// --- Image Handling ---
+window.handleTalentFile = (input) => {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const cropImg = document.getElementById('talent-crop-img');
+            cropImg.src = e.target.result;
+            document.getElementById('talent-crop-container').style.display = 'block';
+
+            if (talentCropper) talentCropper.destroy();
+            talentCropper = new Cropper(cropImg, {
+                aspectRatio: 1, // 1028x1028 is 1:1
+                viewMode: 1
+            });
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+};
+
+window.confirmTalentCrop = () => {
+    if (!talentCropper) return;
+    talentCropper.getCroppedCanvas({ width: 1028, height: 1028 }).toBlob((blob) => {
+        talentBlob = blob;
+        const url = URL.createObjectURL(blob);
+        const preview = document.getElementById('talent-preview');
+        preview.src = url;
+        preview.style.display = 'block';
+        document.getElementById('talent-upload-placeholder').style.display = 'none';
+        document.getElementById('talent-crop-container').style.display = 'none';
+
+        // Clean up cropper
+        talentCropper.destroy();
+        talentCropper = null;
+    });
+};
+
+// --- Save ---
+window.saveTalentProfile = async () => {
+    const user = window.currentUser || (await window.supabaseClient.auth.getUser()).data.user;
+    if (!user) return alert('Session expired');
+
+    // 1. Upload Image (if changed)
+    let imageUrl = document.getElementById('talent-preview').src;
+    if (talentBlob) {
+        const fileName = `talent_${user.id}_${Date.now()}.jpg`;
+        const { data: uploadData, error: uploadError } = await window.supabaseClient
+            .storage
+            .from('avatars') // Reusing avatars bucket
+            .upload(fileName, talentBlob);
+
+        if (uploadError) {
+            console.error('Upload error:', uploadError);
+            return alert('Image upload failed');
+        }
+
+        const { data: { publicUrl } } = window.supabaseClient
+            .storage
+            .from('avatars')
+            .getPublicUrl(fileName);
+        imageUrl = publicUrl;
+    }
+
+    // 2. Gather Data
+    const payload = {
+        user_id: user.id,
+        display_name: document.getElementById('talent-name').value,
+        quote: document.getElementById('talent-quote').value,
+        description: document.getElementById('talent-desc').value,
+        image_url: imageUrl,
+        bar_roles: scrapeList('talent-roles-list', { bar_name: 'list-input-bar', role: 'list-input-role' }),
+        experiences: scrapeList('talent-exp-list', { year: 'list-input-year', unit: 'list-input-unit', title: 'list-input-title' }),
+        awards: scrapeList('talent-award-list', { year: 'list-input-year', name: 'list-input-name', rank: 'list-input-rank' })
+    };
+
+    // 3. Upsert
+    // Note: If ID exists, we update. But since table is 1-to-1 with user_id, upsert on user_id conflict is also fine if we set constraint.
+    // However, our table PK is ID. Let's try upserting by match user_id logic or just use ID if we have it.
+
+    let query = window.supabaseClient.from('talents');
+
+    // We can use 'upsert' but need to Specify 'onConflict' if we rely on user_id unique constraint
+    // The table definition has: user_id uuid ... unique. So we can use onConflict: 'user_id'
+
+    const { error } = await query.upsert(payload, { onConflict: 'user_id' });
+
+    if (error) {
+        console.error('Save error:', error);
+        alert('Failed to save profile: ' + error.message);
+    } else {
+        alert('Talent Profile Saved!');
+        window.closeTalentEditor();
+    }
+};
