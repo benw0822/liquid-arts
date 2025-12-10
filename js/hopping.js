@@ -276,10 +276,16 @@ window.fetchRecentHoppings = async (barId) => {
     return data;
 };
 
+// Global Cache for Hopping Data (per bar)
+window.barHoppingsCache = {};
+
 // Render Badge Row (Called from app.js)
 window.renderHoppingBadge = async (barId) => {
     const data = await window.fetchRecentHoppings(barId);
     if (!data || data.length === 0) return;
+
+    // Cache data for gallery
+    window.barHoppingsCache[barId] = data;
 
     const container = document.getElementById(`hop-badge-${barId}`);
     if (!container) return;
@@ -289,19 +295,107 @@ window.renderHoppingBadge = async (barId) => {
         <img src="${hop.image_url}" 
              class="hopping-badge-mini" 
              title="${new Date(hop.hopped_at).toLocaleDateString()}"
-             onclick="event.preventDefault(); event.stopPropagation(); window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', '${hop.rating}', '${hop.description}', '${hop.id}', '${hop.user_id}')">
+             onclick="event.preventDefault(); event.stopPropagation(); window.openHoppingGallery(event, '${hop.id}', '${barId}')">
     `).join('');
 };
 
+// Open Gallery
+window.openHoppingGallery = (event, startHopId, barId) => {
+    if (event) { event.preventDefault(); event.stopPropagation(); }
+
+    const hops = window.barHoppingsCache[barId];
+    if (!hops || hops.length === 0) return;
+
+    let currentIndex = hops.findIndex(h => h.id === startHopId);
+    if (currentIndex === -1) currentIndex = 0;
+
+    // Helper to render current index
+    const renderCurrent = () => {
+        const hop = hops[currentIndex];
+        window.showHoppingDetails(null, hop.image_url, hop.hopped_at, hop.rating, hop.description, hop.id, hop.user_id, true); // true = internal call
+        updateNavigationUI();
+    };
+
+    // Helper to update arrows
+    const updateNavigationUI = () => {
+        const modal = document.getElementById('hopping-details-modal');
+        if (!modal) return;
+
+        let prevBtn = document.getElementById('hd-prev-btn');
+        let nextBtn = document.getElementById('hd-next-btn');
+
+        // Create arrows if missing
+        if (!prevBtn) {
+            const wrapper = modal.querySelector('.hop-detail-image-wrapper');
+
+            prevBtn = document.createElement('button');
+            prevBtn.id = 'hd-prev-btn';
+            prevBtn.innerHTML = '&#10094;';
+            prevBtn.style.cssText = 'position: absolute; top: 50%; left: 10px; transform: translateY(-50%); background: rgba(0,0,0,0.3); color: white; border: none; padding: 10px; cursor: pointer; border-radius: 50%; font-size: 1.5rem; z-index: 10; transition: background 0.2s;';
+            prevBtn.onmouseover = () => prevBtn.style.background = 'rgba(0,0,0,0.6)';
+            prevBtn.onmouseout = () => prevBtn.style.background = 'rgba(0,0,0,0.3)';
+            wrapper.appendChild(prevBtn);
+
+            nextBtn = document.createElement('button');
+            nextBtn.id = 'hd-next-btn';
+            nextBtn.innerHTML = '&#10095;';
+            nextBtn.style.cssText = 'position: absolute; top: 50%; right: 10px; transform: translateY(-50%); background: rgba(0,0,0,0.3); color: white; border: none; padding: 10px; cursor: pointer; border-radius: 50%; font-size: 1.5rem; z-index: 10; transition: background 0.2s;';
+            nextBtn.onmouseover = () => nextBtn.style.background = 'rgba(0,0,0,0.6)';
+            nextBtn.onmouseout = () => nextBtn.style.background = 'rgba(0,0,0,0.3)';
+            wrapper.appendChild(nextBtn);
+        }
+
+        // Logic
+        prevBtn.style.display = hops.length > 1 ? 'block' : 'none';
+        nextBtn.style.display = hops.length > 1 ? 'block' : 'none';
+
+        prevBtn.onclick = (e) => {
+            e.stopPropagation();
+            currentIndex = (currentIndex - 1 + hops.length) % hops.length;
+            renderCurrent();
+        };
+
+        nextBtn.onclick = (e) => {
+            e.stopPropagation();
+            currentIndex = (currentIndex + 1) % hops.length;
+            renderCurrent();
+        };
+
+        // Swipe Logic (Touch)
+        const img = document.getElementById('hd-img');
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        img.ontouchstart = (e) => { touchStartX = e.changedTouches[0].screenX; };
+        img.ontouchend = (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        };
+
+        const handleSwipe = () => {
+            if (touchEndX < touchStartX - 50) { // Swipe Left -> Next
+                currentIndex = (currentIndex + 1) % hops.length;
+                renderCurrent();
+            }
+            if (touchEndX > touchStartX + 50) { // Swipe Right -> Prev
+                currentIndex = (currentIndex - 1 + hops.length) % hops.length;
+                renderCurrent();
+            }
+        };
+    };
+
+    renderCurrent();
+};
+
 // Show Details Modal (Modified for HopCard + Delete)
-window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null, ownerId = null) => {
+window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null, ownerId = null, internal = false) => {
     if (event) { event.preventDefault(); event.stopPropagation(); }
 
     // Create Modal if not exists (Lazy Load)
     if (!document.getElementById('hopping-details-modal')) {
         const html = `
         <div id="hopping-details-modal" class="hopping-modal-overlay">
-            <div class="hop-detail-card">
+            <div class="hop-detail-card" onclick="event.stopPropagation()">
                 <div class="hop-detail-image-wrapper">
                     <button onclick="document.getElementById('hopping-details-modal').style.display='none'" class="btn-close-detail">&times;</button>
                     <img id="hd-img" class="hop-detail-image" src="">
@@ -333,6 +427,14 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
     const modal = document.getElementById('hopping-details-modal');
     document.getElementById('hd-img').src = img;
 
+    // Reset arrows if not internal (single view)
+    if (!internal) {
+        const prev = document.getElementById('hd-prev-btn');
+        const next = document.getElementById('hd-next-btn');
+        if (prev) prev.style.display = 'none';
+        if (next) next.style.display = 'none';
+    }
+
     // Format Date
     const dateObj = new Date(date);
     const dateString = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -350,14 +452,10 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
         // Check if Admin (Async check)
         if (!canDelete) {
             try {
-                const { data: dbUser } = await window.supabaseClient
-                    .from('users')
-                    .select('roles')
-                    .eq('id', window.currentUser.id)
-                    .single();
-                if (dbUser && dbUser.roles && dbUser.roles.includes('admin')) {
-                    canDelete = true;
-                }
+                // ... (simplified for brevity logic kept same)
+                // Note: We skip re-fetching user role here to keep it snappy, relying on previous logic or session
+                const { data: dbUser } = await window.supabaseClient.from('users').select('roles').eq('id', window.currentUser.id).single();
+                if (dbUser && dbUser.roles && dbUser.roles.includes('admin')) canDelete = true;
             } catch (e) {
                 console.warn('Admin check failed:', e);
             }
