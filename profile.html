@@ -267,8 +267,9 @@
 
             document.getElementById('user-view').style.display = 'block';
             const user = session.user;
-            const profileContent = document.getElementById('profile-content');
-            const loading = document.getElementById('profile-loading');
+            // Legacy loading/content elements are removed
+            // const profileContent = document.getElementById('profile-content');
+            // const loading = document.getElementById('profile-loading');
 
             // --- Render Account Info (Bottom Section) ---
             document.getElementById('account-email').textContent = user.email;
@@ -508,12 +509,8 @@
                 }
             } catch (e) {
                 console.warn('Admin button injection failed:', e);
-            } finally {
-                // Ensure Loading is hidden regardless of Admin logic success
-                // Ensure Loading is hidden regardless of Admin logic success
-                loading.style.display = 'none';
-                profileContent.style.display = 'block';
             }
+            // Removed finally block that toggled non-existent elements
 
             // --- Filter Event Listeners ---
             // --- Admin Check ---
