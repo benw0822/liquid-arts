@@ -271,8 +271,7 @@
                         const mapUrl = bar.google_map_url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(bar.address || bar.location || '')}`;
 
                         return `
-                        return `
-                            < div class="art-card" onclick = "window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', '${hop.rating}', '${hop.description ? hop.description.replace(/'/g, "\\'") : ''}', '${hop.id}', '${hop.user_id}')" style="position: relative; cursor: pointer; display: flex; flex - direction: column; background: #fff; border - radius: 8px; overflow: hidden; box - shadow: 0 4px 15px rgba(0, 0, 0, 0.1); height: auto!important; ">
+                        <div class="art-card" onclick="window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', '${hop.rating}', '${hop.description ? hop.description.replace(/'/g, "\\'") : ''}', '${hop.id}', '${hop.user_id}')" style="position: relative; cursor: pointer; display: flex; flex-direction: column; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); height: auto !important;">
 
                                 < div style = "width: 100%; aspect-ratio: 1/1; overflow: hidden; position: relative; z-index: 1;" >
                                 <img src="${hop.image_url}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
@@ -345,7 +344,7 @@
                         const bar = hop.bars || {};
                         if (bar.lat && bar.lng) {
                             setTimeout(() => {
-                                const mapId = `hop - map - ${ hop.id } `;
+                                const mapId = `hop - map - ${hop.id} `;
                                 const el = document.getElementById(mapId);
                                 if (el && !el._leaflet_id) {
                                     const map = L.map(mapId, { zoomControl: false, dragging: false, scrollWheelZoom: false, doubleClickZoom: false, touchZoom: false }).setView([bar.lat, bar.lng], 15);
