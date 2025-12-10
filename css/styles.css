@@ -191,15 +191,13 @@ h6 {
     /* Remove underline */
 }
 
-/* Masonry Optimization - Explicit Columns */
+/* --- Unify Grid Spacing --- */
 .unified-grid {
     column-count: 4;
+    /* Desktop default */
     column-gap: 2rem;
+    min-height: 300px;
     width: 100%;
-    margin: 0 auto;
-    display: block;
-    column-fill: balance;
-    /* Ensure columns fill evenly */
 }
 
 @media (max-width: 1400px) {
@@ -208,7 +206,7 @@ h6 {
     }
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1024px) {
     .unified-grid {
         column-count: 2;
     }
@@ -216,20 +214,7 @@ h6 {
 
 @media (max-width: 768px) {
     .unified-grid {
-        column-count: auto;
-        display: flex;
-        flex-direction: column;
-        gap: 2rem;
-    }
-
-    .unified-grid .art-card {
-        display: flex !important;
-        /* Restore block-level flex */
-        width: 100% !important;
-        max-width: 100% !important;
-        /* Allow full width on mobile */
-        margin-bottom: 0 !important;
-        /* Gap handled by parent */
+        column-count: 1;
     }
 }
 
@@ -242,10 +227,8 @@ h6 {
     max-width: 380px !important;
     margin: 0 auto 2rem auto !important;
     /* Bottom margin for spacing */
-    display: inline-flex !important;
-    /* Fix Flex vs Column issue */
-    flex-direction: column;
-    /* Ensure vertical stack if inline-flex overrides inline style */
+    display: inline-block;
+    /* Essential for column-count */
     vertical-align: top;
 }
 
