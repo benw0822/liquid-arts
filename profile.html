@@ -482,33 +482,63 @@
             // --- Logout Logic ---
             const logoutBtn = document.getElementById('logout-btn');
             if (logoutBtn) {
+                // Force higher Z-index
+                logoutBtn.style.position = 'relative';
+                logoutBtn.style.zIndex = '100';
+                logoutBtn.style.cursor = 'pointer';
+
                 logoutBtn.addEventListener('click', async () => {
+                    console.log('Logout Clicked');
                     const { error } = await supabase.auth.signOut();
-                    if (!error) window.location.reload();
+                    if (error) console.error('Logout Error:', error);
+                    else window.location.reload();
                 });
             }
 
             // --- Filter Event Listeners ---
             // --- Admin Check ---
             const checkAdmin = async () => {
-                const { data: roles } = await supabase
-                    .from('user_roles')
-                    .select('role')
-                    .eq('user_id', user.id);
+                const { data: userData, error } = await supabase
+                    .from('users')
+                    .select('roles')
+                    .eq('id', user.id)
+                    .single();
 
-                const isAdmin = roles?.some(r => r.role === 'admin');
-                const isOwner = roles?.some(r => r.role === 'barOwner');
-                console.log('Admin Check:', { roles, isAdmin, isOwner });
+                if (error) {
+                    console.error('Admin Check Error:', error);
+                    return;
+                }
 
-                if (isAdmin || isOwner) {
+                // Handle both array (legacy/standard) or string (if schema changed to singular role)
+                const rawRoles = userData.roles || [];
+                const roles = Array.isArray(rawRoles) ? rawRoles : [rawRoles];
+
+                const isAdmin = roles.includes('admin');
+                const isEditor = roles.includes('editor');
+                const isOwner = roles.includes('barOwner');
+
+                console.log('Admin Check Result:', { roles, isAdmin, isEditor, isOwner });
+
+                if (isAdmin || isOwner || isEditor) {
                     const container = document.getElementById('admin-action-container');
                     if (container) {
                         const btn = document.createElement('a');
-                        btn.href = isOwner ? 'owner/dashboard.html' : 'admin/dashboard.html';
+                        // Determine Link & Text
+                        if (isOwner) {
+                            btn.href = 'owner/dashboard.html';
+                            btn.textContent = 'Manage Bar';
+                        } else {
+                            // Admin or Editor
+                            btn.href = 'admin.html';
+                            btn.textContent = isAdmin ? 'Admin' : 'Manage Content';
+                        }
+
                         btn.className = 'btn';
-                        btn.style.cssText = 'background: #333; color: white; padding: 6px 16px; font-size: 0.8rem; text-decoration: none; display: inline-block;';
-                        btn.textContent = isAdmin ? 'Admin' : 'Manage Bar';
+                        // Style specifically to ensure visibility
+                        btn.style.cssText = 'background: #333; color: white; padding: 6px 16px; font-size: 0.8rem; text-decoration: none; display: inline-block; cursor: pointer; position: relative; z-index: 100;';
                         container.appendChild(btn);
+                    } else {
+                        console.warn('Admin Container not found');
                     }
                 }
             };
