@@ -42,6 +42,10 @@ async function checkTalentEligibility() {
 window.openTalentEditor = async (userId = null) => {
     const modal = document.getElementById('talent-modal');
     if (!modal) return console.error('Talent Modal not found');
+
+    // Ensure Bars Loaded
+    await ensureBarsLoaded();
+
     modal.style.display = 'flex';
 
     if (userId) {
@@ -168,17 +172,66 @@ window.addTalentAwardItem = () => {
 };
 
 
-// Templates
+// --- Dropdown Helpers ---
+let cachedBars = [];
+
+async function ensureBarsLoaded() {
+    if (cachedBars.length > 0) return;
+    const { data } = await window.supabaseClient
+        .from('bars')
+        .select('id, title')
+        .order('title');
+    if (data) cachedBars = data;
+}
+
+function getYearOptions(selectedYear) {
+    const currentYear = new Date().getFullYear();
+    let options = '<option value="">Year</option>';
+    for (let y = currentYear; y >= 1980; y--) {
+        const sel = (selectedYear && parseInt(selectedYear) === y) ? 'selected' : '';
+        options += `<option value="${y}" ${sel}>${y}</option>`;
+    }
+    return options;
+}
+
+function getBarOptions(selectedBarId) {
+    let options = '<option value="">Select Bar...</option>';
+    cachedBars.forEach(b => {
+        // If saved data stores ID, match by ID. If stores Name, we might need logic change.
+        // For robustness, let's store ID if possible, or Name if that's what backend expects.
+        // Implementation Plan said: bar_roles: JSONB: [{ bar_id, role_name }]
+        // So we should verify if data used bar_name or bar_id previously. 
+        // Previous template used "bar_name". Let's migrate to using ID primarily, or Name if custom?
+        // User request: "Select from existing bars".
+        // Let's use ID as value, Title as text.
+
+        // However, existing scrape logic used 'bar_name' key. Let's switch to 'bar_id' or keep 'bar_name' but fill with title?
+        // Ideally we store { bar_id, bar_name, role }.
+        // Let's assume we store ID in value. 
+
+        const sel = (selectedBarId === b.id) ? 'selected' : '';
+        options += `<option value="${b.id}" ${sel}>${b.title}</option>`;
+    });
+    return options;
+}
+
+
+// Templates - Now functions that return HTML string with options injected
 const roleItemTemplate = (data) => `
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-        <input type="text" class="hopping-input-minimal list-input-bar" placeholder="Bar Name" value="${data.bar_name || ''}" style="margin:0; font-size: 0.9rem;">
+        <select class="hopping-input-minimal list-input-bar-id" style="margin:0; font-size: 0.9rem;">
+            ${getBarOptions(data.bar_id)}
+        </select>
         <input type="text" class="hopping-input-minimal list-input-role" placeholder="Role (e.g. Owner)" value="${data.role || ''}" style="margin:0; font-size: 0.9rem;">
+        <!-- Hidden input for bar Name if needed for display fallback, though ID is better -->
     </div>
 `;
 
 const expItemTemplate = (data) => `
     <div style="display: grid; grid-template-columns: 80px 1fr 1fr; gap: 8px;">
-        <input type="text" class="hopping-input-minimal list-input-year" placeholder="Year" value="${data.year || ''}" style="margin:0; font-size: 0.9rem;">
+        <select class="hopping-input-minimal list-input-year" style="margin:0; font-size: 0.9rem; padding-right:0;">
+             ${getYearOptions(data.year)}
+        </select>
         <input type="text" class="hopping-input-minimal list-input-unit" placeholder="Unit (Company)" value="${data.unit || ''}" style="margin:0; font-size: 0.9rem;">
         <input type="text" class="hopping-input-minimal list-input-title" placeholder="Title" value="${data.title || ''}" style="margin:0; font-size: 0.9rem;">
     </div>
@@ -186,7 +239,9 @@ const expItemTemplate = (data) => `
 
 const awardItemTemplate = (data) => `
     <div style="display: grid; grid-template-columns: 80px 1fr 1fr; gap: 8px;">
-        <input type="text" class="hopping-input-minimal list-input-year" placeholder="Year" value="${data.year || ''}" style="margin:0; font-size: 0.9rem;">
+        <select class="hopping-input-minimal list-input-year" style="margin:0; font-size: 0.9rem; padding-right:0;">
+             ${getYearOptions(data.year)}
+        </select>
         <input type="text" class="hopping-input-minimal list-input-name" placeholder="Award Name" value="${data.name || ''}" style="margin:0; font-size: 0.9rem;">
         <input type="text" class="hopping-input-minimal list-input-rank" placeholder="Rank/Title" value="${data.rank || ''}" style="margin:0; font-size: 0.9rem;">
     </div>
