@@ -1781,13 +1781,13 @@ figure.article-figure figcaption {
     position: absolute;
     bottom: 0;
     left: 50%;
-    transform: translate(-50%, 60%);
-    /* Moved UP closer to overlap */
+    transform: translate(-50%, 50%);
+    /* Moved UP to center line */
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
-    /* Increased gap for equidistant feel */
+    gap: 15px;
+    /* Increased gap for vertical rhythm */
     z-index: 20;
     width: 100%;
 }
@@ -1817,8 +1817,8 @@ figure.article-figure figcaption {
 }
 
 .hop-detail-content {
-    padding: 6rem 25px 25px;
-    /* Reduced padding as profile moved up */
+    padding: 8.5rem 25px 25px;
+    /* Increased to push stars down */
     flex-grow: 1;
     overflow-y: auto;
     background: #fff;
