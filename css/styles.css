@@ -147,29 +147,28 @@ h6 {
     height: 100%;
 }
 
-/* --- Profile Filter Tabs --- */
+/* --- Profile Filter Nav --- */
 .profile-filter-nav {
     display: flex;
     justify-content: center;
-    gap: 3rem;
-    margin-bottom: 3rem;
-    border-bottom: none;
-    /* Removed border */
-    padding-bottom: 1rem;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 0.5rem;
 }
 
 .filter-tab {
     background: none;
     border: none;
     font-family: var(--font-display);
-    font-size: 1.8rem;
-    /* Much Larger */
-    color: white;
-    /* Default White */
+    font-size: 0.7rem;
+    /* Reduced font size */
+    font-weight: 600;
+    color: #aaa;
     cursor: pointer;
-    padding: 0.5rem 0;
+    padding-bottom: 0.5rem;
     position: relative;
-    transition: all 0.3s;
+    transition: color 0.3s;
     text-transform: uppercase;
     letter-spacing: 0.1em;
     opacity: 0.7;
@@ -181,14 +180,20 @@ h6 {
 
 .filter-tab.active {
     color: var(--bg-red);
-    /* Active Red */
     font-weight: 700;
     opacity: 1;
 }
 
 .filter-tab.active::after {
-    display: none;
-    /* Remove underline */
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: var(--bg-red);
+    transform: scaleX(1);
+    transition: transform 0.3s ease;
 }
 
 /* --- Unify Grid Spacing --- */
@@ -696,18 +701,20 @@ h6 {
 }
 
 /* --- Hop Detail Card (HopCard) --- */
-.hop-detail-card {
-    background: #fff;
+.hopping-modal-card {
+    background: white;
     width: 90%;
-    max-width: 380px;
-    /* Match Grid Card Max-width */
+    max-width: 400px;
     border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    padding: 2rem;
     position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    /* Center align content for Hopper Card */
+    display: flex;
+    flex-direction: column;
     text-align: center;
-    padding-bottom: 2.5rem;
-    animation: fadeInScale 0.3s ease-out;
 }
 
 @keyframes fadeInScale {
@@ -1382,13 +1389,36 @@ figure.article-figure figcaption {
     }
 }
 
-/* Responsive Grids */
-.magazine-grid {
+/* Large Red Save Button */
+.btn-save-large {
+    width: 100%;
+    background-color: var(--bg-red);
+    color: white;
+    padding: 12px 0;
+    border: none;
+    border-radius: 30px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    margin-top: 1rem;
+    box-shadow: 0 4px 10px rgba(156, 16, 15, 0.3);
+}
+
+.btn-save-large:hover {
+    background-color: #7a0c0b;
+    transform: translateY(-2px);
+}
+
+.btn-save-large:active {
+    transform: translateY(0);
+}
+
+/* Responsive Grid for Profile */
+.unified-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 2rem;
-    padding: 0;
-    /* Remove legacy padding */
 }
 
 #bars-grid {
