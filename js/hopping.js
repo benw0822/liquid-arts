@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     <div id="hopping-modal" class="hopping-modal-overlay">
         <div class="hopping-modal-card">
             <button id="close-hopping-btn" class="btn-close-minimal">&times;</button>
-            <h2 class="hopping-title">HOP IN !</h2>
+            <h2 class="hopping-title" style="font-size: 1.5rem;">HOP IN !</h2>
             
             <input type="hidden" id="hopping-bar-id">
 
@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
 
             <!-- 3. Description -->
-            <div style="margin-bottom: 0.5rem;">
+            <div style="margin-bottom: 0.2rem;">
                 <textarea id="hopping-desc" class="hopping-input-minimal" maxlength="150" placeholder="Describe the vibe (optional)..." style="height: auto; min-height: 40px; resize: none; overflow-y: hidden;"></textarea>
             </div>
 
