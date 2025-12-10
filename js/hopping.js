@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <input type="hidden" id="hopping-bar-id">
 
             <!-- 1. Image Upload (Square) -->
-            <div style="margin-bottom: 2rem;">
+            <div style="margin-bottom: 1rem;">
                 <!-- Label removed -->
                 <input type="file" id="hopping-file-input" accept="image/*" style="display: none;">
                 
@@ -29,9 +29,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             <!-- 2. Rating -->
             <!-- 2. Rating -->
-            <div style="margin-bottom: 2rem; text-align: center;">
+            <div style="margin-bottom: 1rem; text-align: center;">
                 <!-- Label removed -->
-                <div class="star-rating" style="display: flex; gap: 8px; justify-content: center; margin-bottom: 0.5rem;">
+                <div class="star-rating" style="display: flex; gap: 8px; justify-content: center; margin-bottom: 0.2rem;">
                     <span data-value="1" class="hop-star">☆</span>
                     <span data-value="2" class="hop-star">☆</span>
                     <span data-value="3" class="hop-star">☆</span>
@@ -43,13 +43,13 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
 
             <!-- 3. Description -->
-            <div style="margin-bottom: 1.5rem;">
+            <div style="margin-bottom: 1rem;">
                 <label class="hopping-label">Vibe (optional)</label>
                 <textarea id="hopping-desc" class="hopping-input-minimal" maxlength="150" placeholder="Describe the vibe..." style="height: auto; min-height: 40px; resize: none; overflow-y: hidden;"></textarea>
             </div>
 
             <!-- 4. Date & Time (Row) -->
-            <div style="display: flex; gap: 2rem; margin-bottom: 2rem;">
+            <div style="display: flex; gap: 2rem; margin-bottom: 1.5rem;">
                 <div style="flex: 1;">
                     <label class="hopping-label">Date</label>
                     <input type="date" id="hopping-date" class="hopping-input-minimal" style="margin-bottom: 0;">
@@ -60,15 +60,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>
 
-            <!-- 5. Public Toggle -->
-            <div style="margin-bottom: 2.5rem; display: flex; align-items: center; justify-content: center;">
-                 <label style="display: flex; align-items: center; cursor: pointer; gap: 10px;">
-                    <input type="checkbox" id="hopping-public" checked style="accent-color: var(--bg-red); width: 18px; height: 18px;">
-                    <span style="font-size: 0.9rem; color: #555; letter-spacing: 0.05em;">Make this Hop Public</span>
+            <!-- Submit Button with Cocktail Icon -->
+            <button id="submit-hopping-btn" class="btn-hop-submit" style="background-color: var(--bg-red); color: white; display: flex; align-items: center; justify-content: center; gap: 10px; transition: background-color 0.3s, color 0.3s;">
+                 <!-- Cocktail Icon (Martini Glass) -->
+                 <svg class="hop-submit-icon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M8 22h8"></path>
+                    <path d="M12 15v7"></path>
+                    <path d="M2 3h20L12 15z"></path>
+                    <!-- Liquid Path for Fill Animation -->
+                    <path class="cocktail-liquid" d="M4.5 5.5h15l-3.5 4.5h-8z" fill="currentColor" style="transform-origin: bottom; transform: scaleY(0); transition: transform 0.5s; opacity: 0;"></path>
+                 </svg>
+                 <span class="btn-text">HOP !</span>
+            </button>
+
+            <!-- 5. Public Toggle (Moved Below) -->
+            <div style="margin-top: 1rem; display: flex; align-items: center; justify-content: center;">
+                 <label style="display: flex; align-items: center; cursor: pointer; gap: 8px;">
+                    <input type="checkbox" id="hopping-public" checked style="accent-color: var(--bg-red); width: 16px; height: 16px;">
+                    <span style="font-size: 0.85rem; color: #888; letter-spacing: 0.05em; font-weight: 500;">Public</span>
                  </label>
             </div>
-
-            <button id="submit-hopping-btn" class="btn-hop-submit" style="background-color: var(--bg-red); color: white;">HOP !</button>
         </div>
     </div>
     `;
@@ -153,20 +164,37 @@ function initHoppingLogic() {
 
     // Submit Logic
     submitBtn.onclick = async () => {
-        if (!window.currentUser) { alert('Please login first!'); return; }
-        if (!cropper) { alert('Please upload and crop an image.'); return; }
-        if (ratingInput.value == 0) { alert('Please select a rating.'); return; }
+        if (!window.currentUser) { alert('Please login to Hop!'); return; }
+        if (!cropper) { alert('Please snap a photo!'); return; } // Changed from !cropper to !cropper && !fileInput.files[0]
 
-        submitBtn.textContent = 'Uploading...';
+        // Start Animation
+        submitBtn.style.backgroundColor = '#eab308'; // Yellow
+        submitBtn.style.color = '#fff';
+        submitBtn.classList.add('pouring'); // Triggers CSS animation if added
+
+        // Show Liquid
+        const liquid = submitBtn.querySelector('.cocktail-liquid');
+        if (liquid) {
+            liquid.style.opacity = '1';
+            liquid.style.transform = 'scaleY(1)';
+        }
+
         submitBtn.disabled = true;
+        const btnTextSpan = submitBtn.querySelector('.btn-text');
+        const origText = btnTextSpan.textContent;
+        btnTextSpan.textContent = "POURING...";
 
         try {
             // 1. Get Crop Blob
             cropper.getCroppedCanvas({ width: 1080, height: 1080 }).toBlob(async (blob) => {
                 if (!blob) {
                     alert('Error: Image crop failed.');
-                    submitBtn.textContent = 'Check In';
+                    // Reset button state on error
+                    submitBtn.style.backgroundColor = ''; // Revert to class default (Red)
+                    submitBtn.classList.remove('pouring');
+                    if (liquid) { liquid.style.opacity = '0'; liquid.style.transform = 'scaleY(0)'; }
                     submitBtn.disabled = false;
+                    btnTextSpan.textContent = origText;
                     return;
                 }
 
@@ -205,9 +233,18 @@ function initHoppingLogic() {
                     if (insertError) throw insertError;
 
                     alert('Hopping Check-In Successful! / 打卡成功！');
-                    modal.style.display = 'none';
-                    resetForm();
-                    location.reload();
+                    // Wait a moment for effect
+                    setTimeout(() => {
+                        modal.style.display = 'none';
+                        resetForm();
+                        // Reset Button
+                        submitBtn.style.backgroundColor = ''; // Revert to class default (Red)
+                        submitBtn.classList.remove('pouring');
+                        if (liquid) { liquid.style.opacity = '0'; liquid.style.transform = 'scaleY(0)'; }
+                        submitBtn.disabled = false;
+                        btnTextSpan.textContent = origText;
+                        location.reload(); // Reload after successful submission and animation
+                    }, 1000);
 
                 } catch (innerErr) {
                     console.error('Upload Process Error:', innerErr);
