@@ -330,7 +330,7 @@ window.fetchRecentHoppings = async (barId) => {
         .eq('bar_id', barId)
         .eq('is_public', true)
         .order('hopped_at', { ascending: false })
-        .limit(3);
+        .limit(5);
     return data;
 };
 
