@@ -424,6 +424,13 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
                     <div style="position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.6); color: white; padding: 2px 8px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase;">
                         HOPPING
                     </div>
+                    
+                    <!-- Hopper Profile Injection Point -->
+                    <div id="hd-hopper-profile" class="hopper-profile-container" style="display: none;">
+                        <img id="hd-hopper-avatar" class="hopper-avatar" src="" alt="Hopper">
+                        <span id="hd-hopper-name" class="hopper-name"></span>
+                    </div>
+
                     <!-- Delete Button Injection Point -->
                     <button id="hd-delete-btn" class="btn-close-detail" style="right: auto; left: 15px; top: auto; bottom: 15px; background: rgba(220, 38, 38, 0.8); display: none; z-index: 60;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
@@ -451,8 +458,6 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
         const m = document.getElementById('hopping-details-modal');
         if (m) m.style.display = 'none';
         document.body.style.overflow = ''; // Unlock Scroll
-        // Clear touch listeners to avoid interference if reused differently?
-        // Actually, we overwrite them on open, so it's fine.
     };
 
     const modal = document.getElementById('hopping-details-modal');
@@ -464,7 +469,6 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
         const next = document.getElementById('hd-next-btn');
         if (prev) prev.style.display = 'none';
         if (next) next.style.display = 'none';
-        // Clear Swipe Listeners for single view to prevent errors?
         modal.ontouchstart = null;
         modal.ontouchmove = null;
         modal.ontouchend = null;
@@ -479,6 +483,37 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
     document.getElementById('hd-rating').textContent = '★'.repeat(parseInt(rating)) + '☆'.repeat(5 - parseInt(rating));
     document.getElementById('hd-desc').textContent = (!desc || desc === 'null' || desc === 'undefined') ? '' : desc;
 
+    // Fetch and Display Hopper Profile
+    const profileContainer = document.getElementById('hd-hopper-profile');
+    const avatarEl = document.getElementById('hd-hopper-avatar');
+    const nameEl = document.getElementById('hd-hopper-name');
+
+    // Hide initially
+    profileContainer.style.display = 'none';
+
+    if (ownerId) {
+        try {
+            const { data: userData, error } = await window.supabaseClient
+                .from('users')
+                .select('name, hopper_nickname, hopper_image_url')
+                .eq('id', ownerId)
+                .single();
+
+            if (userData && !error) {
+                // Determine Name: Hopper Nickname > Name > Anonymous
+                const displayName = userData.hopper_nickname || userData.name || 'Anonymous Hopper';
+                // Determine Avatar: Hopper Image > Default Placeholder
+                const displayAvatar = userData.hopper_image_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(displayName) + '&background=random';
+
+                nameEl.textContent = displayName;
+                avatarEl.src = displayAvatar;
+                profileContainer.style.display = 'flex'; // Show container
+            }
+        } catch (err) {
+            console.warn('Error fetching hopper profile:', err);
+        }
+    }
+
     // Delete Button Logic
     const deleteBtn = document.getElementById('hd-delete-btn');
     if (hopId && window.currentUser) {
@@ -487,8 +522,6 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
         // Check if Admin (Async check)
         if (!canDelete) {
             try {
-                // ... (simplified for brevity logic kept same)
-                // Note: We skip re-fetching user role here to keep it snappy, relying on previous logic or session
                 const { data: dbUser } = await window.supabaseClient.from('users').select('roles').eq('id', window.currentUser.id).single();
                 if (dbUser && dbUser.roles && dbUser.roles.includes('admin')) canDelete = true;
             } catch (e) {

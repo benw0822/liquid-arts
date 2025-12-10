@@ -726,7 +726,7 @@ h6 {
     position: relative;
     width: 100%;
     aspect-ratio: 1/1;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .hop-detail-image {
@@ -1773,4 +1773,42 @@ figure.article-figure figcaption {
     /* Take out of flow to prevent height jumping if supported */
     top: 0;
     left: 0;
+}
+
+/* Hopper Profile on Card */
+.hopper-profile-container {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translate(-50%, 50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 50;
+    width: auto;
+}
+
+.hopper-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: 3px solid white;
+    object-fit: cover;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    background: #fff;
+    margin-bottom: 6px;
+    /* Space between avatar and name */
+}
+
+.hopper-name {
+    font-family: var(--font-main);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #333;
+    padding: 2px 8px;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(2px);
+    border-radius: 12px;
+    white-space: nowrap;
+    text-transform: capitalize;
 }
