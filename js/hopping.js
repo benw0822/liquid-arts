@@ -515,12 +515,12 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
     interactionContainer.innerHTML = `
         <button id="btn-cheers" class="btn-interaction">
             <svg class="interaction-icon cheers-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <!-- Glass Outline -->
-                <path d="M8 21h8" class="glass-base"/>
-                <path d="M12 15v6" class="glass-stem"/>
-                <path d="M6 3v6c0 3.314 2.686 6 6 6s6-2.686 6-6V3" class="glass-bowl-outline"/>
-                <!-- Liquid (Initially Hidden/Scaled Down via CSS) -->
-                <path d="M6 9c0 3.314 2.686 6 6 6s6-2.686 6-6V6H6v3z" class="cheers-liquid" fill="currentColor" stroke="none" />
+                <!-- Cocktail Glass Outline -->
+                <path d="M8 22h8" class="glass-base"/>
+                <path d="M12 11v11" class="glass-stem"/>
+                <path d="M5 4h14l-7 7-7-7z" class="glass-bowl-outline"/>
+                <!-- Liquid (Triangle shape inside) -->
+                <path d="M6 5h12l-6 6-6-6z" class="cheers-liquid" fill="currentColor" stroke="none" style="transform-origin: top; transform: scale(0);" />
             </svg>
             <span id="cheers-count">0</span>
         </button>

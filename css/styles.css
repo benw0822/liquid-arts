@@ -1792,8 +1792,9 @@ figure.article-figure figcaption {
 }
 
 .hopper-avatar {
-    width: 50px;
-    height: 50px;
+    width: 80px;
+    /* Increased Size */
+    height: 80px;
     border-radius: 50%;
     border: 3px solid #fff;
     object-fit: cover;
@@ -1805,15 +1806,18 @@ figure.article-figure figcaption {
     font-size: 0.9rem;
     font-weight: 700;
     color: #333;
-    background: rgba(255, 255, 255, 0.95);
-    padding: 2px 10px;
-    border-radius: 12px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background: transparent;
+    /* Remove Frame */
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+    /* Readability */
 }
 
 .hop-detail-content {
-    padding: 6.5rem 25px 25px;
-    /* Increased top padding to avoid overlap */
+    padding: 8rem 25px 25px;
+    /* Increased top padding to 8rem */
     flex-grow: 1;
     overflow-y: auto;
     background: #fff;
@@ -1855,23 +1859,28 @@ figure.article-figure figcaption {
 }
 
 .btn-interaction.active {
-    color: #eab308;
-    /* Golden/Amber for Beer/Wine */
+    color: #ef4444;
+    /* Red for Cocktail */
     background: #fff;
-    border-color: #fde047;
+    border-color: #fca5a5;
 }
 
-/* Liquid Animation */
+/* Liquid Animation (Cocktail - Scale Down from Top for "Filling" doesn't work well for Triangle) 
+   Actually, for a cocktail glass (triangle), "filling" usually means scaling UP from the bottom tip.
+   The path I used in JS is the full liquid triangle. 
+   So I should scale it from 0 to 1 with transform-origin: bottom (the tip of the triangle).
+*/
 .cheers-liquid {
     transform-origin: bottom;
-    transform: scaleY(0);
+    /* The tip of the triangle (which is at y=11 roughly) */
+    transform: scale(0);
     transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-    color: #eab308;
-    /* Liquid Color */
+    color: #ef4444;
+    /* Liquid Color: Red */
 }
 
 .btn-interaction.active .cheers-liquid {
-    transform: scaleY(1);
+    transform: scale(1);
 }
 
 .interaction-icon {
