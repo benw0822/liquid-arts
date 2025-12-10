@@ -299,6 +299,56 @@ window.renderHoppingBadge = async (barId) => {
     `).join('');
 };
 
+// Helper to generate Card HTML
+const generateCardHtml = (img, date, rating, desc, hopId, ownerId) => {
+    // Format Date
+    const dateObj = new Date(date);
+    const dateString = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const timeString = dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    const ratingStars = '★'.repeat(parseInt(rating)) + '☆'.repeat(5 - parseInt(rating));
+    const description = (!desc || desc === 'null' || desc === 'undefined') ? '' : desc;
+
+    return `
+    <div class="hop-detail-card" onclick="event.stopPropagation()">
+        <div class="hop-detail-image-wrapper">
+            <button onclick="window.closeHoppingDetails()" class="btn-close-detail" style="z-index: 60;">&times;</button>
+            <img class="hop-detail-image" src="${img}">
+            <div style="position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.6); color: white; padding: 2px 8px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase;">
+                HOPPING
+            </div>
+            <button class="hd-delete-btn-dynamic btn-close-detail" data-hop-id="${hopId}" data-owner-id="${ownerId}" style="right: auto; left: 15px; top: auto; bottom: 15px; background: rgba(220, 38, 38, 0.8); display: none; z-index: 60;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            </button>
+        </div>
+        <div class="hop-detail-content">
+            <div class="hop-detail-stars">${ratingStars}</div>
+            <span class="hop-detail-date">${dateString} • ${timeString}</span>
+            <div class="hop-detail-desc">${description}</div>
+        </div>
+    </div>
+    `;
+};
+
+// Helper to check delete permission (Async update)
+const updateDeleteButton = async (btn) => {
+    if (!btn || !window.currentUser) return;
+    const hopId = btn.getAttribute('data-hop-id');
+    const ownerId = btn.getAttribute('data-owner-id');
+
+    let canDelete = window.currentUser.id === ownerId;
+    if (!canDelete) {
+        try {
+            const { data: dbUser } = await window.supabaseClient.from('users').select('roles').eq('id', window.currentUser.id).single();
+            if (dbUser && dbUser.roles && dbUser.roles.includes('admin')) canDelete = true;
+        } catch (e) { console.warn('Admin check failed:', e); }
+    }
+
+    if (canDelete) {
+        btn.style.display = 'flex';
+        btn.onclick = (e) => { e.stopPropagation(); window.deleteHopping(hopId); };
+    }
+};
+
 // Open Gallery
 // Open Gallery
 window.openHoppingGallery = (event, startHopId, barId) => {
@@ -488,6 +538,70 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
         modal.ontouchend = null;
     }
 };
+
+// Helper: Generate Card HTML
+function generateCardHtml(img, date, rating, desc, hopId, ownerId) {
+    // Format Date
+    const d = new Date(date);
+    const dateStr = d.toLocaleDateString();
+
+    // Stars
+    const stars = '★'.repeat(parseInt(rating)) + '☆'.repeat(5 - parseInt(rating));
+
+    // Escape description to prevent HTML injection
+    const safeDesc = desc ? desc.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;") : '';
+
+    return `
+    <div class="hop-detail-card" style="display: flex; flex-direction: column;">
+        <button class="btn-close-detail" onclick="window.closeHoppingDetails()">×</button>
+        
+        <div class="hop-detail-image-wrapper">
+             <img src="${img}" class="hop-detail-image">
+        </div>
+        
+        <div class="hop-detail-content" style="flex: 1; display: flex; flex-direction: column; align-items: center;">
+             <span class="hop-detail-date">${dateStr}</span>
+             <div class="hop-detail-stars">${stars}</div>
+             ${safeDesc ? `<p class="hop-detail-desc">${safeDesc}</p>` : ''}
+             
+             <!-- Delete Button Placeholder -->
+             <button class="hd-delete-btn-dynamic" 
+                     data-id="${hopId}" 
+                     data-owner-id="${ownerId}"
+                     style="display: none; margin-top: auto; background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 8px 20px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s; align-items: center; gap: 8px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                Delete Hop
+             </button>
+        </div>
+    </div>
+    `;
+}
+
+// Helper: Update Delete Button Visibility
+function updateDeleteButton(btn) {
+    if (!btn || !window.currentUser) return;
+
+    const ownerId = btn.getAttribute('data-owner-id');
+    const hopId = btn.getAttribute('data-id');
+
+    // Check if owner
+    const isOwner = window.currentUser.id === ownerId;
+
+    // Note: Admin check happens on backend via RLS.
+    // For UI, we show it if user is owner.
+    // To support Admin UI delete, we'd need to check roles here too, but for now we prioritize Owner.
+
+    if (isOwner) {
+        btn.style.display = 'inline-flex';
+        btn.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            window.deleteHopping(hopId);
+        };
+    } else {
+        btn.style.display = 'none';
+    }
+}
 
 // Delete Hopping
 window.deleteHopping = async (hopId) => {
