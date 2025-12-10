@@ -147,28 +147,29 @@ h6 {
     height: 100%;
 }
 
-/* --- Profile Filter Nav --- */
+/* --- Profile Filter Tabs --- */
 .profile-filter-nav {
     display: flex;
     justify-content: center;
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 0.5rem;
+    gap: 3rem;
+    margin-bottom: 3rem;
+    border-bottom: none;
+    /* Removed border */
+    padding-bottom: 1rem;
 }
 
 .filter-tab {
     background: none;
     border: none;
     font-family: var(--font-display);
-    font-size: 0.7rem;
-    /* Reduced font size */
-    font-weight: 600;
-    color: #aaa;
+    font-size: 1.8rem;
+    /* Much Larger */
+    color: white;
+    /* Default White */
     cursor: pointer;
-    padding-bottom: 0.5rem;
+    padding: 0.5rem 0;
     position: relative;
-    transition: color 0.3s;
+    transition: all 0.3s;
     text-transform: uppercase;
     letter-spacing: 0.1em;
     opacity: 0.7;
@@ -180,20 +181,14 @@ h6 {
 
 .filter-tab.active {
     color: var(--bg-red);
+    /* Active Red */
     font-weight: 700;
     opacity: 1;
 }
 
 .filter-tab.active::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    background-color: var(--bg-red);
-    transform: scaleX(1);
-    transition: transform 0.3s ease;
+    display: none;
+    /* Remove underline */
 }
 
 /* --- Unify Grid Spacing --- */
@@ -701,33 +696,18 @@ h6 {
 }
 
 /* --- Hop Detail Card (HopCard) --- */
-.hopping-modal-card {
-    background: white;
+.hop-detail-card {
+    background: #fff;
     width: 90%;
-    max-width: 400px;
+    max-width: 380px;
+    /* Match Grid Card Max-width */
     border-radius: 12px;
-    padding: 1.5rem;
-    /* Reduced padding */
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
     position: relative;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-    /* Center align content for Hopper Card */
-    display: flex;
-    flex-direction: column;
     text-align: center;
-    margin: auto;
-    /* Ensure centering in flex overlay */
-}
-
-.hopping-title {
-    font-family: var(--font-display);
-    font-size: 1.4rem;
-    /* Reduced font size */
-    margin-bottom: 1rem;
-    /* Reduced margin */
-    text-align: center;
-    color: var(--bg-primary);
+    padding-bottom: 2.5rem;
+    animation: fadeInScale 0.3s ease-out;
 }
 
 @keyframes fadeInScale {
@@ -746,16 +726,14 @@ h6 {
     position: relative;
     width: 100%;
     aspect-ratio: 1/1;
-    overflow: hidden;
+    overflow: visible;
 }
 
-/* Main Image */
 .hop-detail-image {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
-    /* Ensure no inline spacing */
 }
 
 .hop-detail-content {
@@ -1404,36 +1382,13 @@ figure.article-figure figcaption {
     }
 }
 
-/* Large Red Save Button */
-.btn-save-large {
-    width: 100%;
-    background-color: var(--bg-red);
-    color: white;
-    padding: 12px 0;
-    border: none;
-    border-radius: 30px;
-    font-size: 1rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: background 0.2s, transform 0.1s;
-    margin-top: 1rem;
-    box-shadow: 0 4px 10px rgba(156, 16, 15, 0.3);
-}
-
-.btn-save-large:hover {
-    background-color: #7a0c0b;
-    transform: translateY(-2px);
-}
-
-.btn-save-large:active {
-    transform: translateY(0);
-}
-
-/* Responsive Grid for Profile */
-.unified-grid {
+/* Responsive Grids */
+.magazine-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 2rem;
+    padding: 0;
+    /* Remove legacy padding */
 }
 
 #bars-grid {

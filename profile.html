@@ -101,7 +101,7 @@
                     <div class="hopping-modal-card">
                         <button onclick="document.getElementById('hopper-modal').style.display='none'"
                             class="btn-close-minimal">&times;</button>
-                        <h2 class="hopping-title" style="text-align: center;">Hopper Card</h2>
+                        <h2 class="hopping-title">Edit Card</h2>
 
                         <!-- Image Upload -->
                         <div style="margin-bottom: 2rem;">
@@ -130,8 +130,8 @@
                         </div>
 
                         <!-- Fields -->
-                        <div style="margin-bottom: 1rem; text-align: center;">
-                            <label class="hopping-label" style="text-align: center;">Hopper Name</label>
+                        <div style="margin-bottom: 1.5rem;">
+                            <label class="hopping-label">Nickname</label>
                             <input type="text" id="edit-hopper-nickname" class="hopping-input-minimal"
                                 placeholder="Your hopping name">
                         </div>
@@ -151,7 +151,7 @@
                                 style="width: 100%; accent-color: var(--bg-red);">
                         </div>
 
-                        <button onclick="window.saveHopperCard()" class="btn-submit-hop btn-save-large">SAVE</button>
+                        <button onclick="window.saveHopperCard()" class="btn-submit-hop">Save Changes</button>
                         <p id="hopper-save-status"
                             style="text-align: center; color: #888; font-size: 0.8rem; margin-top: 10px;"></p>
                     </div>
@@ -183,9 +183,10 @@
 
                 <!-- Filter Navigation -->
                 <div class="profile-filter-nav">
-                    <button class="filter-tab active" data-filter="hopping">HOP</button>
+                    <button class="filter-tab active" data-filter="all">ALL</button>
                     <button class="filter-tab" data-filter="bar">BAR</button>
-                    <button class="filter-tab" data-filter="journal">READ</button>
+                    <button class="filter-tab" data-filter="hopping">HOP</button>
+                    <button class="filter-tab" data-filter="journal">JOURNAL</button>
                 </div>
 
                 <!-- Unified Grid -->
@@ -349,7 +350,7 @@
                 // Sort by Date Descending
                 allItems.sort((a, b) => b.date - a.date);
 
-                renderUnifiedGrid('hopping');
+                renderUnifiedGrid('all');
 
             } catch (err) {
                 console.error('Error fetching profile data:', err);
