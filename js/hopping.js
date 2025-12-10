@@ -254,7 +254,17 @@ function initHoppingLogic() {
         } catch (err) {
             console.error('Setup Error:', err);
             alert('Error: ' + err.message);
-            submitBtn.textContent = 'Check In';
+            // Restore Original State on Error
+            submitBtn.innerHTML = `
+                <svg class="hop-submit-icon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M8 22h8"></path>
+                    <path d="M12 15v7"></path>
+                    <path d="M2 3h20L12 15z"></path>
+                    <path class="cocktail-liquid" d="M4.5 5.5h15l-3.5 4.5h-8z" fill="currentColor" style="transform-origin: bottom; transform: scaleY(0); transition: transform 0.5s; opacity: 0;"></path>
+                </svg>
+                <span class="btn-text">HOP !</span>
+            `;
+            submitBtn.style.backgroundColor = 'var(--bg-red)';
             submitBtn.disabled = false;
         }
     };
@@ -277,7 +287,18 @@ function resetForm() {
     });
 
     document.getElementById('rating-desc').textContent = 'SELECT RATING';
-    document.getElementById('submit-hopping-btn').textContent = 'Confirm Check-In';
+
+    // Restore Button with Icon
+    document.getElementById('submit-hopping-btn').innerHTML = `
+        <svg class="hop-submit-icon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 22h8"></path>
+            <path d="M12 15v7"></path>
+            <path d="M2 3h20L12 15z"></path>
+            <path class="cocktail-liquid" d="M4.5 5.5h15l-3.5 4.5h-8z" fill="currentColor" style="transform-origin: bottom; transform: scaleY(0); transition: transform 0.5s; opacity: 0;"></path>
+        </svg>
+        <span class="btn-text">HOP !</span>
+    `;
+    document.getElementById('submit-hopping-btn').style.backgroundColor = 'var(--bg-red)'; // Reset valid color
     document.getElementById('submit-hopping-btn').disabled = false;
 }
 
