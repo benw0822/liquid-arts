@@ -361,18 +361,51 @@ window.openHoppingGallery = (event, startHopId, barId) => {
             renderCurrent();
         };
 
-        // Swipe Logic (Touch)
-        const img = document.getElementById('hd-img');
+        // Swipe Logic (Touch) - Robust Implementation
+        const wrapper = modal.querySelector('.hop-detail-image-wrapper');
         let touchStartX = 0;
+        let touchStartY = 0;
         let touchEndX = 0;
 
-        img.ontouchstart = (e) => { touchStartX = e.changedTouches[0].screenX; };
-        img.ontouchend = (e) => {
-            touchEndX = e.changedTouches[0].screenX;
+        // Clean up old listeners to avoid duplicates if called multiple times
+        // (Note: Anonymous functions can't be removed easily, but overwriting via property is one way, 
+        // OR we can just rely on the fact that we create new logic per open. 
+        // Actually, updateNavigationUI is called on *every* render. We should be careful not to stack listeners.
+        // A simple way is to check if we already attached a marker, or just re-clone the element, 
+        // BUT cloning breaks internal references.
+        // BETTER: Attach listeners ONCE in showHoppingDetails HTML creation? 
+        // But renderCurret changes.
+        // OK, I'll attach listeners to the *static* wrapper from the DOM, and use a closure variable for the current data.
+        // But `updateNavigationUI` is inside `openHoppingGallery` which has `currentIndex` in closure.
+        // IF we attach listeners every time, we get duplicates.
+        // FIX: Check if we already attached listeners?
+        // OR: Assign to `wrapper.ontouchstart` (property assignment replaces old handler).
+
+        wrapper.ontouchstart = (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        };
+
+        wrapper.ontouchmove = (e) => {
+            // Check direction
+            const x = e.touches[0].clientX;
+            const y = e.touches[0].clientY;
+            const xDiff = Math.abs(x - touchStartX);
+            const yDiff = Math.abs(y - touchStartY);
+
+            if (xDiff > yDiff && xDiff > 10) {
+                // Horizontal intent dominant -> Prevent Scrolling
+                if (e.cancelable) e.preventDefault();
+            }
+        };
+
+        wrapper.ontouchend = (e) => {
+            touchEndX = e.changedTouches[0].clientX;
             handleSwipe();
         };
 
         const handleSwipe = () => {
+            // Threshold 50px
             if (touchEndX < touchStartX - 50) { // Swipe Left -> Next
                 currentIndex = (currentIndex + 1) % hops.length;
                 renderCurrent();
