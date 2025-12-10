@@ -1683,7 +1683,9 @@ figure.article-figure figcaption {
     height: 150px;
     /* Force height */
     background: #f0f0f0;
-}/* --- Hopping Gallery Transitions --- */
+}
+
+/* --- Hopping Gallery Transitions --- */
 .hop-slide-container {
     position: relative;
     width: 90%;
@@ -1697,16 +1699,7 @@ figure.article-figure figcaption {
     /* Optional for depth */
 }
 
-.hop-detail-card {
-    grid-area: stack;
-    width: 100%;
-    /* Fill container */
-    max-width: none;
-    /* Let container control width */
-    margin: 0;
-    transition: transform 0.3s ease, opacity 0.3s ease;
-    backface-visibility: hidden;
-}
+
 
 /* Animations */
 .slide-out-to-left {
