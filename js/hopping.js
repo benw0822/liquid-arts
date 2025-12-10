@@ -491,6 +491,38 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
     // Hide initially
     profileContainer.style.display = 'none';
 
+    // Interaction Buttons Container Injection
+    // Check if it exists from previous calls to avoid duplicates if we don't clear innerHTML
+    // Note: We are replacing 'hopping-details-modal' inner content fully on lazy load, but reusing if exists.
+    // However, the buttons need to be inside specific containers or appended.
+    // Let's check if .hop-interactions exists in profileContainer or append it.
+
+    // Actually, simpler to ensure we have the container in the generic HTML template, 
+    // BUT since I am editing the template string in a separate chunk (or previous step),
+    // and this function runs EVERY time, I should dynamically add/update it here or modify the initial template creation.
+    // I will modify the initial template creation block via a separate tool call if needed, 
+    // BUT since I am in `showHoppingDetails`, I can check `hd-interactions` existence.
+
+    let interactionContainer = document.getElementById('hd-interactions');
+    if (!interactionContainer) {
+        interactionContainer = document.createElement('div');
+        interactionContainer.id = 'hd-interactions';
+        interactionContainer.className = 'hop-interactions';
+        // Append to profile container so it sits below name
+        profileContainer.appendChild(interactionContainer);
+    }
+
+    // Reset Buttons
+    interactionContainer.innerHTML = `
+        <button id="btn-cheers" class="btn-interaction">
+            <svg class="interaction-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2h8a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"></path><line x1="12" y1="16" x2="12" y2="22"></line><line x1="8" y1="22" x2="16" y2="22"></line></svg>
+            <span id="cheers-count">0</span>
+        </button>
+        <button id="btn-message" class="btn-interaction">
+            <svg class="interaction-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        </button>
+    `;
+
     if (ownerId) {
         try {
             const { data: userData, error } = await window.supabaseClient
@@ -513,6 +545,73 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
             console.warn('Error fetching hopper profile:', err);
         }
     }
+
+    // Cheers Logic
+    const cheersBtn = document.getElementById('btn-cheers');
+    const cheersCountEl = document.getElementById('cheers-count');
+    const msgBtn = document.getElementById('btn-message');
+
+    if (hopId) {
+        // Fetch Cheers Count
+        const { count, error: countErr } = await window.supabaseClient
+            .from('hopping_cheers')
+            .select('*', { count: 'exact', head: true })
+            .eq('hopping_id', hopId);
+
+        if (!countErr) cheersCountEl.textContent = count;
+
+        // Check if I cheered
+        if (window.currentUser) {
+            const { data: myCheer } = await window.supabaseClient
+                .from('hopping_cheers')
+                .select('id')
+                .eq('hopping_id', hopId)
+                .eq('user_id', window.currentUser.id)
+                .single();
+
+            if (myCheer) {
+                cheersBtn.classList.add('active');
+            }
+
+            // Click Handler
+            cheersBtn.onclick = async (e) => {
+                e.stopPropagation();
+                if (!window.currentUser) { alert('Please login to Cheers!'); return; }
+
+                // Toggle
+                const isActive = cheersBtn.classList.contains('active');
+                if (isActive) {
+                    // Remove Cheer
+                    const { error } = await window.supabaseClient
+                        .from('hopping_cheers')
+                        .delete()
+                        .eq('hopping_id', hopId)
+                        .eq('user_id', window.currentUser.id);
+
+                    if (!error) {
+                        cheersBtn.classList.remove('active');
+                        cheersCountEl.textContent = Math.max(0, parseInt(cheersCountEl.textContent) - 1);
+                    }
+                } else {
+                    // Add Cheer
+                    const { error } = await window.supabaseClient
+                        .from('hopping_cheers')
+                        .insert([{ hopping_id: hopId, user_id: window.currentUser.id }]);
+
+                    if (!error) {
+                        cheersBtn.classList.add('active');
+                        cheersCountEl.textContent = parseInt(cheersCountEl.textContent) + 1;
+                    }
+                }
+            };
+        }
+    }
+
+    // Message Logic
+    msgBtn.onclick = (e) => {
+        e.stopPropagation();
+        alert('Messaging feature coming soon! / 訊息功能即將推出！');
+    };
 
     // Delete Button Logic
     const deleteBtn = document.getElementById('hd-delete-btn');
