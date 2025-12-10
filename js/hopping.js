@@ -520,7 +520,7 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
                 <path d="M12 11v11" class="glass-stem"/>
                 <path d="M5 4h14l-7 7-7-7z" class="glass-bowl-outline"/>
                 <!-- Liquid (Triangle shape inside) -->
-                <path d="M6 5h12l-6 6-6-6z" class="cheers-liquid" fill="currentColor" stroke="none" style="transform-origin: top; transform: scale(0);" />
+                <path d="M6 5h12l-6 6-6-6z" class="cheers-liquid" fill="currentColor" stroke="none" />
             </svg>
             <span id="cheers-count">0</span>
         </button>
