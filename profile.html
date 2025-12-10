@@ -652,4 +652,21 @@
                     btn.textContent = 'Save Card';
                 }
             };
-</body >
+
+            // --- Filter Event Listeners ---
+            document.querySelectorAll('.filter-tab').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Update Active State
+                    document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+
+                    // Render
+                    renderUnifiedGrid(btn.getAttribute('data-filter'));
+                });
+            });
+
+        });
+    </script>
+</body>
+
+</html>
