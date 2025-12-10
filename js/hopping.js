@@ -6,18 +6,20 @@ document.addEventListener('DOMContentLoaded', () => {
     <div id="hopping-modal" class="hopping-modal-overlay">
         <div class="hopping-modal-card">
             <button id="close-hopping-btn" class="btn-close-minimal">&times;</button>
-            <h2 class="hopping-title">Hop In</h2>
+            <h2 class="hopping-title">HOP IN !</h2>
             
             <input type="hidden" id="hopping-bar-id">
 
             <!-- 1. Image Upload (Square) -->
             <div style="margin-bottom: 2rem;">
-                <label class="hopping-label">1. Capture the Moment</label>
+                <!-- Label removed -->
                 <input type="file" id="hopping-file-input" accept="image/*" style="display: none;">
                 
-                <div id="upload-zone" class="upload-zone-stylish">
-                    <span id="upload-placeholder" class="upload-placeholder-text">
-                        + Update Photo
+                <div id="upload-zone" class="upload-zone-stylish" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                    <span id="upload-placeholder" class="upload-placeholder-text" style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                        <!-- Camera Icon -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                        <span>SNAP & HOP</span>
                     </span>
                     <div id="cropper-wrapper" style="width: 100%; height: 100%; display: none;">
                         <img id="cropper-image" src="" style="max-width: 100%;">
@@ -26,8 +28,9 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
 
             <!-- 2. Rating -->
+            <!-- 2. Rating -->
             <div style="margin-bottom: 2rem; text-align: center;">
-                <label class="hopping-label" style="text-align: center; margin-bottom: 1rem;">2. Experience</label>
+                <!-- Label removed -->
                 <div class="star-rating" style="display: flex; gap: 8px; justify-content: center; margin-bottom: 0.5rem;">
                     <span data-value="1" class="hop-star">☆</span>
                     <span data-value="2" class="hop-star">☆</span>
@@ -41,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             <!-- 3. Description -->
             <div style="margin-bottom: 1.5rem;">
-                <label class="hopping-label">3. Thoughts (Optional)</label>
+                <label class="hopping-label">Vibe (optional)</label>
                 <textarea id="hopping-desc" class="hopping-input-minimal" maxlength="150" placeholder="Describe the vibe..." style="height: auto; min-height: 40px; resize: none; overflow-y: hidden;"></textarea>
             </div>
 
@@ -65,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
                  </label>
             </div>
 
-            <button id="submit-hopping-btn" class="btn-hop-submit">Confirm Check-In</button>
+            <button id="submit-hopping-btn" class="btn-hop-submit" style="background-color: var(--bg-red); color: white;">HOP !</button>
         </div>
     </div>
     `;
