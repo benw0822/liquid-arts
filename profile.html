@@ -85,7 +85,6 @@
                     <h2 id="hopper-nickname"
                         style="font-family: var(--font-display); font-size: 1.8rem; margin: 0 0 0.5rem 0; color: #1b1b1b;">
                         Hopper</h2>
-                    <div id="profile-email" style="font-size: 0.9rem; color: #888; margin-bottom: 1rem;"></div>
 
                     <p id="hopper-bio"
                         style="font-size: 0.95rem; color: #555; max-width: 500px; line-height: 1.5; font-style: italic; margin-bottom: 1rem;">
@@ -97,97 +96,104 @@
                     </div>
                 </div>
 
-                <!-- Edit Modal (Hidden) -->
-                <div id="hopper-modal"
-                    style="display: none; position: fixed; z-index: 1000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center;">
-                    <div
-                        style="background: white; width: 90%; max-width: 500px; border-radius: 12px; padding: 2rem; position: relative; max-height: 90vh; overflow-y: auto;">
+                <!-- Edit Modal (Stylish) -->
+                <div id="hopper-modal" class="hopping-modal-overlay">
+                    <div class="hopping-modal-card">
                         <button onclick="document.getElementById('hopper-modal').style.display='none'"
-                            style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
-
-                        <h3 style="font-family: var(--font-display); text-align: center; margin-bottom: 1.5rem;">Edit
-                            Hopper Card</h3>
+                            class="btn-close-minimal">&times;</button>
+                        <h2 class="hopping-title">Edit Card</h2>
 
                         <!-- Image Upload -->
-                        <div style="margin-bottom: 1.5rem; text-align: center;">
+                        <div style="margin-bottom: 2rem;">
+                            <label class="hopping-label">Profile Photo</label>
                             <input type="file" id="hopper-file-input" accept="image/*" style="display: none;"
                                 onchange="window.handleHopperFile(this)">
-                            <div onclick="document.getElementById('hopper-file-input').click()"
-                                style="width: 150px; height: 150px; background: #f0f0f0; border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; border: 2px dashed #ddd;">
+
+                            <div id="custom-hopper-upload"
+                                onclick="document.getElementById('hopper-file-input').click()"
+                                class="upload-zone-stylish"
+                                style="width: 150px; height: 150px; margin: 0 auto; border-radius: 50%;">
                                 <img id="hopper-preview" src=""
-                                    style="display: none; width: 100%; height: 100%; object-fit: cover;">
-                                <span id="hopper-placeholder" style="color: #888;">Change Photo</span>
+                                    style="width: 100%; height: 100%; object-fit: cover; display: none; border-radius: 50%;">
+                                <span id="hopper-placeholder" class="upload-placeholder-text">+ Photo</span>
                             </div>
                         </div>
 
-                        <!-- Crop Area (Hidden Initially) -->
+                        <!-- Crop Area -->
                         <div id="hopper-crop-container" style="display: none; margin-bottom: 1rem;">
-                            <div style="height: 300px; background: #333;">
+                            <label class="hopping-label">Crop</label>
+                            <div style="height: 300px; background: #333; margin-bottom: 10px;">
                                 <img id="hopper-crop-img" style="max-width: 100%; max-height: 300px;">
                             </div>
                             <button onclick="window.confirmHopperCrop()" class="btn"
-                                style="width: 100%; margin-top: 10px;">Confirm Crop (1:1)</button>
+                                style="width: 100%; background: var(--bg-red); color: white;">Confirm Crop</button>
                         </div>
 
                         <!-- Fields -->
-                        <div style="margin-bottom: 1rem;">
-                            <label style="display: block; font-size: 0.9rem; color: #666; margin-bottom: 5px;">Nickname
-                                / 名號</label>
-                            <input type="text" id="edit-hopper-nickname"
-                                style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-family: var(--font-main);">
-                        </div>
-
-                        <div style="margin-bottom: 1rem;">
-                            <label style="display: block; font-size: 0.9rem; color: #666; margin-bottom: 5px;">Bio (Max
-                                140)</label>
-                            <textarea id="edit-hopper-bio" rows="3" maxlength="140"
-                                style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-family: var(--font-main);"></textarea>
+                        <div style="margin-bottom: 1.5rem;">
+                            <label class="hopping-label">Nickname</label>
+                            <input type="text" id="edit-hopper-nickname" class="hopping-input-minimal"
+                                placeholder="Your hopping name">
                         </div>
 
                         <div style="margin-bottom: 1.5rem;">
-                            <label style="display: block; font-size: 0.9rem; color: #666; margin-bottom: 5px;">Privacy
-                                Level (1-5)</label>
-                            <input type="range" id="edit-hopper-level" min="1" max="5" value="1" style="width: 100%;">
-                            <div style="text-align: right; color: #888; font-size: 0.8rem;">Level: <span
-                                    id="edit-level-val">1</span></div>
+                            <label class="hopping-label">Bio (Max 140)</label>
+                            <textarea id="edit-hopper-bio" class="hopping-input-minimal" rows="3" maxlength="140"
+                                placeholder="Describe yourself..."></textarea>
                         </div>
 
-                        <button onclick="window.saveHopperCard()" class="btn"
-                            style="width: 100%; background: var(--bg-red); color: white;">Save Card</button>
+                        <div style="margin-bottom: 2rem;">
+                            <div style="display: flex; justify-content: space-between;">
+                                <label class="hopping-label">Privacy Level</label>
+                                <span id="edit-level-val" style="color: var(--bg-red); font-weight: bold;">1</span>
+                            </div>
+                            <input type="range" id="edit-hopper-level" min="1" max="5" value="1"
+                                style="width: 100%; accent-color: var(--bg-red);">
+                        </div>
+
+                        <button onclick="window.saveHopperCard()" class="btn-submit-hop">Save Changes</button>
                         <p id="hopper-save-status"
-                            style="text-align: center; color: #666; font-size: 0.9rem; margin-top: 10px;"></p>
+                            style="text-align: center; color: #888; font-size: 0.8rem; margin-top: 10px;"></p>
                     </div>
                 </div>
+
+                <!-- Account / Settings Section -->
                 <div
-                    style="background: var(--bg-secondary); padding: 2rem; border-radius: 8px; border: 1px solid var(--border-color);">
-                    <div id="profile-loading">Loading...</div>
-                    <div id="profile-content" style="display: none;">
-                        <img id="profile-avatar" src="" alt="Avatar"
-                            style="width: 100px; height: 100px; border-radius: 50%; margin-bottom: 1rem; border: 2px solid var(--accent-color);">
-                        <h3 id="profile-name" style="margin-bottom: 0.5rem; font-family: var(--font-display);">User Name
-                        </h3>
-                        <p id="profile-email" style="color: var(--text-secondary); margin-bottom: 1.5rem;">
-                            user@example.com</p>
+                    style="background: var(--bg-secondary); padding: 1rem 1.5rem; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 2rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <img id="account-avatar" src="" alt="Avatar"
+                            style="width: 40px; height: 40px; border-radius: 50%; opacity: 0.8;">
+                        <div>
+                            <div id="account-name"
+                                style="font-weight: 600; color: var(--text-primary); font-size: 0.95rem;">User Name
+                            </div>
+                            <div id="account-email" style="font-size: 0.85rem; color: var(--text-secondary);">
+                                user@example.com</div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <!-- Admin Button Container -->
+                        <span id="admin-action-container"></span>
+
                         <button id="logout-btn" class="btn"
-                            style="background: transparent; border: 1px solid var(--border-color); color: var(--text-primary); padding: 8px 20px; font-size: 0.9rem;">Logout</button>
-                        </p>
+                            style="background: transparent; border: 1px solid var(--border-color); color: var(--text-primary); padding: 6px 16px; font-size: 0.8rem;">Logout</button>
                     </div>
                 </div>
-            </div>
 
-            <!-- Filter Navigation -->
-            <div class="profile-filter-nav">
-                <button class="filter-tab active" data-filter="all">ALL</button>
-                <button class="filter-tab" data-filter="bar">BAR</button>
-                <button class="filter-tab" data-filter="hopping">HOP</button>
-                <button class="filter-tab" data-filter="journal">JOURNAL</button>
-            </div>
+                <!-- Filter Navigation -->
+                <div class="profile-filter-nav">
+                    <button class="filter-tab active" data-filter="all">ALL</button>
+                    <button class="filter-tab" data-filter="bar">BAR</button>
+                    <button class="filter-tab" data-filter="hopping">HOP</button>
+                    <button class="filter-tab" data-filter="journal">JOURNAL</button>
+                </div>
 
-            <!-- Unified Grid -->
-            <div id="unified-grid" class="unified-grid">
-                <p style="text-align: center; color: #888; width: 100%; margin-top: 2rem;">Loading collection...</p>
-            </div>
-        </div> <!-- End User View -->
+                <!-- Unified Grid -->
+                <div id="unified-grid" class="unified-grid">
+                    <p style="text-align: center; color: #888; width: 100%; margin-top: 2rem;">Loading collection...</p>
+                </div>
+            </div> <!-- End User View -->
     </main>
 
     <nav class="bottom-nav">
@@ -264,12 +270,14 @@
             const profileContent = document.getElementById('profile-content');
             const loading = document.getElementById('profile-loading');
 
-            // --- Render Profile Info ---
-            document.getElementById('profile-email').textContent = user.email;
+            // --- Render Account Info (Bottom Section) ---
+            document.getElementById('account-email').textContent = user.email;
             if (user.user_metadata) {
-                if (user.user_metadata.full_name) document.getElementById('profile-name').textContent = user.user_metadata.full_name;
-                if (user.user_metadata.avatar_url) document.getElementById('profile-avatar').src = user.user_metadata.avatar_url;
-                else document.getElementById('profile-avatar').src = 'assets/logo_vertical.png';
+                const name = user.user_metadata.full_name || 'User';
+                const avatar = user.user_metadata.avatar_url || 'assets/logo_vertical.png';
+
+                document.getElementById('account-name').textContent = name;
+                document.getElementById('account-avatar').src = avatar;
             }
 
             // --- Unified Data Fetching ---
@@ -502,11 +510,36 @@
                 console.warn('Admin button injection failed:', e);
             } finally {
                 // Ensure Loading is hidden regardless of Admin logic success
+                // Ensure Loading is hidden regardless of Admin logic success
                 loading.style.display = 'none';
                 profileContent.style.display = 'block';
             }
 
             // --- Filter Event Listeners ---
+            // --- Admin Check ---
+            const checkAdmin = async () => {
+                const { data: roles } = await supabase
+                    .from('user_roles')
+                    .select('role')
+                    .eq('user_id', user.id);
+
+                const isAdmin = roles?.some(r => r.role === 'admin');
+                const isOwner = roles?.some(r => r.role === 'barOwner');
+
+                if (isAdmin || isOwner) {
+                    const container = document.getElementById('admin-action-container');
+                    if (container) {
+                        const btn = document.createElement('a');
+                        btn.href = isOwner ? 'owner/dashboard.html' : 'admin/dashboard.html';
+                        btn.className = 'btn';
+                        btn.style.cssText = 'background: #333; color: white; padding: 6px 16px; font-size: 0.8rem; text-decoration: none; display: inline-block;';
+                        btn.textContent = isAdmin ? 'Admin' : 'Manage Bar';
+                        container.appendChild(btn);
+                    }
+                }
+            };
+            checkAdmin();
+
             // --- Hopper Card Logic ---
             let hopperCropper = null;
             let hopperBlob = null; // To store cropped image blob
@@ -544,21 +577,25 @@
                 const level = document.getElementById('hopper-level-display').textContent;
                 const img = document.getElementById('hopper-img').src;
 
+                // Set values
                 document.getElementById('edit-hopper-nickname').value = nick;
                 document.getElementById('edit-hopper-bio').value = bio === 'Join the hop.' ? '' : bio;
                 document.getElementById('edit-hopper-level').value = level;
                 document.getElementById('edit-level-val').textContent = level;
 
-                // Reset Preview
-                document.getElementById('hopper-preview').src = img;
-                document.getElementById('hopper-preview').style.display = 'block';
-                document.getElementById('hopper-placeholder').style.display = 'none';
+                // Reset Preview (Stylish version)
+                const preview = document.getElementById('hopper-preview');
+                const placeholder = document.getElementById('hopper-placeholder');
+
+                preview.src = img;
+                preview.style.display = 'block';
+                placeholder.style.display = 'none';
 
                 // Hide Crop UI
                 document.getElementById('hopper-crop-container').style.display = 'none';
-                hopperBlob = null; // Reset pending changes
+                hopperBlob = null;
 
-                document.getElementById('hopper-modal').style.display = 'flex';
+                document.getElementById('hopper-modal').style.display = 'block'; // Block for overlay
             };
 
             window.handleHopperFile = (input) => {
@@ -567,6 +604,7 @@
                     reader.onload = (e) => {
                         const cropImg = document.getElementById('hopper-crop-img');
                         cropImg.src = e.target.result;
+                        // Hide preview, show crop logic
                         document.getElementById('hopper-crop-container').style.display = 'block';
 
                         if (hopperCropper) hopperCropper.destroy();
@@ -585,7 +623,13 @@
                     hopperBlob = blob;
                     // Update preview
                     const url = URL.createObjectURL(blob);
-                    document.getElementById('hopper-preview').src = url;
+                    const preview = document.getElementById('hopper-preview');
+                    const placeholder = document.getElementById('hopper-placeholder');
+
+                    preview.src = url;
+                    preview.style.display = 'block';
+                    placeholder.style.display = 'none';
+
                     document.getElementById('hopper-crop-container').style.display = 'none';
                     hopperCropper.destroy();
                     hopperCropper = null;
@@ -598,10 +642,15 @@
             });
 
             window.saveHopperCard = async () => {
-                const btn = document.querySelector('#hopper-modal .btn');
+                // Selector update: button inside the modal might be targeted differently or just standard
+                // But wait, the button now has onclick="saveHopperCard()", so event.target is not passed, 
+                // but we can querySelector.
+                const btn = document.querySelector('#hopper-modal .btn-submit-hop'); // New class
                 const status = document.getElementById('hopper-save-status');
-                btn.disabled = true;
-                btn.textContent = 'Saving...';
+                if (btn) {
+                    btn.disabled = true;
+                    btn.textContent = 'Saving...';
+                }
                 status.textContent = '';
 
                 try {
@@ -641,16 +690,20 @@
                     status.textContent = 'Saved successfully!';
                     setTimeout(() => {
                         document.getElementById('hopper-modal').style.display = 'none';
-                        btn.disabled = false;
-                        btn.textContent = 'Save Card';
+                        if (btn) {
+                            btn.disabled = false;
+                            btn.textContent = 'Save Changes';
+                        }
                         fetchHopperData(); // Refresh UI
                     }, 1000);
 
                 } catch (err) {
                     console.error('Save failed:', err);
                     status.textContent = 'Error: ' + err.message;
-                    btn.disabled = false;
-                    btn.textContent = 'Save Card';
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.textContent = 'Save Changes';
+                    }
                 }
             };
 
