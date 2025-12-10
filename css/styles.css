@@ -216,7 +216,20 @@ h6 {
 
 @media (max-width: 768px) {
     .unified-grid {
-        column-count: 1;
+        column-count: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .unified-grid .art-card {
+        display: flex !important;
+        /* Restore block-level flex */
+        width: 100% !important;
+        max-width: 100% !important;
+        /* Allow full width on mobile */
+        margin-bottom: 0 !important;
+        /* Gap handled by parent */
     }
 }
 
