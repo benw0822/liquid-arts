@@ -287,7 +287,8 @@ h6 {
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;
     justify-content: space-around;
-    padding: 4px 0;
+    padding: 12px 0;
+    /* Increased padding from 4px to 12px */
     z-index: 1000;
     display: none;
     /* Hidden by default on desktop */
