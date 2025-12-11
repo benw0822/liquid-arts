@@ -208,6 +208,18 @@ window.initTalentPage = async () => {
                         const ratingLabels = ['', 'Poor', 'Fair', 'Enjoyable', 'Remarkable', 'Masterpiece'];
                         const ratingText = ratingLabels[parseInt(hop.rating)] || '';
 
+                        // Helper for escaping
+                        const escapeForJs = (str) => {
+                            if (!str) return '';
+                            return str
+                                .replace(/\\/g, '\\\\')
+                                .replace(/'/g, "\\'")
+                                .replace(/"/g, '&quot;')
+                                .replace(/\n/g, '\\n')
+                                .replace(/\r/g, '');
+                        };
+                        const descEsc = escapeForJs(hop.description);
+
                         // Comments Overlay HTML
                         const comments = commentsMap[hop.id] || [];
                         const top3 = comments.slice(0, 3);
@@ -235,18 +247,6 @@ window.initTalentPage = async () => {
                                     ${total}+
                                 </div>
                             ` : '';
-
-                            // Helper for escaping
-                            const escapeForJs = (str) => {
-                                if (!str) return '';
-                                return str
-                                    .replace(/\\/g, '\\\\')
-                                    .replace(/'/g, "\\'")
-                                    .replace(/"/g, '&quot;')
-                                    .replace(/\n/g, '\\n')
-                                    .replace(/\r/g, '');
-                            };
-                            const descEsc = escapeForJs(hop.description);
 
                             overlayHtml = `
                                 <div onclick="event.stopPropagation(); window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', '${hop.rating}', '${descEsc}', '${hop.id}', '${hop.user_id}', false, '${escapeForJs(bar.title)}', '${bar.id}', true)" style="position: absolute; top: 15px; left: 15px; z-index: 55; display: flex; flex-direction: column; align-items: flex-start; max-width: 60%; cursor: pointer;">
