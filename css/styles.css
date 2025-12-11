@@ -1955,6 +1955,7 @@ figure.article-figure figcaption {
         transform: rotate(0deg);
     }
 }
+
 /* --- Poster Style Components --- */
 .poster-image-container {
     width: 320px;
@@ -1981,5 +1982,22 @@ figure.article-figure figcaption {
 @media (max-width: 768px) {
     .leaflet-control-zoom {
         display: none !important;
+    }
+}
+
+/* Map Page Layout Fix */
+.map-layout {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding-top: 60px;
+    /* Account for navbar */
+    position: relative;
+}
+
+@media (max-width: 768px) {
+    .map-layout {
+        height: 100vh;
+        /* Allow full height */
     }
 }
