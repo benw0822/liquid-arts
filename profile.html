@@ -549,21 +549,19 @@
 
                         return `
                                 <div onclick="window.openGenericHoppingGallery(event, '${hop.id}', 'myHopsCache', true)" 
-                                    style="background: white; padding: 12px; border-radius: 12px; border: 1px solid #eee; display: flex; gap: 12px; align-items: center; cursor: pointer; transition: background 0.2s;">
+                                    style="background: white; padding: 12px; border-radius: 12px; border: 1px solid #eee; display: flex; gap: 12px; align-items: start; cursor: pointer; transition: background 0.2s;">
                                     
                                     <!-- Sender Avatar -->
-                                    <img src="${avatar}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid #eee;">
+                                    <img src="${avatar}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid #eee; margin-top: 2px;">
                                     
                                     <div style="flex: 1; overflow: hidden;">
-                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                                        <div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; margin-bottom: 4px;">
                                             <span style="font-weight: 600; font-size: 0.95rem; color: #333;">${name}</span>
-                                            <span style="font-size: 0.75rem; color: #999;">${timeAgo}</span>
+                                            <span style="font-size: 0.8rem; color: #777;">@ ${hop.bars?.title || 'Unknown Bar'}</span>
+                                            <span style="font-size: 0.75rem; color: #aaa;">• ${timeAgo}</span>
                                         </div>
-                                        <div style="font-size: 0.9rem; color: #555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                        <div style="font-size: 0.9rem; color: #555; line-height: 1.4;">
                                             ${c.content}
-                                        </div>
-                                        <div style="font-size: 0.75rem; color: #aaa; margin-top: 2px;">
-                                            on <span style="font-style: italic;">${hop.bars?.title || 'Unknown Bar'}</span>
                                         </div>
                                     </div>
 
