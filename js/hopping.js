@@ -575,6 +575,24 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
                     <span id="hd-date" class="hop-detail-date"></span>
                     <div id="hd-desc" class="hop-detail-desc"></div>
                 </div>
+
+                <!-- Comments Panel (Hidden by default) -->
+                <div id="hd-comments-panel" style="display: none; position: absolute; bottom: 0; left: 0; width: 100%; height: 60%; background: white; border-radius: 16px 16px 0 0; z-index: 70; flex-direction: column; overflow: hidden; box-shadow: 0 -4px 20px rgba(0,0,0,0.3); transition: transform 0.3s ease-out; transform: translateY(100%);">
+                    <div style="padding: 12px 16px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background: #fff;">
+                        <span style="font-weight: 700; font-size: 0.95rem; color: #333;">Comments</span>
+                        <button onclick="document.getElementById('hd-comments-panel').style.transform='translateY(100%)'; setTimeout(() => document.getElementById('hd-comments-panel').style.display='none', 300);" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #888; line-height: 1;">&times;</button>
+                    </div>
+                    <div id="hd-comments-list" style="flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; background: #f9f9f9;">
+                        <!-- Comments injected here -->
+                        <div style="text-align: center; color: #888; font-size: 0.9rem; margin-top: 20px;">Loading comments...</div>
+                    </div>
+                    <div style="padding: 12px; border-top: 1px solid #eee; display: flex; gap: 8px; background: #fff; align-items: center;">
+                        <input id="hd-comment-input" type="text" placeholder="Add a comment..." style="flex: 1; border: 1px solid #ddd; border-radius: 24px; padding: 10px 16px; font-size: 0.9rem; outline: none;">
+                        <button id="hd-comment-submit" style="background: var(--bg-red); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);">
+                           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
         `;
@@ -765,10 +783,94 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
         }
     }
 
-    // Message Logic
-    msgBtn.onclick = (e) => {
+    // Message/Comment Logic
+    msgBtn.onclick = async (e) => {
         e.stopPropagation();
-        alert('Messaging feature coming soon! / 訊息功能即將推出！');
+
+        // Show Comments Panel
+        const panel = document.getElementById('hd-comments-panel');
+        const list = document.getElementById('hd-comments-list');
+        const input = document.getElementById('hd-comment-input');
+        const submit = document.getElementById('hd-comment-submit');
+
+        panel.style.display = 'flex';
+        // Trigger reflow for transition
+        void panel.offsetWidth;
+        panel.style.transform = 'translateY(0)';
+
+        // Fetch Comments
+        list.innerHTML = '<div style="text-align: center; color: #888; font-size: 0.9rem; margin-top: 20px;">Loading...</div>';
+
+        const fetchComments = async () => {
+            const { data, error } = await window.supabaseClient
+                .from('hopping_comments')
+                .select('id, content, created_at, user_id, user:users (name, hopper_nickname, hopper_image_url)')
+                .eq('hopping_id', hopId)
+                .order('created_at', { ascending: true });
+
+            if (error) {
+                list.innerHTML = `<div style="text-align:center; color:red;">Error loading comments.</div>`;
+            } else if (!data || data.length === 0) {
+                list.innerHTML = `<div style="text-align:center; color:#999; font-style:italic; margin-top:20px;">No comments yet. Be the first!</div>`;
+            } else {
+                list.innerHTML = data.map(c => {
+                    const u = c.user;
+                    const name = u?.hopper_nickname || u?.name || 'Anonymous';
+                    const avatar = u?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`;
+                    const isMe = window.currentUser && window.currentUser.id === c.user_id; // Check if I wrote this (requires user_id in select which is implied by join or raw)
+                    // Note: c.user_id might not be returned by standard join unless explicit, but let's assume structure.
+                    // Supabase join returns object. We need c.user_id separately? No, let's select user_id too.
+                    // Actually select clause: user_id is foreign key column, so it is returned as property of row if asked.
+
+                    return `
+                        <div style="display: flex; gap: 10px; margin-bottom: 8px;">
+                            <img src="${avatar}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
+                            <div style="background: white; padding: 8px 12px; border-radius: 0 12px 12px 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); max-width: 80%;">
+                                <div style="font-weight: 600; font-size: 0.8rem; color: #333; margin-bottom: 2px;">${name}</div>
+                                <div style="font-size: 0.9rem; color: #444; word-break: break-word;">${c.content}</div>
+                            </div>
+                        </div>
+                   `;
+                }).join('');
+                // Scroll to bottom
+                list.scrollTop = list.scrollHeight;
+            }
+        };
+
+        await fetchComments();
+
+        // Bind Submit
+        // Remove old listener to prevent duplicates (naive approach: clone node or re-assign onclick)
+        // Better: define handler once? But hopId changes.
+        // Let's rely on re-assigning onclick property which overwrites previous.
+        submit.onclick = async () => {
+            const text = input.value.trim();
+            if (!text) return;
+            if (!window.currentUser) { alert('Please login to comment.'); return; }
+
+            // Optimistic UI? Or wait? Wait for simplicity.
+            submit.disabled = true;
+            submit.style.opacity = '0.5';
+
+            const { error } = await window.supabaseClient
+                .from('hopping_comments')
+                .insert([{ hopping_id: hopId, user_id: window.currentUser.id, content: text }]);
+
+            submit.disabled = false;
+            submit.style.opacity = '1';
+
+            if (error) {
+                alert('Failed to send: ' + error.message);
+            } else {
+                input.value = '';
+                await fetchComments(); // Reload
+            }
+        };
+
+        // Allow Enter key
+        input.onkeypress = (ev) => {
+            if (ev.key === 'Enter') submit.click();
+        };
     };
 
     // Delete Button Logic
