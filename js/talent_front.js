@@ -54,8 +54,21 @@ function renderTalentShowcase(talent) {
         let roleText = primary.role || 'Bartender';
         let barText = primary.bar_name || 'Liquid Arts';
 
-        roleEl.textContent = `${roleText}, ${barText}`;
+        roleEl.textContent = `${barText} ${roleText}`; // Changed order to match "MO BAR Bartender"
+
+        // If it's a link, set href
+        if (roleEl.tagName === 'A') {
+            // Assuming we might have a link somewhere, if not, default to bars.html or search
+            // For now, let's link to bars.html as a specific bar link might not be in the 'talent' object yet without join.
+            // If the user needs specific bar link, we need to check if we have it. 
+            // Ideally `primary.bar_id` -> `bars.html?id=...`
+            if (primary.bar_id) {
+                roleEl.href = `bar-details.html?id=${primary.bar_id}`;
+            } else {
+                roleEl.href = 'bars.html';
+            }
+        }
     } else {
-        if (roleEl) roleEl.textContent = '';
+        if (roleEl) roleEl.textContent = 'Guest Bartender';
     }
 }
