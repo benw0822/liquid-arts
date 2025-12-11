@@ -219,14 +219,39 @@ function getBarOptions(selectedBarId) {
 const roleItemTemplate = (data) => {
     // Legacy support: resolve bar_name to bar_id if id is missing
     let selectedId = data.bar_id;
+    let fallbackName = null;
+
     if (!selectedId && data.bar_name && cachedBars.length > 0) {
-        const found = cachedBars.find(b => b.title === data.bar_name);
-        if (found) selectedId = found.id;
+        // Case 1: Previous logic saved ID into 'bar_name' field (most likely)
+        const matchById = cachedBars.find(b => b.id == data.bar_name);
+        if (matchById) {
+            selectedId = matchById.id;
+        } else {
+            // Case 2: 'bar_name' is actually the name/title
+            const matchByTitle = cachedBars.find(b => b.title === data.bar_name);
+            if (matchByTitle) {
+                selectedId = matchByTitle.id;
+            } else {
+                // Case 3: No match found, use as label
+                fallbackName = data.bar_name;
+            }
+        }
     }
+
+    let options = getBarOptions(selectedId);
+
+    // If we have a name/id-string but no ID match in current list (rare), show placeholder
+    if (fallbackName && !selectedId) {
+        options = options.replace(
+            '<option value="">Select Bar...</option>',
+            `<option value="" selected disabled>Saved: ${fallbackName}</option>`
+        );
+    }
+
     return `
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
         <select class="hopping-input-minimal list-input-bar-id" style="margin:0; font-size: 0.9rem;">
-            ${getBarOptions(selectedId)}
+            ${options}
         </select>
         <input type="text" class="hopping-input-minimal list-input-role" placeholder="Role (e.g. Owner)" value="${data.role || ''}" style="margin:0; font-size: 0.9rem;">
         <!-- Hidden input for bar Name if needed for display fallback, though ID is better -->

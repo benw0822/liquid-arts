@@ -108,15 +108,15 @@
                     </div>
 
                     <!-- Curved Text (SVG) - Outside Circle -->
-                    <!-- Enlarged viewBox to allow text outside -->
-                    <svg viewBox="-100 -100 520 520"
+                    <!-- Reset viewBox to 1:1 (320x320) so units = pixels. Allow overflow. -->
+                    <svg viewBox="0 0 320 320"
                         style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; overflow: visible;">
-                        <!-- Path larger than circle (320px = 160r). Path radius ~210. -->
-                        <path id="curve" d="M -40,200 A 220,220 0 0,1 200,-40" fill="none" />
+                        <!-- Path radius 220px (Image radius is 160px). Text will be ~60px outside. -->
+                        <path id="curve" d="M -60,200 A 220,220 0 0,1 200,-60" fill="none" />
                         <text font-family="'Playfair Display', serif" font-size="14" fill="white" letter-spacing="3"
                             text-transform="uppercase">
                             <!-- Adjusted startOffset -->
-                            <textPath href="#curve" startOffset="25%" text-anchor="middle">INSIDE QUOTE</textPath>
+                            <textPath href="#curve" startOffset="30%" text-anchor="middle">INSIDE QUOTE</textPath>
                         </text>
                     </svg>
 
