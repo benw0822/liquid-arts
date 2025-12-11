@@ -808,16 +808,63 @@ document.addEventListener('DOMContentLoaded', () => {
                 const roleName = roleObj.role || 'Talent';
 
                 talentCardHtml = `
-                    <div class="content-card" style="background-color: var(--bg-red); color: white; border: none; margin-bottom: 30px; display: flex; align-items: center; gap: 1.5rem; padding: 1.5rem;">
-                         <div style="flex-shrink: 0; width: 80px; height: 80px; border-radius: 50%; overflow: hidden; border: 2px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
-                             <img src="${talent.image_url || 'assets/default_avatar.png'}" style="width: 100%; height: 100%; object-fit: cover;">
-                         </div>
-                         <div style="flex: 1;">
-                             <h4 style="font-family: var(--font-display); font-size: 1.2rem; margin: 0; text-transform: uppercase; letter-spacing: 1px;">${talent.display_name}</h4>
-                             <p style="margin: 0 0 0.5rem 0; font-size: 0.9rem; opacity: 0.9; font-weight: 600;">${roleName}</p>
-                             ${talent.quote ? `<p style="font-style: italic; font-size: 0.9rem; margin: 0 0 1rem 0; opacity: 0.8; line-height: 1.4;">"${talent.quote.substring(0, 60)}${talent.quote.length > 60 ? '...' : ''}"</p>` : ''}
-                             <a href="talent.html?id=${talent.user_id}" style="display: inline-block; padding: 6px 16px; background: white; color: var(--bg-red); border-radius: 20px; text-decoration: none; font-size: 0.8rem; font-weight: 700;">View Profile</a>
-                         </div>
+                    <div class="grid-item content-card" style="background-color: var(--bg-red); color: white; border: none; margin-bottom: 30px; position: relative; overflow: hidden; padding: 3rem 1.5rem; text-align: center;">
+                        
+                        <!-- Section Title -->
+                        <h3 style="font-family: 'Playfair Display', serif; font-size: 1rem; letter-spacing: 3px; color: white; margin-bottom: 2rem; text-transform: uppercase; opacity: 0.9;">
+                            MEET TALENT
+                        </h3>
+
+                        <!-- Image Component (Scaled Down) -->
+                        <div style="position: relative; width: 220px; height: 220px; margin: 0 auto 2rem auto;">
+                            <!-- Decorative Offset Circle (Left) -->
+                            <div style="position: absolute; top: 0; left: -15px; width: 100%; height: 100%; border: 1px solid rgba(255,255,255,0.5); border-radius: 50%; pointer-events: none; z-index: 0;"></div>
+
+                            <!-- Main Image Circle -->
+                            <div style="width: 100%; height: 100%; border-radius: 50%; overflow: hidden; position: relative; z-index: 1; box-shadow: 10px 10px 30px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2);">
+                                <img src="${talent.image_url || 'assets/default_avatar.png'}" style="width: 100%; height: 100%; object-fit: cover; filter: grayscale(100%) contrast(1.1);">
+                            </div>
+
+                            <!-- Curved Text (SVG) -->
+                            <svg viewBox="0 0 320 320" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; overflow: visible; transform: scale(1.08);"> <!-- Slight scale to fit 220px container relative to 320 viewbox logic -->
+                                <path id="curve-${bar.id}" d="M -20,190 A 190,190 0 0,1 190,-20" fill="none" />
+                                <text font-family="'Playfair Display', serif" font-size="28" fill="white" letter-spacing="3" text-transform="uppercase">
+                                    <textPath href="#curve-${bar.id}" startOffset="25%" text-anchor="middle">LIQUID ARTS</textPath>
+                                </text>
+                            </svg>
+
+                            <!-- Overlay Name -->
+                            <div style="position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); width: 200%; text-align: center; font-family: 'Playfair Display', serif; font-size: 2rem; line-height: 1; z-index: 20; text-shadow: 0 5px 15px rgba(0,0,0,0.5); pointer-events: none; font-style: italic; white-space: nowrap;">
+                                ${talent.display_name}
+                            </div>
+                        </div>
+
+                        <!-- Content -->
+                        <div style="position: relative; z-index: 2;">
+                            <div style="margin-bottom: 1rem; font-family: var(--font-main); text-transform: uppercase; letter-spacing: 1px; font-size: 0.9rem; font-weight: 600;">
+                                ${roleName}
+                            </div>
+
+                            <!-- Quote Mark -->
+                            <div style="font-family: 'Playfair Display', serif; font-size: 4rem; line-height: 1; margin-bottom: -2rem; opacity: 1; color: white; position: relative; z-index: 10; display: inline-block; background: var(--bg-red); padding: 0 10px;">
+                                “
+                            </div>
+
+                            <!-- Separator -->
+                            <div style="width: 100%; height: 1px; background: rgba(255,255,255,0.3); margin: 0 auto 1.5rem auto;"></div>
+
+                            ${talent.quote ? `
+                                <h2 style="font-family: 'Playfair Display', serif; font-size: 1.3rem; font-style: italic; margin-bottom: 1rem; font-weight: 400; line-height: 1.5;">
+                                    ${talent.quote}
+                                </h2>
+                            ` : ''}
+
+                            <div style="width: 100%; height: 1px; background: rgba(255,255,255,0.3); margin: 1.5rem auto 2rem auto;"></div>
+
+                            <a href="talent.html?id=${talent.user_id}" style="display: inline-block; padding: 10px 24px; background: white; color: var(--bg-red); border-radius: 30px; text-decoration: none; font-size: 0.9rem; font-weight: 700; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                                View Profile
+                            </a>
+                        </div>
                     </div>
                 `;
             }
