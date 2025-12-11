@@ -237,7 +237,7 @@ window.initTalentPage = async () => {
                             ` : '';
 
                             overlayHtml = `
-                                <div onclick="event.stopPropagation(); window.openGenericHoppingGallery(event, '${hop.id}', 'talentHoppingsCache', true)" style="position: absolute; top: 15px; left: 15px; z-index: 55; display: flex; flex-direction: column; align-items: flex-start; max-width: 60%; cursor: pointer; pointer-events: auto;">
+                                <div onclick="event.stopPropagation(); window.openGlobalCommentSheet('${hop.id}', '${hop.user_id}')" style="position: absolute; top: 15px; left: 15px; z-index: 55; display: flex; flex-direction: column; align-items: flex-start; max-width: 60%; cursor: pointer; pointer-events: auto;">
                                     ${itemsHtml}
                                     ${badgeHtml}
                                 </div>

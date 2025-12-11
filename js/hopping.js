@@ -1053,3 +1053,144 @@ window.deleteHoppingComment = async (commentId, hopId) => {
         }
     }
 };
+
+// Global Comment Sheet (Quick View)
+window.openGlobalCommentSheet = async (hopId, ownerId) => {
+    // 1. Create Sheet HTML if not exists
+    if (!document.getElementById('global-comment-sheet')) {
+        const html = `
+        <div id="global-comment-sheet-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000; background: rgba(0,0,0,0.5); display: none; align-items: flex-end; opacity: 0; transition: opacity 0.3s;">
+            <div id="global-comment-sheet" style="width: 100%; height: 75vh; bg-red: red; background: white; border-radius: 20px 20px 0 0; display: flex; flex-direction: column; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); box-shadow: 0 -5px 30px rgba(0,0,0,0.2);">
+                <div style="padding: 16px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: 700; font-size: 1.1rem; color: #333;">Comments</span>
+                    <button onclick="window.closeGlobalCommentSheet()" style="background: #f0f0f0; border: none; width: 30px; height: 30px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; color: #555; display: flex; align-items: center; justify-content: center;">&times;</button>
+                </div>
+                <div id="gcs-list" style="flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px; background: #fafafa;">
+                    <div style="text-align: center; color: #999; margin-top: 30px;">Loading conversations...</div>
+                </div>
+                <!-- Input Area -->
+                <div style="padding: 12px 16px; border-top: 1px solid #eee; background: white;">
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                         <input id="gcs-input" type="text" placeholder="Write a comment..." style="flex: 1; background: #f5f5f5; border: none; border-radius: 24px; padding: 12px 16px; font-size: 0.95rem; outline: none; transition: background 0.2s;" onfocus="this.style.background='#fff'; this.style.boxShadow='0 0 0 2px #eee'" onblur="this.style.background='#f5f5f5'; this.style.boxShadow='none'">
+                         <button id="gcs-submit" style="background: var(--bg-red); color: white; border: none; border-radius: 50%; width: 44px; height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 3px 10px rgba(239, 68, 68, 0.3);">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                         </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', html);
+
+        // Bind Overlay Click to Close
+        document.getElementById('global-comment-sheet-overlay').onclick = (e) => {
+            if (e.target.id === 'global-comment-sheet-overlay') window.closeGlobalCommentSheet();
+        };
+    }
+
+    // 2. Open Animation
+    const overlay = document.getElementById('global-comment-sheet-overlay');
+    const sheet = document.getElementById('global-comment-sheet');
+    const list = document.getElementById('gcs-list');
+    const input = document.getElementById('gcs-input');
+    const submit = document.getElementById('gcs-submit');
+
+    overlay.style.display = 'flex';
+    // Flush
+    void overlay.offsetWidth;
+    overlay.style.opacity = '1';
+    sheet.style.transform = 'translateY(0)';
+    document.body.style.overflow = 'hidden';
+
+    // 3. Logic: Fetch
+    const fetch = async () => {
+        const { data, error } = await window.supabaseClient
+            .from('hopping_comments')
+            .select('id, content, created_at, user_id, user:users (name, hopper_nickname, hopper_image_url)')
+            .eq('hopping_id', hopId)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            list.innerHTML = `<div style="text-align:center; color:red;">${error.message}</div>`;
+        } else if (!data || data.length === 0) {
+            list.innerHTML = `<div style="text-align:center; color:#999; margin-top:40px;">No comments yet.<br>Start the conversation!</div>`;
+        } else {
+            list.innerHTML = data.map(c => {
+                const u = c.user;
+                const name = u?.hopper_nickname || u?.name || 'Anonymous';
+                const avatar = u?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`;
+                const isMe = window.currentUser && window.currentUser.id === c.user_id;
+                const canDelete = isMe || (window.currentUser && window.currentUser.id === ownerId);
+                const d = new Date(c.created_at);
+                const dateStr = `${d.getMonth() + 1}/${d.getDate()} ${d.getHours()}:${d.getMinutes().toString().padStart(2, '0')}`;
+
+                return `
+                    <div style="display: flex; gap: 12px;">
+                        <img src="${avatar}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover;">
+                        <div style="flex: 1;">
+                            <div style="background: white; padding: 10px 14px; border-radius: 4px 18px 18px 18px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border: 1px solid #eee; position: relative;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 4px; align-items: center;">
+                                    <span style="font-weight: 700; font-size: 0.9rem; color: #222;">${name}</span>
+                                    <span style="font-size: 0.75rem; color: #aaa;">${dateStr}</span>
+                                </div>
+                                <div style="color: #444; font-size: 0.95rem; line-height: 1.4;">${c.content}</div>
+                                ${canDelete ? `
+                                    <button onclick="window.deleteHoppingCommentGlobal('${c.id}', '${hopId}')" style="position: absolute; top: 10px; right: 10px; opacity: 0.3; background: none; border: none; cursor: pointer; padding: 5px;">&times;</button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            list.scrollTop = 0;
+        }
+    };
+
+    fetch();
+
+    // 4. Submit
+    submit.onclick = async () => {
+        const txt = input.value.trim();
+        if (!txt) return;
+        if (!window.currentUser) { alert('Please login.'); return; }
+
+        submit.style.opacity = 0.5;
+        const { error } = await window.supabaseClient.from('hopping_comments').insert([{ hopping_id: hopId, user_id: window.currentUser.id, content: txt }]);
+        submit.style.opacity = 1;
+
+        if (error) alert(error.message);
+        else {
+            input.value = '';
+            fetch();
+            // Optional: Refresh external badging if reachable?
+        }
+    };
+
+    // Enter key
+    input.onkeypress = (e) => { if (e.key === 'Enter') submit.click(); }
+
+    // Expose Refresh for Delete
+    window.refreshGlobalComments = fetch;
+};
+
+// Close Global Sheet
+window.closeGlobalCommentSheet = () => {
+    const overlay = document.getElementById('global-comment-sheet-overlay');
+    const sheet = document.getElementById('global-comment-sheet');
+    if (overlay && sheet) {
+        overlay.style.opacity = '0';
+        sheet.style.transform = 'translateY(100%)';
+        setTimeout(() => {
+            overlay.style.display = 'none';
+            document.body.style.overflow = '';
+        }, 300);
+    }
+};
+
+// Global Delete
+window.deleteHoppingCommentGlobal = async (cid, hid) => {
+    if (!confirm('Delete comment?')) return;
+    const { error } = await window.supabaseClient.from('hopping_comments').delete().eq('id', cid);
+    if (error) alert(error.message);
+    else if (window.refreshGlobalComments) window.refreshGlobalComments();
+};
