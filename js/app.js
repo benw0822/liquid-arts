@@ -849,7 +849,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <svg viewBox="0 0 320 320" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; overflow: visible; transform: scale(1.08);">
                                 <path id="curve-${bar.id}" d="M -20,190 A 190,190 0 0,1 190,-20" fill="none" />
                                 <text font-family="'Playfair Display', serif" font-size="28" fill="white" letter-spacing="3" text-transform="uppercase">
-                                    <textPath href="#curve-${bar.id}" startOffset="15%" text-anchor="middle">INSIGHTS QUOTE</textPath>
+                                    <textPath href="#curve-${bar.id}" startOffset="25%" text-anchor="middle">TALENT</textPath>
                                 </text>
                             </svg>
 
