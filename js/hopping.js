@@ -470,7 +470,9 @@ window.openHoppingGallery = (event, startHopId, barId) => {
     renderCurrent();
 }; // End of openHoppingGallery
 // Open Generic Gallery (From any cache source)
-window.openGenericHoppingGallery = (event, startHopId, cacheKey) => {
+// End of openHoppingGallery
+// Open Generic Gallery (From any cache source)
+window.openGenericHoppingGallery = (event, startHopId, cacheKey, openComments = false) => {
     if (event) { event.preventDefault(); event.stopPropagation(); }
 
     const hops = window[cacheKey]; // Access Global Cache dynamically
@@ -479,10 +481,17 @@ window.openGenericHoppingGallery = (event, startHopId, cacheKey) => {
     let currentIndex = hops.findIndex(h => h.id == startHopId);
     if (currentIndex === -1) currentIndex = 0;
 
+    // Only auto-open comments for the initial view
+    let shouldOpenComments = openComments;
+
     const renderCurrent = () => {
         const hop = hops[currentIndex];
         // Pass bar info if available in the hop object
-        window.showHoppingDetails(null, hop.image_url, hop.hopped_at, hop.rating, hop.description, hop.id, hop.user_id, true, hop.bar_title, hop.bar_id);
+        window.showHoppingDetails(null, hop.image_url, hop.hopped_at, hop.rating, hop.description, hop.id, hop.user_id, true, hop.bar_title, hop.bar_id, shouldOpenComments);
+
+        // Reset after first render so navigation doesn't keep popping it up
+        shouldOpenComments = false;
+
         updateGenericNavigationUI();
     };
 
@@ -492,11 +501,6 @@ window.openGenericHoppingGallery = (event, startHopId, cacheKey) => {
 
         let prevBtn = document.getElementById('hd-prev-btn');
         let nextBtn = document.getElementById('hd-next-btn');
-
-        // Reuse existing arrow creation logic or ensure they exist
-        // (Assuming standard arrow creation is handled inside showHoppingDetails if missing, OR we can copy the logic here)
-        // Ideally, showHoppingDetails creates the modal structure, but arrows are added dynamically.
-        // Let's ensure they exist here for robustness.
 
         const wrapper = modal.querySelector('.hop-detail-image-wrapper');
         const arrowStyle = 'position: absolute; top: 50%; transform: translateY(-50%); background: transparent; color: #ef4444; border: none; padding: 20px; cursor: pointer; font-size: 2.5rem; z-index: 50; transition: transform 0.2s; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));';

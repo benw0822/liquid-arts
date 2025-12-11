@@ -238,7 +238,7 @@ window.initTalentPage = async () => {
                                 const avatar = u?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`;
 
                                 return `
-                                        <div style="display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); padding: 4px 8px; border-radius: 12px; width: fit-content; margin-bottom: 4px; max-width: 100%;">
+                                        <div style="display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); padding: 4px 8px; border-radius: 12px; width: fit-content; margin-bottom: 4px; max-width: 100%; cursor: pointer; pointer-events: auto;" onclick="event.stopPropagation(); window.openGenericHoppingGallery(event, '${hop.id}', 'talentHoppingsCache', true)">
                                              <img src="${avatar}" style="width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.3);">
                                              <span style="color: white; font-size: 0.8rem; font-weight: 500; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 180px;">
                                                 <span style="font-weight: 700; color: #fff;">${name}:</span> <span style="color: #eee;">${c.content}</span>
@@ -248,7 +248,7 @@ window.initTalentPage = async () => {
                             }).join('');
 
                             const badgeHtml = totalComments > 3 ? `
-                                    <div style="background: rgba(239, 68, 68, 0.9); color: white; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; width: fit-content; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                                    <div style="background: rgba(239, 68, 68, 0.9); color: white; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; width: fit-content; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.3); cursor: pointer; pointer-events: auto;" onclick="event.stopPropagation(); window.openGenericHoppingGallery(event, '${hop.id}', 'talentHoppingsCache', true)">
                                         ${totalComments}+
                                     </div>
                                 ` : '';
