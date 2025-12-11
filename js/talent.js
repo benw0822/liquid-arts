@@ -249,18 +249,12 @@ window.initTalentPage = async () => {
                             const descEsc = escapeForJs(hop.description);
 
                             overlayHtml = `
-                                <div onclick="event.stopPropagation(); window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', '${hop.rating}', '${descEsc}', '${hop.id}', '${hop.user_id}', false, null, null, true)" style="position: absolute; top: 15px; left: 15px; z-index: 55; display: flex; flex-direction: column; align-items: flex-start; max-width: 60%; cursor: pointer;">
+                                <div onclick="event.stopPropagation(); window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', '${hop.rating}', '${descEsc}', '${hop.id}', '${hop.user_id}', false, '${escapeForJs(bar.title)}', '${bar.id}', true)" style="position: absolute; top: 15px; left: 15px; z-index: 55; display: flex; flex-direction: column; align-items: flex-start; max-width: 60%; cursor: pointer;">
                                     ${itemsHtml}
                                     ${badgeHtml}
                                 </div>
                             `;
                         }
-
-
-                        // Google Map URL
-                        const mapUrl = bar.lat && bar.lng
-                            ? `https://www.google.com/maps/search/?api=1&query=${bar.lat},${bar.lng}`
-                            : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(bar.address || bar.location || '')}`;
 
                         return `
                         <div class="art-card" onclick="window.openGenericHoppingGallery(event, '${hop.id}', 'talentHoppingsCache')" style="position: relative; cursor: pointer; display: flex; flex-direction: column; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 2rem;">
@@ -268,12 +262,16 @@ window.initTalentPage = async () => {
                              <div style="width: 100%; aspect-ratio: 1/1; overflow: hidden; position: relative; z-index: 1;">
                                 <img src="${hop.image_url}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                                 ${overlayHtml}
+                                
+                                <!-- Bar Title Pill (Bottom Right) - Matching Modal Style -->
+                                ${bar.title ? `
+                                    <a href="bar-details.html?id=${bar.id}" onclick="event.stopPropagation();" style="position: absolute; bottom: 15px; right: 15px; background: rgba(0,0,0,0.7); color: white; padding: 4px 12px; border-radius: 20px; text-decoration: none; font-size: 0.8rem; font-weight: 500; z-index: 55; display: flex; align-items: center; gap: 4px; backdrop-filter: blur(4px);">
+                                        <span>📍</span> <span>${bar.title}</span>
+                                    </a>
+                                ` : ''}
                              </div>
                              
                              <div style="padding: 1.5rem 1rem; text-align: center; background: white; flex: 1; display: flex; flex-direction: column; position: relative; z-index: 2;">
-                                <!-- Bar Title -->
-                                ${bar.title ? `<div style="margin-bottom: 0.5rem; position: relative; z-index: 30;"><a href="bar-details.html?id=${bar.id}" onclick="event.stopPropagation();" style="text-decoration: none; color: inherit; display: inline-block; padding: 5px;"><h3 style="font-family: var(--font-display); font-size: 1.4rem; margin: 0; color: #1b1b1b; transition: color 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#1b1b1b'">${bar.title}</h3></a></div>` : ''}
-
                                 <div style="color: var(--bg-red); font-size: 1.2rem; margin-bottom: 0.2rem; letter-spacing: 2px;">${stars}</div>
                                 ${ratingText ? `<div style="font-weight: 600; font-size: 0.8rem; text-transform: uppercase; color: #333; margin-bottom: 0.5rem;">${ratingText}</div>` : ''}
 
@@ -281,17 +279,6 @@ window.initTalentPage = async () => {
 
                                 <!-- Description -->
                                 ${hop.description ? `<p style="font-size: 0.95rem; color: #555; margin: 0 0 1rem 0; line-height: 1.4; font-style: italic;">"${hop.description}"</p>` : ''}
-
-                                <!-- Mini Map (Dark Theme) -->
-                                <div id="talent-hop-map-${hop.id}" class="card-map" style="height: 150px; width: 100%; border-radius: 4px; margin-bottom: 8px;"></div>
-                                
-                                <!-- Google Map Button -->
-                                <div style="margin-top: auto; position: relative; z-index: 30;">
-                                    <a href="${mapUrl}" target="_blank" onclick="event.stopPropagation()" class="btn" style="display: flex; justify-content: center; align-items: center; gap: 8px; width: 100%; background-color: var(--bg-red); color: white; padding: 10px 0; border-radius: 4px; text-decoration: none; transition: background 0.3s; margin-top: 0;">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M14.082 2.182a.5.5 0 0 1 .103.557L8.528 15.467a.5.5 0 0 1-.917-.007L5.57 10.694.803 8.652a.5.5 0 0 1-.006-.916l12.728-5.657a.5.5 0 0 1 .556.103z"/></svg>
-                                        <span style="font-size: 0.9rem; font-weight: 600;">Google Map</span>
-                                    </a>
-                                </div>
                              </div>
                         </div>`;
                     }).join('');
