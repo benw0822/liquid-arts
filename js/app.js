@@ -808,17 +808,40 @@ document.addEventListener('DOMContentLoaded', () => {
                 const roleName = roleObj.role || 'Talent';
 
                 talentCardHtml = `
-                    <div class="grid-item content-card" style="background-color: var(--bg-red); color: white; border: none; margin-bottom: 30px; position: relative; overflow: hidden; padding: 3rem 1.5rem; text-align: center;">
-                        
-                        <!-- Section Title -->
-                        <h3 style="font-family: 'Playfair Display', serif; font-size: 1rem; letter-spacing: 3px; color: white; margin-bottom: 2rem; text-transform: uppercase; opacity: 0.9;">
-                            Talent
-                        </h3>
+                // Prepare Lists (Experience & Awards)
+                let expSection = '';
+                if (talent.experiences && talent.experiences.length > 0) {
+                    const sortedExp = talent.experiences.sort((a, b) => b.year - a.year).slice(0, 3);
+                    expSection = `
+                    < div style = "margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 1rem;" >
+                            < !-- < h5 style = "font-family: var(--font-display); font-size: 0.75rem; text-transform: uppercase; opacity: 0.6; margin-bottom: 0.5rem; letter-spacing: 1px;" > Previous</h5 > -->
+                    <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.85rem; opacity: 0.9; line-height: 1.5; font-family: var(--font-main);">
+                        ${sortedExp.map(e => `<li><span style="opacity:0.7">${e.year}</span> ${e.unit}</li>`).join('')}
+                    </ul>
+                        </div >
+                    `;
+                }
 
-                        <!-- Image Component (Scaled Down) -->
-                        <div style="position: relative; width: 220px; height: 220px; margin: 0 auto 2rem auto;">
-                            <!-- Decorative Offset Circle (Left) -->
-                            <div style="position: absolute; top: 0; left: -15px; width: 100%; height: 100%; border: 1px solid rgba(255,255,255,0.5); border-radius: 50%; pointer-events: none; z-index: 0;"></div>
+                let awardSection = '';
+                if (talent.awards && talent.awards.length > 0) {
+                    const sortedAwd = talent.awards.sort((a, b) => b.year - a.year).slice(0, 3);
+                    awardSection = `
+                    < div style = "margin-top: 1rem;" >
+                            < !-- < h5 style = "font-family: var(--font-display); font-size: 0.75rem; text-transform: uppercase; opacity: 0.6; margin-bottom: 0.5rem; letter-spacing: 1px;" > Awards</h5 > -->
+                    <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.85rem; opacity: 0.9; line-height: 1.5; font-family: var(--font-main);">
+                        ${sortedAwd.map(a => `<li style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><span style="opacity:0.7">🏆</span> ${a.name}</li>`).join('')}
+                    </ul>
+                        </div >
+                    `;
+                }
+
+                talentCardHtml = `
+                    < div class="grid-item content-card" style = "background-color: var(--bg-red); color: white; border: none; margin-bottom: 30px; position: relative; overflow: hidden; padding: 2rem 1rem; text-align: center;" >
+                        
+                        < !--Image Component-- >
+                        <div style="position: relative; width: 200px; height: 200px; margin: 1rem auto 1.5rem auto;">
+                            <!-- Decorative Offset Circle -->
+                            <div style="position: absolute; top: 0; left: -12px; width: 100%; height: 100%; border: 1px solid rgba(255,255,255,0.5); border-radius: 50%; pointer-events: none; z-index: 0;"></div>
 
                             <!-- Main Image Circle -->
                             <div style="width: 100%; height: 100%; border-radius: 50%; overflow: hidden; position: relative; z-index: 1; box-shadow: 10px 10px 30px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2);">
@@ -826,47 +849,50 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
 
                             <!-- Curved Text (SVG) -->
-                            <svg viewBox="0 0 320 320" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; overflow: visible; transform: scale(1.08);"> <!-- Slight scale to fit 220px container relative to 320 viewbox logic -->
+                            <svg viewBox="0 0 320 320" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; overflow: visible; transform: scale(1.08);">
                                 <path id="curve-${bar.id}" d="M -20,190 A 190,190 0 0,1 190,-20" fill="none" />
                                 <text font-family="'Playfair Display', serif" font-size="28" fill="white" letter-spacing="3" text-transform="uppercase">
-                                    <textPath href="#curve-${bar.id}" startOffset="25%" text-anchor="middle">LIQUID ARTS</textPath>
+                                    <textPath href="#curve-${bar.id}" startOffset="25%" text-anchor="middle">INSIDE QUOTE</textPath>
                                 </text>
                             </svg>
 
                             <!-- Overlay Name -->
-                            <div style="position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); width: 200%; text-align: center; font-family: 'Playfair Display', serif; font-size: 2rem; line-height: 1; z-index: 20; text-shadow: 0 5px 15px rgba(0,0,0,0.5); pointer-events: none; font-style: italic; white-space: nowrap;">
+                            <div style="position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); width: 220%; text-align: center; font-family: 'Playfair Display', serif; font-size: 1.8rem; line-height: 1; z-index: 20; text-shadow: 0 5px 15px rgba(0,0,0,0.5); pointer-events: none; font-style: italic; white-space: nowrap;">
                                 ${talent.display_name}
                             </div>
                         </div>
 
-                        <!-- Content -->
-                        <div style="position: relative; z-index: 2;">
-                            <div style="margin-bottom: 1rem; font-family: var(--font-main); text-transform: uppercase; letter-spacing: 1px; font-size: 0.9rem; font-weight: 600;">
-                                ${roleName}
-                            </div>
+                        <!--Content -->
+                    <div style="position: relative; z-index: 2;">
+                        <div style="margin-bottom: 0.5rem; font-family: var(--font-main); text-transform: uppercase; letter-spacing: 1px; font-size: 0.85rem; font-weight: 600;">
+                            ${roleName}
+                        </div>
 
-                            <!-- Quote Mark -->
-                            <div style="font-family: 'Playfair Display', serif; font-size: 4rem; line-height: 1; margin-bottom: -2rem; opacity: 1; color: white; position: relative; z-index: 10; display: inline-block; background: var(--bg-red); padding: 0 10px;">
-                                “
-                            </div>
+                        <!-- Quote Mark -->
+                        <div style="font-family: 'Playfair Display', serif; font-size: 3.5rem; line-height: 1; margin-bottom: -1.5rem; opacity: 1; color: white; position: relative; z-index: 10; display: inline-block; background: var(--bg-red); padding: 0 8px;">
+                            “
+                        </div>
 
-                            <!-- Separator -->
-                            <div style="width: 100%; height: 1px; background: rgba(255,255,255,0.3); margin: 0 auto 1.5rem auto;"></div>
+                        <!-- Separator -->
+                        <div style="width: 100%; height: 1px; background: rgba(255,255,255,0.3); margin: 0 auto 1rem auto;"></div>
 
-                            ${talent.quote ? `
-                                <h2 style="font-family: 'Playfair Display', serif; font-size: 1.3rem; font-style: italic; margin-bottom: 1rem; font-weight: 400; line-height: 1.5;">
+                        ${talent.quote ? `
+                                <h2 style="font-family: 'Playfair Display', serif; font-size: 1.1rem; font-style: italic; margin-bottom: 1rem; font-weight: 400; line-height: 1.5; padding: 0 0.5rem;">
                                     ${talent.quote}
                                 </h2>
                             ` : ''}
 
-                            <div style="width: 100%; height: 1px; background: rgba(255,255,255,0.3); margin: 1.5rem auto 2rem auto;"></div>
+                        ${expSection}
+                        ${awardSection}
 
-                            <a href="talent.html?id=${talent.id}" style="display: inline-block; padding: 10px 24px; background: white; color: var(--bg-red); border-radius: 30px; text-decoration: none; font-size: 0.9rem; font-weight: 700; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                                View Profile
-                            </a>
-                        </div>
+                        <div style="width: 100%; height: 1px; background: rgba(255,255,255,0.3); margin: 1.5rem auto 1.5rem auto;"></div>
+
+                        <a href="talent.html?id=${talent.id}" style="display: inline-block; padding: 8px 20px; background: white; color: var(--bg-red); border-radius: 30px; text-decoration: none; font-size: 0.85rem; font-weight: 700; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                            View Profile
+                        </a>
                     </div>
-                `;
+                    </div >
+                    `;
             }
         }
 
@@ -881,7 +907,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.barHoppingsCache[bar.id] = hops;
 
                 hoppingCardHtml = `
-                    <div class="grid-item content-card" style="margin-bottom: 30px; text-align: center;">
+                    < div class="grid-item content-card" style = "margin-bottom: 30px; text-align: center;" >
                         <h3 class="section-title">HOPS</h3>
                         
                         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 1.5rem;">
@@ -897,20 +923,20 @@ document.addEventListener('DOMContentLoaded', () => {
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 22h8"></path><path d="M12 15v7"></path><path d="M2 3h20L12 15z"></path></svg>
                             HOP HERE !
                         </button>
-                    </div>
-                `;
+                    </div >
+                    `;
             } else {
                 // Empty State
                 hoppingCardHtml = `
-                    <div class="grid-item content-card" style="margin-bottom: 30px; text-align: center;">
+                    < div class="grid-item content-card" style = "margin-bottom: 30px; text-align: center;" >
                         <h3 class="section-title">HOPS</h3>
                         <p style="color: #888; margin-bottom: 1.5rem; font-style: italic;">Be the first to Hop here!</p>
                         <button onclick="window.openHoppingModal(${bar.id})" class="btn" style="background-color: var(--bg-red); color: white; border: none; padding: 10px 24px; border-radius: 30px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4); transition: transform 0.2s;">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 22h8"></path><path d="M12 15v7"></path><path d="M2 3h20L12 15z"></path></svg>
                             HOP HERE !
                         </button>
-                    </div>
-                 `;
+                    </div >
+                    `;
             }
         }
 
@@ -922,7 +948,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const hasMultiple = bar.signatures.length > 1;
 
             signaturesHtml = `
-                <div class="content-card">
+                    < div class="content-card" >
                     <h3 class="section-title">Signature</h3>
                     
                     <div class="signature-carousel-container" style="position: relative; overflow: hidden;">
@@ -955,8 +981,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             </button>
                         ` : ''}
                     </div>
-                </div>
-            `;
+                </div >
+                    `;
 
             // Initialize carousel state
             window.carouselStates = window.carouselStates || {};
@@ -966,7 +992,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (bar.editorial_review) {
             // --- Masonry Grid Layout (Review Present) ---
             container.innerHTML = `
-                <!-- Top Header -->
+                    < !--Top Header-- >
                 <div class="container" style="margin-top: 100px; margin-bottom: 2rem; text-align: center;">
                     <h1 style="font-size: 3.5rem; margin-bottom: 0.5rem; color: var(--text-primary); line-height: 1.2;">${bar.title}</h1>
                     <p style="font-size: 1.2rem; color: #666; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; gap: 10px;">
@@ -1116,11 +1142,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${galleryHtml ? `<div class="grid-item" style="width:100%; margin-bottom:30px;">${galleryHtml}</div>` : ''}
 
                 </div>
-            `;
+                `;
         } else {
             // --- Default 2-Column Grid Layout (No Review) ---
             container.innerHTML = `
-                <!-- Top Header (Title & Vibe) -->
+                    < !--Top Header(Title & Vibe)-- >
                 <div class="container" style="margin-top: 100px; margin-bottom: 2rem; text-align: center;">
                     <h1 style="font-size: 3.5rem; margin-bottom: 0.5rem; color: var(--text-primary); line-height: 1.2;">${bar.title}</h1>
                     <p style="font-size: 1.2rem; color: #666; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; gap: 10px;">
@@ -1277,8 +1303,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         ${articlesHtml}
                         ${galleryHtml}
                     </div>
-                </div>
-            `;
+                </div >
+                    `;
         }
 
 
@@ -1287,7 +1313,7 @@ document.addEventListener('DOMContentLoaded', () => {
             fetchCityFromCoords(bar.lat, bar.lng).then(city => {
                 if (city) {
                     const citySpan = document.getElementById('header-city');
-                    if (citySpan) citySpan.textContent = `• ${city}`;
+                    if (citySpan) citySpan.textContent = `• ${ city } `;
                 }
             });
         }
@@ -1301,7 +1327,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const customIcon = L.divIcon({
                     className: 'custom-div-icon',
-                    html: `<div style="width: 24px; height: 24px; background: #ef4444; border: 3px solid white; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
+                    html: `< div style = "width: 24px; height: 24px; background: #ef4444; border: 3px solid white; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3);" ></div > `,
                     iconSize: [24, 24],
                     iconAnchor: [12, 12]
                 });
@@ -1355,187 +1381,187 @@ document.addEventListener('DOMContentLoaded', () => {
     async function fetchCityFromCoords(lat, lng) {
         try {
             const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=en`);
-            const data = await response.json();
-            if (data.address) {
-                // Try city, then town, then village, then county
-                return data.address.city || data.address.town || data.address.village || data.address.county || '';
+                const data = await response.json();
+                if (data.address) {
+                    // Try city, then town, then village, then county
+                    return data.address.city || data.address.town || data.address.village || data.address.county || '';
+                }
+                return '';
+            } catch (e) {
+                console.error('City fetch error:', e);
+                return '';
             }
-            return '';
-        } catch (e) {
-            console.error('City fetch error:', e);
-            return '';
         }
-    }
 
-    // Helper: Format Opening Hours
-    function formatOpeningHours(hoursStr) {
-        if (!hoursStr) return '<div style="text-align:center;">Hours not available</div>';
+        // Helper: Format Opening Hours
+        function formatOpeningHours(hoursStr) {
+            if (!hoursStr) return '<div style="text-align:center;">Hours not available</div>';
 
-        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-        const shortDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+            const shortDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-        // Normalize: remove extra spaces
-        let cleanHours = hoursStr.trim();
+            // Normalize: remove extra spaces
+            let cleanHours = hoursStr.trim();
 
-        // Helper to generate the table
-        function generateHoursTable(hoursMap) {
-            let html = '<table style="width: 100%; max-width: 300px; margin: 0 auto; border-collapse: collapse;">';
-            for (let i = 0; i < 7; i++) {
-                const time = hoursMap[i];
-                const opacity = time ? '1' : '0.4';
-                const weight = time ? '500' : 'normal';
-                const displayTime = time || 'Closed';
+            // Helper to generate the table
+            function generateHoursTable(hoursMap) {
+                let html = '<table style="width: 100%; max-width: 300px; margin: 0 auto; border-collapse: collapse;">';
+                for (let i = 0; i < 7; i++) {
+                    const time = hoursMap[i];
+                    const opacity = time ? '1' : '0.4';
+                    const weight = time ? '500' : 'normal';
+                    const displayTime = time || 'Closed';
 
-                // Highlight Sat (5) and Sun (6)
-                const dayColor = (i === 5 || i === 6) ? '#ef4444' : '#333';
+                    // Highlight Sat (5) and Sun (6)
+                    const dayColor = (i === 5 || i === 6) ? '#ef4444' : '#333';
 
-                html += `
+                    html += `
                     <tr style="border-bottom: 1px solid #f5f5f5;">
                         <td style="padding: 8px 0; text-align: left; color: ${dayColor}; font-weight: ${weight}; opacity: ${opacity}; width: 40%;">${days[i]}</td>
                         <td style="padding: 8px 0; text-align: right; color: #333; opacity: ${opacity}; width: 60%;">${displayTime}</td>
                     </tr>
                 `;
-            }
-            html += '</table>';
-            return html;
-        }
-
-        // 1. Check for Semicolon Separated List (New Format)
-        if (cleanHours.includes(';') || (cleanHours.includes(':') && cleanHours.match(/Mon|Tue|Wed|Thu|Fri|Sat|Sun/i))) {
-            const hoursMap = {}; // 0..6 -> time string
-
-            const parts = cleanHours.split(';');
-            parts.forEach(part => {
-                const colonIndex = part.indexOf(':');
-                if (colonIndex !== -1) {
-                    const dayPart = part.substring(0, colonIndex).trim();
-                    const timePart = part.substring(colonIndex + 1).trim();
-
-                    if (dayPart && timePart) {
-                        // Handle ranges or commas if present (though new format is likely single day)
-                        let currentDays = [];
-
-                        if (dayPart.includes('-')) {
-                            // Range
-                            const [start, end] = dayPart.split('-').map(d => d.trim());
-                            const sIdx = shortDays.findIndex(sd => sd.toLowerCase() === start.substring(0, 3).toLowerCase());
-                            const eIdx = shortDays.findIndex(sd => sd.toLowerCase() === end.substring(0, 3).toLowerCase());
-                            if (sIdx !== -1 && eIdx !== -1) {
-                                if (sIdx <= eIdx) {
-                                    for (let i = sIdx; i <= eIdx; i++) currentDays.push(i);
-                                } else {
-                                    for (let i = sIdx; i < 7; i++) currentDays.push(i);
-                                    for (let i = 0; i <= eIdx; i++) currentDays.push(i);
-                                }
-                            }
-                        } else if (dayPart.includes(',')) {
-                            // Comma
-                            dayPart.split(',').forEach(d => {
-                                const idx = shortDays.findIndex(sd => sd.toLowerCase() === d.trim().substring(0, 3).toLowerCase());
-                                if (idx !== -1) currentDays.push(idx);
-                            });
-                        } else {
-                            // Single
-                            const idx = shortDays.findIndex(sd => sd.toLowerCase() === dayPart.substring(0, 3).toLowerCase());
-                            if (idx !== -1) currentDays.push(idx);
-                        }
-
-                        currentDays.forEach(dIdx => {
-                            hoursMap[dIdx] = timePart;
-                        });
-                    }
                 }
-            });
-            return generateHoursTable(hoursMap);
+                html += '</table>';
+                return html;
+            }
+
+            // 1. Check for Semicolon Separated List (New Format)
+            if (cleanHours.includes(';') || (cleanHours.includes(':') && cleanHours.match(/Mon|Tue|Wed|Thu|Fri|Sat|Sun/i))) {
+                const hoursMap = {}; // 0..6 -> time string
+
+                const parts = cleanHours.split(';');
+                parts.forEach(part => {
+                    const colonIndex = part.indexOf(':');
+                    if (colonIndex !== -1) {
+                        const dayPart = part.substring(0, colonIndex).trim();
+                        const timePart = part.substring(colonIndex + 1).trim();
+
+                        if (dayPart && timePart) {
+                            // Handle ranges or commas if present (though new format is likely single day)
+                            let currentDays = [];
+
+                            if (dayPart.includes('-')) {
+                                // Range
+                                const [start, end] = dayPart.split('-').map(d => d.trim());
+                                const sIdx = shortDays.findIndex(sd => sd.toLowerCase() === start.substring(0, 3).toLowerCase());
+                                const eIdx = shortDays.findIndex(sd => sd.toLowerCase() === end.substring(0, 3).toLowerCase());
+                                if (sIdx !== -1 && eIdx !== -1) {
+                                    if (sIdx <= eIdx) {
+                                        for (let i = sIdx; i <= eIdx; i++) currentDays.push(i);
+                                    } else {
+                                        for (let i = sIdx; i < 7; i++) currentDays.push(i);
+                                        for (let i = 0; i <= eIdx; i++) currentDays.push(i);
+                                    }
+                                }
+                            } else if (dayPart.includes(',')) {
+                                // Comma
+                                dayPart.split(',').forEach(d => {
+                                    const idx = shortDays.findIndex(sd => sd.toLowerCase() === d.trim().substring(0, 3).toLowerCase());
+                                    if (idx !== -1) currentDays.push(idx);
+                                });
+                            } else {
+                                // Single
+                                const idx = shortDays.findIndex(sd => sd.toLowerCase() === dayPart.substring(0, 3).toLowerCase());
+                                if (idx !== -1) currentDays.push(idx);
+                            }
+
+                            currentDays.forEach(dIdx => {
+                                hoursMap[dIdx] = timePart;
+                            });
+                        }
+                    }
+                });
+                return generateHoursTable(hoursMap);
+            }
+
+            // 2. Check for "Daily"
+            if (cleanHours.toLowerCase().includes('daily') || cleanHours.toLowerCase().includes('everyday')) {
+                const time = cleanHours.replace(/daily|everyday/gi, '').replace(/[:\s]+/, '').trim();
+                const map = {};
+                for (let i = 0; i < 7; i++) map[i] = time;
+                return generateHoursTable(map);
+            }
+
+            // 3. Fallback: If it contains digits (likely a time), assume daily
+            if (cleanHours.match(/\d/)) {
+                const map = {};
+                for (let i = 0; i < 7; i++) map[i] = cleanHours;
+                return generateHoursTable(map);
+            }
+
+            return `<div style="text-align:center;">${hoursStr.replace(/\n/g, '<br>')}</div>`;
         }
 
-        // 2. Check for "Daily"
-        if (cleanHours.toLowerCase().includes('daily') || cleanHours.toLowerCase().includes('everyday')) {
-            const time = cleanHours.replace(/daily|everyday/gi, '').replace(/[:\s]+/, '').trim();
-            const map = {};
-            for (let i = 0; i < 7; i++) map[i] = time;
-            return generateHoursTable(map);
-        }
-
-        // 3. Fallback: If it contains digits (likely a time), assume daily
-        if (cleanHours.match(/\d/)) {
-            const map = {};
-            for (let i = 0; i < 7; i++) map[i] = cleanHours;
-            return generateHoursTable(map);
-        }
-
-        return `<div style="text-align:center;">${hoursStr.replace(/\n/g, '<br>')}</div>`;
-    }
-
-    // 5. Articles List
-    window.initArticlesList = async () => {
-        await initAuthAndSaved();
-        const articles = await fetchArticles();
-        const grid = document.getElementById('articles-list-grid');
-        if (grid) {
-            grid.innerHTML = articles.map(article => createArticleCard(article)).join('');
-        }
-    };
-
-    // 6. Article Details
-    window.initArticleDetails = async () => {
-        const params = new URLSearchParams(window.location.search);
-        const id = params.get('id');
-        const container = document.getElementById('article-content');
-
-        if (!id) {
-            container.innerHTML = '<p>Article not found.</p>';
-            return;
-        }
-
-        const { data: article, error } = await supabase
-            .from('articles')
-            .select('*')
-            .eq('id', id)
-            .single();
-
-        if (error || !article) {
-            container.innerHTML = '<p>Article not found.</p>';
-            return;
-        }
-
-        let dateDisplayHtml = `<span style="font-size: 0.9rem; letter-spacing: 0.05em; text-transform: uppercase;">${new Date(article.published_at || article.created_at).toLocaleDateString()}</span>`;
-
-        // If Event, show duration with special styling
-        if ((article.category === 'Event' || article.category === '活動情報') && article.start_date && article.end_date) {
-            const formatDate = (iso) => {
-                const d = new Date(iso);
-                return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
-            };
-            const durationStr = `${formatDate(article.start_date)} - ${formatDate(article.end_date)}`;
-            dateDisplayHtml = `<span style="font-size: 1.1rem; letter-spacing: 0.05em; color: var(--bg-red); font-weight: bold;">活動期間：${durationStr}</span>`;
-        }
-
-        const tagsHtml = (article.tags || []).map(t => `<span style="background:var(--bg-red); color:white; padding:4px 12px; border-radius:20px; font-size:0.85rem; margin-right:8px; display:inline-block;">#${t}</span>`).join('');
-
-        // Category Logic
-        const categoryMap = {
-            'Event': '活動情報', 'Review': '直擊體驗', 'Feature': '專題報導', 'Interview': '職人專訪',
-            '活動情報': 'Event', '直擊體驗': 'Review', '專題報導': 'Feature', '職人專訪': 'Interview'
+        // 5. Articles List
+        window.initArticlesList = async () => {
+            await initAuthAndSaved();
+            const articles = await fetchArticles();
+            const grid = document.getElementById('articles-list-grid');
+            if (grid) {
+                grid.innerHTML = articles.map(article => createArticleCard(article)).join('');
+            }
         };
 
-        let engCat = 'Article';
-        let chiCat = '';
+        // 6. Article Details
+        window.initArticleDetails = async () => {
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get('id');
+            const container = document.getElementById('article-content');
 
-        if (article.category) {
-            if (['Event', 'Review', 'Feature', 'Interview'].includes(article.category)) {
-                engCat = article.category;
-                chiCat = categoryMap[engCat];
-            } else if (categoryMap[article.category]) {
-                engCat = categoryMap[article.category];
-                chiCat = article.category;
-            } else {
-                engCat = article.category;
-                chiCat = '';
+            if (!id) {
+                container.innerHTML = '<p>Article not found.</p>';
+                return;
             }
-        }
 
-        container.innerHTML = `
+            const { data: article, error } = await supabase
+                .from('articles')
+                .select('*')
+                .eq('id', id)
+                .single();
+
+            if (error || !article) {
+                container.innerHTML = '<p>Article not found.</p>';
+                return;
+            }
+
+            let dateDisplayHtml = `<span style="font-size: 0.9rem; letter-spacing: 0.05em; text-transform: uppercase;">${new Date(article.published_at || article.created_at).toLocaleDateString()}</span>`;
+
+            // If Event, show duration with special styling
+            if ((article.category === 'Event' || article.category === '活動情報') && article.start_date && article.end_date) {
+                const formatDate = (iso) => {
+                    const d = new Date(iso);
+                    return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
+                };
+                const durationStr = `${formatDate(article.start_date)} - ${formatDate(article.end_date)}`;
+                dateDisplayHtml = `<span style="font-size: 1.1rem; letter-spacing: 0.05em; color: var(--bg-red); font-weight: bold;">活動期間：${durationStr}</span>`;
+            }
+
+            const tagsHtml = (article.tags || []).map(t => `<span style="background:var(--bg-red); color:white; padding:4px 12px; border-radius:20px; font-size:0.85rem; margin-right:8px; display:inline-block;">#${t}</span>`).join('');
+
+            // Category Logic
+            const categoryMap = {
+                'Event': '活動情報', 'Review': '直擊體驗', 'Feature': '專題報導', 'Interview': '職人專訪',
+                '活動情報': 'Event', '直擊體驗': 'Review', '專題報導': 'Feature', '職人專訪': 'Interview'
+            };
+
+            let engCat = 'Article';
+            let chiCat = '';
+
+            if (article.category) {
+                if (['Event', 'Review', 'Feature', 'Interview'].includes(article.category)) {
+                    engCat = article.category;
+                    chiCat = categoryMap[engCat];
+                } else if (categoryMap[article.category]) {
+                    engCat = categoryMap[article.category];
+                    chiCat = article.category;
+                } else {
+                    engCat = article.category;
+                    chiCat = '';
+                }
+            }
+
+            container.innerHTML = `
             <div style="text-align: center; max-width: 800px; margin: 0 auto 3rem auto;">
                 <div style="margin-bottom: 2rem;">
                     <h2 style="font-family: var(--font-display); font-size: 3rem; color: #1b1b1b; margin: 0; line-height: 1; text-transform: uppercase; letter-spacing: 0.05em;">${engCat}</h2>
@@ -1566,66 +1592,66 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
 
-        // --- TOC Generation ---
-        // Find the placeholder inserted by Quill (class: toc-embed-container)
-        const tocPlaceholder = container.querySelector('.toc-embed-container');
-        if (tocPlaceholder) {
-            const headers = container.querySelectorAll('.article-body h2, .article-body h3');
+            // --- TOC Generation ---
+            // Find the placeholder inserted by Quill (class: toc-embed-container)
+            const tocPlaceholder = container.querySelector('.toc-embed-container');
+            if (tocPlaceholder) {
+                const headers = container.querySelectorAll('.article-body h2, .article-body h3');
 
-            if (headers.length > 0) {
-                const tocDiv = document.createElement('div');
-                tocDiv.className = 'article-toc';
-                tocDiv.innerHTML = '<h3>目錄</h3><ul></ul>';
-                const ul = tocDiv.querySelector('ul');
+                if (headers.length > 0) {
+                    const tocDiv = document.createElement('div');
+                    tocDiv.className = 'article-toc';
+                    tocDiv.innerHTML = '<h3>目錄</h3><ul></ul>';
+                    const ul = tocDiv.querySelector('ul');
 
-                headers.forEach((header, index) => {
-                    // Ensure ID for linking
-                    if (!header.id) header.id = `section-${index}`;
+                    headers.forEach((header, index) => {
+                        // Ensure ID for linking
+                        if (!header.id) header.id = `section-${index}`;
 
-                    const li = document.createElement('li');
-                    li.className = `toc-item-${header.tagName.toLowerCase()}`;
+                        const li = document.createElement('li');
+                        li.className = `toc-item-${header.tagName.toLowerCase()}`;
 
-                    const a = document.createElement('a');
-                    a.href = `#${header.id}`;
-                    a.textContent = header.textContent;
+                        const a = document.createElement('a');
+                        a.href = `#${header.id}`;
+                        a.textContent = header.textContent;
 
-                    // Smooth scroll
-                    a.onclick = (e) => {
-                        e.preventDefault();
-                        header.scrollIntoView({ behavior: 'smooth' });
-                    };
+                        // Smooth scroll
+                        a.onclick = (e) => {
+                            e.preventDefault();
+                            header.scrollIntoView({ behavior: 'smooth' });
+                        };
 
-                    li.appendChild(a);
-                    ul.appendChild(li);
-                });
+                        li.appendChild(a);
+                        ul.appendChild(li);
+                    });
 
-                tocPlaceholder.replaceWith(tocDiv);
-            } else {
-                // No headers found, remove placeholder
-                tocPlaceholder.remove();
+                    tocPlaceholder.replaceWith(tocDiv);
+                } else {
+                    // No headers found, remove placeholder
+                    tocPlaceholder.remove();
+                }
             }
-        }
-    };
+        };
 
-    // --- Helper Functions ---
+        // --- Helper Functions ---
 
-    // Expose for Profile usage
-    window.initCardMapGlobal = function (id, lat, lng, title, isSaved = false) {
-        if (typeof L === 'undefined') return;
-        const elId = `card-map-${id}`;
-        const el = document.getElementById(elId);
-        if (!el) return;
-        if (el.classList.contains('leaflet-container')) return;
+        // Expose for Profile usage
+        window.initCardMapGlobal = function (id, lat, lng, title, isSaved = false) {
+            if (typeof L === 'undefined') return;
+            const elId = `card-map-${id}`;
+            const el = document.getElementById(elId);
+            if (!el) return;
+            if (el.classList.contains('leaflet-container')) return;
 
-        try {
-            const map = L.map(elId, { zoomControl: false, scrollWheelZoom: false, dragging: false, doubleClickZoom: false, touchZoom: false }).setView([lat, lng], 15);
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 19 }).addTo(map);
+            try {
+                const map = L.map(elId, { zoomControl: false, scrollWheelZoom: false, dragging: false, doubleClickZoom: false, touchZoom: false }).setView([lat, lng], 15);
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 19 }).addTo(map);
 
-            // Custom Marker: Golden Heart (Saved) vs Red Dot (Default)
-            let markerHtml;
-            if (isSaved) {
-                // Golden Heart
-                markerHtml = `
+                // Custom Marker: Golden Heart (Saved) vs Red Dot (Default)
+                let markerHtml;
+                if (isSaved) {
+                    // Golden Heart
+                    markerHtml = `
                     <div style="display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%);">
                         <div style="background: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; color: #333; box-shadow: 0 1px 2px rgba(0,0,0,0.15); margin-bottom: 3px; white-space: nowrap;">
                             ${title || ''}
@@ -1637,9 +1663,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
                 `;
-            } else {
-                // Red Dot
-                markerHtml = `
+                } else {
+                    // Red Dot
+                    markerHtml = `
                     <div style="display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%);">
                         <div style="background: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; color: #333; box-shadow: 0 1px 2px rgba(0,0,0,0.15); margin-bottom: 3px; white-space: nowrap;">
                             ${title || ''}
@@ -1647,54 +1673,54 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div style="width: 14px; height: 14px; background: #ef4444; border: 2px solid white; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,0.2);"></div>
                     </div>
                 `;
-            }
+                }
 
-            const customIcon = L.divIcon({
-                className: 'custom-map-marker',
-                html: markerHtml,
-                iconSize: [0, 0],
-                iconAnchor: [0, 0]
-            });
+                const customIcon = L.divIcon({
+                    className: 'custom-map-marker',
+                    html: markerHtml,
+                    iconSize: [0, 0],
+                    iconAnchor: [0, 0]
+                });
 
-            L.marker([lat, lng], { icon: customIcon }).addTo(map);
-        } catch (e) { console.warn('Map init error', e); }
-    };
+                L.marker([lat, lng], { icon: customIcon }).addTo(map);
+            } catch (e) { console.warn('Map init error', e); }
+        };
 
-    // --- Helper: Reverse Geocoding (Global) ---
-    window.fetchCityFromCoordsGlobal = async function (lat, lng) {
-        if (!lat || !lng) return '';
-        try {
-            const key = `city_${lat}_${lng}`;
-            const cached = localStorage.getItem(key);
-            if (cached) return cached;
+        // --- Helper: Reverse Geocoding (Global) ---
+        window.fetchCityFromCoordsGlobal = async function (lat, lng) {
+            if (!lat || !lng) return '';
+            try {
+                const key = `city_${lat}_${lng}`;
+                const cached = localStorage.getItem(key);
+                if (cached) return cached;
 
-            // Rate limit mitigation: random delay 10-100ms
-            await new Promise(r => setTimeout(r, Math.random() * 100));
+                // Rate limit mitigation: random delay 10-100ms
+                await new Promise(r => setTimeout(r, Math.random() * 100));
 
-            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=en`);
-            const data = await response.json();
-            if (data.address) {
-                const city = data.address.city || data.address.town || data.address.village || data.address.county || '';
-                localStorage.setItem(key, city);
-                return city;
-            }
-        } catch (e) { console.error('City fetch error', e); }
-        return '';
-    };
+                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=en`);
+                const data = await response.json();
+                if (data.address) {
+                    const city = data.address.city || data.address.town || data.address.village || data.address.county || '';
+                    localStorage.setItem(key, city);
+                    return city;
+                }
+            } catch (e) { console.error('City fetch error', e); }
+            return '';
+        };
 
-    // Expose for Profile Page reuse
-    window.createBarCard = function (bar, city = null) {
-        const displayCity = city || bar.location || '';
-        const description = bar.description || `Experience the finest mixology at ${bar.title}. Known for its ${bar.vibe} atmosphere, this spot in ${bar.location} offers a curated selection of cocktails and spirits.`;
-        const rating = bar.google_rating || bar.rating || 'N/A';
-        const reviewCount = bar.google_review_count || bar.rating_count || 0;
-        const price = '$'.repeat(bar.price || bar.price_level || 2);
-        const address = bar.address || bar.address_en || bar.location;
-        const mapUrl = bar.google_map_url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+        // Expose for Profile Page reuse
+        window.createBarCard = function (bar, city = null) {
+            const displayCity = city || bar.location || '';
+            const description = bar.description || `Experience the finest mixology at ${bar.title}. Known for its ${bar.vibe} atmosphere, this spot in ${bar.location} offers a curated selection of cocktails and spirits.`;
+            const rating = bar.google_rating || bar.rating || 'N/A';
+            const reviewCount = bar.google_review_count || bar.rating_count || 0;
+            const price = '$'.repeat(bar.price || bar.price_level || 2);
+            const address = bar.address || bar.address_en || bar.location;
+            const mapUrl = bar.google_map_url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
 
-        const isSaved = window.savedBarIds.has(bar.id);
+            const isSaved = window.savedBarIds.has(bar.id);
 
-        return `
+            return `
         <div class="art-card grid-item" style="position: relative; display: flex; flex-direction: column; height: 100%; margin-bottom: 3rem; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 380px; margin-left: auto; margin-right: auto;">
              <!-- Save Button -->
              <button class="save-btn-${bar.id}" onclick="toggleSaveBar(${bar.id}, event)" style="position: absolute; top: 15px; right: 15px; z-index: 20; background: white; border: none; border-radius: 50%; width: 36px; height: 36px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0;">
@@ -1779,39 +1805,39 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         </div>
         `;
-    };
-
-    // Expose for Profile Page
-    window.createArticleCard = function (article) {
-        // Handle both mock data (image, date) and real data (cover_image, published_at)
-        const imgUrl = article.cover_image || article.image || 'assets/placeholder.jpg';
-
-        // Date Logic
-        let dateDisplay;
-        if (article.category && (article.category.toLowerCase() === 'event' || article.category.toLowerCase() === 'activity')) {
-            // Event: Red Bold Date Range
-            const start = new Date(article.start_date).toLocaleDateString();
-            const end = article.end_date ? new Date(article.end_date).toLocaleDateString() : 'TBD';
-            dateDisplay = `<span style="color: var(--bg-red); font-weight: 700;">${start} - ${end}</span>`;
-        } else {
-            // Standard Date
-            const dateStr = new Date(article.published_at || article.created_at || article.date).toLocaleDateString();
-            dateDisplay = `<span style="color: #888;">${dateStr}</span>`;
-        }
-
-        // Category Label
-        const categoryMap = {
-            'Event': '活動情報', 'Review': '直擊體驗', 'Feature': '專題報導', 'Interview': '職人專訪',
-            '活動情報': 'Event', '直擊體驗': 'Review', '專題報導': 'Feature', '職人專訪': 'Interview'
         };
 
-        const displayCategory = categoryMap[article.category] || article.category;
-        const categoryLabel = displayCategory ? `<span style="display:inline-block; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--bg-red); border: 1px solid var(--bg-red); padding: 2px 8px; border-radius: 4px; margin-bottom: 6px;">${displayCategory}</span>` : '';
+        // Expose for Profile Page
+        window.createArticleCard = function (article) {
+            // Handle both mock data (image, date) and real data (cover_image, published_at)
+            const imgUrl = article.cover_image || article.image || 'assets/placeholder.jpg';
 
-        // Check saved state
-        const isSaved = window.savedArticleIds ? window.savedArticleIds.has(article.id) : false;
+            // Date Logic
+            let dateDisplay;
+            if (article.category && (article.category.toLowerCase() === 'event' || article.category.toLowerCase() === 'activity')) {
+                // Event: Red Bold Date Range
+                const start = new Date(article.start_date).toLocaleDateString();
+                const end = article.end_date ? new Date(article.end_date).toLocaleDateString() : 'TBD';
+                dateDisplay = `<span style="color: var(--bg-red); font-weight: 700;">${start} - ${end}</span>`;
+            } else {
+                // Standard Date
+                const dateStr = new Date(article.published_at || article.created_at || article.date).toLocaleDateString();
+                dateDisplay = `<span style="color: #888;">${dateStr}</span>`;
+            }
 
-        return `
+            // Category Label
+            const categoryMap = {
+                'Event': '活動情報', 'Review': '直擊體驗', 'Feature': '專題報導', 'Interview': '職人專訪',
+                '活動情報': 'Event', '直擊體驗': 'Review', '專題報導': 'Feature', '職人專訪': 'Interview'
+            };
+
+            const displayCategory = categoryMap[article.category] || article.category;
+            const categoryLabel = displayCategory ? `<span style="display:inline-block; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--bg-red); border: 1px solid var(--bg-red); padding: 2px 8px; border-radius: 4px; margin-bottom: 6px;">${displayCategory}</span>` : '';
+
+            // Check saved state
+            const isSaved = window.savedArticleIds ? window.savedArticleIds.has(article.id) : false;
+
+            return `
         <div class="art-card grid-item" style="position: relative; display: flex; flex-direction: column; background: #fff; color: #333; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 2rem; max-width: 380px; margin-left: auto; margin-right: auto;">
              <!-- Save Button -->
              <button class="save-article-btn-${article.id}" onclick="toggleSaveArticle(${article.id}, event)" style="position: absolute; top: 15px; right: 15px; z-index: 20; background: white; border: none; border-radius: 50%; width: 36px; height: 36px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0;">
@@ -1831,79 +1857,79 @@ document.addEventListener('DOMContentLoaded', () => {
             </a>
         </div>
     `;
-    }
-
-    // --- Auth Logic (Member) ---
-    const loginBtn = document.getElementById('login-btn');
-    // const userMenu = document.getElementById('user-menu'); // Removed, replaced by global-auth-btn
-    // const userAvatar = document.getElementById('user-avatar'); // Removed, replaced by global-auth-btn
-
-    async function signInWithGoogle() {
-        const { data, error } = await supabase.auth.signInWithOAuth({
-            provider: 'google',
-            options: {
-                redirectTo: window.location.origin + '/profile.html'
-            }
-        });
-        if (error) console.error('Error logging in:', error.message);
-    }
-
-    // Login Button Listener Removed (Let <a> tag navigate to profile.html)
-    // if (loginBtn) {
-    //    loginBtn.addEventListener('click', signInWithGoogle);
-    // }
-
-    // Check Auth State
-    supabase.auth.onAuthStateChange((event, session) => {
-        // Global Auth Button Logic (Mobile & Desktop)
-        const authBtn = document.getElementById('global-auth-btn');
-        const navMyLink = document.getElementById('nav-my-link'); // Legacy check
-        const loginBtn = document.getElementById('login-btn'); // Legacy check
-        const logoutBtn = document.getElementById('logout-btn');
-
-        if (session) {
-            const avatar = session.user.user_metadata.avatar_url || 'assets/logo_vertical.png';
-
-            if (authBtn) {
-                authBtn.innerHTML = `<img src="${avatar}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-color);">`;
-            }
-
-            // Legacy Fallbacks (if navbar not updated yet)
-            if (loginBtn) loginBtn.style.display = 'none';
-            if (navMyLink) {
-                navMyLink.style.display = 'inline-flex'; // Or keep hidden if we rely on authBtn
-                // If navMyLink is visible, update it too
-                navMyLink.innerHTML = `<img src="${avatar}" style="width: 24px; height: 24px; border-radius: 50%; margin-right: 8px;"> <span>My</span>`;
-            }
-            if (logoutBtn) logoutBtn.style.display = 'inline-block';
-
-        } else {
-            // Logged Out
-            if (authBtn) {
-                // Reset to Icon
-                authBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>`;
-            }
-            if (loginBtn) loginBtn.style.display = 'inline-block'; // Or 'flex'
-            if (navMyLink) navMyLink.style.display = 'none';
-            if (logoutBtn) logoutBtn.style.display = 'none';
         }
 
-        // Bottom Nav Highlight Logic
-        const currentPath = window.location.pathname.split('/').pop() || 'index.html';
-        const bottomNavItems = document.querySelectorAll('.bottom-nav .nav-item');
-        bottomNavItems.forEach(item => {
-            if (item.getAttribute('href') === currentPath) {
-                item.classList.add('active');
-            } else {
-                item.classList.remove('active');
-            }
-        });
-    });
+        // --- Auth Logic (Member) ---
+        const loginBtn = document.getElementById('login-btn');
+        // const userMenu = document.getElementById('user-menu'); // Removed, replaced by global-auth-btn
+        // const userAvatar = document.getElementById('user-avatar'); // Removed, replaced by global-auth-btn
 
-    // --- Auto Init based on URL ---
-    const path = window.location.pathname;
-    if (path.endsWith('index.html') || path === '/') window.initHome();
-});
+        async function signInWithGoogle() {
+            const { data, error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: window.location.origin + '/profile.html'
+                }
+            });
+            if (error) console.error('Error logging in:', error.message);
+        }
+
+        // Login Button Listener Removed (Let <a> tag navigate to profile.html)
+        // if (loginBtn) {
+        //    loginBtn.addEventListener('click', signInWithGoogle);
+        // }
+
+        // Check Auth State
+        supabase.auth.onAuthStateChange((event, session) => {
+            // Global Auth Button Logic (Mobile & Desktop)
+            const authBtn = document.getElementById('global-auth-btn');
+            const navMyLink = document.getElementById('nav-my-link'); // Legacy check
+            const loginBtn = document.getElementById('login-btn'); // Legacy check
+            const logoutBtn = document.getElementById('logout-btn');
+
+            if (session) {
+                const avatar = session.user.user_metadata.avatar_url || 'assets/logo_vertical.png';
+
+                if (authBtn) {
+                    authBtn.innerHTML = `<img src="${avatar}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-color);">`;
+                }
+
+                // Legacy Fallbacks (if navbar not updated yet)
+                if (loginBtn) loginBtn.style.display = 'none';
+                if (navMyLink) {
+                    navMyLink.style.display = 'inline-flex'; // Or keep hidden if we rely on authBtn
+                    // If navMyLink is visible, update it too
+                    navMyLink.innerHTML = `<img src="${avatar}" style="width: 24px; height: 24px; border-radius: 50%; margin-right: 8px;"> <span>My</span>`;
+                }
+                if (logoutBtn) logoutBtn.style.display = 'inline-block';
+
+            } else {
+                // Logged Out
+                if (authBtn) {
+                    // Reset to Icon
+                    authBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>`;
+                }
+                if (loginBtn) loginBtn.style.display = 'inline-block'; // Or 'flex'
+                if (navMyLink) navMyLink.style.display = 'none';
+                if (logoutBtn) logoutBtn.style.display = 'none';
+            }
+
+            // Bottom Nav Highlight Logic
+            const currentPath = window.location.pathname.split('/').pop() || 'index.html';
+            const bottomNavItems = document.querySelectorAll('.bottom-nav .nav-item');
+            bottomNavItems.forEach(item => {
+                if (item.getAttribute('href') === currentPath) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+        });
+
+        // --- Auto Init based on URL ---
+        const path = window.location.pathname;
+        if (path.endsWith('index.html') || path === '/') window.initHome();
+    });
 
 // --- Signature Carousel Logic ---
 window.updateCarousel = (barId) => {
