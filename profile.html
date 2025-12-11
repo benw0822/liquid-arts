@@ -306,6 +306,22 @@
                     </div>
                 </div>
 
+                <!-- Messages / Notifications Section -->
+                <div id="profile-messages-section" style="margin-bottom: 2rem; display: none;">
+                    <h3
+                        style="font-size: 1.1rem; margin-bottom: 1rem; color: #333; display: flex; align-items: center; gap: 8px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            style="color: var(--bg-red);">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                        Latest Messages
+                    </h3>
+                    <div id="profile-messages-list" style="display: flex; flex-direction: column; gap: 10px;">
+                        <!-- Messages injected here -->
+                    </div>
+                </div>
+
                 <!-- Filter Navigation -->
                 <div class="profile-filter-nav">
                     <button class="filter-tab active" data-filter="all">ALL</button>
@@ -412,7 +428,65 @@
             const unifiedGrid = document.getElementById('unified-grid');
             let allItems = [];
 
-            // 1. Fetch My Hops
+            // 4. Render Grid & Messages
+            const render = () => {
+                unifiedGrid.innerHTML = '';
+                const filter = document.querySelector('.filter-tab.active').dataset.filter;
+                const filtered = filter === 'all' ? allItems : allItems.filter(i => i.type === filter);
+
+                if (filtered.length === 0) {
+                    unifiedGrid.innerHTML = '<p style="text-align:center; color:#888; margin-top:2rem;">No items found.</p>';
+                    return;
+                }
+
+                // Cache Hops for Interaction
+                const myHops = allItems.filter(i => i.type === 'hopping').map(i => i.data);
+                window.myHopsCache = myHops;
+
+                // Process Messages (Incoming Comments)
+                // Flatten all comments from my hops
+                let allMessages = [];
+                myHops.forEach(hop => {
+                    if (hop.comments && hop.comments.length > 0) {
+                        hop.comments.forEach(c => {
+                            // Filter out my own comments
+                            if (c.user && c.user.name && c.user_id !== user.id) { // simplistic check, user_id is safer if available in comment
+                                // Actually c does not have user_id, need to check if we selected it.
+                                // We selected 'user:users(...)'. We need 'user_id' in select or check logic.
+                                // Let's assume passed user object is simple. 
+                                // Wait, fetching 'user_id' in comments fetch would be better.
+                                // Checking schema: hopping_comments has user_id. 
+                                // We need to fetch it in fetchHops to be sure.
+                                // If strict check fails, self-comments might show.
+
+                                // We'll update fetchHops to ensure user_id is fetched if not present.
+
+                                /* 
+                                   Fix: The previous fetchHops only selected:
+                                   .select('hopping_id, content, user:users(name, hopper_nickname, hopper_image_url)')
+                                   It DOES NOT select 'user_id' directly! 
+                                   However, 'user' relation is fetched. 
+                                   We need to match against current user.id.
+                                   We can compare something unique OR just update fetch to get user_id.
+                                   I will update fetchHops below.
+                                */
+
+                                allMessages.push({
+                                    comment: c,
+                                    hop: hop
+                                });
+                            }
+                        });
+                    }
+                });
+
+                // Sort by comment created_at (assuming we have it? fetchHops didn't fetch created_at for comments either!)
+                // Need to update fetchHops signature.
+
+                // ... Skipping rendering messages here until I update fetchHops ...
+            };
+
+            // RE-DEFINING fetchHops to fetch necessary fields
             const fetchHops = async () => {
                 const { data } = await window.supabaseClient
                     .from('hoppings')
@@ -428,7 +502,7 @@
                 if (hopIds.length > 0) {
                     const { data: comments } = await window.supabaseClient
                         .from('hopping_comments')
-                        .select('hopping_id, content, user:users(name, hopper_nickname, hopper_image_url)')
+                        .select('id, hopping_id, content, created_at, user_id, user:users(name, hopper_nickname, hopper_image_url)') // Added created_at, user_id
                         .in('hopping_id', hopIds)
                         .order('created_at', { ascending: false });
 
@@ -440,12 +514,77 @@
                     }
                 }
 
-                return data.map(item => ({
+                // Process Messages Early (Before mapping to grid items)
+                const myHopsForCache = data.map(item => ({ ...item, comments: commentsMap[item.id] || [] }));
+                window.myHopsCache = myHopsForCache; // Cache immediately
+
+                // Render Messages
+                const msgSection = document.getElementById('profile-messages-section');
+                const msgList = document.getElementById('profile-messages-list');
+                msgList.innerHTML = '';
+
+                let incomingMsgs = [];
+                myHopsForCache.forEach(hop => {
+                    hop.comments.forEach(c => {
+                        if (c.user_id !== user.id) { // Incoming from others
+                            incomingMsgs.push({ c, hop });
+                        }
+                    });
+                });
+
+                // Sort newest first
+                incomingMsgs.sort((a, b) => new Date(b.c.created_at) - new Date(a.c.created_at));
+
+                // Take top 5
+                const topMsgs = incomingMsgs.slice(0, 5);
+
+                if (topMsgs.length > 0) {
+                    msgSection.style.display = 'block';
+                    msgList.innerHTML = topMsgs.map(item => {
+                        const { c, hop } = item;
+                        const u = c.user;
+                        const name = u?.hopper_nickname || u?.name || 'Anonymous';
+                        const avatar = u?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`;
+                        const timeAgo = new Date(c.created_at).toLocaleDateString(); // Simplify for now
+
+                        return `
+                                <div onclick="window.openGenericHoppingGallery(event, '${hop.id}', 'myHopsCache', true)" 
+                                    style="background: white; padding: 12px; border-radius: 12px; border: 1px solid #eee; display: flex; gap: 12px; align-items: center; cursor: pointer; transition: background 0.2s;">
+                                    
+                                    <!-- Sender Avatar -->
+                                    <img src="${avatar}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid #eee;">
+                                    
+                                    <div style="flex: 1; overflow: hidden;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                                            <span style="font-weight: 600; font-size: 0.95rem; color: #333;">${name}</span>
+                                            <span style="font-size: 0.75rem; color: #999;">${timeAgo}</span>
+                                        </div>
+                                        <div style="font-size: 0.9rem; color: #555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                            ${c.content}
+                                        </div>
+                                        <div style="font-size: 0.75rem; color: #aaa; margin-top: 2px;">
+                                            on <span style="font-style: italic;">${hop.bars?.title || 'Unknown Bar'}</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Hop Thumbnail -->
+                                    <img src="${hop.image_url}" style="width: 48px; height: 48px; border-radius: 8px; object-fit: cover;">
+                                </div>
+                            `;
+                    }).join('');
+                } else {
+                    msgSection.style.display = 'none';
+                }
+
+                return myHopsForCache.map(hop => ({
                     type: 'hopping',
-                    date: new Date(item.hopped_at),
-                    data: { ...item, comments: commentsMap[item.id] || [] }
+                    date: new Date(hop.hopped_at),
+                    data: hop
                 }));
             };
+
+            // End re-define
+
 
             // 2. Fetch Saved Bars
             const fetchBars = async () => {
