@@ -539,6 +539,13 @@ window.openGenericHoppingGallery = (event, startHopId, cacheKey) => {
 };
 
 
+// Define Close Function Globally
+window.closeHoppingDetails = () => {
+    const m = document.getElementById('hopping-details-modal');
+    if (m) m.style.display = 'none';
+    document.body.style.overflow = ''; // Unlock Scroll
+};
+
 // Show Details Modal (Modified for HopCard + Delete)
 // Updated Signature
 window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null, ownerId = null, internal = false, barName = null, barId = null, openComments = false) => {
@@ -953,6 +960,13 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
     }
 
     modal.style.display = 'flex';
+
+    if (openComments) {
+        setTimeout(() => {
+            const btn = document.getElementById('btn-message');
+            if (btn) btn.click();
+        }, 300);
+    }
 };
 
 // Delete Hopping
