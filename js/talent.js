@@ -50,14 +50,8 @@ window.initTalentPage = async () => {
                 const barIds = [...new Set(talent.bar_roles.map(r => r.bar_id).filter(id => id))];
 
                 // Render Roles in Hero
-                const rolesList = document.getElementById('talent-roles-list');
-                if (rolesList) {
-                    rolesList.innerHTML = talent.bar_roles.map(r => {
-                        const rName = r.role || 'Bartender';
-                        const bName = r.bar_name || 'Liquid Arts';
-                        return `<div class="talent-role-item"><span style="color: var(--bg-red); text-transform: uppercase; font-size: 0.8rem;">${rName}</span><br>${bName}</div>`;
-                    }).join('');
-                }
+                // Roles will be rendered after fetching bars to ensure correct names
+
 
                 if (barIds.length > 0) {
                     // Fetch real bar data for cards
@@ -67,6 +61,19 @@ window.initTalentPage = async () => {
                         .in('id', barIds);
 
                     if (!barError && bars) {
+                        // Render Roles in Hero (Moved here to use fresh Bar Titles)
+                        const rolesList = document.getElementById('talent-roles-list');
+                        if (rolesList) {
+                            rolesList.innerHTML = talent.bar_roles.map(r => {
+                                const rName = r.role || 'Bartender';
+                                // Find matching bar in fetched data
+                                const foundBar = bars.find(b => b.id == r.bar_id);
+                                const bName = foundBar ? foundBar.title : (r.bar_name || 'Liquid Arts');
+
+                                return `<div class="talent-role-item"><span style="color: var(--bg-red); text-transform: uppercase; font-size: 0.8rem;">${rName}</span><br>${bName}</div>`;
+                            }).join('');
+                        }
+
                         // Pre-calculate cities for cards
                         const barsWithCities = await Promise.all(bars.map(async (bar) => {
                             let city = bar.location;
