@@ -196,9 +196,24 @@ window.initTalentPage = async () => {
                         }
                     }
 
-                    // 7.2 Store in Global Cache for Gallery
-                    const enrichedHops = hops.map(h => ({ ...h, bar: barMap[h.bar_id] || {}, bar_title: (barMap[h.bar_id] || {}).title || '' }));
-                    window.talentHoppingsCache = enrichedHops;
+                    // 7.1.5 Fetch Cheers (Batch)
+                    let cheersMap = {};
+                    if (hopIds.length > 0) {
+                        const { data: allCheers } = await window.supabaseClient
+                            .from('hopping_cheers')
+                            .select('hopping_id, user_id')
+                            .in('hopping_id', hopIds);
+
+                        if (allCheers) {
+                            allCheers.forEach(c => {
+                                if (!cheersMap[c.hopping_id]) cheersMap[c.hopping_id] = { count: 0, users: new Set() };
+                                cheersMap[c.hopping_id].count++;
+                                cheersMap[c.hopping_id].users.add(c.user_id);
+                            });
+                        }
+                    }
+
+                    // ... (Existing Cache Logic) ...
 
                     // 7.3 Render Art-Card Style
                     hopsGrid.innerHTML = enrichedHops.map(hop => {
@@ -211,9 +226,9 @@ window.initTalentPage = async () => {
                         // Comments Overlay HTML
                         const comments = commentsMap[hop.id] || [];
                         const top3 = comments.slice(0, 3);
-                        const total = comments.length;
+                        const totalComments = comments.length;
 
-                        let overlayHtml = '';
+                        let commentsHtml = '';
                         if (comments.length > 0) {
                             const itemsHtml = top3.map(c => {
                                 const u = c.user;
@@ -221,28 +236,60 @@ window.initTalentPage = async () => {
                                 const avatar = u?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`;
 
                                 return `
-                                    <div style="display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); padding: 4px 8px; border-radius: 12px; width: fit-content; margin-bottom: 4px; max-width: 100%;">
-                                         <img src="${avatar}" style="width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.3);">
-                                         <span style="color: white; font-size: 0.8rem; font-weight: 500; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 180px;">
-                                            <span style="font-weight: 700; color: #fff;">${name}:</span> <span style="color: #eee;">${c.content}</span>
-                                         </span>
-                                    </div>
-                                `;
+                                        <div style="display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); padding: 4px 8px; border-radius: 12px; width: fit-content; margin-bottom: 4px; max-width: 100%;">
+                                             <img src="${avatar}" style="width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.3);">
+                                             <span style="color: white; font-size: 0.8rem; font-weight: 500; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 180px;">
+                                                <span style="font-weight: 700; color: #fff;">${name}:</span> <span style="color: #eee;">${c.content}</span>
+                                             </span>
+                                        </div>
+                                    `;
                             }).join('');
 
-                            const badgeHtml = total > 3 ? `
-                                <div style="background: rgba(239, 68, 68, 0.9); color: white; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; width: fit-content; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
-                                    ${total}+
-                                </div>
-                            ` : '';
+                            const badgeHtml = totalComments > 3 ? `
+                                    <div style="background: rgba(239, 68, 68, 0.9); color: white; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; width: fit-content; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                                        ${totalComments}+
+                                    </div>
+                                ` : '';
 
-                            overlayHtml = `
-                                <div style="position: absolute; top: 15px; left: 15px; z-index: 55; display: flex; flex-direction: column; align-items: flex-start; max-width: 60%; pointer-events: none;">
-                                    ${itemsHtml}
-                                    ${badgeHtml}
+                            commentsHtml = `
+                                    <div style="display: flex; flex-direction: column; align-items: flex-start; max-width: 60%; pointer-events: none;">
+                                        ${itemsHtml}
+                                        ${badgeHtml}
+                                    </div>
+                                `;
+                        }
+
+                        // Cheers Logic
+                        const cData = cheersMap[hop.id] || { count: 0, users: new Set() };
+                        const cheersCount = cData.count;
+                        const isCheered = window.currentUser && cData.users.has(window.currentUser.id);
+                        const activeClass = isCheered ? 'active' : '';
+
+                        const cheersHtml = `
+                                <div style="pointer-events: auto;">
+                                    <button id="cheers-btn-${hop.id}" onclick="event.stopPropagation(); window.toggleTalentCheers(event, '${hop.id}')" class="talent-cheers-btn ${activeClass}" style="background: rgba(255,255,255,0.25); backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.4); border-radius: 20px; padding: 6px 14px; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s; color: white;">
+                                        <svg class="interaction-icon cheers-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: ${isCheered ? '#FFD700' : 'white'};">
+                                            <path d="M8 22h8" class="glass-base"/>
+                                            <path d="M12 11v11" class="glass-stem"/>
+                                            <path d="M5 4h14l-7 7-7-7z" class="glass-bowl-outline"/>
+                                            <path d="M6 5h12l-6 6-6-6z" class="cheers-liquid" fill="${isCheered ? '#FFD700' : 'none'}" stroke="none" />
+                                        </svg>
+                                        <span id="cheers-count-${hop.id}" style="font-weight: 700; font-size: 0.9rem; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">${cheersCount}</span>
+                                    </button>
                                 </div>
                             `;
-                        }
+
+                        // Combine Overlays
+                        const overlayHtml = `
+                                <div style="position: absolute; top: 15px; left: 15px; right: 15px; bottom: 15px; z-index: 55; display: flex; flex-direction: column; justify-content: space-between; pointer-events: none;">
+                                    ${commentsHtml ? `<div>${commentsHtml}</div>` : '<div></div>'}
+                                    
+                                    <!-- Bottom Right: Cheers -->
+                                    <div style="align-self: flex-end; margin-top: auto;">
+                                        ${cheersHtml}
+                                    </div>
+                                </div>
+                            `;
 
 
                         // Google Map URL
