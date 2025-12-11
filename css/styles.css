@@ -1976,3 +1976,10 @@ figure.article-figure figcaption {
         font-size: 3.5rem !important;
     }
 }
+
+/* Hide Leaflet Zoom Controls on Mobile */
+@media (max-width: 768px) {
+    .leaflet-control-zoom {
+        display: none !important;
+    }
+}
