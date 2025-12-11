@@ -802,7 +802,7 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
             .from('hopping_comments')
             .select('id, content, created_at, user_id, user:users (name, hopper_nickname, hopper_image_url)')
             .eq('hopping_id', hopId)
-            .order('created_at', { ascending: true }); // Oldest first for list
+            .order('created_at', { ascending: false }); // Newest first
 
         if (error) {
             list.innerHTML = `<div style="text-align:center; color:red;">Error loading: ${error.message}</div>`;
@@ -810,7 +810,7 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
             list.innerHTML = `<div style="text-align:center; color:#999; font-style:italic; margin-top:20px;">No comments yet. Be the first!</div>`;
             if (previewEl) previewEl.innerHTML = '';
         } else {
-            // Render List (Chronological)
+            // Render List (Newest First)
             list.innerHTML = data.map(c => {
                 const u = c.user;
                 const name = u?.hopper_nickname || u?.name || 'Anonymous';
@@ -818,49 +818,49 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
                 const isMe = window.currentUser && window.currentUser.id === c.user_id;
                 const canDelete = isMe || (window.currentUser && window.currentUser.id === ownerId);
 
+                // Date Format: YYYY/MM/DD HH:mm
+                const d = new Date(c.created_at);
+                const dateStr = `${d.getFullYear()}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getDate().toString().padStart(2, '0')} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+
                 return `
-                    <div style="display: flex; gap: 10px; margin-bottom: 8px;">
+                    <div style="display: flex; gap: 10px; margin-bottom: 12px;">
                         <img src="${avatar}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
-                        <div style="background: white; padding: 8px 12px; border-radius: 0 12px 12px 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); max-width: 80%; position: relative;">
-                            <div style="font-weight: 600; font-size: 0.8rem; color: #333; margin-bottom: 2px;">${name}</div>
-                            <div style="font-size: 0.9rem; color: #444; word-break: break-word;">${c.content}</div>
-                            ${canDelete ? `
-                                <button onclick="window.deleteHoppingComment('${c.id}', '${hopId}')" style="position: absolute; top: 4px; right: 4px; background: none; border: none; font-size: 1.2rem; line-height: 1; color: #999; cursor: pointer; padding: 0 4px;">&times;</button>
-                            ` : ''}
+                        <div style="max-width: 85%;">
+                            <div style="background: white; padding: 8px 12px; border-radius: 4px 16px 16px 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: relative;">
+                                <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 2px;">
+                                    <span style="font-weight: 700; font-size: 0.85rem; color: #333;">${name}</span>
+                                    <span style="font-size: 0.7rem; color: #999;">${dateStr}</span>
+                                </div>
+                                <div style="font-size: 0.95rem; color: #444; word-break: break-word; line-height: 1.4;">${c.content}</div>
+                                ${canDelete ? `
+                                    <button onclick="window.deleteHoppingComment('${c.id}', '${hopId}')" style="position: absolute; top: -6px; right: -6px; background: #eee; border: 1px solid #ddd; border-radius: 50%; width: 20px; height: 20px; font-size: 1rem; line-height: 18px; color: #666; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center;">&times;</button>
+                                ` : ''}
+                            </div>
                         </div>
                     </div>
                `;
             }).join('');
-            list.scrollTop = list.scrollHeight;
+            // No shrinking to bottom since newest is top
+            list.scrollTop = 0;
 
-            // Render Preview Overlay (Latest 3 + Counter)
-            // Data is ASC (Oldest...Newest). Latest are at the end.
+            // Render Preview Overlay (Top 3 Newest)
+            // User Request: "Newest to 3rd Newest from Top to Bottom"
             if (previewEl) {
-                // Determine items to show. Reverse for overlay stack (Newest Top)? 
-                // Or standard list order? Usually overlay is "Chat bubbles", so Newest at Bottom is logical if mimicking chat, 
-                // BUT "Latest on top" might be requested? 
-                // Request: "最新的三則留言呈現在 hop card 的最上面" (The latest 3 comments appear on top of the hop card)
-                // "呈現在最上面" -> "Display on top" (Overlay). 
-                // Order: Usually Top to Bottom reading. So [Latest-2], [Latest-1], [Latest].
-
                 const total = data.length;
-                let displayComments = [];
-                // user request: "最新的三則...如果超過三則就在第三則下面寫 xx+"
-                // display 1, 2, 3 (latest three). 
-                // data is [Old...New]. So slice(-3) gives [3rd Newest, 2nd Newest, Newest].
+                // Since data is DESC (New, New-1, New-2...), slicing 0-3 gives exactly that order.
+                const top3 = data.slice(0, 3);
 
-                const latestThree = data.slice(-3);
-
-                let html = latestThree.map(c => {
+                let html = top3.map(c => {
                     const u = c.user;
                     const name = u?.hopper_nickname || u?.name || 'Anonymous';
                     const avatar = u?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`;
 
+                    // Overlay Item: Click to Open
                     return `
-                        <div style="display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); padding: 4px 8px; border-radius: 12px; width: fit-content; animation: fadeIn 0.3s ease-out; pointer-events: auto;" onclick="document.getElementById('btn-message').click();">
-                             <img src="${avatar}" style="width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0;">
-                             <span style="color: white; font-size: 0.75rem; font-weight: 500; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 120px;">
-                                <span style="font-weight: 700;">${name}:</span> ${c.content}
+                        <div style="display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); padding: 4px 8px; border-radius: 12px; width: fit-content; margin-bottom: 4px; cursor: pointer; pointer-events: auto; max-width: 100%; transition: transform 0.1s;" onclick="document.getElementById('btn-message').click();" onmousedown="this.style.transform='scale(0.95)'" onmouseup="this.style.transform='scale(1)'">
+                             <img src="${avatar}" style="width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.3);">
+                             <span style="color: white; font-size: 0.8rem; font-weight: 500; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 180px;">
+                                <span style="font-weight: 700; color: #fff;">${name}:</span> <span style="color: #eee;">${c.content}</span>
                              </span>
                         </div>
                      `;
@@ -868,7 +868,7 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
 
                 if (total > 3) {
                     html += `
-                        <div style="background: rgba(239, 68, 68, 0.9); color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; width: fit-content; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-top: 2px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);" onclick="document.getElementById('btn-message').click();">
+                        <div style="background: rgba(239, 68, 68, 0.9); color: white; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; width: fit-content; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.3); pointer-events: auto;" onclick="document.getElementById('btn-message').click();">
                             ${total}+
                         </div>
                      `;
