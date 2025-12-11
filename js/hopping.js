@@ -799,6 +799,102 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
         // Trigger reflow for transition
         void panel.offsetWidth;
         panel.style.transform = 'translateY(0)';
+
+        // Fetch Comments
+        list.innerHTML = '<div style="text-align: center; color: #888; font-size: 0.9rem; margin-top: 20px;">Loading...</div>';
+
+        const fetchComments = async () => {
+            const { data, error } = await window.supabaseClient
+                .from('hopping_comments')
+                .select('id, content, created_at, user_id, user:users (name, hopper_nickname, hopper_image_url)')
+                .eq('hopping_id', hopId)
+                .order('created_at', { ascending: true });
+
+            if (error) {
+                list.innerHTML = `<div style="text-align:center; color:red;">Error loading: ${error.message}</div>`;
+            } else if (!data || data.length === 0) {
+                list.innerHTML = `<div style="text-align:center; color:#999; font-style:italic; margin-top:20px;">No comments yet. Be the first!</div>`;
+                const previewEl = document.getElementById('hd-comments-preview');
+                if (previewEl) previewEl.innerHTML = '';
+            } else {
+                // Render List
+                list.innerHTML = data.map(c => {
+                    const u = c.user;
+                    const name = u?.hopper_nickname || u?.name || 'Anonymous';
+                    const avatar = u?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`;
+                    const isMe = window.currentUser && window.currentUser.id === c.user_id;
+
+                    // Check Delete Permission: Me OR Owner
+                    const canDelete = isMe || (window.currentUser && window.currentUser.id === ownerId);
+
+                    return `
+                        <div style="display: flex; gap: 10px; margin-bottom: 8px;">
+                            <img src="${avatar}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
+                            <div style="background: white; padding: 8px 12px; border-radius: 0 12px 12px 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); max-width: 80%; position: relative;">
+                                <div style="font-weight: 600; font-size: 0.8rem; color: #333; margin-bottom: 2px;">${name}</div>
+                                <div style="font-size: 0.9rem; color: #444; word-break: break-word;">${c.content}</div>
+                                ${canDelete ? `
+                                    <button onclick="window.deleteHoppingComment('${c.id}', '${hopId}')" style="position: absolute; top: 4px; right: 4px; background: none; border: none; font-size: 1.2rem; line-height: 1; color: #999; cursor: pointer; padding: 0 4px;">&times;</button>
+                                ` : ''}
+                            </div>
+                        </div>
+                   `;
+                }).join('');
+                list.scrollTop = list.scrollHeight;
+
+                // Render Preview (Last 3)
+                const previewEl = document.getElementById('hd-comments-preview');
+                if (previewEl) {
+                    const last3 = data.slice(-3);
+                    previewEl.innerHTML = last3.map(c => {
+                        const u = c.user;
+                        const name = u?.hopper_nickname || u?.name || 'Anonymous';
+                        const avatar = u?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`;
+
+                        return `
+                            <div style="display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); padding: 4px 8px; border-radius: 12px; width: fit-content; animation: fadeIn 0.3s ease-out;">
+                                 <img src="${avatar}" style="width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0;">
+                                 <span style="color: white; font-size: 0.75rem; font-weight: 500; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 120px;">
+                                    <span style="font-weight: 700;">${name}:</span> ${c.content}
+                                 </span>
+                            </div>
+                         `;
+                    }).join('');
+                }
+            }
+        };
+
+        await fetchComments();
+        window.refreshHoppingComments = fetchComments;
+
+        // Bind Submit
+        submit.onclick = async () => {
+            const text = input.value.trim();
+            if (!text) return;
+            if (!window.currentUser) { alert('Please login to comment.'); return; }
+
+            submit.disabled = true;
+            submit.style.opacity = '0.5';
+
+            const { error } = await window.supabaseClient
+                .from('hopping_comments')
+                .insert([{ hopping_id: hopId, user_id: window.currentUser.id, content: text }]);
+
+            submit.disabled = false;
+            submit.style.opacity = '1';
+
+            if (error) {
+                alert('Failed to send: ' + error.message);
+            } else {
+                input.value = '';
+                await window.refreshHoppingComments();
+            }
+        };
+
+        // Allow Enter key
+        input.onkeypress = (ev) => {
+            if (ev.key === 'Enter') submit.click();
+        };
     };
 
 
