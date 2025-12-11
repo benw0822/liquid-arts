@@ -1517,29 +1517,82 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // Expose for Profile Page reuse
-                    </div >
-        ` : ''}
+    window.createBarCard = function (bar, city = null) {
+        const displayCity = city || bar.location || '';
+        const description = bar.description || `Experience the finest mixology at ${bar.title}. Known for its ${bar.vibe} atmosphere, this spot in ${bar.location} offers a curated selection of cocktails and spirits.`;
+        const rating = bar.google_rating || bar.rating || 'N/A';
+        const reviewCount = bar.google_review_count || bar.rating_count || 0;
+        const price = '$'.repeat(bar.price || bar.price_level || 2);
+        const address = bar.address || bar.address_en || bar.location;
+        const mapUrl = bar.google_map_url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+
+        const isSaved = window.savedBarIds.has(bar.id);
+
+        return `
+        <div class="art-card grid-item" style="position: relative; display: flex; flex-direction: column; height: 100%; margin-bottom: 3rem; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 380px; margin-left: auto; margin-right: auto;">
+             <!-- Save Button -->
+             <button class="save-btn-${bar.id}" onclick="toggleSaveBar(${bar.id}, event)" style="position: absolute; top: 15px; right: 15px; z-index: 20; background: white; border: none; border-radius: 50%; width: 36px; height: 36px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="${isSaved ? '#ef4444' : 'none'}" stroke="${isSaved ? '#ef4444' : '#333'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+             </button>
+
+             <!-- Hopping Interaction Wrapper (Top Left) -->
+             <div style="position: absolute; top: 15px; left: 15px; z-index: 30; display: flex; align-items: center; gap: 12px; pointer-events: auto;">
+                 <!-- Hop Button -->
+                 <button onclick="event.preventDefault(); event.stopPropagation(); window.openHoppingModal(${bar.id})" style="background: rgba(255,255,255,0.95); border: none; border-radius: 20px; padding: 6px 14px; font-size: 0.85rem; font-weight: 700; color: #333; box-shadow: 0 4px 10px rgba(0,0,0,0.15); cursor: pointer; display: flex; align-items: center; gap: 6px; transition: transform 0.2s;">
+                    <span>📷</span> Hop
+                 </button>
+                 
+                 <!-- Badges Row -->
+                 <div id="hop-badge-${bar.id}" style="display: flex; align-items: center; padding-left: 5px;"></div>
+             </div>
+
+             <!-- Main Link Wrapper -->
+            <a href="bar-details.html?id=${bar.id}" style="text-decoration: none; display: block; flex-grow: 1; display: flex; flex-direction: column;">
+                <div style="width: 100%; border-bottom: 1px solid #f0f0f0; position: relative;">
+                    <img src="${bar.image}" alt="${bar.title}" style="width: 100%; height: auto; display: block; transition: transform 0.5s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                </div>
+                <div style="text-align: center; padding: 1.5rem 1rem 0.5rem 1rem;">
+                    <h3 style="font-family: var(--font-display); font-size: 1.8rem; margin: 0 0 0.5rem 0; color: #1b1b1b;">
+                        ${bar.title}
+                    </h3>
+                    <p style="font-family: var(--font-main); font-size: 1rem; color: #888; margin: 0;">
+                        ${bar.vibe ? `<span style="color: var(--bg-red); font-weight: 600;">${bar.vibe}</span> • ` : ''}${displayCity}
+                    </p>
+                </div>
+            </a>
+            
+            <div class="card-content" style="padding: 0 1.5rem 1.5rem 1.5rem; text-align: center; flex: 1; display: flex; flex-direction: column;">
+                <!-- Map Container -->
+                <div id="card-map-${bar.id}" style="width: 100%; height: 120px; border-radius: 8px; margin-top: 1rem; margin-bottom: 1rem; z-index: 1;"></div>
+
+                ${bar.editorial_review ? `
+                    <div style="margin-bottom: 1.2rem; padding: 15px; background: var(--bg-red); color: white; border-radius: 12px; text-align: center;">
+                         <h4 style="margin: 0 0 5px 0; font-family: var(--font-display); font-size: 1rem; letter-spacing: 0.05em; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 5px; display: inline-block;">Liquid Arts Review</h4>
+                         <p style="font-size: 0.9rem; font-style: italic; margin: 10px 0; line-height: 1.5;">"${bar.editorial_review}"</p>
+                         ${bar.editorial_rating ? `
+                            <div style="margin-top: 5px;">
+                                <div style="color: #FFD700; font-size: 1rem; margin-bottom: 2px;">${'★'.repeat(bar.editorial_rating)}${'☆'.repeat(5 - bar.editorial_rating)}</div>
+                                <div style="font-weight: 600; font-size: 0.8rem; text-transform: uppercase;">${['', 'Poor', 'Fair', 'Enjoyable', 'Remarkable', 'Masterpiece'][bar.editorial_rating] || ''}</div>
+                            </div>
+                         ` : ''}
+                    </div>
+                ` : ''}
 
                  <!-- Description -->
                 <p style="font-size: 0.95rem; color: #555; line-height: 1.6; margin-bottom: 1rem; display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden;">
                     ${description}
                 </p>
 
-                <!-- Explore Button Only (Hop moved to top left) -->
+                <!-- Explore Button -->
                 <div style="display: flex; justify-content: center; margin-bottom: 1.2rem;">
                     <a href="bar-details.html?id=${bar.id}" class="btn" style="padding: 6px 20px; font-size: 0.9rem; border-radius: 20px; border: none; color: white; background: var(--bg-red); transition: all 0.3s; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">Explore</a>
                 </div>
 
-                 <!-- Rating & Price (Compact) -->
+                 <!-- Rating & Price -->
                 <div style="margin-bottom: 1.2rem; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.8rem;">
                     <span style="font-weight: 600; color: #666;">Google Rating:</span>
                     <strong style="color: #333;">${rating}</strong>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="#FFD700" viewBox="0 0 16 16"><path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/></svg>
-                    <span style="color:#888; display: flex; align-items: center; gap: 2px;">
-                        ${reviewCount}
-                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="currentColor" viewBox="0 0 16 16"><path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7Zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5.784 6A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216ZM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/></svg>
-                    </span>
-                    <span style="color: #ddd;">|</span>
+                    <span style="color:#888;">|</span>
                     <span style="font-weight: 600; color: #666;">Price:</span>
                     <strong style="color: #333;">${price}</strong>
                 </div>
@@ -1548,9 +1601,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 <p style="font-size: 0.85rem; color: #666; margin-bottom: 1rem;">
                     ${address}
                 </p>
-                
-                <!-- Mini Map (Re-positioned: Content Area) -->
-                <div id="card-map-${bar.id}" class="card-map" style="height: 150px; width: 100%; border-radius: 4px; margin-bottom: 8px; z-index: 1;"></div>
 
                 <!-- Button Wrapper (Bottom Anchored) -->
                 <div style="margin-top: auto;">
@@ -1561,8 +1611,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>
         </div>
-    `;
-}
+        `;
+    };
+
     // Expose for Profile Page
     window.createArticleCard = function (article) {
         // Handle both mock data (image, date) and real data (cover_image, published_at)
@@ -1617,74 +1668,74 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Auth Logic (Member) ---
     const loginBtn = document.getElementById('login-btn');
-// const userMenu = document.getElementById('user-menu'); // Removed, replaced by global-auth-btn
-// const userAvatar = document.getElementById('user-avatar'); // Removed, replaced by global-auth-btn
+    // const userMenu = document.getElementById('user-menu'); // Removed, replaced by global-auth-btn
+    // const userAvatar = document.getElementById('user-avatar'); // Removed, replaced by global-auth-btn
 
-async function signInWithGoogle() {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-            redirectTo: window.location.origin + '/profile.html'
-        }
-    });
-    if (error) console.error('Error logging in:', error.message);
-}
-
-// Login Button Listener Removed (Let <a> tag navigate to profile.html)
-// if (loginBtn) {
-//    loginBtn.addEventListener('click', signInWithGoogle);
-// }
-
-// Check Auth State
-supabase.auth.onAuthStateChange((event, session) => {
-    // Global Auth Button Logic (Mobile & Desktop)
-    const authBtn = document.getElementById('global-auth-btn');
-    const navMyLink = document.getElementById('nav-my-link'); // Legacy check
-    const loginBtn = document.getElementById('login-btn'); // Legacy check
-    const logoutBtn = document.getElementById('logout-btn');
-
-    if (session) {
-        const avatar = session.user.user_metadata.avatar_url || 'assets/logo_vertical.png';
-
-        if (authBtn) {
-            authBtn.innerHTML = `<img src="${avatar}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-color);">`;
-        }
-
-        // Legacy Fallbacks (if navbar not updated yet)
-        if (loginBtn) loginBtn.style.display = 'none';
-        if (navMyLink) {
-            navMyLink.style.display = 'inline-flex'; // Or keep hidden if we rely on authBtn
-            // If navMyLink is visible, update it too
-            navMyLink.innerHTML = `<img src="${avatar}" style="width: 24px; height: 24px; border-radius: 50%; margin-right: 8px;"> <span>My</span>`;
-        }
-        if (logoutBtn) logoutBtn.style.display = 'inline-block';
-
-    } else {
-        // Logged Out
-        if (authBtn) {
-            // Reset to Icon
-            authBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>`;
-        }
-        if (loginBtn) loginBtn.style.display = 'inline-block'; // Or 'flex'
-        if (navMyLink) navMyLink.style.display = 'none';
-        if (logoutBtn) logoutBtn.style.display = 'none';
+    async function signInWithGoogle() {
+        const { data, error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: window.location.origin + '/profile.html'
+            }
+        });
+        if (error) console.error('Error logging in:', error.message);
     }
 
-    // Bottom Nav Highlight Logic
-    const currentPath = window.location.pathname.split('/').pop() || 'index.html';
-    const bottomNavItems = document.querySelectorAll('.bottom-nav .nav-item');
-    bottomNavItems.forEach(item => {
-        if (item.getAttribute('href') === currentPath) {
-            item.classList.add('active');
-        } else {
-            item.classList.remove('active');
-        }
-    });
-});
+    // Login Button Listener Removed (Let <a> tag navigate to profile.html)
+    // if (loginBtn) {
+    //    loginBtn.addEventListener('click', signInWithGoogle);
+    // }
 
-// --- Auto Init based on URL ---
-const path = window.location.pathname;
-if (path.endsWith('index.html') || path === '/') window.initHome();
+    // Check Auth State
+    supabase.auth.onAuthStateChange((event, session) => {
+        // Global Auth Button Logic (Mobile & Desktop)
+        const authBtn = document.getElementById('global-auth-btn');
+        const navMyLink = document.getElementById('nav-my-link'); // Legacy check
+        const loginBtn = document.getElementById('login-btn'); // Legacy check
+        const logoutBtn = document.getElementById('logout-btn');
+
+        if (session) {
+            const avatar = session.user.user_metadata.avatar_url || 'assets/logo_vertical.png';
+
+            if (authBtn) {
+                authBtn.innerHTML = `<img src="${avatar}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-color);">`;
+            }
+
+            // Legacy Fallbacks (if navbar not updated yet)
+            if (loginBtn) loginBtn.style.display = 'none';
+            if (navMyLink) {
+                navMyLink.style.display = 'inline-flex'; // Or keep hidden if we rely on authBtn
+                // If navMyLink is visible, update it too
+                navMyLink.innerHTML = `<img src="${avatar}" style="width: 24px; height: 24px; border-radius: 50%; margin-right: 8px;"> <span>My</span>`;
+            }
+            if (logoutBtn) logoutBtn.style.display = 'inline-block';
+
+        } else {
+            // Logged Out
+            if (authBtn) {
+                // Reset to Icon
+                authBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>`;
+            }
+            if (loginBtn) loginBtn.style.display = 'inline-block'; // Or 'flex'
+            if (navMyLink) navMyLink.style.display = 'none';
+            if (logoutBtn) logoutBtn.style.display = 'none';
+        }
+
+        // Bottom Nav Highlight Logic
+        const currentPath = window.location.pathname.split('/').pop() || 'index.html';
+        const bottomNavItems = document.querySelectorAll('.bottom-nav .nav-item');
+        bottomNavItems.forEach(item => {
+            if (item.getAttribute('href') === currentPath) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
+    });
+
+    // --- Auto Init based on URL ---
+    const path = window.location.pathname;
+    if (path.endsWith('index.html') || path === '/') window.initHome();
 });
 
 // --- Signature Carousel Logic ---
