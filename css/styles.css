@@ -1450,12 +1450,9 @@ figure.article-figure figcaption {
 
 /* Masonry Grid for Detail Page (Review present) */
 .masonry-grid {
-    column-count: unset;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 30px;
+    column-count: 3;
+    column-gap: 30px;
     padding-bottom: 60px;
-    align-items: start;
 }
 
 .masonry-grid .grid-item {
@@ -1467,15 +1464,13 @@ figure.article-figure figcaption {
 
 @media (max-width: 1024px) {
     .masonry-grid {
-        column-count: unset;
-        grid-template-columns: repeat(2, 1fr);
+        column-count: 2;
     }
 }
 
 @media (max-width: 768px) {
     .masonry-grid {
-        column-count: unset;
-        grid-template-columns: 1fr;
+        column-count: 1;
     }
 }
 
