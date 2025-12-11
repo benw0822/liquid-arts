@@ -1562,8 +1562,6 @@ document.addEventListener('DOMContentLoaded', () => {
             </a>
             
             <div class="card-content" style="padding: 0 1.5rem 1.5rem 1.5rem; text-align: center; flex: 1; display: flex; flex-direction: column;">
-                <!-- Map Container -->
-                <div id="card-map-${bar.id}" style="width: 100%; height: 120px; border-radius: 8px; margin-top: 1rem; margin-bottom: 1rem; z-index: 1;"></div>
 
                 ${bar.editorial_review ? `
                     <div style="margin-bottom: 1.2rem; padding: 15px; background: var(--bg-red); color: white; border-radius: 12px; text-align: center;">
