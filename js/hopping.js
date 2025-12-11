@@ -786,115 +786,142 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
     }
 
     // Message/Comment Logic
-    msgBtn.onclick = async (e) => {
+    const panel = document.getElementById('hd-comments-panel');
+    const list = document.getElementById('hd-comments-list');
+    const input = document.getElementById('hd-comment-input');
+    const submit = document.getElementById('hd-comment-submit');
+    const previewEl = document.getElementById('hd-comments-preview');
+
+    // Clear previous state immediately
+    if (list) list.innerHTML = '<div style="text-align: center; color: #888; font-size: 0.9rem; margin-top: 20px;">Loading...</div>';
+    if (previewEl) previewEl.innerHTML = '';
+
+    // Define Fetch Function
+    const fetchComments = async () => {
+        const { data, error } = await window.supabaseClient
+            .from('hopping_comments')
+            .select('id, content, created_at, user_id, user:users (name, hopper_nickname, hopper_image_url)')
+            .eq('hopping_id', hopId)
+            .order('created_at', { ascending: true }); // Oldest first for list
+
+        if (error) {
+            list.innerHTML = `<div style="text-align:center; color:red;">Error loading: ${error.message}</div>`;
+        } else if (!data || data.length === 0) {
+            list.innerHTML = `<div style="text-align:center; color:#999; font-style:italic; margin-top:20px;">No comments yet. Be the first!</div>`;
+            if (previewEl) previewEl.innerHTML = '';
+        } else {
+            // Render List (Chronological)
+            list.innerHTML = data.map(c => {
+                const u = c.user;
+                const name = u?.hopper_nickname || u?.name || 'Anonymous';
+                const avatar = u?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`;
+                const isMe = window.currentUser && window.currentUser.id === c.user_id;
+                const canDelete = isMe || (window.currentUser && window.currentUser.id === ownerId);
+
+                return `
+                    <div style="display: flex; gap: 10px; margin-bottom: 8px;">
+                        <img src="${avatar}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
+                        <div style="background: white; padding: 8px 12px; border-radius: 0 12px 12px 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); max-width: 80%; position: relative;">
+                            <div style="font-weight: 600; font-size: 0.8rem; color: #333; margin-bottom: 2px;">${name}</div>
+                            <div style="font-size: 0.9rem; color: #444; word-break: break-word;">${c.content}</div>
+                            ${canDelete ? `
+                                <button onclick="window.deleteHoppingComment('${c.id}', '${hopId}')" style="position: absolute; top: 4px; right: 4px; background: none; border: none; font-size: 1.2rem; line-height: 1; color: #999; cursor: pointer; padding: 0 4px;">&times;</button>
+                            ` : ''}
+                        </div>
+                    </div>
+               `;
+            }).join('');
+            list.scrollTop = list.scrollHeight;
+
+            // Render Preview Overlay (Latest 3 + Counter)
+            // Data is ASC (Oldest...Newest). Latest are at the end.
+            if (previewEl) {
+                // Determine items to show. Reverse for overlay stack (Newest Top)? 
+                // Or standard list order? Usually overlay is "Chat bubbles", so Newest at Bottom is logical if mimicking chat, 
+                // BUT "Latest on top" might be requested? 
+                // Request: "最新的三則留言呈現在 hop card 的最上面" (The latest 3 comments appear on top of the hop card)
+                // "呈現在最上面" -> "Display on top" (Overlay). 
+                // Order: Usually Top to Bottom reading. So [Latest-2], [Latest-1], [Latest].
+
+                const total = data.length;
+                let displayComments = [];
+                // user request: "最新的三則...如果超過三則就在第三則下面寫 xx+"
+                // display 1, 2, 3 (latest three). 
+                // data is [Old...New]. So slice(-3) gives [3rd Newest, 2nd Newest, Newest].
+
+                const latestThree = data.slice(-3);
+
+                let html = latestThree.map(c => {
+                    const u = c.user;
+                    const name = u?.hopper_nickname || u?.name || 'Anonymous';
+                    const avatar = u?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`;
+
+                    return `
+                        <div style="display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); padding: 4px 8px; border-radius: 12px; width: fit-content; animation: fadeIn 0.3s ease-out; pointer-events: auto;" onclick="document.getElementById('btn-message').click();">
+                             <img src="${avatar}" style="width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0;">
+                             <span style="color: white; font-size: 0.75rem; font-weight: 500; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 120px;">
+                                <span style="font-weight: 700;">${name}:</span> ${c.content}
+                             </span>
+                        </div>
+                     `;
+                }).join('');
+
+                if (total > 3) {
+                    html += `
+                        <div style="background: rgba(239, 68, 68, 0.9); color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; width: fit-content; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-top: 2px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);" onclick="document.getElementById('btn-message').click();">
+                            ${total}+
+                        </div>
+                     `;
+                }
+
+                previewEl.innerHTML = html;
+            }
+        }
+    };
+
+    // Auto Load
+    fetchComments();
+
+    // Global Refresh (for delete action)
+    window.refreshHoppingComments = fetchComments;
+
+    // Show Panel Logic
+    msgBtn.onclick = (e) => {
         e.stopPropagation();
-
-        // Show Comments Panel
-        const panel = document.getElementById('hd-comments-panel');
-        const list = document.getElementById('hd-comments-list');
-        const input = document.getElementById('hd-comment-input');
-        const submit = document.getElementById('hd-comment-submit');
-
         panel.style.display = 'flex';
         // Trigger reflow for transition
         void panel.offsetWidth;
         panel.style.transform = 'translateY(0)';
+        // No need to fetch here as it's auto-loaded
+    };
 
-        // Fetch Comments
-        list.innerHTML = '<div style="text-align: center; color: #888; font-size: 0.9rem; margin-top: 20px;">Loading...</div>';
+    // Bind Submit
+    submit.onclick = async () => {
+        const text = input.value.trim();
+        if (!text) return;
+        if (!window.currentUser) { alert('Please login to comment.'); return; }
 
-        const fetchComments = async () => {
-            const { data, error } = await window.supabaseClient
-                .from('hopping_comments')
-                .select('id, content, created_at, user_id, user:users (name, hopper_nickname, hopper_image_url)')
-                .eq('hopping_id', hopId)
-                .order('created_at', { ascending: true });
+        submit.disabled = true;
+        submit.style.opacity = '0.5';
 
-            if (error) {
-                list.innerHTML = `<div style="text-align:center; color:red;">Error loading: ${error.message}</div>`;
-            } else if (!data || data.length === 0) {
-                list.innerHTML = `<div style="text-align:center; color:#999; font-style:italic; margin-top:20px;">No comments yet. Be the first!</div>`;
-                const previewEl = document.getElementById('hd-comments-preview');
-                if (previewEl) previewEl.innerHTML = '';
-            } else {
-                // Render List
-                list.innerHTML = data.map(c => {
-                    const u = c.user;
-                    const name = u?.hopper_nickname || u?.name || 'Anonymous';
-                    const avatar = u?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`;
-                    const isMe = window.currentUser && window.currentUser.id === c.user_id;
+        const { error } = await window.supabaseClient
+            .from('hopping_comments')
+            .insert([{ hopping_id: hopId, user_id: window.currentUser.id, content: text }]);
 
-                    // Check Delete Permission: Me OR Owner
-                    const canDelete = isMe || (window.currentUser && window.currentUser.id === ownerId);
+        submit.disabled = false;
+        submit.style.opacity = '1';
 
-                    return `
-                        <div style="display: flex; gap: 10px; margin-bottom: 8px;">
-                            <img src="${avatar}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
-                            <div style="background: white; padding: 8px 12px; border-radius: 0 12px 12px 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); max-width: 80%; position: relative;">
-                                <div style="font-weight: 600; font-size: 0.8rem; color: #333; margin-bottom: 2px;">${name}</div>
-                                <div style="font-size: 0.9rem; color: #444; word-break: break-word;">${c.content}</div>
-                                ${canDelete ? `
-                                    <button onclick="window.deleteHoppingComment('${c.id}', '${hopId}')" style="position: absolute; top: 4px; right: 4px; background: none; border: none; font-size: 1.2rem; line-height: 1; color: #999; cursor: pointer; padding: 0 4px;">&times;</button>
-                                ` : ''}
-                            </div>
-                        </div>
-                   `;
-                }).join('');
-                list.scrollTop = list.scrollHeight;
+        if (error) {
+            alert('Failed to send: ' + error.message);
+        } else {
+            input.value = '';
+            await fetchComments(); // Reload
+        }
+    };
 
-                // Render Preview (Last 3)
-                const previewEl = document.getElementById('hd-comments-preview');
-                if (previewEl) {
-                    const last3 = data.slice(-3);
-                    previewEl.innerHTML = last3.map(c => {
-                        const u = c.user;
-                        const name = u?.hopper_nickname || u?.name || 'Anonymous';
-                        const avatar = u?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`;
-
-                        return `
-                            <div style="display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); padding: 4px 8px; border-radius: 12px; width: fit-content; animation: fadeIn 0.3s ease-out;">
-                                 <img src="${avatar}" style="width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0;">
-                                 <span style="color: white; font-size: 0.75rem; font-weight: 500; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 120px;">
-                                    <span style="font-weight: 700;">${name}:</span> ${c.content}
-                                 </span>
-                            </div>
-                         `;
-                    }).join('');
-                }
-            }
-        };
-
-        await fetchComments();
-        window.refreshHoppingComments = fetchComments;
-
-        // Bind Submit
-        submit.onclick = async () => {
-            const text = input.value.trim();
-            if (!text) return;
-            if (!window.currentUser) { alert('Please login to comment.'); return; }
-
-            submit.disabled = true;
-            submit.style.opacity = '0.5';
-
-            const { error } = await window.supabaseClient
-                .from('hopping_comments')
-                .insert([{ hopping_id: hopId, user_id: window.currentUser.id, content: text }]);
-
-            submit.disabled = false;
-            submit.style.opacity = '1';
-
-            if (error) {
-                alert('Failed to send: ' + error.message);
-            } else {
-                input.value = '';
-                await window.refreshHoppingComments();
-            }
-        };
-
-        // Allow Enter key
-        input.onkeypress = (ev) => {
-            if (ev.key === 'Enter') submit.click();
-        };
+    // Allow Enter key
+    input.onkeypress = (ev) => {
+        if (ev.key === 'Enter') submit.click();
     };
 
 
