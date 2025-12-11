@@ -688,10 +688,13 @@ document.addEventListener('DOMContentLoaded', () => {
     window.fetchTalentsForBar = async (barId) => {
         // Query talents where bar_roles JSONB column contains the barId
         // Note: Supabase JSONB filtering syntax
+        // stored bar_id is a string (from HTML select)
+        const queryTag = [{ bar_id: String(barId) }];
+
         const { data, error } = await window.supabaseClient
             .from('talents')
             .select('*')
-            .contains('bar_roles', JSON.stringify([{ bar_id: barId }]));
+            .contains('bar_roles', JSON.stringify(queryTag));
 
         if (error) {
             console.warn('Error fetching talents for bar:', error);
