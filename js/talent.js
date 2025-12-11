@@ -143,6 +143,34 @@ window.initTalentPage = async () => {
             }
         }
 
+        // 7. Render Hops (New Section)
+        const hopsGrid = document.getElementById('talent-hops-grid');
+        if (hopsGrid && talent.user_id) {
+            const { data: hops, error: hopsError } = await window.supabaseClient
+                .from('hoppings')
+                .select('*')
+                .eq('user_id', talent.user_id)
+                .order('hopped_at', { ascending: false });
+
+            if (!hopsError && hops && hops.length > 0) {
+                hopsGrid.innerHTML = hops.map(hop => {
+                    // Simple Square Card
+                    const dateStr = new Date(hop.hopped_at).toLocaleDateString();
+                    return `
+                        <div class="talent-hop-card" onclick="window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', '${hop.rating}', '${(hop.description || '').replace(/'/g, "\\'")}', '${hop.id}', '${hop.user_id}')">
+                            <img src="${hop.image_url}" class="talent-hop-img" loading="lazy">
+                            <div class="talent-hop-overlay">
+                                <div class="talent-hop-rating">${'★'.repeat(hop.rating)}</div>
+                                <div class="talent-hop-date">${dateStr}</div>
+                            </div>
+                        </div>
+                     `;
+                }).join('');
+            } else {
+                if (hopsGrid.parentElement) hopsGrid.parentElement.style.display = 'none'; // Hide section if no hops
+            }
+        }
+
     } catch (err) {
         console.error('Talent Page Error:', err);
     }
