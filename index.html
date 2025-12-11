@@ -87,13 +87,19 @@
         <!-- Bartender Section (Dynamic) -->
         <!-- Bartender Section (Poster Style) -->
         <section class="bartender-section"
-            style="position: relative; padding: 6rem 0; background: var(--bg-red); color: white; overflow: hidden;">
+            style="position: relative; padding: 4rem 0; background: var(--bg-red); color: white; overflow: hidden;">
             <div class="container"
                 style="display: flex; flex-direction: column; align-items: center; text-align: center;">
 
+                <!-- Section Title -->
+                <h3
+                    style="font-family: 'Playfair Display', serif; font-size: 1.2rem; letter-spacing: 4px; color: white; margin-bottom: 2rem; text-transform: uppercase; opacity: 0.9;">
+                    MEET TALENT
+                </h3>
+
                 <!-- Image Component -->
                 <div class="poster-image-container"
-                    style="position: relative; width: 320px; height: 320px; margin-bottom: 3rem; margin-top: 2rem;">
+                    style="position: relative; width: 320px; height: 320px; margin-bottom: 2rem; margin-top: 1rem;">
 
                     <!-- Decorative Offset Circle (Left) -->
                     <div
@@ -111,8 +117,8 @@
                     <!-- Reset viewBox to 1:1 (320x320) so units = pixels. Allow overflow. -->
                     <svg viewBox="0 0 320 320"
                         style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; overflow: visible;">
-                        <!-- Path radius 220px (Image radius is 160px). Text will be ~60px outside. -->
-                        <path id="curve" d="M -60,200 A 220,220 0 0,1 200,-60" fill="none" />
+                        <!-- Path radius 190px (Closer to Image radius 160px). -->
+                        <path id="curve" d="M -20,190 A 190,190 0 0,1 190,-20" fill="none" />
                         <text font-family="'Playfair Display', serif" font-size="14" fill="white" letter-spacing="3"
                             text-transform="uppercase">
                             <!-- Adjusted startOffset -->
@@ -134,25 +140,25 @@
                         style="font-family: 'Playfair Display', serif; font-size: 5rem; line-height: 1; margin-bottom: 0.5rem; opacity: 0.9; color: white;">
                         “</div>
 
-                    <!-- Role -->
-                    <a href="#" id="featured-talent-role"
-                        style="display: inline-block; font-family: var(--font-main); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 2.5rem; color: white; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.5); padding-bottom: 4px;">
-                        MO BAR Bartender
-                    </a>
+                    <!-- Role Container (Multiple Bars) -->
+                    <div id="featured-talent-role"
+                        style="margin-bottom: 1.5rem; display: flex; flex-direction: column; align-items: center; width: 100%;">
+                        <!-- JS injects <a href...>Bar Name Role</a> here -->
+                    </div>
 
                     <!-- Separator (Black) -->
-                    <div style="width: 100%; height: 2px; background: #000; margin: 0 auto 2.5rem auto; opacity: 0.6;">
+                    <div style="width: 100%; height: 2px; background: #000; margin: 0 auto 1.5rem auto; opacity: 0.6;">
                     </div>
 
                     <!-- English Quote -->
                     <h2 id="featured-talent-quote-en"
-                        style="font-family: 'Playfair Display', serif; font-size: 1.6rem; font-style: italic; margin-bottom: 1.5rem; font-weight: 400; line-height: 1.4;">
+                        style="font-family: 'Playfair Display', serif; font-size: 1.6rem; font-style: italic; margin-bottom: 1rem; font-weight: 400; line-height: 1.4;">
                         An apple a day, keeps the doctor away.
                     </h2>
 
                     <!-- Chinese Quote -->
                     <p id="featured-talent-desc"
-                        style="font-family: var(--font-main); font-size: 1.1rem; margin-bottom: 2.5rem; font-weight: 300; opacity: 0.9; letter-spacing: 1px;">
+                        style="font-family: var(--font-main); font-size: 1.1rem; margin-bottom: 1.5rem; font-weight: 300; opacity: 0.9; letter-spacing: 1px;">
                         一天一頻果，醫師遠離我。
                     </p>
 

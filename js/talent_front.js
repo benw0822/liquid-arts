@@ -77,8 +77,8 @@ function renderTalentShowcase(talent) {
                     link.href = 'bars.html';
                 }
 
-                // Styles: Centered, blocked, with underline
-                link.style.cssText = "display: block; font-family: var(--font-main); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 0.8rem; color: white; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.5); padding-bottom: 4px; width: fit-content; margin-left: auto; margin-right: auto;";
+                // Styles: Centered, blocked, no underline (per user request)
+                link.style.cssText = "display: block; font-family: var(--font-main); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 0.5rem; color: white; text-decoration: none; width: fit-content; margin-left: auto; margin-right: auto;";
 
                 roleEl.appendChild(link);
             });
