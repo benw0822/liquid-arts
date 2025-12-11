@@ -180,9 +180,9 @@ window.initTalentPage = async () => {
                 }
             }
         }
-    } // Close the if (hopsGrid && talent.user_id) block
+
 
     } catch (err) {
-    console.error('Talent Page Error:', err);
-}
-    };
+        console.error('Talent Page Error:', err);
+    }
+};
