@@ -505,9 +505,9 @@
 
                 // Hydrate Hopping Cards (Comments & Cheers)
                 filtered.forEach(item => {
-                    if(item.type === 'hopping') {
-                        if(window.hydrateHoppingCard) {
-                             window.hydrateHoppingCard(item.data.id);
+                    if (item.type === 'hopping') {
+                        if (window.hydrateHoppingCard) {
+                            window.hydrateHoppingCard(item.data.id);
                         }
                     }
                 });
@@ -530,14 +530,17 @@
                     btn.addEventListener('mouseleave', () => btn.style.backgroundColor = 'rgba(255,255,255,0.9)');
                 });
 
-                // Re-init maps
+                // Re-init maps & badges
                 filtered.forEach(item => {
                     if (item.type === 'bar') {
                         const bar = item.data;
+                        // Init Map if coords exist
                         if (bar.lat && bar.lng) {
                             setTimeout(() => initCardMapGlobal(bar.id, bar.lat, bar.lng, bar.title, window.savedBarIds.has(bar.id)), 100);
-                            setTimeout(() => { if (window.renderHoppingBadge) window.renderHoppingBadge(bar.id); }, 100);
                         }
+                        // Always try to render badges
+                        setTimeout(() => { if (window.renderHoppingBadge) window.renderHoppingBadge(bar.id); }, 100);
+
                     } else if (item.type === 'hopping') {
                         const hop = item.data;
                         const bar = hop.bars || {};
