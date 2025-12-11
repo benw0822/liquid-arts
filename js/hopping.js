@@ -529,203 +529,30 @@ window.openGenericHoppingGallery = (event, startHopId, cacheKey) => {
     };
 
     renderCurrent();
+};
 
-    // ------------------------------------------------------------------
-    // NEW: Card Factory & Hydration for Profile/Unified Grid
-    // ------------------------------------------------------------------
 
-    window.createHoppingCardHTML = (hop, bar) => {
-        // Escape description
-        const desc = hop.description ? hop.description.replace(/'/g, "\\'") : '';
-        const dateStr = new Date(hop.hopped_at).toLocaleDateString();
+// Show Details Modal (Modified for HopCard + Delete)
+window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null, ownerId = null, internal = false, barName = null, barId = null) => {
+    if (event) { event.preventDefault(); event.stopPropagation(); }
 
-        // Rating
-        const stars = '★'.repeat(parseInt(hop.rating)) + '☆'.repeat(5 - parseInt(hop.rating));
-        const ratingLabels = ['', 'Poor', 'Fair', 'Enjoyable', 'Remarkable', 'Masterpiece'];
-        const ratingText = ratingLabels[parseInt(hop.rating)] || '';
+    // Lock Body Scroll
+    document.body.style.overflow = 'hidden';
 
-        // Map URL
-        const barLoc = bar.address || bar.location || '';
-        const mapUrl = bar.google_map_url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(barLoc)}`;
-
-        // Generate Unique IDs
-        const cardId = `hop-card-${hop.id}`;
-        const previewId = `hop-card-preview-${hop.id}`;
-        const commentBtnId = `hop-card-comment-${hop.id}`;
-        const cheersBtnId = `hop-card-cheers-${hop.id}`;
-
-        return `
-    <div id="${cardId}" class="art-card" onclick="window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', '${hop.rating}', '${desc}', '${hop.id}', '${hop.user_id}')" style="position: relative; cursor: pointer; display: flex; flex-direction: column; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-         
-         <div style="width: 100%; aspect-ratio: 1/1; overflow: hidden; position: relative; z-index: 1;">
-            <img src="${hop.image_url}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-            
-            <!-- Comment Overlay (Top Left) -->
-            <div id="${previewId}" style="position: absolute; top: 10px; left: 10px; z-index: 55; display: flex; flex-direction: column; gap: 4px; max-width: 80%; pointer-events: none;">
-                <!-- Hydrated Later -->
-            </div>
-
-            <!-- Interaction Buttons (Cheers/Comment) -->
-             <div style="position: absolute; bottom: 10px; right: 10px; display: flex; gap: 8px; z-index: 55;">
-                <!-- Cheers -->
-                <button id="${cheersBtnId}" onclick="event.stopPropagation(); window.toggleCardCheers('${hop.id}')" style="background: rgba(255,255,255,0.2); backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.4); border-radius: 20px; padding: 6px 12px; display: flex; align-items: center; gap: 5px; color: white; cursor: pointer; transition: transform 0.1s;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));"><path d="M8 22h8"></path><path d="M12 15v7"></path><path d="M2 3h20L12 15z"></path></svg>
-                    <span class="count" style="font-weight: 600; font-size: 0.8rem; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">0</span>
-                </button>
-                <!-- Comment -->
-                <button id="${commentBtnId}" onclick="event.stopPropagation(); window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', '${hop.rating}', '${desc}', '${hop.id}', '${hop.user_id}'); /* Then Open Panel logic if possible, or just standard open */" style="background: rgba(255,255,255,0.2); backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.4); border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                </button>
-            </div>
-         </div>
-         
-         <div style="padding: 1.5rem 1rem; text-align: center; background: white; flex: 1; display: flex; flex-direction: column; position: relative; z-index: 2;">
-            <!-- Bar Title -->
-            ${bar.title ? `<div style="margin-bottom: 0.5rem; position: relative; z-index: 30;"><a href="bar-details.html?id=${bar.id}" onclick="event.stopPropagation();" style="text-decoration: none; color: inherit; display: inline-block; padding: 5px;"><h3 style="font-family: var(--font-display); font-size: 1.4rem; margin: 0; color: #1b1b1b; transition: color 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#1b1b1b'">${bar.title}</h3></a></div>` : ''}
-
-            <div style="color: var(--bg-red); font-size: 1.2rem; margin-bottom: 0.2rem; letter-spacing: 2px;">${stars}</div>
-            ${ratingText ? `<div style="font-weight: 600; font-size: 0.8rem; text-transform: uppercase; color: #333; margin-bottom: 0.5rem;">${ratingText}</div>` : ''}
-
-            <div style="font-family: var(--font-display); font-size: 0.9rem; color: #666; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.5rem;">${dateStr}</div>
-
-            <!-- Description / Review -->
-            ${hop.description ? `<p style="font-size: 0.95rem; color: #555; margin: 0 0 1rem 0; line-height: 1.4; font-style: italic;">"${hop.description}"</p>` : ''}
-
-            <!-- Mini Map (Dark Theme) -->
-            <div id="hop-map-${hop.id}" class="card-map" style="height: 150px; width: 100%; border-radius: 4px; margin-bottom: 8px;"></div>
-            
-            <!-- Google Map Button -->
-            <div style="margin-top: auto; position: relative; z-index: 30;">
-                <a href="${mapUrl}" target="_blank" onclick="event.stopPropagation()" class="btn" style="display: flex; justify-content: center; align-items: center; gap: 8px; width: 100%; background-color: var(--bg-red); color: white; padding: 10px 0; border-radius: 4px; text-decoration: none; transition: background 0.3s; margin-top: 0;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M14.082 2.182a.5.5 0 0 1 .103.557L8.528 15.467a.5.5 0 0 1-.917-.007L5.57 10.694.803 8.652a.5.5 0 0 1-.006-.916l12.728-5.657a.5.5 0 0 1 .556.103z"/></svg>
-                    <span style="font-size: 0.9rem; font-weight: 600;">Google Map</span>
-                </a>
-            </div>
-         </div>
-
-         <!-- Delete Button (Moved to End, Z-Index 100) -->
-         <button class="delete-hop-btn" data-id="${hop.id}" style="position: absolute; top: 15px; right: 15px; z-index: 100; background: rgba(255,255,255,0.9); border: none; border-radius: 50%; width: 36px; height: 36px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; color: #dc2626; pointer-events: auto; transition: background 0.2s;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-         </button>
-    </div>`;
-    };
-
-    // Hydrate Function (Comments & Cheers)
-    window.hydrateHoppingCard = async (hopId) => {
-        // 1. Fetch Latest Comments for Overlay
-        const previewEl = document.getElementById(`hop-card-preview-${hopId}`);
-        if (previewEl) {
-            const { data: comments, error } = await window.supabaseClient
-                .from('hopping_comments')
-                .select('id, content, created_at, user:users (name, hopper_nickname, hopper_image_url)')
-                .eq('hopping_id', hopId)
-                .order('created_at', { ascending: false })
-                .limit(3);
-
-            if (comments && comments.length > 0) {
-                previewEl.innerHTML = comments.map(c => {
-                    const u = c.user;
-                    const name = u?.hopper_nickname || u?.name || 'Anonymous';
-                    const avatar = u?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`;
-                    return `
-                    <div style="display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); padding: 4px 8px; border-radius: 12px; width: fit-content; pointer-events: auto;" onclick="event.stopPropagation(); document.getElementById('hop-card-${hopId}').click(); setTimeout(() => document.getElementById('btn-message').click(), 200);">
-                         <img src="${avatar}" style="width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.3);">
-                         <span style="color: white; font-size: 0.8rem; font-weight: 500; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 100px;">
-                            <span style="font-weight: 700; color: #fff;">${name}:</span> <span style="color: #eee;">${c.content}</span>
-                         </span>
-                    </div>
-                 `;
-                }).join('');
-            }
-        }
-
-        // 2. Hydrate Cheer Button
-        const cheerBtn = document.getElementById(`hop-card-cheers-${hopId}`);
-        if (cheerBtn) {
-            // Fetch Count & Status
-            // For efficiency, maybe just count? But we need status for "is active". 
-            // We'll trust existing backend or simple query.
-            // Simplified: Just update count for now.
-            const { count } = await window.supabaseClient
-                .from('hopping_cheers')
-                .select('*', { count: 'exact', head: true })
-                .eq('hopping_id', hopId);
-
-            cheerBtn.querySelector('.count').textContent = count || 0;
-
-            // Active state? 
-            if (window.currentUser) {
-                const { data } = await window.supabaseClient
-                    .from('hopping_cheers')
-                    .select('id')
-                    .eq('hopping_id', hopId)
-                    .eq('user_id', window.currentUser.id)
-                    .single();
-                if (data) {
-                    cheerBtn.style.background = 'rgba(239, 68, 68, 0.8)'; // Red Active
-                    cheerBtn.classList.add('active');
-                }
-            }
-        }
-    };
-
-    window.toggleCardCheers = async (hopId) => {
-        if (!window.currentUser) { alert('Please login to Cheer!'); return; }
-        const btn = document.getElementById(`hop-card-cheers-${hopId}`);
-        if (!btn) return;
-
-        // Toggle UI Optimistically
-        const countEl = btn.querySelector('.count');
-        let count = parseInt(countEl.textContent || '0');
-        const isActive = btn.classList.contains('active');
-
-        // Optimistic Update
-        if (isActive) {
-            btn.classList.remove('active');
-            btn.style.background = 'rgba(255,255,255,0.2)';
-            countEl.textContent = Math.max(0, count - 1);
-            await window.supabaseClient.from('hopping_cheers').delete().eq('hopping_id', hopId).eq('user_id', window.currentUser.id);
-        } else {
-            btn.classList.add('active');
-            btn.style.background = 'rgba(239, 68, 68, 0.8)';
-            countEl.textContent = count + 1;
-            await window.supabaseClient.from('hopping_cheers').insert([{ hopping_id: hopId, user_id: window.currentUser.id }]);
-        }
-    };
-
-    // Show Details Modal (Modified for HopCard + Delete)
-    window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null, ownerId = null, internal = false, barName = null, barId = null) => {
-        if (event) { event.preventDefault(); event.stopPropagation(); }
-
-        // Lock Body Scroll
-        document.body.style.overflow = 'hidden';
-
-        // Create Modal if not exists (Lazy Load)
-        if (!document.getElementById('hopping-details-modal')) {
-            // ... (Modal Creation Logic remains same, but omitted for brevity in this chunk if unchanged, 
-            // wait, I need to ensure the HTML is there. I'll assume the modal HTML is fine as is or I'll just clear the content *after* retrieving elements.)
-            // Actually, to clear content logic, I need to get the elements.
-        }
-
-        // --- [NEW] Clear Previous State Logic ---
-        // We must ensure modal exists or was just created before clearing.
-        // Ideally we call the internal helper or just wait for the DOM if we just created it.
-        // Since 'html' injection is synchronous, we can query immediately.
-
-        // If modal didn't exist, we create it (Use existing block logic or just proceed).
-        // Let's assume the existing block 542-600 creates it.
-        // I will target the *start* of the function to inject creation/clearing.
-
-        if (!document.getElementById('hopping-details-modal')) {
-            const html = `
+    // Create Modal if not exists (Lazy Load)
+    if (!document.getElementById('hopping-details-modal')) {
+        const html = `
         <div id="hopping-details-modal" class="hopping-modal-overlay" style="z-index: 9999;">
             <div class="hop-detail-card" onclick="event.stopPropagation()">
                 <div class="hop-detail-image-wrapper">
                     <button onclick="window.closeHoppingDetails()" class="btn-close-detail" style="z-index: 60;">&times;</button>
                     <img id="hd-img" class="hop-detail-image" src="">
+                    <!-- Hopping Label REMOVED -->
                     
                     <!-- Comments Preview Overlay (Top Left) -->
-                    <div id="hd-comments-preview" style="position: absolute; top: 15px; left: 15px; z-index: 55; display: flex; flex-direction: column; gap: 6px; max-width: 60%; pointer-events: none;"></div>
+                    <div id="hd-comments-preview" style="position: absolute; top: 15px; left: 15px; z-index: 55; display: flex; flex-direction: column; gap: 6px; max-width: 60%; pointer-events: none;">
+                        <!-- Last 3 comments injected here -->
+                    </div>
                     
                     <!-- Hopper Profile Injection Point -->
                     <div id="hd-hopper-profile" class="hopper-profile-container" style="display: none;">
@@ -757,7 +584,10 @@ window.openGenericHoppingGallery = (event, startHopId, cacheKey) => {
                         <span style="font-weight: 700; font-size: 0.95rem; color: #333;">Comments</span>
                         <button onclick="document.getElementById('hd-comments-panel').style.transform='translateY(100%)'; setTimeout(() => document.getElementById('hd-comments-panel').style.display='none', 300);" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #888; line-height: 1;">&times;</button>
                     </div>
-                    <div id="hd-comments-list" style="flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; background: #f9f9f9;"></div>
+                    <div id="hd-comments-list" style="flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; background: #f9f9f9;">
+                        <!-- Comments injected here -->
+                        <div style="text-align: center; color: #888; font-size: 0.9rem; margin-top: 20px;">Loading comments...</div>
+                    </div>
                     <div style="padding: 12px; border-top: 1px solid #eee; display: flex; gap: 8px; background: #fff; align-items: center;">
                         <input id="hd-comment-input" type="text" placeholder="Add a comment..." style="flex: 1; border: 1px solid #ddd; border-radius: 24px; padding: 10px 16px; font-size: 0.9rem; outline: none;">
                         <button id="hd-comment-submit" style="background: var(--bg-red); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);">
@@ -768,15 +598,8 @@ window.openGenericHoppingGallery = (event, startHopId, cacheKey) => {
             </div>
         </div>
         `;
-            document.body.insertAdjacentHTML('beforeend', html);
-        }
+        document.body.insertAdjacentHTML('beforeend', html);
 
-        // --- CLEAR STATE ---
-        // Clear lists & preview immediately to prevent ghosting
-        const prevList = document.getElementById('hd-comments-list');
-        const prevPreview = document.getElementById('hd-comments-preview');
-        if (prevList) prevList.innerHTML = '<div style="text-align: center; color: #888; font-size: 0.9rem; margin-top: 20px;">Loading...</div>';
-        if (prevPreview) prevPreview.innerHTML = '';
         // Close on BG click
         const modalEl = document.getElementById('hopping-details-modal');
         modalEl.onclick = (e) => {
@@ -790,6 +613,12 @@ window.openGenericHoppingGallery = (event, startHopId, cacheKey) => {
         if (m) m.style.display = 'none';
         document.body.style.overflow = ''; // Unlock Scroll
     };
+
+    // Clear Comments Immediately (Before Image Load)
+    const listEl = document.getElementById('hd-comments-list');
+    const previewEl = document.getElementById('hd-comments-preview');
+    if (listEl) listEl.innerHTML = '<div style="text-align: center; color: #888; font-size: 0.9rem; margin-top: 20px;">Loading...</div>';
+    if (previewEl) previewEl.innerHTML = '';
 
     const modal = document.getElementById('hopping-details-modal');
     document.getElementById('hd-img').src = img;
@@ -964,14 +793,9 @@ window.openGenericHoppingGallery = (event, startHopId, cacheKey) => {
 
     // Message/Comment Logic
     const panel = document.getElementById('hd-comments-panel');
-    const list = document.getElementById('hd-comments-list');
     const input = document.getElementById('hd-comment-input');
     const submit = document.getElementById('hd-comment-submit');
-    const previewEl = document.getElementById('hd-comments-preview');
-
-    // Clear previous state immediately
-    if (list) list.innerHTML = '<div style="text-align: center; color: #888; font-size: 0.9rem; margin-top: 20px;">Loading...</div>';
-    if (previewEl) previewEl.innerHTML = '';
+    const list = document.getElementById('hd-comments-list'); // Re-select or use checking
 
     // Define Fetch Function
     const fetchComments = async () => {
