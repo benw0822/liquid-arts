@@ -1324,7 +1324,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const customIcon = L.divIcon({
                     className: 'custom-div-icon',
-                    html: `< div style = "width: 24px; height: 24px; background: #ef4444; border: 3px solid white; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3);" ></div > `,
+                    html: `<div style="width: 24px; height: 24px; background: #ef4444; border: 3px solid white; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
                     iconSize: [24, 24],
                     iconAnchor: [12, 12]
                 });
