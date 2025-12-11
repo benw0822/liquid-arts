@@ -566,8 +566,7 @@
                         const timeAgo = new Date(c.created_at).toLocaleDateString(); // Simplify for now
 
                         return `
-                                <div onclick="window.openGenericHoppingGallery(event, '${hop.id}', 'myHopsCache', true)" 
-                                    style="background: white; padding: 12px; border-radius: 12px; border: 1px solid #eee; display: flex; gap: 12px; align-items: start; cursor: pointer; transition: background 0.2s;">
+                                <div style="background: white; padding: 12px; border-radius: 12px; border: 1px solid #eee; display: flex; gap: 12px; align-items: start; transition: background 0.2s;">
                                     
                                     <!-- Sender Avatar -->
                                     <img src="${avatar}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid #eee; margin-top: 2px;">
@@ -578,13 +577,24 @@
                                             <span style="font-size: 0.8rem; color: #777;">@ ${hop.bars?.title || 'Unknown Bar'}</span>
                                             <span style="font-size: 0.75rem; color: #aaa;">• ${timeAgo}</span>
                                         </div>
-                                        <div style="font-size: 0.9rem; color: #555; line-height: 1.4;">
+                                        <div onclick="window.openGenericHoppingGallery(event, '${hop.id}', 'myHopsCache', true)" 
+                                             style="font-size: 0.9rem; color: #555; line-height: 1.4; cursor: pointer; margin-bottom: 8px;">
                                             ${c.content}
+                                        </div>
+
+                                        <!-- Actions -->
+                                        <div style="display: flex; gap: 10px;">
+                                            <button onclick="window.openReplyModal('${hop.id}', '${name.replace(/'/g, "\\'")}')" 
+                                                style="background: #f0f0f0; border: none; padding: 4px 12px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; color: #555; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"></polyline><path d="M20 18v-2a4 4 0 0 0-4-4H4"></path></svg>
+                                                Reply
+                                            </button>
                                         </div>
                                     </div>
 
                                     <!-- Hop Thumbnail -->
-                                    <img src="${hop.image_url}" style="width: 48px; height: 48px; border-radius: 8px; object-fit: cover;">
+                                    <img src="${hop.image_url}" onclick="window.openGenericHoppingGallery(event, '${hop.id}', 'myHopsCache', true)" 
+                                         style="width: 48px; height: 48px; border-radius: 8px; object-fit: cover; cursor: pointer;">
                                 </div>
                             `;
                     }).join('');
@@ -597,6 +607,47 @@
                     date: new Date(hop.hopped_at),
                     data: hop
                 }));
+            };
+
+            // Reply Modal Logic
+            let currentReplyHopId = null;
+            window.openReplyModal = (hopId, name) => {
+                currentReplyHopId = hopId;
+                document.getElementById('reply-target-name').textContent = name;
+                document.getElementById('reply-input').value = '';
+                document.getElementById('reply-modal').style.display = 'flex';
+            };
+
+            window.sendReply = async () => {
+                const content = document.getElementById('reply-input').value.trim();
+                if (!content) return;
+
+                if (!currentReplyHopId) return;
+
+                const btn = document.querySelector('#reply-modal .btn-submit-hop');
+                const originalText = btn.textContent;
+                btn.textContent = 'Sending...';
+                btn.disabled = true;
+
+                const { error } = await window.supabaseClient
+                    .from('hopping_comments')
+                    .insert([
+                        {
+                            hopping_id: currentReplyHopId,
+                            user_id: user.id,
+                            content: content
+                        }
+                    ]);
+
+                if (error) {
+                    alert('Failed to send reply: ' + error.message);
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                } else {
+                    alert('Reply sent!');
+                    document.getElementById('reply-modal').style.display = 'none';
+                    window.location.reload(); // Reload to refresh list
+                }
             };
 
             // End re-define
