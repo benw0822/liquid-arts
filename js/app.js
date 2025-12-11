@@ -812,7 +812,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         
                         <!-- Section Title -->
                         <h3 style="font-family: 'Playfair Display', serif; font-size: 1rem; letter-spacing: 3px; color: white; margin-bottom: 2rem; text-transform: uppercase; opacity: 0.9;">
-                            MEET TALENT
+                            Talent
                         </h3>
 
                         <!-- Image Component (Scaled Down) -->
@@ -861,7 +861,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                             <div style="width: 100%; height: 1px; background: rgba(255,255,255,0.3); margin: 1.5rem auto 2rem auto;"></div>
 
-                            <a href="talent.html?id=${talent.user_id}" style="display: inline-block; padding: 10px 24px; background: white; color: var(--bg-red); border-radius: 30px; text-decoration: none; font-size: 0.9rem; font-weight: 700; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                            <a href="talent.html?id=${talent.id}" style="display: inline-block; padding: 10px 24px; background: white; color: var(--bg-red); border-radius: 30px; text-decoration: none; font-size: 0.9rem; font-weight: 700; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                                 View Profile
                             </a>
                         </div>
