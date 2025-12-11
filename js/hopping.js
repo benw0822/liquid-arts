@@ -322,15 +322,15 @@ window.openHoppingModal = (barId) => {
     modal.style.display = 'flex';
 };
 
-// Helper: Fetch recent hoppings for a bar (Max 3)
-window.fetchRecentHoppings = async (barId) => {
+// Helper: Fetch recent hoppings for a bar
+window.fetchRecentHoppings = async (barId, limit = 5) => {
     const { data } = await window.supabaseClient
         .from('hoppings')
         .select('*')
         .eq('bar_id', barId)
         .eq('is_public', true)
         .order('hopped_at', { ascending: false })
-        .limit(5);
+        .limit(limit);
     return data;
 };
 

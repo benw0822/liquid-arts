@@ -778,7 +778,49 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         }
 
-        // --- Editorial Review --- (Merged into HTML structure below)
+        // --- Hopping Card (New) ---
+        let hoppingCardHtml = '';
+        if (window.fetchRecentHoppings) {
+            // Fetch 8 recent hops
+            const hops = await window.fetchRecentHoppings(bar.id, 8);
+            if (hops && hops.length > 0) {
+                // Cache for gallery
+                window.barHoppingsCache = window.barHoppingsCache || {};
+                window.barHoppingsCache[bar.id] = hops;
+
+                hoppingCardHtml = `
+                    <div class="grid-item content-card" style="margin-bottom: 30px; text-align: center;">
+                        <h3 class="section-title">Community Hops</h3>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 1.5rem;">
+                            ${hops.map(hop => `
+                                <div style="aspect-ratio: 1/1; border-radius: 4px; overflow: hidden; cursor: pointer; position: relative;"
+                                     onclick="window.openHoppingGallery(event, '${hop.id}', '${bar.id}')">
+                                    <img src="${hop.image_url}" style="width: 100%; height: 100%; object-fit: cover;">
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        <button onclick="window.openHoppingModal(${bar.id})" class="btn" style="background-color: var(--bg-red); color: white; border: none; padding: 10px 24px; border-radius: 30px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4); transition: transform 0.2s;">
+                            <span style="font-size: 1.2rem;">📷</span> HOP HERE !
+                        </button>
+                    </div>
+                `;
+            } else {
+                // Empty State
+                hoppingCardHtml = `
+                    <div class="grid-item content-card" style="margin-bottom: 30px; text-align: center;">
+                        <h3 class="section-title">Community Hops</h3>
+                        <p style="color: #888; margin-bottom: 1.5rem; font-style: italic;">Be the first to Hop here!</p>
+                        <button onclick="window.openHoppingModal(${bar.id})" class="btn" style="background-color: var(--bg-red); color: white; border: none; padding: 10px 24px; border-radius: 30px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4); transition: transform 0.2s;">
+                            <span style="font-size: 1.2rem;">📷</span> HOP HERE !
+                        </button>
+                    </div>
+                 `;
+            }
+        }
+
+        // --- Editorial Review ---
 
         // --- Signatures ---
         let signaturesHtml = '';
@@ -947,8 +989,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             ${bar.website_url ? `<a href="${bar.website_url}" target="_blank" class="btn btn-primary" style="font-size: 0.9rem; padding: 8px 16px;">Book Now</a>` : ''}
                         </div>
                     </div>
+
+                    <!-- 6. Hopping Card (New) -->
+                    ${hoppingCardHtml}
                     
-                    <!-- 6. Signatures (If any, wrap as grid item) -->
+                    <!-- 7. Signatures (If any, wrap as grid item) -->
                     ${signaturesHtml ? `<div class="grid-item" style="width:100%; margin-bottom:30px;">${signaturesHtml}</div>` : ''}
 
                     <!-- 7. Articles (If any) -->
@@ -1105,6 +1150,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 ${bar.website_url ? `<a href="${bar.website_url}" target="_blank" class="btn btn-primary" style="font-size: 0.9rem; padding: 8px 16px;">Book Now</a>` : ''}
                             </div>
                         </div>
+
+                        ${hoppingCardHtml}
     
                         ${signaturesHtml}
                         
