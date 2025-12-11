@@ -551,11 +551,21 @@
                             ` : '';
 
                             // Onclick: Stop propagation and open with comments=true
-                            // Note: We need to escape arguments for onclick properly. Best to use single quotes for JS and double for HTML.
-                            const descEsc = hop.description ? hop.description.replace(/'/g, "\\'") : '';
+                            const escapeForJs = (str) => {
+                                if (!str) return '';
+                                return str
+                                    .replace(/\\/g, '\\\\') // Backslash first
+                                    .replace(/'/g, "\\'")   // Single quotes
+                                    .replace(/"/g, '&quot;') // Double quotes (HTML attribute safety)
+                                    .replace(/\n/g, '\\n')  // Newlines
+                                    .replace(/\r/g, '');
+                            };
+
+                            const descEsc = escapeForJs(hop.description);
+                            const barTitleEsc = escapeForJs(bar.title);
 
                             overlayHtml = `
-                                <div onclick="event.stopPropagation(); window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', '${hop.rating}', '${descEsc}', '${hop.id}', '${hop.user_id}', false, '${bar.title ? bar.title.replace(/'/g, "\\'") : ''}', '${bar.id || ''}', true)" style="position: absolute; top: 15px; left: 15px; z-index: 55; display: flex; flex-direction: column; align-items: flex-start; max-width: 60%; cursor: pointer;">
+                                <div onclick="event.stopPropagation(); window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', '${hop.rating}', '${descEsc}', '${hop.id}', '${hop.user_id}', false, '${barTitleEsc}', '${bar.id || ''}', true)" style="position: absolute; top: 15px; left: 15px; z-index: 55; display: flex; flex-direction: column; align-items: flex-start; max-width: 60%; cursor: pointer;">
                                     ${itemsHtml}
                                     ${badgeHtml}
                                 </div>
