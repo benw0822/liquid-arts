@@ -1955,3 +1955,24 @@ figure.article-figure figcaption {
         transform: rotate(0deg);
     }
 }
+/* --- Poster Style Components --- */
+.poster-image-container {
+    width: 320px;
+    height: 320px;
+}
+
+#featured-talent-name {
+    font-size: 5rem;
+}
+
+/* Media Query for Mobile */
+@media (max-width: 768px) {
+    .poster-image-container {
+        width: 240px !important;
+        height: 240px !important;
+    }
+
+    #featured-talent-name {
+        font-size: 3.5rem !important;
+    }
+}
