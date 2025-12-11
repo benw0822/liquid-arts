@@ -150,7 +150,7 @@ window.initTalentPage = async () => {
 
             const { data: hops, error: hopsError } = await window.supabaseClient
                 .from('hoppings')
-                .select('*')
+                .select('*, hopping_cheers(count)')
                 .eq('user_id', talent.user_id)
                 .eq('is_public', true) // Only show public hops
                 .order('hopped_at', { ascending: false });
@@ -256,18 +256,12 @@ window.initTalentPage = async () => {
                             `;
                         }
 
-                        // Prepare Profile Overlay Data
-                        // The hopper is the TALENT.
-                        const displayName = talent.hopper_nickname || talent.name || 'Anonymous Hopper';
-                        const displayAvatar = talent.hopper_image_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(displayName) + '&background=random';
-                        let roleLabel = 'Hopper';
-                        // Reuse logic or simplfy for talent page (It is THE talent page)
-                        if (talent.roles && talent.roles.includes('talent')) roleLabel = 'Talent'; // Likely
-                        else if (talent.roles && talent.roles.includes('admin')) roleLabel = 'Admin';
+                        // Prepare Cheers Count
+                        const cheersCount = (hop.hopping_cheers && hop.hopping_cheers[0]) ? hop.hopping_cheers[0].count : 0;
 
                         return `
                         <!-- Reusing Hop Detail Card Structure -->
-                        <div class="hop-detail-card" onclick="window.openGenericHoppingGallery(event, '${hop.id}', 'talentHoppingsCache')" style="width: 100%; height: auto; margin-bottom: 2rem; box-shadow: 0 4px 15px rgba(0,0,0,0.1); cursor: pointer; border-radius: 8px; overflow: hidden; background: #fff; position: relative; display: flex; flex-direction: column;">
+                        <div class="hop-detail-card" onclick="window.openGenericHoppingGallery(event, '${hop.id}', 'talentHoppingsCache')" style="width: 100%; height: auto; margin-bottom: 3rem; box-shadow: 0 4px 15px rgba(0,0,0,0.1); cursor: pointer; border-radius: 8px; overflow: hidden; background: #fff; position: relative; display: flex; flex-direction: column;">
                              
                              <div class="hop-detail-image-wrapper" style="position: relative; width: 100%; aspect-ratio: 1/1; overflow: hidden;">
                                 <img class="hop-detail-image" src="${hop.image_url}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s;">
@@ -275,10 +269,26 @@ window.initTalentPage = async () => {
                                 ${overlayHtml}
                                 
                                 <!-- Hopper Profile Overlay (Matching Modal) -->
-                                <div class="hopper-profile-container" style="display: flex;">
+                                <div class="hopper-profile-container" style="display: flex; flex-direction: column; align-items: center;">
                                     <img class="hopper-avatar" src="${displayAvatar}" alt="Hopper">
                                     <span class="hopper-name">${displayName}</span>
                                     <span class="hopper-role">${roleLabel}</span>
+
+                                    <!-- Interaction Buttons (Added) -->
+                                    <div class="hop-interactions">
+                                        <button class="btn-interaction" onclick="event.stopPropagation(); window.showHoppingDetails(null, '${hop.image_url}', '${hop.hopped_at}', '${hop.rating}', '${descEsc}', '${hop.id}', '${hop.user_id}', false, '${escapeForJs(bar.title)}', '${bar.id}', false)">
+                                            <svg class="interaction-icon cheers-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M8 22h8" class="glass-base"/>
+                                                <path d="M12 11v11" class="glass-stem"/>
+                                                <path d="M5 4h14l-7 7-7-7z" class="glass-bowl-outline"/>
+                                                <path d="M6 5h12l-6 6-6-6z" class="cheers-liquid" fill="currentColor" stroke="none" />
+                                            </svg>
+                                            <span>${cheersCount}</span>
+                                        </button>
+                                        <button class="btn-interaction" onclick="event.stopPropagation(); window.showHoppingDetails(null, '${hop.image_url}', '${hop.hopped_at}', '${hop.rating}', '${descEsc}', '${hop.id}', '${hop.user_id}', false, '${escapeForJs(bar.title)}', '${bar.id}', true)">
+                                            <svg class="interaction-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <!-- Bar Title Pill (Bottom Right) -->
@@ -289,7 +299,8 @@ window.initTalentPage = async () => {
                                 ` : ''}
                              </div>
                              
-                             <div class="hop-detail-content" style="padding: 1.5rem; text-align: left;">
+                             <div class="hop-detail-content" style="padding: 1.5rem; text-align: left; padding-top: 8rem;"> 
+                                <!-- Increased top padding to accommodate hanging profile & buttons -->
                                 <div class="hop-detail-stars">${stars}</div>
                                 <span class="hop-detail-date">${dateStr}</span>
                                 ${hop.description ? `<div class="hop-detail-desc" style="max-height: none; -webkit-line-clamp: 3; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden;">"${hop.description}"</div>` : ''}
