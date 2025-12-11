@@ -461,86 +461,87 @@ window.openHoppingGallery = (event, startHopId, barId) => {
     };
 
     renderCurrent();
-    // Open Generic Gallery (From any cache source)
-    window.openGenericHoppingGallery = (event, startHopId, cacheKey) => {
-        if (event) { event.preventDefault(); event.stopPropagation(); }
+}; // End of openHoppingGallery
+// Open Generic Gallery (From any cache source)
+window.openGenericHoppingGallery = (event, startHopId, cacheKey) => {
+    if (event) { event.preventDefault(); event.stopPropagation(); }
 
-        const hops = window[cacheKey]; // Access Global Cache dynamically
-        if (!hops || hops.length === 0) return;
+    const hops = window[cacheKey]; // Access Global Cache dynamically
+    if (!hops || hops.length === 0) return;
 
-        let currentIndex = hops.findIndex(h => h.id == startHopId);
-        if (currentIndex === -1) currentIndex = 0;
+    let currentIndex = hops.findIndex(h => h.id == startHopId);
+    if (currentIndex === -1) currentIndex = 0;
 
-        const renderCurrent = () => {
-            const hop = hops[currentIndex];
-            // Pass bar info if available in the hop object
-            window.showHoppingDetails(null, hop.image_url, hop.hopped_at, hop.rating, hop.description, hop.id, hop.user_id, true, hop.bar_title, hop.bar_id);
-            updateGenericNavigationUI();
-        };
-
-        const updateGenericNavigationUI = () => {
-            const modal = document.getElementById('hopping-details-modal');
-            if (!modal) return;
-
-            let prevBtn = document.getElementById('hd-prev-btn');
-            let nextBtn = document.getElementById('hd-next-btn');
-
-            // Reuse existing arrow creation logic or ensure they exist
-            // (Assuming standard arrow creation is handled inside showHoppingDetails if missing, OR we can copy the logic here)
-            // Ideally, showHoppingDetails creates the modal structure, but arrows are added dynamically.
-            // Let's ensure they exist here for robustness.
-
-            const wrapper = modal.querySelector('.hop-detail-image-wrapper');
-            const arrowStyle = 'position: absolute; top: 50%; transform: translateY(-50%); background: transparent; color: #ef4444; border: none; padding: 20px; cursor: pointer; font-size: 2.5rem; z-index: 50; transition: transform 0.2s; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));';
-
-            if (!prevBtn) {
-                prevBtn = document.createElement('button');
-                prevBtn.id = 'hd-prev-btn';
-                prevBtn.innerHTML = '&#10094;';
-                prevBtn.style.cssText = arrowStyle + 'left: 0;';
-                wrapper.appendChild(prevBtn);
-            }
-            if (!nextBtn) {
-                nextBtn = document.createElement('button');
-                nextBtn.id = 'hd-next-btn';
-                nextBtn.innerHTML = '&#10095;';
-                nextBtn.style.cssText = arrowStyle + 'right: 0;';
-                wrapper.appendChild(nextBtn);
-            }
-
-            prevBtn.style.display = hops.length > 1 ? 'block' : 'none';
-            nextBtn.style.display = hops.length > 1 ? 'block' : 'none';
-
-            // Rebind events (Generic)
-            prevBtn.onclick = (e) => { e.stopPropagation(); currentIndex = (currentIndex - 1 + hops.length) % hops.length; renderCurrent(); };
-            nextBtn.onclick = (e) => { e.stopPropagation(); currentIndex = (currentIndex + 1) % hops.length; renderCurrent(); };
-
-            // Touch Swipe Reuse (Simplified)
-            let touchStartX = 0;
-            modal.ontouchstart = (e) => { touchStartX = e.touches[0].clientX; };
-            modal.ontouchend = (e) => {
-                if (Math.abs(e.changedTouches[0].clientX - touchStartX) > 50) {
-                    if (e.changedTouches[0].clientX < touchStartX) { currentIndex = (currentIndex + 1) % hops.length; } // Next
-                    else { currentIndex = (currentIndex - 1 + hops.length) % hops.length; } // Prev
-                    renderCurrent();
-                }
-            };
-        };
-
-        renderCurrent();
+    const renderCurrent = () => {
+        const hop = hops[currentIndex];
+        // Pass bar info if available in the hop object
+        window.showHoppingDetails(null, hop.image_url, hop.hopped_at, hop.rating, hop.description, hop.id, hop.user_id, true, hop.bar_title, hop.bar_id);
+        updateGenericNavigationUI();
     };
 
+    const updateGenericNavigationUI = () => {
+        const modal = document.getElementById('hopping-details-modal');
+        if (!modal) return;
 
-    // Show Details Modal (Modified for HopCard + Delete)
-    window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null, ownerId = null, internal = false, barName = null, barId = null) => {
-        if (event) { event.preventDefault(); event.stopPropagation(); }
+        let prevBtn = document.getElementById('hd-prev-btn');
+        let nextBtn = document.getElementById('hd-next-btn');
 
-        // Lock Body Scroll
-        document.body.style.overflow = 'hidden';
+        // Reuse existing arrow creation logic or ensure they exist
+        // (Assuming standard arrow creation is handled inside showHoppingDetails if missing, OR we can copy the logic here)
+        // Ideally, showHoppingDetails creates the modal structure, but arrows are added dynamically.
+        // Let's ensure they exist here for robustness.
 
-        // Create Modal if not exists (Lazy Load)
-        if (!document.getElementById('hopping-details-modal')) {
-            const html = `
+        const wrapper = modal.querySelector('.hop-detail-image-wrapper');
+        const arrowStyle = 'position: absolute; top: 50%; transform: translateY(-50%); background: transparent; color: #ef4444; border: none; padding: 20px; cursor: pointer; font-size: 2.5rem; z-index: 50; transition: transform 0.2s; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));';
+
+        if (!prevBtn) {
+            prevBtn = document.createElement('button');
+            prevBtn.id = 'hd-prev-btn';
+            prevBtn.innerHTML = '&#10094;';
+            prevBtn.style.cssText = arrowStyle + 'left: 0;';
+            wrapper.appendChild(prevBtn);
+        }
+        if (!nextBtn) {
+            nextBtn = document.createElement('button');
+            nextBtn.id = 'hd-next-btn';
+            nextBtn.innerHTML = '&#10095;';
+            nextBtn.style.cssText = arrowStyle + 'right: 0;';
+            wrapper.appendChild(nextBtn);
+        }
+
+        prevBtn.style.display = hops.length > 1 ? 'block' : 'none';
+        nextBtn.style.display = hops.length > 1 ? 'block' : 'none';
+
+        // Rebind events (Generic)
+        prevBtn.onclick = (e) => { e.stopPropagation(); currentIndex = (currentIndex - 1 + hops.length) % hops.length; renderCurrent(); };
+        nextBtn.onclick = (e) => { e.stopPropagation(); currentIndex = (currentIndex + 1) % hops.length; renderCurrent(); };
+
+        // Touch Swipe Reuse (Simplified)
+        let touchStartX = 0;
+        modal.ontouchstart = (e) => { touchStartX = e.touches[0].clientX; };
+        modal.ontouchend = (e) => {
+            if (Math.abs(e.changedTouches[0].clientX - touchStartX) > 50) {
+                if (e.changedTouches[0].clientX < touchStartX) { currentIndex = (currentIndex + 1) % hops.length; } // Next
+                else { currentIndex = (currentIndex - 1 + hops.length) % hops.length; } // Prev
+                renderCurrent();
+            }
+        };
+    };
+
+    renderCurrent();
+};
+
+
+// Show Details Modal (Modified for HopCard + Delete)
+window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null, ownerId = null, internal = false, barName = null, barId = null) => {
+    if (event) { event.preventDefault(); event.stopPropagation(); }
+
+    // Lock Body Scroll
+    document.body.style.overflow = 'hidden';
+
+    // Create Modal if not exists (Lazy Load)
+    if (!document.getElementById('hopping-details-modal')) {
+        const html = `
         <div id="hopping-details-modal" class="hopping-modal-overlay" style="z-index: 9999;">
             <div class="hop-detail-card" onclick="event.stopPropagation()">
                 <div class="hop-detail-image-wrapper">
@@ -577,87 +578,87 @@ window.openHoppingGallery = (event, startHopId, barId) => {
             </div>
         </div>
         `;
-            document.body.insertAdjacentHTML('beforeend', html);
+        document.body.insertAdjacentHTML('beforeend', html);
 
-            // Close on BG click
-            const modalEl = document.getElementById('hopping-details-modal');
-            modalEl.onclick = (e) => {
-                if (e.target.id === 'hopping-details-modal') window.closeHoppingDetails();
-            };
-        }
-
-        // Define Close Function Globally within scope or attached to window
-        window.closeHoppingDetails = () => {
-            const m = document.getElementById('hopping-details-modal');
-            if (m) m.style.display = 'none';
-            document.body.style.overflow = ''; // Unlock Scroll
+        // Close on BG click
+        const modalEl = document.getElementById('hopping-details-modal');
+        modalEl.onclick = (e) => {
+            if (e.target.id === 'hopping-details-modal') window.closeHoppingDetails();
         };
+    }
 
-        const modal = document.getElementById('hopping-details-modal');
-        document.getElementById('hd-img').src = img;
+    // Define Close Function Globally within scope or attached to window
+    window.closeHoppingDetails = () => {
+        const m = document.getElementById('hopping-details-modal');
+        if (m) m.style.display = 'none';
+        document.body.style.overflow = ''; // Unlock Scroll
+    };
 
-        // Reset arrows if not internal (single view)
-        if (!internal) {
-            const prev = document.getElementById('hd-prev-btn');
-            const next = document.getElementById('hd-next-btn');
-            if (prev) prev.style.display = 'none';
-            if (next) next.style.display = 'none';
-            modal.ontouchstart = null;
-            modal.ontouchmove = null;
-            modal.ontouchend = null;
-        }
+    const modal = document.getElementById('hopping-details-modal');
+    document.getElementById('hd-img').src = img;
 
-        // Set Bar Link
-        const barLink = document.getElementById('hd-bar-link');
-        const barNameEl = document.getElementById('hd-bar-name');
-        if (barName && barId) {
-            barNameEl.textContent = barName;
-            barLink.href = `bar-details.html?id=${barId}`;
-            barLink.style.display = 'flex';
-        } else {
-            barLink.style.display = 'none';
-        }
+    // Reset arrows if not internal (single view)
+    if (!internal) {
+        const prev = document.getElementById('hd-prev-btn');
+        const next = document.getElementById('hd-next-btn');
+        if (prev) prev.style.display = 'none';
+        if (next) next.style.display = 'none';
+        modal.ontouchstart = null;
+        modal.ontouchmove = null;
+        modal.ontouchend = null;
+    }
 
-        // Format Date: "OCT 24, 2023"
-        const dateObj = new Date(date);
-        const dateString = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-        const timeString = dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-        document.getElementById('hd-date').textContent = `${dateString} • ${timeString}`;
+    // Set Bar Link
+    const barLink = document.getElementById('hd-bar-link');
+    const barNameEl = document.getElementById('hd-bar-name');
+    if (barName && barId) {
+        barNameEl.textContent = barName;
+        barLink.href = `bar-details.html?id=${barId}`;
+        barLink.style.display = 'flex';
+    } else {
+        barLink.style.display = 'none';
+    }
 
-        document.getElementById('hd-rating').textContent = '★'.repeat(parseInt(rating)) + '☆'.repeat(5 - parseInt(rating));
-        document.getElementById('hd-desc').textContent = (!desc || desc === 'null' || desc === 'undefined') ? '' : desc;
+    // Format Date: "OCT 24, 2023"
+    const dateObj = new Date(date);
+    const dateString = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const timeString = dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    document.getElementById('hd-date').textContent = `${dateString} • ${timeString}`;
 
-        // Fetch and Display Hopper Profile
-        const profileContainer = document.getElementById('hd-hopper-profile');
-        const avatarEl = document.getElementById('hd-hopper-avatar');
-        const nameEl = document.getElementById('hd-hopper-name');
-        const roleEl = document.getElementById('hd-hopper-role');
+    document.getElementById('hd-rating').textContent = '★'.repeat(parseInt(rating)) + '☆'.repeat(5 - parseInt(rating));
+    document.getElementById('hd-desc').textContent = (!desc || desc === 'null' || desc === 'undefined') ? '' : desc;
 
-        // Hide initially
-        profileContainer.style.display = 'none';
+    // Fetch and Display Hopper Profile
+    const profileContainer = document.getElementById('hd-hopper-profile');
+    const avatarEl = document.getElementById('hd-hopper-avatar');
+    const nameEl = document.getElementById('hd-hopper-name');
+    const roleEl = document.getElementById('hd-hopper-role');
 
-        // Interaction Buttons Container Injection
-        // Check if it exists from previous calls to avoid duplicates if we don't clear innerHTML
-        // Note: We are replacing 'hopping-details-modal' inner content fully on lazy load, but reusing if exists.
-        // However, the buttons need to be inside specific containers or appended.
-        // Let's check if .hop-interactions exists in profileContainer or append it.
+    // Hide initially
+    profileContainer.style.display = 'none';
 
-        // Actually, simpler to ensure we have the container in the generic HTML template, 
-        // BUT since I am editing the template string in a separate chunk (or previous step),
-        // and this function runs EVERY time, I should dynamically add/update it here or modify the initial template creation.
-        // I will modify the initial template creation block via a separate tool call if needed, 
-        // BUT since I am in `showHoppingDetails`, I can check `hd-interactions` existence.
+    // Interaction Buttons Container Injection
+    // Check if it exists from previous calls to avoid duplicates if we don't clear innerHTML
+    // Note: We are replacing 'hopping-details-modal' inner content fully on lazy load, but reusing if exists.
+    // However, the buttons need to be inside specific containers or appended.
+    // Let's check if .hop-interactions exists in profileContainer or append it.
 
-        let interactionContainer = document.getElementById('hd-interactions');
-        if (!interactionContainer) {
-            interactionContainer = document.createElement('div');
-            interactionContainer.id = 'hd-interactions';
-            interactionContainer.className = 'hop-interactions';
-            // Append to profile container so it sits below name
-            profileContainer.appendChild(interactionContainer);
-        }
-        // Reset Buttons
-        interactionContainer.innerHTML = `
+    // Actually, simpler to ensure we have the container in the generic HTML template, 
+    // BUT since I am editing the template string in a separate chunk (or previous step),
+    // and this function runs EVERY time, I should dynamically add/update it here or modify the initial template creation.
+    // I will modify the initial template creation block via a separate tool call if needed, 
+    // BUT since I am in `showHoppingDetails`, I can check `hd-interactions` existence.
+
+    let interactionContainer = document.getElementById('hd-interactions');
+    if (!interactionContainer) {
+        interactionContainer = document.createElement('div');
+        interactionContainer.id = 'hd-interactions';
+        interactionContainer.className = 'hop-interactions';
+        // Append to profile container so it sits below name
+        profileContainer.appendChild(interactionContainer);
+    }
+    // Reset Buttons
+    interactionContainer.innerHTML = `
         <button id="btn-cheers" class="btn-interaction">
             <svg class="interaction-icon cheers-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <!-- Cocktail Glass Outline -->
@@ -674,144 +675,144 @@ window.openHoppingGallery = (event, startHopId, barId) => {
         </button>
     `;
 
-        if (ownerId) {
-            try {
-                const { data: userData, error } = await window.supabaseClient
-                    .from('users')
-                    .select('name, hopper_nickname, hopper_image_url, roles')
-                    .eq('id', ownerId)
-                    .single();
+    if (ownerId) {
+        try {
+            const { data: userData, error } = await window.supabaseClient
+                .from('users')
+                .select('name, hopper_nickname, hopper_image_url, roles')
+                .eq('id', ownerId)
+                .single();
 
-                if (userData && !error) {
-                    // Determine Name: Hopper Nickname > Name > Anonymous
-                    const displayName = userData.hopper_nickname || userData.name || 'Anonymous Hopper';
-                    // Determine Avatar: Hopper Image > Default Placeholder
-                    const displayAvatar = userData.hopper_image_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(displayName) + '&background=random';
+            if (userData && !error) {
+                // Determine Name: Hopper Nickname > Name > Anonymous
+                const displayName = userData.hopper_nickname || userData.name || 'Anonymous Hopper';
+                // Determine Avatar: Hopper Image > Default Placeholder
+                const displayAvatar = userData.hopper_image_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(displayName) + '&background=random';
 
-                    nameEl.textContent = displayName;
-                    avatarEl.src = displayAvatar;
+                nameEl.textContent = displayName;
+                avatarEl.src = displayAvatar;
 
-                    // Determine Role Label
-                    let roleLabel = 'Hopper'; // Default
-                    if (userData.roles && Array.isArray(userData.roles)) {
-                        if (userData.roles.includes('admin')) roleLabel = 'Admin';
-                        else if (userData.roles.includes('editor')) roleLabel = 'Editor';
-                        else if (userData.roles.includes('talent')) roleLabel = 'Talent';
-                        else if (userData.roles.includes('kol')) roleLabel = 'Hoppest';
-                        else if (userData.roles.includes('member')) roleLabel = 'Hopper';
-                    }
-
-                    if (roleEl) roleEl.textContent = roleLabel;
-
-                    profileContainer.style.display = 'flex'; // Show container
+                // Determine Role Label
+                let roleLabel = 'Hopper'; // Default
+                if (userData.roles && Array.isArray(userData.roles)) {
+                    if (userData.roles.includes('admin')) roleLabel = 'Admin';
+                    else if (userData.roles.includes('editor')) roleLabel = 'Editor';
+                    else if (userData.roles.includes('talent')) roleLabel = 'Talent';
+                    else if (userData.roles.includes('kol')) roleLabel = 'Hoppest';
+                    else if (userData.roles.includes('member')) roleLabel = 'Hopper';
                 }
-            } catch (err) {
-                console.warn('Error fetching hopper profile:', err);
+
+                if (roleEl) roleEl.textContent = roleLabel;
+
+                profileContainer.style.display = 'flex'; // Show container
             }
+        } catch (err) {
+            console.warn('Error fetching hopper profile:', err);
         }
+    }
 
-        // Cheers Logic
-        const cheersBtn = document.getElementById('btn-cheers');
-        const cheersCountEl = document.getElementById('cheers-count');
-        const msgBtn = document.getElementById('btn-message');
+    // Cheers Logic
+    const cheersBtn = document.getElementById('btn-cheers');
+    const cheersCountEl = document.getElementById('cheers-count');
+    const msgBtn = document.getElementById('btn-message');
 
-        if (hopId) {
-            // Fetch Cheers Count
-            const { count, error: countErr } = await window.supabaseClient
+    if (hopId) {
+        // Fetch Cheers Count
+        const { count, error: countErr } = await window.supabaseClient
+            .from('hopping_cheers')
+            .select('*', { count: 'exact', head: true })
+            .eq('hopping_id', hopId);
+
+        if (!countErr) cheersCountEl.textContent = count;
+
+        // Check if I cheered
+        if (window.currentUser) {
+            const { data: myCheer } = await window.supabaseClient
                 .from('hopping_cheers')
-                .select('*', { count: 'exact', head: true })
-                .eq('hopping_id', hopId);
+                .select('id')
+                .eq('hopping_id', hopId)
+                .eq('user_id', window.currentUser.id)
+                .single();
 
-            if (!countErr) cheersCountEl.textContent = count;
+            if (myCheer) {
+                cheersBtn.classList.add('active');
+            }
 
-            // Check if I cheered
-            if (window.currentUser) {
-                const { data: myCheer } = await window.supabaseClient
-                    .from('hopping_cheers')
-                    .select('id')
-                    .eq('hopping_id', hopId)
-                    .eq('user_id', window.currentUser.id)
-                    .single();
+            // Click Handler
+            cheersBtn.onclick = async (e) => {
+                e.stopPropagation();
+                if (!window.currentUser) { alert('Please login to Cheers!'); return; }
 
-                if (myCheer) {
-                    cheersBtn.classList.add('active');
-                }
+                // Toggle
+                const isActive = cheersBtn.classList.contains('active');
+                if (isActive) {
+                    // Already Cheered - Do Nothing/Alert
+                    // alert('You have already cheered!');
+                    return;
+                } else {
+                    // Add Cheer
+                    // Simply adding 'active' class triggers the CSS fill animation
+                    const { error } = await window.supabaseClient
+                        .from('hopping_cheers')
+                        .insert([{ hopping_id: hopId, user_id: window.currentUser.id }]);
 
-                // Click Handler
-                cheersBtn.onclick = async (e) => {
-                    e.stopPropagation();
-                    if (!window.currentUser) { alert('Please login to Cheers!'); return; }
-
-                    // Toggle
-                    const isActive = cheersBtn.classList.contains('active');
-                    if (isActive) {
-                        // Already Cheered - Do Nothing/Alert
-                        // alert('You have already cheered!');
-                        return;
-                    } else {
-                        // Add Cheer
-                        // Simply adding 'active' class triggers the CSS fill animation
-                        const { error } = await window.supabaseClient
-                            .from('hopping_cheers')
-                            .insert([{ hopping_id: hopId, user_id: window.currentUser.id }]);
-
-                        if (!error) {
-                            cheersBtn.classList.add('active');
-                            cheersCountEl.textContent = parseInt(cheersCountEl.textContent) + 1;
-                        }
+                    if (!error) {
+                        cheersBtn.classList.add('active');
+                        cheersCountEl.textContent = parseInt(cheersCountEl.textContent) + 1;
                     }
-                };
+                }
+            };
+        }
+    }
+
+    // Message Logic
+    msgBtn.onclick = (e) => {
+        e.stopPropagation();
+        alert('Messaging feature coming soon! / 訊息功能即將推出！');
+    };
+
+    // Delete Button Logic
+    const deleteBtn = document.getElementById('hd-delete-btn');
+    if (hopId && window.currentUser) {
+        let canDelete = window.currentUser.id === ownerId;
+
+        // Check if Admin (Async check)
+        if (!canDelete) {
+            try {
+                const { data: dbUser } = await window.supabaseClient.from('users').select('roles').eq('id', window.currentUser.id).single();
+                if (dbUser && dbUser.roles && dbUser.roles.includes('admin')) canDelete = true;
+            } catch (e) {
+                console.warn('Admin check failed:', e);
             }
         }
 
-        // Message Logic
-        msgBtn.onclick = (e) => {
-            e.stopPropagation();
-            alert('Messaging feature coming soon! / 訊息功能即將推出！');
-        };
-
-        // Delete Button Logic
-        const deleteBtn = document.getElementById('hd-delete-btn');
-        if (hopId && window.currentUser) {
-            let canDelete = window.currentUser.id === ownerId;
-
-            // Check if Admin (Async check)
-            if (!canDelete) {
-                try {
-                    const { data: dbUser } = await window.supabaseClient.from('users').select('roles').eq('id', window.currentUser.id).single();
-                    if (dbUser && dbUser.roles && dbUser.roles.includes('admin')) canDelete = true;
-                } catch (e) {
-                    console.warn('Admin check failed:', e);
-                }
-            }
-
-            if (canDelete) {
-                deleteBtn.style.display = 'flex';
-                deleteBtn.onclick = () => window.deleteHopping(hopId);
-            } else {
-                deleteBtn.style.display = 'none';
-            }
+        if (canDelete) {
+            deleteBtn.style.display = 'flex';
+            deleteBtn.onclick = () => window.deleteHopping(hopId);
         } else {
             deleteBtn.style.display = 'none';
         }
+    } else {
+        deleteBtn.style.display = 'none';
+    }
 
-        modal.style.display = 'flex';
-    };
+    modal.style.display = 'flex';
+};
 
-    // Delete Hopping
-    window.deleteHopping = async (hopId) => {
-        if (!confirm('Are you sure you want to delete this Hop? / 確定要刪除這個打卡紀錄嗎？')) return;
+// Delete Hopping
+window.deleteHopping = async (hopId) => {
+    if (!confirm('Are you sure you want to delete this Hop? / 確定要刪除這個打卡紀錄嗎？')) return;
 
-        const { error } = await window.supabaseClient
-            .from('hoppings')
-            .delete()
-            .eq('id', hopId);
+    const { error } = await window.supabaseClient
+        .from('hoppings')
+        .delete()
+        .eq('id', hopId);
 
-        if (error) {
-            alert('Delete Failed: ' + error.message);
-        } else {
-            alert('Hop deleted.');
-            document.getElementById('hopping-details-modal').style.display = 'none';
-            window.location.reload();
-        }
-    };
+    if (error) {
+        alert('Delete Failed: ' + error.message);
+    } else {
+        alert('Hop deleted.');
+        document.getElementById('hopping-details-modal').style.display = 'none';
+        window.location.reload();
+    }
+};
