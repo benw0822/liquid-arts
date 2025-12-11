@@ -416,16 +416,19 @@
             const fetchHops = async () => {
                 const { data } = await window.supabaseClient
                     .from('hoppings')
-                    .select('*, bars (*)')
+                    .select('*, bars (*), hopping_cheers(count)')
                     .eq('user_id', user.id)
                     .order('hopped_at', { ascending: false });
 
                 if (!data) return [];
                 const hopIds = data.map(h => h.id);
 
-                // Batch Fetch Comments
+                // Batch Fetch Comments & Cheers
                 let commentsMap = {};
+                let cheersMap = {};
+
                 if (hopIds.length > 0) {
+                    // Comments
                     const { data: comments } = await window.supabaseClient
                         .from('hopping_comments')
                         .select('hopping_id, content, user:users(name, hopper_nickname, hopper_image_url)')
@@ -438,6 +441,15 @@
                             commentsMap[c.hopping_id].push(c);
                         });
                     }
+
+                    // Cheers (Fetch all rows to count? Or use RPC? For now simple fetch all IDs is fine for typical volume)
+                    // Better: .select('hopping_id', { count: 'exact' }) ... but grouping difficult.
+                    // Just fetch all cheers for these hops? If volume is high, bad.
+                    // Alternative: use .rpc?
+                    // Let's assume low volume for now or just fetch count via select if possible.
+                    // Actually, manual loop for each hop is bad.
+                    // Let's try to trust PostgREST select count embedding on the main query? 
+                    // But I missed updating main query. I will update main query instead.
                 }
 
                 return data.map(item => ({
@@ -572,27 +584,20 @@
                             `;
                         }
 
-                        // Hop-Card Style: Match Bar Card
-                        const mapUrl = bar.google_map_url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(bar.address || bar.location || '')}`;
+                        // Extract Cheers Count
+                        const cheersCount = hop.hopping_cheers ? hop.hopping_cheers[0]?.count : 0;
 
                         return `
                         <div class="art-card" onclick="window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', '${hop.rating}', '${hop.description ? hop.description.replace(/'/g, "\\'") : ''}', '${hop.id}', '${hop.user_id}')" style="position: relative; cursor: pointer; display: flex; flex-direction: column; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
                              
-                             <div style="width: 100%; aspect-ratio: 1/1; overflow: hidden; position: relative; z-index: 1;">
-                                <img src="${hop.image_url}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                            <!-- Image Section -->
+                            <div style="width: 100%; border-bottom: 1px solid #f0f0f0; position: relative;">
+                                <img src="${hop.image_url}" style="width: 100%; height: auto; display: block;">
                                 ${overlayHtml}
-                             </div>
-                             
-                             <div style="padding: 1.5rem 1rem; text-align: center; background: white; flex: 1; display: flex; flex-direction: column; position: relative; z-index: 2;">
+                            </div>
+
+                            <div class="card-content" style="padding: 1.2rem; text-align: left; flex: 1; display: flex; flex-direction: column;">
                                 <!-- Bar Title -->
-                                ${bar.title ? `<div style="margin-bottom: 0.5rem; position: relative; z-index: 30;"><a href="bar-details.html?id=${bar.id}" onclick="event.stopPropagation();" style="text-decoration: none; color: inherit; display: inline-block; padding: 5px;"><h3 style="font-family: var(--font-display); font-size: 1.4rem; margin: 0; color: #1b1b1b; transition: color 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#1b1b1b'">${bar.title}</h3></a></div>` : ''}
-
-                                <div style="color: var(--bg-red); font-size: 1.2rem; margin-bottom: 0.2rem; letter-spacing: 2px;">${stars}</div>
-                                ${ratingText ? `<div style="font-weight: 600; font-size: 0.8rem; text-transform: uppercase; color: #333; margin-bottom: 0.5rem;">${ratingText}</div>` : ''}
-
-                                <div style="font-family: var(--font-display); font-size: 0.9rem; color: #666; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.5rem;">${dateStr}</div>
-
-                                <!-- Description / Review -->
                                 ${hop.description ? `<p style="font-size: 0.95rem; color: #555; margin: 0 0 1rem 0; line-height: 1.4; font-style: italic;">"${hop.description}"</p>` : ''}
 
                                 <!-- Mini Map (Dark Theme) -->

@@ -150,7 +150,7 @@ window.initTalentPage = async () => {
 
             const { data: hops, error: hopsError } = await window.supabaseClient
                 .from('hoppings')
-                .select('*')
+                .select('*, hopping_cheers(count)')
                 .eq('user_id', talent.user_id)
                 .eq('is_public', true) // Only show public hops
                 .order('hopped_at', { ascending: false });
@@ -244,6 +244,61 @@ window.initTalentPage = async () => {
                             `;
                         }
 
+
+                        // Escape for JS
+                        const escapeForJs = (str) => {
+                            if (!str) return '';
+                            return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, '\\n').replace(/\r/g, '');
+                        };
+                        const descEsc = escapeForJs(hop.description);
+                        const barTitleEsc = escapeForJs(bar.title);
+                        const cheersCount = hop.hopping_cheers ? hop.hopping_cheers[0]?.count : 0;
+
+                        return `
+                        <div class="art-card grid-item" onclick="window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', '${hop.rating}', '${descEsc}', '${hop.id}', '${hop.user_id}')" style="position: relative; cursor: pointer; display: flex; flex-direction: column; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 2rem; break-inside: avoid;">
+                             
+                            <!-- Image Section -->
+                            <div style="width: 100%; border-bottom: 1px solid #f0f0f0; position: relative;">
+                                <img src="${hop.image_url}" style="width: 100%; height: auto; display: block;">
+                                ${overlayHtml}
+                            </div>
+
+                            <div class="card-content" style="padding: 1.2rem; text-align: left; flex: 1; display: flex; flex-direction: column;">
+                                <!-- Bar Title -->
+                                <h3 style="font-family: var(--font-display); font-size: 1.2rem; margin: 0 0 0.5rem 0; color: #1b1b1b; display: flex; align-items: center; justify-content: space-between;">
+                                    <span>${bar.title || 'Unknown Bar'}</span>
+                                    <span style="font-size: 1rem; color: #ffd700;">${stars}</span>
+                                </h3>
+
+                                <!-- Date -->
+                                <div style="font-size: 0.8rem; color: #999; margin-bottom: 0.8rem;">
+                                    ${dateStr} <span style="margin: 0 4px;">•</span> ${ratingText}
+                                </div>
+
+                                <!-- Description -->
+                                <p style="font-size: 0.95rem; color: #555; line-height: 1.5; margin: 0 0 1.5rem 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                                    ${hop.description || ''}
+                                </p>
+                                
+                                <!-- Interaction Buttons -->
+                                <div style="margin-top: auto; display: flex; gap: 12px; border-top: 1px solid #f0f0f0; padding-top: 12px;">
+                                    <button class="btn-interaction-card" onclick="window.toggleCardCheers(event, '${hop.id}')" style="background: none; border: none; display: flex; align-items: center; gap: 6px; cursor: pointer; color: #666; font-size: 0.9rem; padding: 4px 8px; transition: color 0.2s;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M8 22h8" />
+                                            <path d="M12 11v11" />
+                                            <path d="M5 4h14l-7 7-7-7z" />
+                                            <path d="M6 5h12l-6 6-6-6z" fill="currentColor" stroke="none" opacity="0.2"/>
+                                        </svg>
+                                        <span class="cheers-count-val">${cheersCount || 0}</span>
+                                    </button>
+                                    <button onclick="event.stopPropagation(); window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', '${hop.rating}', '${descEsc}', '${hop.id}', '${hop.user_id}', false, '${barTitleEsc}', '${bar.id || ''}', true)" style="background: none; border: none; display: flex; align-items: center; gap: 6px; cursor: pointer; color: #666; font-size: 0.9rem; padding: 4px 8px; transition: color 0.2s;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                                        <span>Comment</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        `;
 
                         // Google Map URL
                         const mapUrl = bar.lat && bar.lng
