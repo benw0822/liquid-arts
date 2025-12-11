@@ -92,6 +92,7 @@ async function loadTalentData() {
     }
 
     if (data) {
+        console.log('Loaded Talent Data:', data);
         currentTalentId = data.id;
         document.getElementById('talent-name').value = data.display_name || '';
         document.getElementById('talent-quote').value = data.quote || '';
@@ -209,7 +210,7 @@ function getBarOptions(selectedBarId) {
         // Ideally we store { bar_id, bar_name, role }.
         // Let's assume we store ID in value. 
 
-        const sel = (selectedBarId === b.id) ? 'selected' : '';
+        const sel = (selectedBarId == b.id) ? 'selected' : '';
         options += `<option value="${b.id}" ${sel}>${b.title}</option>`;
     });
     return options;
@@ -370,6 +371,8 @@ window.saveTalentProfile = async () => {
         experiences: scrapeList('talent-exp-list', { year: 'list-input-year', unit: 'list-input-unit', title: 'list-input-title' }),
         awards: scrapeList('talent-award-list', { year: 'list-input-year', name: 'list-input-name', rank: 'list-input-rank' })
     };
+
+    console.log('Saving Talent Payload:', payload);
 
     // 3. Upsert
     // Note: If ID exists, we update. But since table is 1-to-1 with user_id, upsert on user_id conflict is also fine if we set constraint.
