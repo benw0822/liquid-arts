@@ -990,3 +990,10 @@ window.deleteHoppingComment = async (commentId, hopId) => {
         }
     }
 };
+
+// Close Hopping Details Modal
+window.closeHoppingDetails = () => {
+    const m = document.getElementById('hopping-details-modal');
+    if (m) m.style.display = 'none';
+    document.body.style.overflow = ''; // Unlock Scroll
+};
