@@ -472,6 +472,7 @@ window.openHoppingGallery = (event, startHopId, barId) => {
 // Open Generic Gallery (From any cache source)
 // End of openHoppingGallery
 // Open Generic Gallery (From any cache source)
+// Open Generic Gallery (From any cache source)
 window.openGenericHoppingGallery = (event, startHopId, cacheKey, openComments = false) => {
     if (event) { event.preventDefault(); event.stopPropagation(); }
 
@@ -957,6 +958,15 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
     }
 
     modal.style.display = 'flex';
+
+    // Auto-open comments if requested
+    if (openComments) {
+        // Slight delay to ensure modal is visible/rendered
+        setTimeout(() => {
+            const btn = document.getElementById('hd-msg-btn');
+            if (btn) btn.click();
+        }, 100);
+    }
 };
 
 // Delete Hopping
