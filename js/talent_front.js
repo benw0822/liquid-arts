@@ -52,12 +52,25 @@ function renderTalentShowcase(talent) {
     const nameEl = document.getElementById('featured-talent-name');
     const roleEl = document.getElementById('featured-talent-role'); // This should be a container DIV now
 
-    if (imgEl && talent.image_url) imgEl.src = talent.image_url;
+    // Link Image and Name to Talent Page
+    const talentUrl = `talent.html?id=${talent.id}`;
+
+    if (imgEl && talent.image_url) {
+        imgEl.src = talent.image_url;
+        // Make image clickable
+        imgEl.onclick = () => window.location.href = talentUrl;
+        imgEl.style.cursor = 'pointer';
+    }
 
     if (quoteEl) quoteEl.textContent = talent.quote ? `"${talent.quote}"` : '"Creativity in every sip."';
     if (descEl) descEl.textContent = talent.description || '';
 
-    if (nameEl) nameEl.textContent = talent.display_name || 'Anonymous Talent';
+    if (nameEl) {
+        // Create Link if not already
+        nameEl.innerHTML = `<a href="${talentUrl}" style="color: inherit; text-decoration: none;">${talent.display_name || 'Anonymous Talent'}</a>`;
+        // Ensure pointer events are enabled for the name container (it was set to none in HTML style)
+        nameEl.style.pointerEvents = 'auto';
+    }
 
     // Bar Roles Formatting
     if (roleEl) {
