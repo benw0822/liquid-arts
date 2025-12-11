@@ -150,7 +150,7 @@ window.initTalentPage = async () => {
 
             const { data: hops, error: hopsError } = await window.supabaseClient
                 .from('hoppings')
-                .select('*, hopping_cheers(count)')
+                .select('*')
                 .eq('user_id', talent.user_id)
                 .eq('is_public', true) // Only show public hops
                 .order('hopped_at', { ascending: false });
@@ -208,18 +208,6 @@ window.initTalentPage = async () => {
                         const ratingLabels = ['', 'Poor', 'Fair', 'Enjoyable', 'Remarkable', 'Masterpiece'];
                         const ratingText = ratingLabels[parseInt(hop.rating)] || '';
 
-                        // Helper for escaping
-                        const escapeForJs = (str) => {
-                            if (!str) return '';
-                            return str
-                                .replace(/\\/g, '\\\\')
-                                .replace(/'/g, "\\'")
-                                .replace(/"/g, '&quot;')
-                                .replace(/\n/g, '\\n')
-                                .replace(/\r/g, '');
-                        };
-                        const descEsc = escapeForJs(hop.description);
-
                         // Comments Overlay HTML
                         const comments = commentsMap[hop.id] || [];
                         const top3 = comments.slice(0, 3);
@@ -249,68 +237,49 @@ window.initTalentPage = async () => {
                             ` : '';
 
                             overlayHtml = `
-                                <div onclick="event.stopPropagation(); window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', '${hop.rating}', '${descEsc}', '${hop.id}', '${hop.user_id}', false, '${escapeForJs(bar.title)}', '${bar.id}', true)" style="position: absolute; top: 15px; left: 15px; z-index: 55; display: flex; flex-direction: column; align-items: flex-start; max-width: 60%; cursor: pointer;">
+                                <div onclick="event.stopPropagation(); window.openDynamicGallery(event, 'talentHoppingsCache', '${hop.id}', true)" style="position: absolute; top: 15px; left: 15px; z-index: 55; display: flex; flex-direction: column; align-items: flex-start; max-width: 60%; cursor: pointer; pointer-events: auto;">
                                     ${itemsHtml}
                                     ${badgeHtml}
                                 </div>
                             `;
                         }
 
-                        // Prepare Profile Data (Restored)
-                        const displayName = talent.hopper_nickname || talent.name || 'Anonymous Hopper';
-                        const displayAvatar = talent.hopper_image_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(displayName) + '&background=random';
-                        let roleLabel = 'Hopper';
-                        if (talent.roles && talent.roles.includes('talent')) roleLabel = 'Talent';
-                        else if (talent.roles && talent.roles.includes('admin')) roleLabel = 'Admin';
 
-                        // Prepare Cheers Count
-                        const cheersCount = (hop.hopping_cheers && hop.hopping_cheers[0]) ? hop.hopping_cheers[0].count : 0;
+                        // Google Map URL
+                        const mapUrl = bar.lat && bar.lng
+                            ? `https://www.google.com/maps/search/?api=1&query=${bar.lat},${bar.lng}`
+                            : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(bar.address || bar.location || '')}`;
 
                         return `
-                        <!-- Reusing Hop Detail Card Structure -->
-                        <div class="hop-detail-card" onclick="window.openGenericHoppingGallery(event, '${hop.id}', 'talentHoppingsCache')" style="width: 100%; height: auto; margin-bottom: 3rem; box-shadow: 0 4px 15px rgba(0,0,0,0.1); cursor: pointer; border-radius: 8px; overflow: hidden; background: #fff; position: relative; display: flex; flex-direction: column;">
+                        <div class="art-card" onclick="window.openDynamicGallery(event, 'talentHoppingsCache', '${hop.id}', false)" style="position: relative; cursor: pointer; display: flex; flex-direction: column; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 2rem;">
                              
-                             <div class="hop-detail-image-wrapper" style="position: relative; width: 100%; aspect-ratio: 1/1; overflow: hidden;">
-                                <img class="hop-detail-image" src="${hop.image_url}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s;">
-                                
+                             <div style="width: 100%; aspect-ratio: 1/1; overflow: hidden; position: relative; z-index: 1;">
+                                <img src="${hop.image_url}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                                 ${overlayHtml}
-                                
-                                <!-- Hopper Profile Overlay (Matching Modal) -->
-                                <div class="hopper-profile-container" style="display: flex; flex-direction: column; align-items: center;">
-                                    <img class="hopper-avatar" src="${displayAvatar}" alt="Hopper">
-                                    <span class="hopper-name">${displayName}</span>
-                                    <span class="hopper-role">${roleLabel}</span>
-
-                                    <!-- Interaction Buttons (Added) -->
-                                    <div class="hop-interactions">
-                                        <button class="btn-interaction" onclick="event.stopPropagation(); window.showHoppingDetails(null, '${hop.image_url}', '${hop.hopped_at}', '${hop.rating}', '${descEsc}', '${hop.id}', '${hop.user_id}', false, '${escapeForJs(bar.title)}', '${bar.id}', false)">
-                                            <svg class="interaction-icon cheers-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                <path d="M8 22h8" class="glass-base"/>
-                                                <path d="M12 11v11" class="glass-stem"/>
-                                                <path d="M5 4h14l-7 7-7-7z" class="glass-bowl-outline"/>
-                                                <path d="M6 5h12l-6 6-6-6z" class="cheers-liquid" fill="currentColor" stroke="none" />
-                                            </svg>
-                                            <span>${cheersCount}</span>
-                                        </button>
-                                        <button class="btn-interaction" onclick="event.stopPropagation(); window.showHoppingDetails(null, '${hop.image_url}', '${hop.hopped_at}', '${hop.rating}', '${descEsc}', '${hop.id}', '${hop.user_id}', false, '${escapeForJs(bar.title)}', '${bar.id}', true)">
-                                            <svg class="interaction-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <!-- Bar Title Pill (Bottom Right) -->
-                                ${bar.title ? `
-                                    <a href="bar-details.html?id=${bar.id}" onclick="event.stopPropagation();" style="position: absolute; bottom: 15px; right: 15px; background: rgba(0,0,0,0.7); color: white; padding: 4px 12px; border-radius: 20px; text-decoration: none; font-size: 0.8rem; font-weight: 500; z-index: 55; display: flex; align-items: center; gap: 4px; backdrop-filter: blur(4px);">
-                                        <span>📍</span> <span>${bar.title}</span>
-                                    </a>
-                                ` : ''}
                              </div>
                              
-                             <div class="hop-detail-content" style="padding: 1.5rem; text-align: left; padding-top: 8rem;"> 
-                                <!-- Increased top padding to accommodate hanging profile & buttons -->
-                                <div class="hop-detail-stars">${stars}</div>
-                                <span class="hop-detail-date">${dateStr}</span>
-                                ${hop.description ? `<div class="hop-detail-desc" style="max-height: none; -webkit-line-clamp: 3; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden;">"${hop.description}"</div>` : ''}
+                             <div style="padding: 1.5rem 1rem; text-align: center; background: white; flex: 1; display: flex; flex-direction: column; position: relative; z-index: 2;">
+                                <!-- Bar Title -->
+                                ${bar.title ? `<div style="margin-bottom: 0.5rem; position: relative; z-index: 30;"><a href="bar-details.html?id=${bar.id}" onclick="event.stopPropagation();" style="text-decoration: none; color: inherit; display: inline-block; padding: 5px;"><h3 style="font-family: var(--font-display); font-size: 1.4rem; margin: 0; color: #1b1b1b; transition: color 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#1b1b1b'">${bar.title}</h3></a></div>` : ''}
+
+                                <div style="color: var(--bg-red); font-size: 1.2rem; margin-bottom: 0.2rem; letter-spacing: 2px;">${stars}</div>
+                                ${ratingText ? `<div style="font-weight: 600; font-size: 0.8rem; text-transform: uppercase; color: #333; margin-bottom: 0.5rem;">${ratingText}</div>` : ''}
+
+                                <div style="font-family: var(--font-display); font-size: 0.9rem; color: #666; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.5rem;">${dateStr}</div>
+
+                                <!-- Description -->
+                                ${hop.description ? `<p style="font-size: 0.95rem; color: #555; margin: 0 0 1rem 0; line-height: 1.4; font-style: italic;">"${hop.description}"</p>` : ''}
+
+                                <!-- Mini Map (Dark Theme) -->
+                                <div id="talent-hop-map-${hop.id}" class="card-map" style="height: 150px; width: 100%; border-radius: 4px; margin-bottom: 8px;"></div>
+                                
+                                <!-- Google Map Button -->
+                                <div style="margin-top: auto; position: relative; z-index: 30;">
+                                    <a href="${mapUrl}" target="_blank" onclick="event.stopPropagation()" class="btn" style="display: flex; justify-content: center; align-items: center; gap: 8px; width: 100%; background-color: var(--bg-red); color: white; padding: 10px 0; border-radius: 4px; text-decoration: none; transition: background 0.3s; margin-top: 0;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M14.082 2.182a.5.5 0 0 1 .103.557L8.528 15.467a.5.5 0 0 1-.917-.007L5.57 10.694.803 8.652a.5.5 0 0 1-.006-.916l12.728-5.657a.5.5 0 0 1 .556.103z"/></svg>
+                                        <span style="font-size: 0.9rem; font-weight: 600;">Google Map</span>
+                                    </a>
+                                </div>
                              </div>
                         </div>`;
                     }).join('');

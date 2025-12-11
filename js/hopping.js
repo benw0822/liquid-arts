@@ -470,7 +470,6 @@ window.openHoppingGallery = (event, startHopId, barId) => {
     renderCurrent();
 }; // End of openHoppingGallery
 // Open Generic Gallery (From any cache source)
-// Open Generic Gallery (From any cache source)
 window.openGenericHoppingGallery = (event, startHopId, cacheKey) => {
     if (event) { event.preventDefault(); event.stopPropagation(); }
 
@@ -482,8 +481,8 @@ window.openGenericHoppingGallery = (event, startHopId, cacheKey) => {
 
     const renderCurrent = () => {
         const hop = hops[currentIndex];
-        // Match Bar Card View: Omit Bar Info, exact arguments sequence
-        window.showHoppingDetails(null, hop.image_url, hop.hopped_at, hop.rating, hop.description, hop.id, hop.user_id, true);
+        // Pass bar info if available in the hop object
+        window.showHoppingDetails(null, hop.image_url, hop.hopped_at, hop.rating, hop.description, hop.id, hop.user_id, true, hop.bar_title, hop.bar_id);
         updateGenericNavigationUI();
     };
 
@@ -494,7 +493,11 @@ window.openGenericHoppingGallery = (event, startHopId, cacheKey) => {
         let prevBtn = document.getElementById('hd-prev-btn');
         let nextBtn = document.getElementById('hd-next-btn');
 
-        // Reuse existing arrow creation logic
+        // Reuse existing arrow creation logic or ensure they exist
+        // (Assuming standard arrow creation is handled inside showHoppingDetails if missing, OR we can copy the logic here)
+        // Ideally, showHoppingDetails creates the modal structure, but arrows are added dynamically.
+        // Let's ensure they exist here for robustness.
+
         const wrapper = modal.querySelector('.hop-detail-image-wrapper');
         const arrowStyle = 'position: absolute; top: 50%; transform: translateY(-50%); background: transparent; color: #ef4444; border: none; padding: 20px; cursor: pointer; font-size: 2.5rem; z-index: 50; transition: transform 0.2s; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));';
 
@@ -520,34 +523,12 @@ window.openGenericHoppingGallery = (event, startHopId, cacheKey) => {
         prevBtn.onclick = (e) => { e.stopPropagation(); currentIndex = (currentIndex - 1 + hops.length) % hops.length; renderCurrent(); };
         nextBtn.onclick = (e) => { e.stopPropagation(); currentIndex = (currentIndex + 1) % hops.length; renderCurrent(); };
 
-        // Swipe Logic (Mirrored from openHoppingGallery for exact feel)
+        // Touch Swipe Reuse (Simplified)
         let touchStartX = 0;
-        let touchStartY = 0;
-        let touchEndX = 0;
-
-        modal.ontouchstart = (e) => {
-            touchStartX = e.touches[0].clientX;
-            touchStartY = e.touches[0].clientY;
-        };
-
-        modal.ontouchmove = (e) => {
-            const x = e.touches[0].clientX;
-            const y = e.touches[0].clientY;
-            const xDiff = Math.abs(x - touchStartX);
-            const yDiff = Math.abs(y - touchStartY);
-
-            // If moving horizontally significantly more than vertically, treat as swipe
-            if (xDiff > yDiff && xDiff > 10) {
-                if (e.cancelable) e.preventDefault(); // Lock Scroll
-            }
-        };
-
+        modal.ontouchstart = (e) => { touchStartX = e.touches[0].clientX; };
         modal.ontouchend = (e) => {
-            touchEndX = e.changedTouches[0].clientX;
-            const xDiff = touchEndX - touchStartX;
-
-            if (Math.abs(xDiff) > 50) {
-                if (xDiff < 0) { currentIndex = (currentIndex + 1) % hops.length; } // Next
+            if (Math.abs(e.changedTouches[0].clientX - touchStartX) > 50) {
+                if (e.changedTouches[0].clientX < touchStartX) { currentIndex = (currentIndex + 1) % hops.length; } // Next
                 else { currentIndex = (currentIndex - 1 + hops.length) % hops.length; } // Prev
                 renderCurrent();
             }
@@ -557,13 +538,6 @@ window.openGenericHoppingGallery = (event, startHopId, cacheKey) => {
     renderCurrent();
 };
 
-
-// Define Close Function Globally
-window.closeHoppingDetails = () => {
-    const m = document.getElementById('hopping-details-modal');
-    if (m) m.style.display = 'none';
-    document.body.style.overflow = ''; // Unlock Scroll
-};
 
 // Show Details Modal (Modified for HopCard + Delete)
 // Updated Signature
@@ -979,13 +953,6 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
     }
 
     modal.style.display = 'flex';
-
-    if (openComments) {
-        setTimeout(() => {
-            const btn = document.getElementById('btn-message');
-            if (btn) btn.click();
-        }, 300);
-    }
 };
 
 // Delete Hopping
