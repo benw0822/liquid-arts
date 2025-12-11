@@ -146,17 +146,26 @@ window.initTalentPage = async () => {
         // 7. Render Hops (New Section)
         const hopsGrid = document.getElementById('talent-hops-grid');
         if (hopsGrid && talent.user_id) {
+            console.log('[Talent] Fetching Hops for User ID:', talent.user_id);
+
             const { data: hops, error: hopsError } = await window.supabaseClient
                 .from('hoppings')
                 .select('*')
                 .eq('user_id', talent.user_id)
+                .eq('is_public', true) // Only show public hops
                 .order('hopped_at', { ascending: false });
 
-            if (!hopsError && hops && hops.length > 0) {
-                hopsGrid.innerHTML = hops.map(hop => {
-                    // Simple Square Card
-                    const dateStr = new Date(hop.hopped_at).toLocaleDateString();
-                    return `
+            if (hopsError) {
+                console.error('[Talent] Error fetching hops:', hopsError);
+                hopsGrid.innerHTML = '<p style="color:red">Error loading hops.</p>';
+            } else {
+                console.log('[Talent] Hops found:', hops ? hops.length : 0);
+
+                if (hops && hops.length > 0) {
+                    hopsGrid.innerHTML = hops.map(hop => {
+                        // Simple Square Card
+                        const dateStr = new Date(hop.hopped_at).toLocaleDateString();
+                        return `
                         <div class="talent-hop-card" onclick="window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', '${hop.rating}', '${(hop.description || '').replace(/'/g, "\\'")}', '${hop.id}', '${hop.user_id}')">
                             <img src="${hop.image_url}" class="talent-hop-img" loading="lazy">
                             <div class="talent-hop-overlay">
@@ -165,13 +174,13 @@ window.initTalentPage = async () => {
                             </div>
                         </div>
                      `;
-                }).join('');
-            } else {
-                if (hopsGrid.parentElement) hopsGrid.parentElement.style.display = 'none'; // Hide section if no hops
+                    }).join('');
+                } else {
+                    if (hopsGrid.parentElement) hopsGrid.parentElement.style.display = 'none'; // Hide section if no hops
+                }
             }
-        }
 
-    } catch (err) {
-        console.error('Talent Page Error:', err);
-    }
-};
+        } catch (err) {
+            console.error('Talent Page Error:', err);
+        }
+    };
