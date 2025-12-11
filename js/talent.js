@@ -213,7 +213,9 @@ window.initTalentPage = async () => {
                         }
                     }
 
-                    // ... (Existing Cache Logic) ...
+                    // 7.2 Store in Global Cache for Gallery
+                    const enrichedHops = hops.map(h => ({ ...h, bar: barMap[h.bar_id] || {}, bar_title: (barMap[h.bar_id] || {}).title || '' }));
+                    window.talentHoppingsCache = enrichedHops;
 
                     // 7.3 Render Art-Card Style
                     hopsGrid.innerHTML = enrichedHops.map(hop => {
