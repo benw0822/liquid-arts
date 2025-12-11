@@ -470,7 +470,7 @@ window.openHoppingGallery = (event, startHopId, barId) => {
     renderCurrent();
 }; // End of openHoppingGallery
 // Open Generic Gallery (From any cache source)
-window.openGenericHoppingGallery = (event, startHopId, cacheKey) => {
+window.openGenericHoppingGallery = (event, startHopId, cacheKey, openComments = false) => {
     if (event) { event.preventDefault(); event.stopPropagation(); }
 
     const hops = window[cacheKey]; // Access Global Cache dynamically
@@ -484,8 +484,14 @@ window.openGenericHoppingGallery = (event, startHopId, cacheKey) => {
         // Pass bar info if available regarding title and map
         const barLat = hop.bar ? hop.bar.lat : null;
         const barLng = hop.bar ? hop.bar.lng : null;
-        window.showHoppingDetails(null, hop.image_url, hop.hopped_at, hop.rating, hop.description, hop.id, hop.user_id, true, hop.bar_title, hop.bar_id, false, barLat, barLng);
+        window.showHoppingDetails(null, hop.image_url, hop.hopped_at, hop.rating, hop.description, hop.id, hop.user_id, true, hop.bar_title, hop.bar_id, openComments, barLat, barLng);
         updateGenericNavigationUI();
+        // Reset openComments after first render so navigation doesn't keep popping it up? 
+        // Actually showHoppingDetails handles the popup only on initial call? 
+        // showHoppingDetails is called every next/prev. 
+        // If we keep openComments=true, every next/prev will pop up the panel.
+        // We should set openComments to false after first use.
+        openComments = false;
     };
 
     const updateGenericNavigationUI = () => {
