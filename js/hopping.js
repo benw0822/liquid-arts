@@ -533,15 +533,29 @@ window.openGenericHoppingGallery = (event, startHopId, cacheKey) => {
 
 
 // Show Details Modal (Modified for HopCard + Delete)
-window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null, ownerId = null, internal = false, barName = null, barId = null) => {
-    if (event) { event.preventDefault(); event.stopPropagation(); }
+// Updated Signature
+window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null, ownerId = null, internal = false, barName = null, barId = null, openComments = false) => {
+    // ... existing logic ...
 
-    // Lock Body Scroll
-    document.body.style.overflow = 'hidden';
+    // Near the end of function, after showing modal:
+    const msgBtn = document.getElementById('btn-message');
+    // ...
 
-    // Create Modal if not exists (Lazy Load)
-    if (!document.getElementById('hopping-details-modal')) {
-        const html = `
+    if (openComments) {
+        // Delay slightly to allow transition
+        setTimeout(() => {
+            if (msgBtn) msgBtn.click();
+        }, 300);
+    }
+};
+if (event) { event.preventDefault(); event.stopPropagation(); }
+
+// Lock Body Scroll
+document.body.style.overflow = 'hidden';
+
+// Create Modal if not exists (Lazy Load)
+if (!document.getElementById('hopping-details-modal')) {
+    const html = `
         <div id="hopping-details-modal" class="hopping-modal-overlay" style="z-index: 9999;">
             <div class="hop-detail-card" onclick="event.stopPropagation()">
                 <div class="hop-detail-image-wrapper">
@@ -598,25 +612,13 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
             </div>
         </div>
         `;
-        document.body.insertAdjacentHTML('beforeend', html);
+    document.body.insertAdjacentHTML('beforeend', html);
 
-        // Close on BG click
-        const modalEl = document.getElementById('hopping-details-modal');
-        modalEl.onclick = (e) => {
-            if (e.target.id === 'hopping-details-modal') window.closeHoppingDetails();
-        };
-    }
-
-    // Define Close Function Globally within scope or attached to window
-    window.closeHoppingDetails = () => {
-        const m = document.getElementById('hopping-details-modal');
-        if (m) m.style.display = 'none';
-        document.body.style.overflow = ''; // Unlock Scroll
+    // Close on BG click
+    const modalEl = document.getElementById('hopping-details-modal');
+    modalEl.onclick = (e) => {
+        if (e.target.id === 'hopping-details-modal') window.closeHoppingDetails();
     };
-
-    // Clear Comments Immediately (Before Image Load)
-    const listEl = document.getElementById('hd-comments-list');
-    const previewEl = document.getElementById('hd-comments-preview');
     if (listEl) listEl.innerHTML = '<div style="text-align: center; color: #888; font-size: 0.9rem; margin-top: 20px;">Loading...</div>';
     if (previewEl) previewEl.innerHTML = '';
 
