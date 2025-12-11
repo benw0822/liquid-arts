@@ -216,16 +216,22 @@ function getBarOptions(selectedBarId) {
 }
 
 
-// Templates - Now functions that return HTML string with options injected
-const roleItemTemplate = (data) => `
+const roleItemTemplate = (data) => {
+    // Legacy support: resolve bar_name to bar_id if id is missing
+    let selectedId = data.bar_id;
+    if (!selectedId && data.bar_name && cachedBars.length > 0) {
+        const found = cachedBars.find(b => b.title === data.bar_name);
+        if (found) selectedId = found.id;
+    }
+    return `
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
         <select class="hopping-input-minimal list-input-bar-id" style="margin:0; font-size: 0.9rem;">
-            ${getBarOptions(data.bar_id)}
+            ${getBarOptions(selectedId)}
         </select>
         <input type="text" class="hopping-input-minimal list-input-role" placeholder="Role (e.g. Owner)" value="${data.role || ''}" style="margin:0; font-size: 0.9rem;">
         <!-- Hidden input for bar Name if needed for display fallback, though ID is better -->
     </div>
-`;
+`};
 
 const expItemTemplate = (data) => `
     <div style="display: grid; grid-template-columns: 80px 1fr 1fr; gap: 8px;">

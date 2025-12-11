@@ -109,15 +109,13 @@
 
                     <!-- Curved Text (SVG) - Outside Circle -->
                     <!-- Enlarged viewBox to allow text outside -->
-                    <svg viewBox="-50 -50 420 420"
+                    <svg viewBox="-100 -100 520 520"
                         style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; overflow: visible;">
-                        <!-- Path larger than circle (320px = 160r). Path radius ~185. Center (160, 160) relative to 320x320 box but mapped to viewBox -->
-                        <!-- Let's define path relative to 0,0 of the container. 320px box. Center is 160,160. -->
-                        <!-- Arc from left side to top. -->
-                        <path id="curve" d="M 0,200 A 185,185 0 0,1 200,0" fill="none" />
+                        <!-- Path larger than circle (320px = 160r). Path radius ~210. -->
+                        <path id="curve" d="M -40,200 A 220,220 0 0,1 200,-40" fill="none" />
                         <text font-family="'Playfair Display', serif" font-size="14" fill="white" letter-spacing="3"
                             text-transform="uppercase">
-                            <!-- Adjusted startOffset to position it nicely on the outer arc -->
+                            <!-- Adjusted startOffset -->
                             <textPath href="#curve" startOffset="25%" text-anchor="middle">INSIDE QUOTE</textPath>
                         </text>
                     </svg>
