@@ -500,6 +500,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 container.style.justifyContent = 'center';
                 container.style.position = 'relative'; // For badge
                 container.title = "Show Saved Bars Only";
+                container.style.overflow = 'visible'; // Fix for mobile layout clipping/shift
+                container.style.boxSizing = 'border-box';
 
                 // Hover effect
                 container.onmouseover = () => container.style.backgroundColor = '#f4f4f4';
