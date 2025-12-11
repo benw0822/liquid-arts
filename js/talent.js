@@ -41,13 +41,23 @@ window.initTalentPage = async () => {
         if (descEl) descEl.textContent = talent.description || '';
         if (imgEl) imgEl.src = talent.image_url || 'assets/placeholder_user.png';
 
-        // 4. Render Bars (Locations)
+        // 4. Render Bars (Locations) && Roles
         if (barsGrid) {
             barsGrid.innerHTML = '';
             // Check bar_roles JSONB
             if (talent.bar_roles && talent.bar_roles.length > 0) {
                 // Extract unique bar IDs
                 const barIds = [...new Set(talent.bar_roles.map(r => r.bar_id).filter(id => id))];
+
+                // Render Roles in Hero
+                const rolesList = document.getElementById('talent-roles-list');
+                if (rolesList) {
+                    rolesList.innerHTML = talent.bar_roles.map(r => {
+                        const rName = r.role || 'Bartender';
+                        const bName = r.bar_name || 'Liquid Arts';
+                        return `<div class="talent-role-item"><span style="color: var(--bg-red); text-transform: uppercase; font-size: 0.8rem;">${rName}</span><br>${bName}</div>`;
+                    }).join('');
+                }
 
                 if (barIds.length > 0) {
                     // Fetch real bar data for cards
@@ -57,27 +67,24 @@ window.initTalentPage = async () => {
                         .in('id', barIds);
 
                     if (!barError && bars) {
-                        // Pre-calculate cities for cards (Reuse logic from app.js if possible, or fetch simple)
-                        // For simplicity, we just use location string or call global helper if available.
-                        // Assuming window.createBarCard exists from app.js
-
-                        // We need to fetch cities from coords if we want consistency, but let's stick to base location for speed unless we want to dupe logic.
-                        // Ideally, we wait for app.js helpers.
+                        // Pre-calculate cities for cards
+                        const barsWithCities = await Promise.all(bars.map(async (bar) => {
+                            let city = bar.location;
+                            if (bar.lat && bar.lng && window.fetchCityFromCoordsGlobal) {
+                                const resolved = await window.fetchCityFromCoordsGlobal(bar.lat, bar.lng);
+                                if (resolved) city = resolved;
+                            }
+                            return { ...bar, cityDisplay: city };
+                        }));
 
                         // Render Cards
-                        barsGrid.innerHTML = bars.map(bar => {
-                            // Inject Role into card if we want? Or just show the bar.
-                            // Finding the role for this bar
-                            const roleObj = talent.bar_roles.find(r => r.bar_id == bar.id);
-                            const roleName = roleObj ? (roleObj.role || 'Bartender') : '';
-
-                            // Reusing createBarCard but maybe we want to append the Role?
-                            // Let's rely on standard card for consistency.
-                            return window.createBarCard ? window.createBarCard(bar, null, roleName) : '';
+                        barsGrid.innerHTML = barsWithCities.map(bar => {
+                            // Reusing createBarCard without Role in card
+                            return window.createBarCard ? window.createBarCard(bar, bar.cityDisplay) : '';
                         }).join('');
 
                         // Initialize Maps for cards
-                        bars.forEach(bar => {
+                        barsWithCities.forEach(bar => {
                             if (bar.lat && bar.lng && window.initCardMapGlobal) {
                                 setTimeout(() => window.initCardMapGlobal(bar.id, bar.lat, bar.lng, bar.title, false), 100);
                             }

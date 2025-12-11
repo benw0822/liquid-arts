@@ -2119,6 +2119,23 @@ figure.article-figure figcaption {
     line-height: 1.8;
 }
 
+.talent-roles-container {
+    margin-top: 2rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.talent-role-item {
+    font-family: var(--font-main);
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #1b1b1b;
+    border-left: 3px solid var(--bg-red);
+    padding-left: 0.8rem;
+    line-height: 1.2;
+}
+
 /* Sections */
 .section-title-small {
     font-family: var(--font-display);
