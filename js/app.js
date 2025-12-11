@@ -790,7 +790,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 hoppingCardHtml = `
                     <div class="grid-item content-card" style="margin-bottom: 30px; text-align: center;">
-                        <h3 class="section-title">Community Hops</h3>
+                        <h3 class="section-title">HOPS</h3>
                         
                         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 1.5rem;">
                             ${hops.map(hop => `
@@ -802,7 +802,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
 
                         <button onclick="window.openHoppingModal(${bar.id})" class="btn" style="background-color: var(--bg-red); color: white; border: none; padding: 10px 24px; border-radius: 30px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4); transition: transform 0.2s;">
-                            <span style="font-size: 1.2rem;">📷</span> HOP HERE !
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 22h8"></path><path d="M12 15v7"></path><path d="M2 3h20L12 15z"></path></svg>
+                            HOP HERE !
                         </button>
                     </div>
                 `;
@@ -810,10 +811,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Empty State
                 hoppingCardHtml = `
                     <div class="grid-item content-card" style="margin-bottom: 30px; text-align: center;">
-                        <h3 class="section-title">Community Hops</h3>
+                        <h3 class="section-title">HOPS</h3>
                         <p style="color: #888; margin-bottom: 1.5rem; font-style: italic;">Be the first to Hop here!</p>
                         <button onclick="window.openHoppingModal(${bar.id})" class="btn" style="background-color: var(--bg-red); color: white; border: none; padding: 10px 24px; border-radius: 30px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4); transition: transform 0.2s;">
-                            <span style="font-size: 1.2rem;">📷</span> HOP HERE !
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 22h8"></path><path d="M12 15v7"></path><path d="M2 3h20L12 15z"></path></svg>
+                            HOP HERE !
                         </button>
                     </div>
                  `;
@@ -990,13 +992,29 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
 
-                    <!-- 6. Hopping Card (New) -->
+                    <!-- 4. Hopping Card -->
                     ${hoppingCardHtml}
+                    <!-- 6. Awards (If any) -->
+                    ${bar.bar_awards && bar.bar_awards.length > 0 ? `
+                        <div class="grid-item content-card" style="margin-bottom: 30px;">
+                            <h3 class="section-title" style="border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 15px;">Awards</h3>
+                            <div style="display: flex; flex-direction: column; gap: 12px;">
+                                ${bar.bar_awards.sort((a, b) => (b.year || 0) - (a.year || 0)).map(award => `
+                                    <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; font-weight: 700; color: #333;">
+                                        <div style="display: flex; align-items: center;">
+                                            <span style="margin-right: 10px;">${award.year || ''}</span>
+                                            <span>${award.name}</span>
+                                        </div>
+                                        <span>${award.rank ? `<span style="color: var(--bg-red);">${award.rank}</span>` : ''}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
                     
-                    <!-- 7. Signatures (If any, wrap as grid item) -->
-                    ${signaturesHtml ? `<div class="grid-item" style="width:100%; margin-bottom:30px;">${signaturesHtml}</div>` : ''}
-
-                    <!-- 7. Articles (If any) -->
+                    <!-- 7. Opening Hours -->
+                    <!-- Was 6. Hopping Card (New) -->
+                    <!-- Was 6. Signatures (If any, wrap as grid item) -->
                     ${articlesHtml ? `<div class="grid-item" style="width:100%; margin-bottom:30px;">${articlesHtml}</div>` : ''}
 
                     <!-- 8. Gallery (If any) -->
@@ -1117,6 +1135,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                         ` : ''}
     
+                        ${hoppingCardHtml}
+    
                         ${bar.bar_awards && bar.bar_awards.length > 0 ? `
                             <div class="content-card">
                                 <h3 class="section-title" style="border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 15px;">Awards</h3>
@@ -1149,9 +1169,10 @@ document.addEventListener('DOMContentLoaded', () => {
                                 ${bar.facebook_url ? `<a href="${bar.facebook_url}" target="_blank" class="btn btn-secondary" style="font-size: 0.9rem; padding: 8px 16px;">Facebook</a>` : ''}
                                 ${bar.website_url ? `<a href="${bar.website_url}" target="_blank" class="btn btn-primary" style="font-size: 0.9rem; padding: 8px 16px;">Book Now</a>` : ''}
                             </div>
+                            </div>
                         </div>
 
-                        ${hoppingCardHtml}
+                        <!-- Hopping Card (Already rendered) -->
     
                         ${signaturesHtml}
                         
@@ -1586,7 +1607,7 @@ document.addEventListener('DOMContentLoaded', () => {
              <div style="position: absolute; top: 15px; left: 15px; z-index: 30; display: flex; align-items: center; gap: 12px; pointer-events: auto;">
                  <!-- Hop Button -->
                  <button onclick="event.preventDefault(); event.stopPropagation(); window.openHoppingModal(${bar.id})" style="background: rgba(255,255,255,0.95); border: none; border-radius: 20px; padding: 6px 14px; font-size: 0.85rem; font-weight: 700; color: #333; box-shadow: 0 4px 10px rgba(0,0,0,0.15); cursor: pointer; display: flex; align-items: center; gap: 6px; transition: transform 0.2s;">
-                    <span>📷</span> Hop
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 22h8"></path><path d="M12 15v7"></path><path d="M2 3h20L12 15z"></path></svg> Hop
                  </button>
                  
                  <!-- Badges Row -->
