@@ -684,6 +684,22 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     };
+    // --- Helper: Fetch Talents for Bar ---
+    window.fetchTalentsForBar = async (barId) => {
+        // Query talents where bar_roles JSONB column contains the barId
+        // Note: Supabase JSONB filtering syntax
+        const { data, error } = await window.supabaseClient
+            .from('talents')
+            .select('*')
+            .contains('bar_roles', JSON.stringify([{ bar_id: barId }]));
+
+        if (error) {
+            console.warn('Error fetching talents for bar:', error);
+            return [];
+        }
+        return data || [];
+    };
+
     // 4. Bar Details Page
     window.initBarDetails = async () => {
         await initAuthAndSaved();
@@ -776,6 +792,32 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
             `;
+        }
+
+        // --- Talent Card (New) ---
+        let talentCardHtml = '';
+        if (window.fetchTalentsForBar) {
+            const talents = await window.fetchTalentsForBar(bar.id);
+            if (talents && talents.length > 0) {
+                // Show the first linked talent
+                const talent = talents[0];
+                const roleObj = talent.bar_roles.find(r => r.bar_id == bar.id) || {};
+                const roleName = roleObj.role || 'Talent';
+
+                talentCardHtml = `
+                    <div class="content-card" style="background-color: var(--bg-red); color: white; border: none; margin-bottom: 30px; display: flex; align-items: center; gap: 1.5rem; padding: 1.5rem;">
+                         <div style="flex-shrink: 0; width: 80px; height: 80px; border-radius: 50%; overflow: hidden; border: 2px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+                             <img src="${talent.image_url || 'assets/default_avatar.png'}" style="width: 100%; height: 100%; object-fit: cover;">
+                         </div>
+                         <div style="flex: 1;">
+                             <h4 style="font-family: var(--font-display); font-size: 1.2rem; margin: 0; text-transform: uppercase; letter-spacing: 1px;">${talent.display_name}</h4>
+                             <p style="margin: 0 0 0.5rem 0; font-size: 0.9rem; opacity: 0.9; font-weight: 600;">${roleName}</p>
+                             ${talent.quote ? `<p style="font-style: italic; font-size: 0.9rem; margin: 0 0 1rem 0; opacity: 0.8; line-height: 1.4;">"${talent.quote.substring(0, 60)}${talent.quote.length > 60 ? '...' : ''}"</p>` : ''}
+                             <a href="talent.html?id=${talent.user_id}" style="display: inline-block; padding: 6px 16px; background: white; color: var(--bg-red); border-radius: 20px; text-decoration: none; font-size: 0.8rem; font-weight: 700;">View Profile</a>
+                         </div>
+                    </div>
+                `;
+            }
         }
 
         // --- Hopping Card (New) ---
@@ -892,7 +934,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </button>
                     </div>
 
-                    <!-- 2. Review Card (If present, which it is) -->
+                    <!-- Review Card (If present, which it is) -->
                     <div class="grid-item content-card" style="background-color: var(--bg-red); color: white; border: none; margin-bottom: 30px;">
                         <h3 class="section-title" style="color: white; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 15px;">Liquid Arts Review</h3>
                         <p style="font-style: italic; font-size: 1.1rem; line-height: 1.6; margin-bottom: 1.5rem; text-align: center;">"${bar.editorial_review}"</p>
@@ -905,6 +947,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                         ` : ''}
                     </div>
+
+                    <!-- Talent Card (Red) -->
+                    ${talentCardHtml}
 
                     <!-- 3. About/Info Card -->
                     <div class="grid-item content-card" style="display: flex; flex-direction: column; margin-bottom: 30px;">
@@ -1046,6 +1091,9 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="${window.savedBarIds.has(bar.id) ? '#ef4444' : 'none'}" stroke="${window.savedBarIds.has(bar.id) ? '#ef4444' : '#333'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
                             </button>
                         </div>
+
+                         <!-- Talent Card (Red) -->
+                        ${talentCardHtml}
 
                         <div id="about-card" class="content-card" style="display: flex; flex-direction: column;">
                             <h2 class="section-title" style="flex-shrink: 0;">About</h2>

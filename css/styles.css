@@ -103,6 +103,19 @@ h6 {
     padding: 0 var(--spacing-sm);
 }
 
+.talent-page-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 5vw;
+    /* Increased horizontal padding */
+}
+
+@media (max-width: 768px) {
+    .talent-page-container {
+        padding: 0 var(--spacing-sm);
+    }
+}
+
 .section-padding {
     padding: var(--spacing-lg) 0;
 }
@@ -2302,6 +2315,7 @@ figure.article-figure figcaption {
         font-size: 3rem;
     }
 }
+
 /* Talent Hop Card */
 .talent-hop-card {
     position: relative;
@@ -2326,7 +2340,7 @@ figure.article-figure figcaption {
 .talent-hop-overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
     opacity: 0;
     transition: opacity 0.3s ease;
     display: flex;
@@ -2340,7 +2354,8 @@ figure.article-figure figcaption {
 }
 
 .talent-hop-rating {
-    color: #ef4444; /* Red */
+    color: #ef4444;
+    /* Red */
     font-size: 1rem;
     margin-bottom: 0.2rem;
 }
