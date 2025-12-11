@@ -1562,9 +1562,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </a>
             
             <div class="card-content" style="padding: 0 1.5rem 1.5rem 1.5rem; text-align: center; flex: 1; display: flex; flex-direction: column;">
-                <!-- Map Container -->
-                <div id="card-map-${bar.id}" style="width: 100%; height: 120px; border-radius: 8px; margin-top: 1rem; margin-bottom: 1rem; z-index: 1;"></div>
-
+                
                 ${bar.editorial_review ? `
                     <div style="margin-bottom: 1.2rem; padding: 15px; background: var(--bg-red); color: white; border-radius: 12px; text-align: center;">
                          <h4 style="margin: 0 0 5px 0; font-family: var(--font-display); font-size: 1rem; letter-spacing: 0.05em; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 5px; display: inline-block;">Liquid Arts Review</h4>
@@ -1601,6 +1599,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 <p style="font-size: 0.85rem; color: #666; margin-bottom: 1rem;">
                     ${address}
                 </p>
+                
+                <!-- Map Container (Moved Below Address) -->
+                <div id="card-map-${bar.id}" style="width: 100%; height: 120px; border-radius: 8px; margin-top: 0.5rem; margin-bottom: 1rem; z-index: 1;"></div>
 
                 <!-- Button Wrapper (Bottom Anchored) -->
                 <div style="margin-top: auto;">
