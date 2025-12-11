@@ -547,9 +547,11 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
                 <div class="hop-detail-image-wrapper">
                     <button onclick="window.closeHoppingDetails()" class="btn-close-detail" style="z-index: 60;">&times;</button>
                     <img id="hd-img" class="hop-detail-image" src="">
-                    <!-- Hopping Label -->
-                    <div style="position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.6); color: white; padding: 2px 8px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase;">
-                        HOPPING
+                    <!-- Hopping Label REMOVED -->
+                    
+                    <!-- Comments Preview Overlay (Top Left) -->
+                    <div id="hd-comments-preview" style="position: absolute; top: 15px; left: 15px; z-index: 55; display: flex; flex-direction: column; gap: 6px; max-width: 60%; pointer-events: none;">
+                        <!-- Last 3 comments injected here -->
                     </div>
                     
                     <!-- Hopper Profile Injection Point -->
@@ -797,81 +799,8 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
         // Trigger reflow for transition
         void panel.offsetWidth;
         panel.style.transform = 'translateY(0)';
-
-        // Fetch Comments
-        list.innerHTML = '<div style="text-align: center; color: #888; font-size: 0.9rem; margin-top: 20px;">Loading...</div>';
-
-        const fetchComments = async () => {
-            const { data, error } = await window.supabaseClient
-                .from('hopping_comments')
-                .select('id, content, created_at, user_id, user:users (name, hopper_nickname, hopper_image_url)')
-                .eq('hopping_id', hopId)
-                .order('created_at', { ascending: true });
-
-            if (error) {
-                list.innerHTML = `<div style="text-align:center; color:red;">Error loading comments.</div>`;
-            } else if (!data || data.length === 0) {
-                list.innerHTML = `<div style="text-align:center; color:#999; font-style:italic; margin-top:20px;">No comments yet. Be the first!</div>`;
-            } else {
-                list.innerHTML = data.map(c => {
-                    const u = c.user;
-                    const name = u?.hopper_nickname || u?.name || 'Anonymous';
-                    const avatar = u?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`;
-                    const isMe = window.currentUser && window.currentUser.id === c.user_id; // Check if I wrote this (requires user_id in select which is implied by join or raw)
-                    // Note: c.user_id might not be returned by standard join unless explicit, but let's assume structure.
-                    // Supabase join returns object. We need c.user_id separately? No, let's select user_id too.
-                    // Actually select clause: user_id is foreign key column, so it is returned as property of row if asked.
-
-                    return `
-                        <div style="display: flex; gap: 10px; margin-bottom: 8px;">
-                            <img src="${avatar}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
-                            <div style="background: white; padding: 8px 12px; border-radius: 0 12px 12px 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); max-width: 80%;">
-                                <div style="font-weight: 600; font-size: 0.8rem; color: #333; margin-bottom: 2px;">${name}</div>
-                                <div style="font-size: 0.9rem; color: #444; word-break: break-word;">${c.content}</div>
-                            </div>
-                        </div>
-                   `;
-                }).join('');
-                // Scroll to bottom
-                list.scrollTop = list.scrollHeight;
-            }
-        };
-
-        await fetchComments();
-
-        // Bind Submit
-        // Remove old listener to prevent duplicates (naive approach: clone node or re-assign onclick)
-        // Better: define handler once? But hopId changes.
-        // Let's rely on re-assigning onclick property which overwrites previous.
-        submit.onclick = async () => {
-            const text = input.value.trim();
-            if (!text) return;
-            if (!window.currentUser) { alert('Please login to comment.'); return; }
-
-            // Optimistic UI? Or wait? Wait for simplicity.
-            submit.disabled = true;
-            submit.style.opacity = '0.5';
-
-            const { error } = await window.supabaseClient
-                .from('hopping_comments')
-                .insert([{ hopping_id: hopId, user_id: window.currentUser.id, content: text }]);
-
-            submit.disabled = false;
-            submit.style.opacity = '1';
-
-            if (error) {
-                alert('Failed to send: ' + error.message);
-            } else {
-                input.value = '';
-                await fetchComments(); // Reload
-            }
-        };
-
-        // Allow Enter key
-        input.onkeypress = (ev) => {
-            if (ev.key === 'Enter') submit.click();
-        };
     };
+
 
     // Delete Button Logic
     const deleteBtn = document.getElementById('hd-delete-btn');
@@ -916,5 +845,23 @@ window.deleteHopping = async (hopId) => {
         alert('Hop deleted.');
         document.getElementById('hopping-details-modal').style.display = 'none';
         window.location.reload();
+    }
+};
+
+// Delete Hopping Comment
+window.deleteHoppingComment = async (commentId, hopId) => {
+    if (!confirm('Delete this comment?')) return;
+
+    const { error } = await window.supabaseClient
+        .from('hopping_comments')
+        .delete()
+        .eq('id', commentId);
+
+    if (error) {
+        alert('Failed to delete comment: ' + error.message);
+    } else {
+        if (window.refreshHoppingComments) {
+            await window.refreshHoppingComments();
+        }
     }
 };
