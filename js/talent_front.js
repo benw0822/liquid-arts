@@ -21,17 +21,23 @@ async function fetchRandomTalent() {
     // 2. Pick Random
     const randomTalent = talents[Math.floor(Math.random() * talents.length)];
 
-    // 2.1 Fetch Linked Bar Name if needed
-    if (randomTalent.bar_roles && randomTalent.bar_roles.length > 0 && randomTalent.bar_roles[0].bar_id) {
-        const barId = randomTalent.bar_roles[0].bar_id;
-        const { data: barData } = await window.supabaseClient
-            .from('bars')
-            .select('title')
-            .eq('id', barId)
-            .single();
+    // 2.1 Fetch Linked Bar Names for ALL roles
+    if (randomTalent.bar_roles && randomTalent.bar_roles.length > 0) {
+        const barIds = randomTalent.bar_roles.map(r => r.bar_id).filter(id => id);
 
-        if (barData) {
-            randomTalent.bar_roles[0].bar_name = barData.title; // Inject name for renderer
+        if (barIds.length > 0) {
+            const { data: barsData } = await window.supabaseClient
+                .from('bars')
+                .select('id, title')
+                .in('id', barIds);
+
+            if (barsData) {
+                // Map titles back
+                randomTalent.bar_roles.forEach(role => {
+                    const found = barsData.find(b => b.id == role.bar_id);
+                    if (found) role.bar_name = found.title;
+                });
+            }
         }
     }
 
@@ -42,12 +48,9 @@ async function fetchRandomTalent() {
 function renderTalentShowcase(talent) {
     const imgEl = document.getElementById('featured-talent-img');
     const quoteEl = document.getElementById('featured-talent-quote-en');
-    const descEl = document.getElementById('featured-talent-desc'); // User asked for Quote, but there is also 'description'. 
-    // Layout has H2 (Quote) and P (Desc). The user request said "Quote...". 
-    // I will put 'quote' in H2. And maybe 'description' in P.
-
+    const descEl = document.getElementById('featured-talent-desc');
     const nameEl = document.getElementById('featured-talent-name');
-    const roleEl = document.getElementById('featured-talent-role');
+    const roleEl = document.getElementById('featured-talent-role'); // This should be a container DIV now
 
     if (imgEl && talent.image_url) imgEl.src = talent.image_url;
 
@@ -57,33 +60,32 @@ function renderTalentShowcase(talent) {
     if (nameEl) nameEl.textContent = talent.display_name || 'Anonymous Talent';
 
     // Bar Roles Formatting
-    if (roleEl && talent.bar_roles && talent.bar_roles.length > 0) {
-        // Take first role
-        const primary = talent.bar_roles[0];
-        // Ensure we have name. If only ID is present (legacy data?), we might show Role only or fetch.
-        // Assuming we saved 'bar_name' as per recent editor update.
-        // Format: "Role, Bar Name" or "Bar Name | Role"
-        // UI Mockup had: "Head Bartender, The Midnight Hour"
+    if (roleEl) {
+        roleEl.innerHTML = ''; // Clear existing content
 
-        let roleText = primary.role || 'Bartender';
-        let barText = primary.bar_name || 'Liquid Arts';
+        if (talent.bar_roles && talent.bar_roles.length > 0) {
+            talent.bar_roles.forEach(role => {
+                let roleText = role.role || 'Bartender';
+                let barText = role.bar_name || 'Liquid Arts';
 
-        roleEl.textContent = `${barText} ${roleText}`; // Changed order to match "MO BAR Bartender"
+                const link = document.createElement('a');
+                link.textContent = `${barText} ${roleText}`;
 
-        // If it's a link, set href
-        if (roleEl.tagName === 'A') {
-            // Assuming we might have a link somewhere, if not, default to bars.html or search
-            // For now, let's link to bars.html as a specific bar link might not be in the 'talent' object yet without join.
-            // If the user needs specific bar link, we need to check if we have it. 
-            // Ideally `primary.bar_id` -> `bars.html?id=...`
-            if (primary.bar_id) {
-                roleEl.href = `bar-details.html?id=${primary.bar_id}`;
-            } else {
-                roleEl.href = 'bars.html';
-            }
+                if (role.bar_id) {
+                    link.href = `bar-details.html?id=${role.bar_id}`;
+                } else {
+                    link.href = 'bars.html';
+                }
+
+                // Styles: Centered, blocked, with underline
+                link.style.cssText = "display: block; font-family: var(--font-main); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 0.8rem; color: white; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.5); padding-bottom: 4px; width: fit-content; margin-left: auto; margin-right: auto;";
+
+                roleEl.appendChild(link);
+            });
+        } else {
+            // Default or guest
+            roleEl.textContent = 'Guest Bartender';
+            roleEl.style.cssText = "font-family: var(--font-main); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 2px; color: white; margin-bottom: 1rem;";
         }
-    } else {
-        if (roleEl) roleEl.textContent = 'Guest Bartender';
     }
 }
-EMPTY
