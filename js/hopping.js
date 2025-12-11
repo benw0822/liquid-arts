@@ -481,8 +481,10 @@ window.openGenericHoppingGallery = (event, startHopId, cacheKey) => {
 
     const renderCurrent = () => {
         const hop = hops[currentIndex];
-        // Pass bar info if available in the hop object
-        window.showHoppingDetails(null, hop.image_url, hop.hopped_at, hop.rating, hop.description, hop.id, hop.user_id, true, hop.bar_title, hop.bar_id);
+        // Pass bar info if available regarding title and map
+        const barLat = hop.bar ? hop.bar.lat : null;
+        const barLng = hop.bar ? hop.bar.lng : null;
+        window.showHoppingDetails(null, hop.image_url, hop.hopped_at, hop.rating, hop.description, hop.id, hop.user_id, true, hop.bar_title, hop.bar_id, false, barLat, barLng);
         updateGenericNavigationUI();
     };
 
@@ -548,7 +550,9 @@ window.closeHoppingDetails = () => {
 
 // Show Details Modal (Modified for HopCard + Delete)
 // Updated Signature
-window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null, ownerId = null, internal = false, barName = null, barId = null, openComments = false) => {
+// Show Details Modal (Modified for HopCard + Delete)
+// Updated Signature with Map Coordinates
+window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null, ownerId = null, internal = false, barName = null, barId = null, openComments = false, lat = null, lng = null) => {
     if (event) { event.preventDefault(); event.stopPropagation(); }
 
     // Lock Body Scroll
@@ -591,6 +595,8 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
                     <div id="hd-rating" class="hop-detail-stars"></div>
                     <span id="hd-date" class="hop-detail-date"></span>
                     <div id="hd-desc" class="hop-detail-desc"></div>
+                    <!-- Mini Map Container -->
+                    <div id="hd-map" style="height: 120px; width: 100%; margin-top: 15px; border-radius: 8px; z-index: 10; display: none;"></div>
                 </div>
 
                 <!-- Comments Panel (Hidden by default) -->
@@ -661,6 +667,43 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
 
     document.getElementById('hd-rating').textContent = '★'.repeat(parseInt(rating)) + '☆'.repeat(5 - parseInt(rating));
     document.getElementById('hd-desc').textContent = (!desc || desc === 'null' || desc === 'undefined') ? '' : desc;
+
+    // Mini Map Logic
+    const mapContainer = document.getElementById('hd-map');
+    if (lat && lng && window.L) {
+        mapContainer.style.display = 'block';
+
+        // Clean up old map
+        if (window.hdMapInstance) {
+            window.hdMapInstance.remove();
+            window.hdMapInstance = null;
+        }
+
+        // Initialize new map (Delay slightly for layout)
+        setTimeout(() => {
+            if (!document.getElementById('hd-map')) return; // Check if closed
+            const map = L.map('hd-map', {
+                zoomControl: false,
+                attributionControl: false
+            }).setView([lat, lng], 15);
+
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                subdomains: 'abcd',
+                maxZoom: 20
+            }).addTo(map);
+
+            const icon = L.divIcon({
+                className: 'custom-bar-marker',
+                html: `<div style="width: 12px; height: 12px; background: #ef4444; border: 2px solid white; border-radius: 50%; box-shadow: 0 0 10px rgba(239, 68, 68, 0.6);"></div>`,
+                iconSize: [16, 16]
+            });
+
+            L.marker([lat, lng], { icon: icon }).addTo(map);
+            window.hdMapInstance = map;
+        }, 100);
+    } else {
+        mapContainer.style.display = 'none';
+    }
 
     // Fetch and Display Hopper Profile
     const profileContainer = document.getElementById('hd-hopper-profile');
