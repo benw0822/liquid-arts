@@ -978,7 +978,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             </button>
                         ` : ''}
                     </div>
-                </div >
+                </div>
                     `;
 
             // Initialize carousel state
@@ -989,7 +989,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (bar.editorial_review) {
             // --- Masonry Grid Layout (Review Present) ---
             container.innerHTML = `
-                    < !--Top Header-- >
+                <!-- Top Header -->
                 <div class="container" style="margin-top: 100px; margin-bottom: 2rem; text-align: center;">
                     <h1 style="font-size: 3.5rem; margin-bottom: 0.5rem; color: var(--text-primary); line-height: 1.2;">${bar.title}</h1>
                     <p style="font-size: 1.2rem; color: #666; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; gap: 10px;">
@@ -1143,7 +1143,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             // --- Default 2-Column Grid Layout (No Review) ---
             container.innerHTML = `
-                    < !--Top Header(Title & Vibe)-- >
+                <!-- Top Header (Title & Vibe) -->
                 <div class="container" style="margin-top: 100px; margin-bottom: 2rem; text-align: center;">
                     <h1 style="font-size: 3.5rem; margin-bottom: 0.5rem; color: var(--text-primary); line-height: 1.2;">${bar.title}</h1>
                     <p style="font-size: 1.2rem; color: #666; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; gap: 10px;">
