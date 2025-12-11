@@ -95,29 +95,30 @@
                 <div class="poster-image-container"
                     style="position: relative; width: 320px; height: 320px; margin-bottom: 3rem; margin-top: 2rem;">
 
-                    <!-- Decorative Offset Circle (Right) -->
+                    <!-- Decorative Offset Circle (Left) -->
                     <div
-                        style="position: absolute; top: 0; left: 20px; width: 100%; height: 100%; border: 1px solid rgba(255,255,255,0.5); border-radius: 50%; pointer-events: none; z-index: 0;">
+                        style="position: absolute; top: 0; left: -20px; width: 100%; height: 100%; border: 1px solid rgba(255,255,255,0.5); border-radius: 50%; pointer-events: none; z-index: 0;">
                     </div>
 
-                    <!-- Main Image Circle (Left/Center) -->
+                    <!-- Main Image Circle (Right/Center) -->
                     <div
                         style="width: 100%; height: 100%; border-radius: 50%; overflow: hidden; position: relative; z-index: 1; box-shadow: 10px 10px 30px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2);">
                         <img id="featured-talent-img" src="images/bartender_focus.png" alt="Featured Bartender"
                             style="width: 100%; height: 100%; object-fit: cover; filter: grayscale(100%) contrast(1.1);">
                     </div>
 
-                    <!-- Curved Text (SVG) - Matched to Circle -->
-                    <svg viewBox="0 0 320 320"
+                    <!-- Curved Text (SVG) - Outside Circle -->
+                    <!-- Enlarged viewBox to allow text outside -->
+                    <svg viewBox="-50 -50 420 420"
                         style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; overflow: visible;">
-                        <!-- Path follows the top-left curve of the circle -->
-                        <!-- M 40,160 a 120,120 ... just an example arc -->
-                        <!-- Using a path that hugs the top left -->
-                        <path id="curve" d="M 50,200 A 130,130 0 0,1 200,50" fill="none" />
+                        <!-- Path larger than circle (320px = 160r). Path radius ~185. Center (160, 160) relative to 320x320 box but mapped to viewBox -->
+                        <!-- Let's define path relative to 0,0 of the container. 320px box. Center is 160,160. -->
+                        <!-- Arc from left side to top. -->
+                        <path id="curve" d="M 0,200 A 185,185 0 0,1 200,0" fill="none" />
                         <text font-family="'Playfair Display', serif" font-size="14" fill="white" letter-spacing="3"
                             text-transform="uppercase">
-                            <!-- Adjusted startOffset to position it nicely on the arc -->
-                            <textPath href="#curve" startOffset="30%" text-anchor="middle">INSIDE QUOTE</textPath>
+                            <!-- Adjusted startOffset to position it nicely on the outer arc -->
+                            <textPath href="#curve" startOffset="25%" text-anchor="middle">INSIDE QUOTE</textPath>
                         </text>
                     </svg>
 

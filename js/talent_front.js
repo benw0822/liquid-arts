@@ -21,6 +21,20 @@ async function fetchRandomTalent() {
     // 2. Pick Random
     const randomTalent = talents[Math.floor(Math.random() * talents.length)];
 
+    // 2.1 Fetch Linked Bar Name if needed
+    if (randomTalent.bar_roles && randomTalent.bar_roles.length > 0 && randomTalent.bar_roles[0].bar_id) {
+        const barId = randomTalent.bar_roles[0].bar_id;
+        const { data: barData } = await window.supabaseClient
+            .from('bars')
+            .select('title')
+            .eq('id', barId)
+            .single();
+
+        if (barData) {
+            randomTalent.bar_roles[0].bar_name = barData.title; // Inject name for renderer
+        }
+    }
+
     // 3. Render
     renderTalentShowcase(randomTalent);
 }
@@ -72,3 +86,4 @@ function renderTalentShowcase(talent) {
         if (roleEl) roleEl.textContent = 'Guest Bartender';
     }
 }
+EMPTY

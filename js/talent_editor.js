@@ -335,7 +335,7 @@ window.saveTalentProfile = async () => {
         quote: document.getElementById('talent-quote').value,
         description: document.getElementById('talent-desc').value,
         image_url: imageUrl,
-        bar_roles: scrapeList('talent-roles-list', { bar_name: 'list-input-bar', role: 'list-input-role' }),
+        bar_roles: scrapeList('talent-roles-list', { bar_id: 'list-input-bar-id', role: 'list-input-role' }),
         experiences: scrapeList('talent-exp-list', { year: 'list-input-year', unit: 'list-input-unit', title: 'list-input-title' }),
         awards: scrapeList('talent-award-list', { year: 'list-input-year', name: 'list-input-name', rank: 'list-input-rank' })
     };
