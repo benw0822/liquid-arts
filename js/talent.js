@@ -179,8 +179,10 @@ window.initTalentPage = async () => {
                     if (hopsGrid.parentElement) hopsGrid.parentElement.style.display = 'none'; // Hide section if no hops
                 }
             }
-
-        } catch (err) {
-            console.error('Talent Page Error:', err);
         }
+    } // Close the if (hopsGrid && talent.user_id) block
+
+    } catch (err) {
+    console.error('Talent Page Error:', err);
+}
     };
