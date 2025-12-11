@@ -2302,3 +2302,52 @@ figure.article-figure figcaption {
         font-size: 3rem;
     }
 }
+/* Talent Hop Card */
+.talent-hop-card {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1/1;
+    overflow: hidden;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.talent-hop-card:hover {
+    transform: scale(1.02);
+}
+
+.talent-hop-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.talent-hop-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 1rem;
+}
+
+.talent-hop-card:hover .talent-hop-overlay {
+    opacity: 1;
+}
+
+.talent-hop-rating {
+    color: #ef4444; /* Red */
+    font-size: 1rem;
+    margin-bottom: 0.2rem;
+}
+
+.talent-hop-date {
+    color: #ccc;
+    font-size: 0.8rem;
+    font-family: var(--font-display);
+    text-transform: uppercase;
+}
