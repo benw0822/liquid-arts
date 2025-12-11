@@ -236,8 +236,20 @@ window.initTalentPage = async () => {
                                 </div>
                             ` : '';
 
+                            // Helper for escaping
+                            const escapeForJs = (str) => {
+                                if (!str) return '';
+                                return str
+                                    .replace(/\\/g, '\\\\')
+                                    .replace(/'/g, "\\'")
+                                    .replace(/"/g, '&quot;')
+                                    .replace(/\n/g, '\\n')
+                                    .replace(/\r/g, '');
+                            };
+                            const descEsc = escapeForJs(hop.description);
+
                             overlayHtml = `
-                                <div style="position: absolute; top: 15px; left: 15px; z-index: 55; display: flex; flex-direction: column; align-items: flex-start; max-width: 60%; pointer-events: none;">
+                                <div onclick="event.stopPropagation(); window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', '${hop.rating}', '${descEsc}', '${hop.id}', '${hop.user_id}', false, null, null, true)" style="position: absolute; top: 15px; left: 15px; z-index: 55; display: flex; flex-direction: column; align-items: flex-start; max-width: 60%; cursor: pointer;">
                                     ${itemsHtml}
                                     ${badgeHtml}
                                 </div>
