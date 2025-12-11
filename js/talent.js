@@ -256,6 +256,13 @@ window.initTalentPage = async () => {
                             `;
                         }
 
+                        // Prepare Profile Data (Restored)
+                        const displayName = talent.hopper_nickname || talent.name || 'Anonymous Hopper';
+                        const displayAvatar = talent.hopper_image_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(displayName) + '&background=random';
+                        let roleLabel = 'Hopper';
+                        if (talent.roles && talent.roles.includes('talent')) roleLabel = 'Talent';
+                        else if (talent.roles && talent.roles.includes('admin')) roleLabel = 'Admin';
+
                         // Prepare Cheers Count
                         const cheersCount = (hop.hopping_cheers && hop.hopping_cheers[0]) ? hop.hopping_cheers[0].count : 0;
 
