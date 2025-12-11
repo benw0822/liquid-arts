@@ -613,74 +613,79 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
         modalEl.onclick = (e) => {
             if (e.target.id === 'hopping-details-modal') window.closeHoppingDetails();
         };
-        if (listEl) listEl.innerHTML = '<div style="text-align: center; color: #888; font-size: 0.9rem; margin-top: 20px;">Loading...</div>';
-        if (previewEl) previewEl.innerHTML = '';
+    } // End Lazy Load
 
-        const modal = document.getElementById('hopping-details-modal');
-        document.getElementById('hd-img').src = img;
+    const listEl = document.getElementById('hd-comments-list');
+    const previewEl = document.getElementById('hd-comments-preview');
 
-        // Reset arrows if not internal (single view)
-        if (!internal) {
-            const prev = document.getElementById('hd-prev-btn');
-            const next = document.getElementById('hd-next-btn');
-            if (prev) prev.style.display = 'none';
-            if (next) next.style.display = 'none';
-            modal.ontouchstart = null;
-            modal.ontouchmove = null;
-            modal.ontouchend = null;
-        }
+    if (listEl) listEl.innerHTML = '<div style="text-align: center; color: #888; font-size: 0.9rem; margin-top: 20px;">Loading...</div>';
+    if (previewEl) previewEl.innerHTML = '';
 
-        // Set Bar Link
-        const barLink = document.getElementById('hd-bar-link');
-        const barNameEl = document.getElementById('hd-bar-name');
-        if (barName && barId) {
-            barNameEl.textContent = barName;
-            barLink.href = `bar-details.html?id=${barId}`;
-            barLink.style.display = 'flex';
-        } else {
-            barLink.style.display = 'none';
-        }
+    const modal = document.getElementById('hopping-details-modal');
+    document.getElementById('hd-img').src = img;
 
-        // Format Date: "OCT 24, 2023"
-        const dateObj = new Date(date);
-        const dateString = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-        const timeString = dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-        document.getElementById('hd-date').textContent = `${dateString} • ${timeString}`;
+    // Reset arrows if not internal (single view)
+    if (!internal) {
+        const prev = document.getElementById('hd-prev-btn');
+        const next = document.getElementById('hd-next-btn');
+        if (prev) prev.style.display = 'none';
+        if (next) next.style.display = 'none';
+        modal.ontouchstart = null;
+        modal.ontouchmove = null;
+        modal.ontouchend = null;
+    }
 
-        document.getElementById('hd-rating').textContent = '★'.repeat(parseInt(rating)) + '☆'.repeat(5 - parseInt(rating));
-        document.getElementById('hd-desc').textContent = (!desc || desc === 'null' || desc === 'undefined') ? '' : desc;
+    // Set Bar Link
+    const barLink = document.getElementById('hd-bar-link');
+    const barNameEl = document.getElementById('hd-bar-name');
+    if (barName && barId) {
+        barNameEl.textContent = barName;
+        barLink.href = `bar-details.html?id=${barId}`;
+        barLink.style.display = 'flex';
+    } else {
+        barLink.style.display = 'none';
+    }
 
-        // Fetch and Display Hopper Profile
-        const profileContainer = document.getElementById('hd-hopper-profile');
-        const avatarEl = document.getElementById('hd-hopper-avatar');
-        const nameEl = document.getElementById('hd-hopper-name');
-        const roleEl = document.getElementById('hd-hopper-role');
+    // Format Date: "OCT 24, 2023"
+    const dateObj = new Date(date);
+    const dateString = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const timeString = dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    document.getElementById('hd-date').textContent = `${dateString} • ${timeString}`;
 
-        // Hide initially
-        profileContainer.style.display = 'none';
+    document.getElementById('hd-rating').textContent = '★'.repeat(parseInt(rating)) + '☆'.repeat(5 - parseInt(rating));
+    document.getElementById('hd-desc').textContent = (!desc || desc === 'null' || desc === 'undefined') ? '' : desc;
 
-        // Interaction Buttons Container Injection
-        // Check if it exists from previous calls to avoid duplicates if we don't clear innerHTML
-        // Note: We are replacing 'hopping-details-modal' inner content fully on lazy load, but reusing if exists.
-        // However, the buttons need to be inside specific containers or appended.
-        // Let's check if .hop-interactions exists in profileContainer or append it.
+    // Fetch and Display Hopper Profile
+    const profileContainer = document.getElementById('hd-hopper-profile');
+    const avatarEl = document.getElementById('hd-hopper-avatar');
+    const nameEl = document.getElementById('hd-hopper-name');
+    const roleEl = document.getElementById('hd-hopper-role');
 
-        // Actually, simpler to ensure we have the container in the generic HTML template, 
-        // BUT since I am editing the template string in a separate chunk (or previous step),
-        // and this function runs EVERY time, I should dynamically add/update it here or modify the initial template creation.
-        // I will modify the initial template creation block via a separate tool call if needed, 
-        // BUT since I am in `showHoppingDetails`, I can check `hd-interactions` existence.
+    // Hide initially
+    profileContainer.style.display = 'none';
 
-        let interactionContainer = document.getElementById('hd-interactions');
-        if (!interactionContainer) {
-            interactionContainer = document.createElement('div');
-            interactionContainer.id = 'hd-interactions';
-            interactionContainer.className = 'hop-interactions';
-            // Append to profile container so it sits below name
-            profileContainer.appendChild(interactionContainer);
-        }
-        // Reset Buttons
-        interactionContainer.innerHTML = `
+    // Interaction Buttons Container Injection
+    // Check if it exists from previous calls to avoid duplicates if we don't clear innerHTML
+    // Note: We are replacing 'hopping-details-modal' inner content fully on lazy load, but reusing if exists.
+    // However, the buttons need to be inside specific containers or appended.
+    // Let's check if .hop-interactions exists in profileContainer or append it.
+
+    // Actually, simpler to ensure we have the container in the generic HTML template, 
+    // BUT since I am editing the template string in a separate chunk (or previous step),
+    // and this function runs EVERY time, I should dynamically add/update it here or modify the initial template creation.
+    // I will modify the initial template creation block via a separate tool call if needed, 
+    // BUT since I am in `showHoppingDetails`, I can check `hd-interactions` existence.
+
+    let interactionContainer = document.getElementById('hd-interactions');
+    if (!interactionContainer) {
+        interactionContainer = document.createElement('div');
+        interactionContainer.id = 'hd-interactions';
+        interactionContainer.className = 'hop-interactions';
+        // Append to profile container so it sits below name
+        profileContainer.appendChild(interactionContainer);
+    }
+    // Reset Buttons
+    interactionContainer.innerHTML = `
         <button id="btn-cheers" class="btn-interaction">
             <svg class="interaction-icon cheers-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <!-- Cocktail Glass Outline -->
@@ -697,129 +702,129 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
         </button>
     `;
 
-        if (ownerId) {
-            try {
-                const { data: userData, error } = await window.supabaseClient
-                    .from('users')
-                    .select('name, hopper_nickname, hopper_image_url, roles')
-                    .eq('id', ownerId)
-                    .single();
+    if (ownerId) {
+        try {
+            const { data: userData, error } = await window.supabaseClient
+                .from('users')
+                .select('name, hopper_nickname, hopper_image_url, roles')
+                .eq('id', ownerId)
+                .single();
 
-                if (userData && !error) {
-                    // Determine Name: Hopper Nickname > Name > Anonymous
-                    const displayName = userData.hopper_nickname || userData.name || 'Anonymous Hopper';
-                    // Determine Avatar: Hopper Image > Default Placeholder
-                    const displayAvatar = userData.hopper_image_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(displayName) + '&background=random';
+            if (userData && !error) {
+                // Determine Name: Hopper Nickname > Name > Anonymous
+                const displayName = userData.hopper_nickname || userData.name || 'Anonymous Hopper';
+                // Determine Avatar: Hopper Image > Default Placeholder
+                const displayAvatar = userData.hopper_image_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(displayName) + '&background=random';
 
-                    nameEl.textContent = displayName;
-                    avatarEl.src = displayAvatar;
+                nameEl.textContent = displayName;
+                avatarEl.src = displayAvatar;
 
-                    // Determine Role Label
-                    let roleLabel = 'Hopper'; // Default
-                    if (userData.roles && Array.isArray(userData.roles)) {
-                        if (userData.roles.includes('admin')) roleLabel = 'Admin';
-                        else if (userData.roles.includes('editor')) roleLabel = 'Editor';
-                        else if (userData.roles.includes('talent')) roleLabel = 'Talent';
-                        else if (userData.roles.includes('kol')) roleLabel = 'Hoppest';
-                        else if (userData.roles.includes('member')) roleLabel = 'Hopper';
-                    }
-
-                    if (roleEl) roleEl.textContent = roleLabel;
-
-                    profileContainer.style.display = 'flex'; // Show container
+                // Determine Role Label
+                let roleLabel = 'Hopper'; // Default
+                if (userData.roles && Array.isArray(userData.roles)) {
+                    if (userData.roles.includes('admin')) roleLabel = 'Admin';
+                    else if (userData.roles.includes('editor')) roleLabel = 'Editor';
+                    else if (userData.roles.includes('talent')) roleLabel = 'Talent';
+                    else if (userData.roles.includes('kol')) roleLabel = 'Hoppest';
+                    else if (userData.roles.includes('member')) roleLabel = 'Hopper';
                 }
-            } catch (err) {
-                console.warn('Error fetching hopper profile:', err);
+
+                if (roleEl) roleEl.textContent = roleLabel;
+
+                profileContainer.style.display = 'flex'; // Show container
             }
+        } catch (err) {
+            console.warn('Error fetching hopper profile:', err);
         }
+    }
 
-        // Cheers Logic
-        const cheersBtn = document.getElementById('btn-cheers');
-        const cheersCountEl = document.getElementById('cheers-count');
-        const msgBtn = document.getElementById('btn-message');
+    // Cheers Logic
+    const cheersBtn = document.getElementById('btn-cheers');
+    const cheersCountEl = document.getElementById('cheers-count');
+    const msgBtn = document.getElementById('btn-message');
 
-        if (hopId) {
-            // Fetch Cheers Count
-            const { count, error: countErr } = await window.supabaseClient
+    if (hopId) {
+        // Fetch Cheers Count
+        const { count, error: countErr } = await window.supabaseClient
+            .from('hopping_cheers')
+            .select('*', { count: 'exact', head: true })
+            .eq('hopping_id', hopId);
+
+        if (!countErr) cheersCountEl.textContent = count;
+
+        // Check if I cheered
+        if (window.currentUser) {
+            const { data: myCheer } = await window.supabaseClient
                 .from('hopping_cheers')
-                .select('*', { count: 'exact', head: true })
-                .eq('hopping_id', hopId);
-
-            if (!countErr) cheersCountEl.textContent = count;
-
-            // Check if I cheered
-            if (window.currentUser) {
-                const { data: myCheer } = await window.supabaseClient
-                    .from('hopping_cheers')
-                    .select('id')
-                    .eq('hopping_id', hopId)
-                    .eq('user_id', window.currentUser.id)
-                    .single();
-
-                if (myCheer) {
-                    cheersBtn.classList.add('active');
-                }
-
-                // Click Handler
-                cheersBtn.onclick = async (e) => {
-                    e.stopPropagation();
-                    if (!window.currentUser) { alert('Please login to Cheers!'); return; }
-
-                    // Toggle
-                    const isActive = cheersBtn.classList.contains('active');
-                    if (isActive) {
-                        // Already Cheered - Do Nothing/Alert
-                        // alert('You have already cheered!');
-                        return;
-                    } else {
-                        // Add Cheer
-                        // Simply adding 'active' class triggers the CSS fill animation
-                        const { error } = await window.supabaseClient
-                            .from('hopping_cheers')
-                            .insert([{ hopping_id: hopId, user_id: window.currentUser.id }]);
-
-                        if (!error) {
-                            cheersBtn.classList.add('active');
-                            cheersCountEl.textContent = parseInt(cheersCountEl.textContent) + 1;
-                        }
-                    }
-                };
-            }
-        }
-
-        // Message/Comment Logic
-        const panel = document.getElementById('hd-comments-panel');
-        const input = document.getElementById('hd-comment-input');
-        const submit = document.getElementById('hd-comment-submit');
-        const list = document.getElementById('hd-comments-list'); // Re-select or use checking
-
-        // Define Fetch Function
-        const fetchComments = async () => {
-            const { data, error } = await window.supabaseClient
-                .from('hopping_comments')
-                .select('id, content, created_at, user_id, user:users (name, hopper_nickname, hopper_image_url)')
+                .select('id')
                 .eq('hopping_id', hopId)
-                .order('created_at', { ascending: false }); // Newest first
+                .eq('user_id', window.currentUser.id)
+                .single();
 
-            if (error) {
-                list.innerHTML = `<div style="text-align:center; color:red;">Error loading: ${error.message}</div>`;
-            } else if (!data || data.length === 0) {
-                list.innerHTML = `<div style="text-align:center; color:#999; font-style:italic; margin-top:20px;">No comments yet. Be the first!</div>`;
-                if (previewEl) previewEl.innerHTML = '';
-            } else {
-                // Render List (Newest First)
-                list.innerHTML = data.map(c => {
-                    const u = c.user;
-                    const name = u?.hopper_nickname || u?.name || 'Anonymous';
-                    const avatar = u?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`;
-                    const isMe = window.currentUser && window.currentUser.id === c.user_id;
-                    const canDelete = isMe || (window.currentUser && window.currentUser.id === ownerId);
+            if (myCheer) {
+                cheersBtn.classList.add('active');
+            }
 
-                    // Date Format: YYYY/MM/DD HH:mm
-                    const d = new Date(c.created_at);
-                    const dateStr = `${d.getFullYear()}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getDate().toString().padStart(2, '0')} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+            // Click Handler
+            cheersBtn.onclick = async (e) => {
+                e.stopPropagation();
+                if (!window.currentUser) { alert('Please login to Cheers!'); return; }
 
-                    return `
+                // Toggle
+                const isActive = cheersBtn.classList.contains('active');
+                if (isActive) {
+                    // Already Cheered - Do Nothing/Alert
+                    // alert('You have already cheered!');
+                    return;
+                } else {
+                    // Add Cheer
+                    // Simply adding 'active' class triggers the CSS fill animation
+                    const { error } = await window.supabaseClient
+                        .from('hopping_cheers')
+                        .insert([{ hopping_id: hopId, user_id: window.currentUser.id }]);
+
+                    if (!error) {
+                        cheersBtn.classList.add('active');
+                        cheersCountEl.textContent = parseInt(cheersCountEl.textContent) + 1;
+                    }
+                }
+            };
+        }
+    }
+
+    // Message/Comment Logic
+    const panel = document.getElementById('hd-comments-panel');
+    const input = document.getElementById('hd-comment-input');
+    const submit = document.getElementById('hd-comment-submit');
+    const list = document.getElementById('hd-comments-list'); // Re-select or use checking
+
+    // Define Fetch Function
+    const fetchComments = async () => {
+        const { data, error } = await window.supabaseClient
+            .from('hopping_comments')
+            .select('id, content, created_at, user_id, user:users (name, hopper_nickname, hopper_image_url)')
+            .eq('hopping_id', hopId)
+            .order('created_at', { ascending: false }); // Newest first
+
+        if (error) {
+            list.innerHTML = `<div style="text-align:center; color:red;">Error loading: ${error.message}</div>`;
+        } else if (!data || data.length === 0) {
+            list.innerHTML = `<div style="text-align:center; color:#999; font-style:italic; margin-top:20px;">No comments yet. Be the first!</div>`;
+            if (previewEl) previewEl.innerHTML = '';
+        } else {
+            // Render List (Newest First)
+            list.innerHTML = data.map(c => {
+                const u = c.user;
+                const name = u?.hopper_nickname || u?.name || 'Anonymous';
+                const avatar = u?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`;
+                const isMe = window.currentUser && window.currentUser.id === c.user_id;
+                const canDelete = isMe || (window.currentUser && window.currentUser.id === ownerId);
+
+                // Date Format: YYYY/MM/DD HH:mm
+                const d = new Date(c.created_at);
+                const dateStr = `${d.getFullYear()}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getDate().toString().padStart(2, '0')} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+
+                return `
                     <div style="display: flex; gap: 10px; margin-bottom: 12px;">
                         <img src="${avatar}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
                         <div style="max-width: 85%;">
@@ -836,24 +841,24 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
                         </div>
                     </div>
                `;
-                }).join('');
-                // No shrinking to bottom since newest is top
-                list.scrollTop = 0;
+            }).join('');
+            // No shrinking to bottom since newest is top
+            list.scrollTop = 0;
 
-                // Render Preview Overlay (Top 3 Newest)
-                // User Request: "Newest to 3rd Newest from Top to Bottom"
-                if (previewEl) {
-                    const total = data.length;
-                    // Since data is DESC (New, New-1, New-2...), slicing 0-3 gives exactly that order.
-                    const top3 = data.slice(0, 3);
+            // Render Preview Overlay (Top 3 Newest)
+            // User Request: "Newest to 3rd Newest from Top to Bottom"
+            if (previewEl) {
+                const total = data.length;
+                // Since data is DESC (New, New-1, New-2...), slicing 0-3 gives exactly that order.
+                const top3 = data.slice(0, 3);
 
-                    let html = top3.map(c => {
-                        const u = c.user;
-                        const name = u?.hopper_nickname || u?.name || 'Anonymous';
-                        const avatar = u?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`;
+                let html = top3.map(c => {
+                    const u = c.user;
+                    const name = u?.hopper_nickname || u?.name || 'Anonymous';
+                    const avatar = u?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`;
 
-                        // Overlay Item: Click to Open
-                        return `
+                    // Overlay Item: Click to Open
+                    return `
                         <div style="display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); padding: 4px 8px; border-radius: 12px; width: fit-content; margin-bottom: 4px; cursor: pointer; pointer-events: auto; max-width: 100%; transition: transform 0.1s;" onclick="document.getElementById('btn-message').click();" onmousedown="this.style.transform='scale(0.95)'" onmouseup="this.style.transform='scale(1)'">
                              <img src="${avatar}" style="width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.3);">
                              <span style="color: white; font-size: 0.8rem; font-weight: 500; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 180px;">
@@ -861,127 +866,127 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
                              </span>
                         </div>
                      `;
-                    }).join('');
+                }).join('');
 
-                    if (total > 3) {
-                        html += `
+                if (total > 3) {
+                    html += `
                         <div style="background: rgba(239, 68, 68, 0.9); color: white; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; width: fit-content; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.3); pointer-events: auto;" onclick="document.getElementById('btn-message').click();">
                             ${total}+
                         </div>
                      `;
-                    }
-
-                    previewEl.innerHTML = html;
                 }
+
+                previewEl.innerHTML = html;
             }
-        };
-
-        // Auto Load
-        fetchComments();
-
-        // Global Refresh (for delete action)
-        window.refreshHoppingComments = fetchComments;
-
-        // Show Panel Logic
-        msgBtn.onclick = (e) => {
-            e.stopPropagation();
-            panel.style.display = 'flex';
-            // Trigger reflow for transition
-            void panel.offsetWidth;
-            panel.style.transform = 'translateY(0)';
-            // No need to fetch here as it's auto-loaded
-        };
-
-        // Bind Submit
-        submit.onclick = async () => {
-            const text = input.value.trim();
-            if (!text) return;
-            if (!window.currentUser) { alert('Please login to comment.'); return; }
-
-            submit.disabled = true;
-            submit.style.opacity = '0.5';
-
-            const { error } = await window.supabaseClient
-                .from('hopping_comments')
-                .insert([{ hopping_id: hopId, user_id: window.currentUser.id, content: text }]);
-
-            submit.disabled = false;
-            submit.style.opacity = '1';
-
-            if (error) {
-                alert('Failed to send: ' + error.message);
-            } else {
-                input.value = '';
-                await fetchComments(); // Reload
-            }
-        };
-
-        // Allow Enter key
-        input.onkeypress = (ev) => {
-            if (ev.key === 'Enter') submit.click();
-        };
-
-
-        // Delete Button Logic
-        const deleteBtn = document.getElementById('hd-delete-btn');
-        if (hopId && window.currentUser) {
-            let canDelete = window.currentUser.id === ownerId;
-
-            // Check if Admin (Async check)
-            if (!canDelete) {
-                try {
-                    const { data: dbUser } = await window.supabaseClient.from('users').select('roles').eq('id', window.currentUser.id).single();
-                    if (dbUser && dbUser.roles && dbUser.roles.includes('admin')) canDelete = true;
-                } catch (e) {
-                    console.warn('Admin check failed:', e);
-                }
-            }
-
-            if (canDelete) {
-                deleteBtn.style.display = 'flex';
-                deleteBtn.onclick = () => window.deleteHopping(hopId);
-            } else {
-                deleteBtn.style.display = 'none';
-            }
-        } else {
-            deleteBtn.style.display = 'none';
-        }
-
-        modal.style.display = 'flex';
-    };
-
-    // Delete Hopping
-    window.deleteHopping = async (hopId) => {
-        if (!confirm('Are you sure you want to delete this Hop? / 確定要刪除這個打卡紀錄嗎？')) return;
-
-        const { error } = await window.supabaseClient
-            .from('hoppings')
-            .delete()
-            .eq('id', hopId);
-
-        if (error) {
-            alert('Delete Failed: ' + error.message);
-        } else {
-            alert('Hop deleted.');
-            document.getElementById('hopping-details-modal').style.display = 'none';
-            window.location.reload();
         }
     };
 
-    // Delete Hopping Comment
-    window.deleteHoppingComment = async (commentId, hopId) => {
-        if (!confirm('Delete this comment?')) return;
+    // Auto Load
+    fetchComments();
+
+    // Global Refresh (for delete action)
+    window.refreshHoppingComments = fetchComments;
+
+    // Show Panel Logic
+    msgBtn.onclick = (e) => {
+        e.stopPropagation();
+        panel.style.display = 'flex';
+        // Trigger reflow for transition
+        void panel.offsetWidth;
+        panel.style.transform = 'translateY(0)';
+        // No need to fetch here as it's auto-loaded
+    };
+
+    // Bind Submit
+    submit.onclick = async () => {
+        const text = input.value.trim();
+        if (!text) return;
+        if (!window.currentUser) { alert('Please login to comment.'); return; }
+
+        submit.disabled = true;
+        submit.style.opacity = '0.5';
 
         const { error } = await window.supabaseClient
             .from('hopping_comments')
-            .delete()
-            .eq('id', commentId);
+            .insert([{ hopping_id: hopId, user_id: window.currentUser.id, content: text }]);
+
+        submit.disabled = false;
+        submit.style.opacity = '1';
 
         if (error) {
-            alert('Failed to delete comment: ' + error.message);
+            alert('Failed to send: ' + error.message);
         } else {
-            if (window.refreshHoppingComments) {
-                await window.refreshHoppingComments();
-            }
+            input.value = '';
+            await fetchComments(); // Reload
         }
     };
+
+    // Allow Enter key
+    input.onkeypress = (ev) => {
+        if (ev.key === 'Enter') submit.click();
+    };
+
+
+    // Delete Button Logic
+    const deleteBtn = document.getElementById('hd-delete-btn');
+    if (hopId && window.currentUser) {
+        let canDelete = window.currentUser.id === ownerId;
+
+        // Check if Admin (Async check)
+        if (!canDelete) {
+            try {
+                const { data: dbUser } = await window.supabaseClient.from('users').select('roles').eq('id', window.currentUser.id).single();
+                if (dbUser && dbUser.roles && dbUser.roles.includes('admin')) canDelete = true;
+            } catch (e) {
+                console.warn('Admin check failed:', e);
+            }
+        }
+
+        if (canDelete) {
+            deleteBtn.style.display = 'flex';
+            deleteBtn.onclick = () => window.deleteHopping(hopId);
+        } else {
+            deleteBtn.style.display = 'none';
+        }
+    } else {
+        deleteBtn.style.display = 'none';
+    }
+
+    modal.style.display = 'flex';
+};
+
+// Delete Hopping
+window.deleteHopping = async (hopId) => {
+    if (!confirm('Are you sure you want to delete this Hop? / 確定要刪除這個打卡紀錄嗎？')) return;
+
+    const { error } = await window.supabaseClient
+        .from('hoppings')
+        .delete()
+        .eq('id', hopId);
+
+    if (error) {
+        alert('Delete Failed: ' + error.message);
+    } else {
+        alert('Hop deleted.');
+        document.getElementById('hopping-details-modal').style.display = 'none';
+        window.location.reload();
+    }
+};
+
+// Delete Hopping Comment
+window.deleteHoppingComment = async (commentId, hopId) => {
+    if (!confirm('Delete this comment?')) return;
+
+    const { error } = await window.supabaseClient
+        .from('hopping_comments')
+        .delete()
+        .eq('id', commentId);
+
+    if (error) {
+        alert('Failed to delete comment: ' + error.message);
+    } else {
+        if (window.refreshHoppingComments) {
+            await window.refreshHoppingComments();
+        }
+    }
+};
