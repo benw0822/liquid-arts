@@ -466,6 +466,25 @@ h6 {
     grid-column: span 12;
 }
 
+/* Responsive Grid for Magazine Layout */
+@media (max-width: 1024px) {
+    .grid-item {
+        grid-column: span 6;
+        /* 2 Columns */
+    }
+}
+
+@media (max-width: 600px) {
+    .grid-item {
+        grid-column: span 12;
+        /* 1 Column */
+    }
+
+    .magazine-grid {
+        gap: 1rem;
+    }
+}
+
 /* Card Styles */
 .art-card {
     position: relative;
@@ -1999,5 +2018,7 @@ figure.article-figure figcaption {
     .map-layout {
         height: 100vh;
         /* Allow full height */
+        padding-bottom: 70px;
+        /* Space for bottom nav */
     }
 }
