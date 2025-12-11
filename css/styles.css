@@ -2127,7 +2127,8 @@ figure.article-figure figcaption {
     padding-bottom: 0.5rem;
     margin-bottom: 2rem;
     display: inline-block;
-    color: #1b1b1b;
+    color: var(--text-primary);
+    /* Changed from #1b1b1b for visibility on dark */
     letter-spacing: 0.05em;
 }
 
@@ -2174,14 +2175,31 @@ figure.article-figure figcaption {
 .timeline-title {
     font-family: var(--font-display);
     font-size: 1.2rem;
-    color: #1b1b1b;
+    color: var(--text-primary);
+    /* Changed to use variable (likely dark on light body, but these sections might need light on dark depending on context?) 
+    WAIT - The body background is not forced dark, but user said "Dark Background".
+    If body is standard, it's light. BUT user said "black background part text to white".
+    This implies the sections are on a black background? 
+    Checking `talent.html` structure: <main class="container section-padding">.
+    If body is default, it's light.
+    Unless `styles.css` sets body to dark?
+    Let's check body styles.
+    Assuming the user sees a dark background, created by a theme or user preference.
+    Let's force these to be clearly visible against typical Liquid Arts dark/red themes if that's what's happening.
+    Actually, maybe the user implies the WHOLE page below the clean white hero feels like it should be dark or IS dark in their view?
+    Let's trust the user: "Black background part text to white".
+    So we set color to white.
+    */
+    color: #fff;
+    /* Forcing white as requested for "black background part" */
     margin-bottom: 0.2rem;
 }
 
 .timeline-desc {
     font-family: var(--font-main);
     font-size: 0.95rem;
-    color: #666;
+    color: #ccc;
+    /* Lighter grey for visibility on black */
 }
 
 /* Responsive */

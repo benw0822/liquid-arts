@@ -68,11 +68,12 @@ window.initTalentPage = async () => {
                         barsGrid.innerHTML = bars.map(bar => {
                             // Inject Role into card if we want? Or just show the bar.
                             // Finding the role for this bar
-                            const roles = talent.bar_roles.filter(r => r.bar_id == bar.id).map(r => r.role).join(', ');
+                            const roleObj = talent.bar_roles.find(r => r.bar_id == bar.id);
+                            const roleName = roleObj ? (roleObj.role || 'Bartender') : '';
 
                             // Reusing createBarCard but maybe we want to append the Role?
                             // Let's rely on standard card for consistency.
-                            return window.createBarCard ? window.createBarCard(bar) : '';
+                            return window.createBarCard ? window.createBarCard(bar, null, roleName) : '';
                         }).join('');
 
                         // Initialize Maps for cards

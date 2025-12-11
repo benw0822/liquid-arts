@@ -1517,7 +1517,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // Expose for Profile Page reuse
-    window.createBarCard = function (bar, city = null) {
+    window.createBarCard = function (bar, city = null, role = null) {
         const displayCity = city || bar.location || '';
         const description = bar.description || `Experience the finest mixology at ${bar.title}. Known for its ${bar.vibe} atmosphere, this spot in ${bar.location} offers a curated selection of cocktails and spirits.`;
         const rating = bar.google_rating || bar.rating || 'N/A';
@@ -1552,7 +1552,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     <img src="${bar.image}" alt="${bar.title}" style="width: 100%; height: auto; display: block; transition: transform 0.5s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                 </div>
                 <div style="text-align: center; padding: 1.5rem 1rem 0.5rem 1rem;">
-                    <h3 style="font-family: var(--font-display); font-size: 1.8rem; margin: 0 0 0.5rem 0; color: #1b1b1b;">${bar.title}</h3>
+                    <h3 style="font-family: var(--font-display); font-size: 1.8rem; margin: 0 0 0.5rem 0; color: #1b1b1b;">
+                        ${bar.title}
+                    </h3>
+                    ${role ? `<div style="font-family: var(--font-main); font-size: 0.85rem; color: #fff; background: var(--bg-red); display: inline-block; padding: 2px 8px; border-radius: 4px; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">${role}</div>` : ''}
                     <p style="font-family: var(--font-main); font-size: 1rem; color: #888; margin: 0;">
                         ${bar.vibe ? `<span style="color: var(--bg-red); font-weight: 600;">${bar.vibe}</span> • ` : ''}${displayCity}
                     </p>
