@@ -849,7 +849,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <svg viewBox="0 0 320 320" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; overflow: visible; transform: scale(1.08);">
                                 <path id="curve-${bar.id}" d="M -20,190 A 190,190 0 0,1 190,-20" fill="none" />
                                 <text font-family="'Playfair Display', serif" font-size="28" fill="white" letter-spacing="3" text-transform="uppercase">
-                                    <textPath href="#curve-${bar.id}" startOffset="25%" text-anchor="middle">INSIDE QUOTE</textPath>
+                                    <textPath href="#curve-${bar.id}" startOffset="25%" text-anchor="middle">INSIGHT QUOTE</textPath>
                                 </text>
                             </svg>
 
@@ -904,7 +904,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.barHoppingsCache[bar.id] = hops;
 
                 hoppingCardHtml = `
-                    < div class="grid-item content-card" style = "margin-bottom: 30px; text-align: center;" >
+                    <div class="grid-item content-card" style="margin-bottom: 30px; text-align: center;">
                         <h3 class="section-title">HOPS</h3>
                         
                         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 1.5rem;">
@@ -920,19 +920,19 @@ document.addEventListener('DOMContentLoaded', () => {
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 22h8"></path><path d="M12 15v7"></path><path d="M2 3h20L12 15z"></path></svg>
                             HOP HERE !
                         </button>
-                    </div >
+                    </div>
                     `;
             } else {
                 // Empty State
                 hoppingCardHtml = `
-                    < div class="grid-item content-card" style = "margin-bottom: 30px; text-align: center;" >
+                    <div class="grid-item content-card" style="margin-bottom: 30px; text-align: center;">
                         <h3 class="section-title">HOPS</h3>
                         <p style="color: #888; margin-bottom: 1.5rem; font-style: italic;">Be the first to Hop here!</p>
                         <button onclick="window.openHoppingModal(${bar.id})" class="btn" style="background-color: var(--bg-red); color: white; border: none; padding: 10px 24px; border-radius: 30px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4); transition: transform 0.2s;">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 22h8"></path><path d="M12 15v7"></path><path d="M2 3h20L12 15z"></path></svg>
                             HOP HERE !
                         </button>
-                    </div >
+                    </div>
                     `;
             }
         }
@@ -945,7 +945,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const hasMultiple = bar.signatures.length > 1;
 
             signaturesHtml = `
-                    < div class="content-card" >
+                    <div class="content-card">
                     <h3 class="section-title">Signature</h3>
                     
                     <div class="signature-carousel-container" style="position: relative; overflow: hidden;">
