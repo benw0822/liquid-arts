@@ -440,13 +440,10 @@
                     }
                 }
 
-                const result = data.map(item => ({ ...item, comments: commentsMap[item.id] || [] }));
-                window.profileHopsCache = result; // Cache for Gallery
-
-                return result.map(item => ({
+                return data.map(item => ({
                     type: 'hopping',
                     date: new Date(item.hopped_at),
-                    data: item
+                    data: { ...item, comments: commentsMap[item.id] || [] }
                 }));
             };
 
@@ -557,11 +554,8 @@
                             // Note: We need to escape arguments for onclick properly. Best to use single quotes for JS and double for HTML.
                             const descEsc = hop.description ? hop.description.replace(/'/g, "\\'") : '';
 
-                            // Onclick: Stop propagation and open with comments=true via Gallery
-                            // We use 'profileHopsCache'
-
                             overlayHtml = `
-                                <div onclick="event.stopPropagation(); window.openDynamicGallery(event, 'profileHopsCache', '${hop.id}', true)" style="position: absolute; top: 15px; left: 15px; z-index: 55; display: flex; flex-direction: column; align-items: flex-start; max-width: 60%; cursor: pointer;">
+                                <div onclick="event.stopPropagation(); window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', '${hop.rating}', '${descEsc}', '${hop.id}', '${hop.user_id}', false, '${bar.title ? bar.title.replace(/'/g, "\\'") : ''}', '${bar.id || ''}', true)" style="position: absolute; top: 15px; left: 15px; z-index: 55; display: flex; flex-direction: column; align-items: flex-start; max-width: 60%; cursor: pointer;">
                                     ${itemsHtml}
                                     ${badgeHtml}
                                 </div>
@@ -572,7 +566,7 @@
                         const mapUrl = bar.google_map_url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(bar.address || bar.location || '')}`;
 
                         return `
-                        <div class="art-card" onclick="window.openDynamicGallery(event, 'profileHopsCache', '${hop.id}', false)" style="position: relative; cursor: pointer; display: flex; flex-direction: column; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        <div class="art-card" onclick="window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', '${hop.rating}', '${hop.description ? hop.description.replace(/'/g, "\\'") : ''}', '${hop.id}', '${hop.user_id}')" style="position: relative; cursor: pointer; display: flex; flex-direction: column; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
                              
                              <div style="width: 100%; aspect-ratio: 1/1; overflow: hidden; position: relative; z-index: 1;">
                                 <img src="${hop.image_url}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">

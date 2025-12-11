@@ -237,7 +237,7 @@ window.initTalentPage = async () => {
                             ` : '';
 
                             overlayHtml = `
-                                <div onclick="event.stopPropagation(); window.openDynamicGallery(event, 'talentHoppingsCache', '${hop.id}', true)" style="position: absolute; top: 15px; left: 15px; z-index: 55; display: flex; flex-direction: column; align-items: flex-start; max-width: 60%; cursor: pointer; pointer-events: auto;">
+                                <div style="position: absolute; top: 15px; left: 15px; z-index: 55; display: flex; flex-direction: column; align-items: flex-start; max-width: 60%; pointer-events: none;">
                                     ${itemsHtml}
                                     ${badgeHtml}
                                 </div>
@@ -251,7 +251,7 @@ window.initTalentPage = async () => {
                             : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(bar.address || bar.location || '')}`;
 
                         return `
-                        <div class="art-card" onclick="window.openDynamicGallery(event, 'talentHoppingsCache', '${hop.id}', false)" style="position: relative; cursor: pointer; display: flex; flex-direction: column; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+                        <div class="art-card" onclick="window.openGenericHoppingGallery(event, '${hop.id}', 'talentHoppingsCache')" style="position: relative; cursor: pointer; display: flex; flex-direction: column; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 2rem;">
                              
                              <div style="width: 100%; aspect-ratio: 1/1; overflow: hidden; position: relative; z-index: 1;">
                                 <img src="${hop.image_url}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
