@@ -362,9 +362,10 @@
                     const descEsc = hop.description ? hop.description.replace(/'/g, "\\'") : '';
                     const titleEsc = hop.bar_title.replace(/'/g, "\\'");
 
-                    // Use openGenericHoppingGallery for consistent "Gallery" experience (arrows)
+                    // Use showHoppingDetails directly with internal=false to disable arrows (Single View)
+                    // Matches layout of Bar Card (Profile, Pill) but enforces "cannot switch" constraint.
                     return `
-                    <div class="art-card" onclick="if(window.openGenericHoppingGallery) window.openGenericHoppingGallery(event, '${hop.id}', 'latestHops'); else window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', '${hop.rating}', '${descEsc}', '${hop.id}', '${hop.user_id}', false, '${titleEsc}', '${hop.bar_id}')" style="cursor: pointer; position: relative; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: transform 0.3s; display: flex; flex-direction: column;">
+                    <div class="art-card" onclick="window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', '${hop.rating}', '${descEsc}', '${hop.id}', '${hop.user_id}', false, '${titleEsc}', '${hop.bar_id}')" style="cursor: pointer; position: relative; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: transform 0.3s; display: flex; flex-direction: column;">
                         
                         <!-- Image -->
                         <div style="width: 100%; aspect-ratio: 1/1; overflow: hidden;">
