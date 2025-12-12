@@ -506,112 +506,179 @@
 
             // RE-DEFINING fetchHops to fetch necessary fields
             const fetchHops = async () => {
+                // 1. Identify RELEVANT Hop IDs (Inbox Logic)
+                // - Hops I own
+                // - Hops I commented on
+                // - Hops I have private messages regarding
+
+                const relevantHopIds = new Set();
+
+                // A. My Hops
+                const { data: myHops } = await window.supabaseClient
+                    .from('hoppings')
+                    .select('id')
+                    .eq('user_id', user.id);
+                if (myHops) myHops.forEach(h => relevantHopIds.add(h.id));
+
+                // B. Hops I commented on
+                const { data: myComments } = await window.supabaseClient
+                    .from('hopping_comments')
+                    .select('hopping_id')
+                    .eq('user_id', user.id);
+                if (myComments) myComments.forEach(c => relevantHopIds.add(c.hopping_id));
+
+                // C. Hops with my private messages
+                const { data: myMsgs } = await window.supabaseClient
+                    .from('private_messages')
+                    .select('related_hop_id')
+                    .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`);
+                if (myMsgs) myMsgs.forEach(m => {
+                    if (m.related_hop_id) relevantHopIds.add(m.related_hop_id);
+                });
+
+                const hopIds = Array.from(relevantHopIds);
+                if (hopIds.length === 0) return [];
+
+                // 2. Fetch Full Hop Data
                 const { data } = await window.supabaseClient
                     .from('hoppings')
-                    .select('*, bars (*)')
-                    .eq('user_id', user.id)
+                    .select('*, bars (*), user:users(id, name, hopper_nickname, hopper_image_url)') // Include Owner details
+                    .in('id', hopIds)
                     .order('hopped_at', { ascending: false });
 
                 if (!data) return [];
-                const hopIds = data.map(h => h.id);
 
-                // 1. Batch Fetch Public Comments
+                // 3. Batch Fetch All Interactions for these Hops
+                // We fetch EVERYTHING, then filter in memory for display logic
+
+                // Public Comments
                 let comments = [];
-                if (hopIds.length > 0) {
-                    const { data: cData } = await window.supabaseClient
-                        .from('hopping_comments')
-                        .select('id, hopping_id, content, created_at, user_id, user:users(id, name, hopper_nickname, hopper_image_url)')
-                        .in('hopping_id', hopIds)
-                        .order('created_at', { ascending: false });
-                    if (cData) comments = cData;
-                }
+                const { data: cData } = await window.supabaseClient
+                    .from('hopping_comments')
+                    .select('id, hopping_id, content, created_at, user_id, user:users(id, name, hopper_nickname, hopper_image_url)')
+                    .in('hopping_id', hopIds)
+                    .order('created_at', { ascending: false });
+                if (cData) comments = cData;
 
-                // 2. Fetch Private Messages
+                // Private Messages
                 let privateMsgs = [];
-                if (hopIds.length > 0) {
-                    const { data: pData } = await window.supabaseClient
-                        .from('private_messages')
-                        .select('id, sender_id, receiver_id, content, created_at, related_hop_id')
-                        .in('related_hop_id', hopIds)
-                        .order('created_at', { ascending: true });
+                const { data: pData } = await window.supabaseClient
+                    .from('private_messages')
+                    .select('id, sender_id, receiver_id, content, created_at, related_hop_id')
+                    .in('related_hop_id', hopIds)
+                    .order('created_at', { ascending: true });
 
-                    if (pData) {
-                        const otherUserIds = new Set();
-                        pData.forEach(m => {
-                            if (m.sender_id !== user.id) otherUserIds.add(m.sender_id);
-                            if (m.receiver_id !== user.id) otherUserIds.add(m.receiver_id);
+                if (pData) {
+                    const otherUserIds = new Set();
+                    pData.forEach(m => {
+                        if (m.sender_id !== user.id) otherUserIds.add(m.sender_id);
+                        if (m.receiver_id !== user.id) otherUserIds.add(m.receiver_id);
+                    });
+
+                    if (otherUserIds.size > 0) {
+                        const { data: uData } = await window.supabaseClient
+                            .from('users')
+                            .select('id, name, hopper_nickname, hopper_image_url')
+                            .in('id', Array.from(otherUserIds));
+
+                        const userMap = {};
+                        if (uData) uData.forEach(u => userMap[u.id] = u);
+
+                        privateMsgs = pData.map(m => {
+                            const isMeSender = m.sender_id === user.id;
+                            const otherId = isMeSender ? m.receiver_id : m.sender_id;
+                            return {
+                                ...m,
+                                user_id: m.sender_id,
+                                user: isMeSender ? { id: user.id } : (userMap[otherId] || { id: otherId, name: 'Unknown' }),
+                                is_private: true,
+                                other_user_details: userMap[otherId]
+                            };
                         });
-
-                        if (otherUserIds.size > 0) {
-                            const { data: uData } = await window.supabaseClient
-                                .from('users')
-                                .select('id, name, hopper_nickname, hopper_image_url')
-                                .in('id', Array.from(otherUserIds));
-
-                            const userMap = {};
-                            if (uData) uData.forEach(u => userMap[u.id] = u);
-
-                            privateMsgs = pData.map(m => {
-                                const isMeSender = m.sender_id === user.id;
-                                const otherId = isMeSender ? m.receiver_id : m.sender_id;
-                                return {
-                                    ...m,
-                                    user_id: m.sender_id,
-                                    user: isMeSender ? { id: user.id } : (userMap[otherId] || { id: otherId, name: 'Unknown' }),
-                                    is_private: true,
-                                    other_user_details: userMap[otherId]
-                                };
-                            });
-                        }
                     }
                 }
 
-                // Map Public Comments to Hop ID
+                // Map to Hops
                 let commentsMap = {};
-                comments.forEach(c => {
-                    if (!commentsMap[c.hopping_id]) commentsMap[c.hopping_id] = [];
-                    commentsMap[c.hopping_id].push({ ...c, is_private: false });
-                });
+                const addToMap = (hopId, item) => {
+                    if (!commentsMap[hopId]) commentsMap[hopId] = [];
+                    commentsMap[hopId].push(item);
+                };
 
-                // Map Private Messages to Hop ID
-                privateMsgs.forEach(m => {
-                    if (!commentsMap[m.related_hop_id]) commentsMap[m.related_hop_id] = [];
-                    commentsMap[m.related_hop_id].push(m);
-                });
+                comments.forEach(c => addToMap(c.hopping_id, { ...c, is_private: false }));
+                privateMsgs.forEach(m => addToMap(m.related_hop_id, m));
 
-                // Process Messages Early
                 const myHopsForCache = data.map(item => ({ ...item, comments: commentsMap[item.id] || [] }));
-                window.myHopsCache = myHopsForCache;
+
+                // IMPORTANT: 'myHopsCache' usually stores ONLY hops I OWN for the grid below.
+                // But now we fetched others' hops too. 
+                // We should separate "InboxHops" from "MyProfileHops".
+                // Profile Grid should only show MY hops.
+                window.myHopsCache = myHopsForCache.filter(h => h.user_id === user.id); // Filter for Grid
 
                 // Render Messages grouped by Thread
                 const msgSection = document.getElementById('profile-messages-section');
                 const msgList = document.getElementById('profile-messages-list');
                 msgList.innerHTML = '';
 
-                // Group by Thread Key: HopID + OtherUserID
+                // Group Threads
                 let threads = {};
 
                 myHopsForCache.forEach(hop => {
+                    const amIOwner = hop.user_id === user.id;
+                    const hopOwner = hop.user; // Owner details
+
                     hop.comments.forEach(c => {
-                        if (!c.user) return;
+                        if (!c.user) return; // safety
 
                         let otherUserId;
                         let otherUser = null;
 
-                        // Identify the "Other Person"
-                        if (c.is_private) {
-                            if (c.sender_id === user.id) otherUserId = c.receiver_id;
-                            else otherUserId = c.sender_id;
+                        // Logic:
+                        // If I Own Hop: I see threads with [User X]. ignore [User Y] talking to [User Z] (unlikely in this schema).
+                        // If I Don't Own: I see thread with [Owner]. Ignore [User X] talking.
 
-                            otherUser = c.other_user_details;
-                            if (!otherUser && c.sender_id !== user.id) otherUser = c.user;
-                        } else {
-                            // Public Comment
-                            if (c.user_id !== user.id) {
-                                otherUserId = c.user_id;
-                                otherUser = c.user;
+                        if (amIOwner) {
+                            // My Hop: I am part of every conversation.
+                            // The "Other" is the person communicating.
+                            if (c.is_private) {
+                                otherUserId = (c.sender_id === user.id) ? c.receiver_id : c.sender_id;
                             } else {
-                                return; // Skip my public comments initially
+                                // Public comment
+                                otherUserId = c.user_id;
+                            }
+
+                            // If it's MY private msg or MY comment, I need to know who I'm talking to.
+                            // For Public comments by Me: I am broadcasting. Do we add to ALL threads?
+                            // Earlier logic: Yes, add to all.
+                            if (c.user_id === user.id) {
+                                // Handled in second pass
+                                return;
+                            }
+                        } else {
+                            // Not My Hop: I only care about conversation between ME and OWNER.
+                            // Other people's comments are noise in my inbox.
+
+                            // If comment is NOT by Me AND NOT by Owner -> Ignore.
+                            // EXCEPT: Public comments are visible on the card. 
+                            // But for "Inbox", I only want to see *my* interactions.
+
+                            const isByMe = c.user_id === user.id;
+                            const isByOwner = c.user_id === hop.user_id;
+
+                            if (!isByMe && !isByOwner) return; // Filter out third parties
+
+                            // The "Other Peer" is ALWAYS the Owner.
+                            otherUserId = hop.user_id;
+                            otherUser = hop.user;
+                        }
+
+                        // Determine Other User Object
+                        if (amIOwner) {
+                            if (c.is_private) {
+                                otherUser = c.other_user_details || c.user; // fallback
+                            } else {
+                                otherUser = c.user;
                             }
                         }
 
@@ -622,7 +689,7 @@
                             threads[key] = {
                                 hop: hop,
                                 otherUser: otherUser,
-                                otherUserId: otherUserId, // Important for Reply button
+                                otherUserId: otherUserId,
                                 comments: []
                             };
                         }
@@ -630,25 +697,56 @@
                     });
                 });
 
-                // Now add MY Public Comments to relevant threads
+                // Add My Comments (Second Pass)
                 myHopsForCache.forEach(hop => {
+                    const amIOwner = hop.user_id === user.id;
+
                     hop.comments.forEach(c => {
-                        if (!c.is_private && c.user_id === user.id) {
-                            Object.keys(threads).forEach(k => {
-                                if (threads[k].hop.id === hop.id) {
-                                    threads[k].comments.push(c);
+                        if (c.user_id === user.id) {
+                            // It's Me.
+
+                            if (amIOwner) {
+                                // I am owner. My comments/replies go to specific threads?
+                                // Private: Goes to specific receiver.
+                                // Public: Goes to ALL threads on this hop.
+
+                                if (c.is_private) {
+                                    const receiverId = c.receiver_id;
+                                    const key = `${hop.id}_${receiverId}`;
+                                    if (threads[key]) threads[key].comments.push(c);
+                                } else {
+                                    // Public: Add to all existing threads on this hop?
+                                    // Or only threads that "exist" (i.e. someone spoke to me).
+                                    Object.keys(threads).forEach(k => {
+                                        if (threads[k].hop.id === hop.id) {
+                                            threads[k].comments.push(c);
+                                        }
+                                    });
                                 }
-                            });
+                            } else {
+                                // Not Owner. I am talking to Owner.
+                                // My comments (Public or Private) go to the thread with Owner.
+                                const key = `${hop.id}_${hop.user_id}`;
+
+                                // Create thread if doesn't exist (e.g. I started conversation)
+                                if (!threads[key]) {
+                                    threads[key] = {
+                                        hop: hop,
+                                        otherUser: hop.user,
+                                        otherUserId: hop.user_id,
+                                        comments: []
+                                    };
+                                }
+                                threads[key].comments.push(c);
+                            }
                         }
                     });
                 });
 
-                // Convert to array and sort threads by latest activity
                 let threadArray = Object.values(threads);
                 threadArray.forEach(t => {
                     t.comments.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-
-                    // Deduplicate
+                    // Dedupe
                     const uniqueIds = new Set();
                     t.comments = t.comments.filter(c => {
                         const uniqueKey = c.id + (c.is_private ? '_p' : '_c');
@@ -656,11 +754,15 @@
                         uniqueIds.add(uniqueKey);
                         return true;
                     });
-
-                    t.latestTime = new Date(t.comments[t.comments.length - 1].created_at);
+                    if (t.comments.length > 0) {
+                        t.latestTime = new Date(t.comments[t.comments.length - 1].created_at);
+                    } else {
+                        t.latestTime = new Date(0);
+                    }
                 });
 
-                threadArray = threadArray.filter(t => t.otherUser);
+                // Filter out empty threads
+                threadArray = threadArray.filter(t => t.comments.length > 0);
                 threadArray.sort((a, b) => b.latestTime - a.latestTime);
 
                 const topThreads = threadArray.slice(0, 10);
@@ -675,7 +777,6 @@
                         const bubblesHtml = comments.map(c => {
                             const cUserId = c.is_private ? c.sender_id : c.user_id;
                             const isMe = cUserId === user.id;
-
                             const align = isMe ? 'flex-end' : 'flex-start';
                             const bg = isMe ? (c.is_private ? '#d1e9ff' : '#e3f2fd') : '#f5f5f5';
                             const radius = isMe ? '12px 0 12px 12px' : '0 12px 12px 12px';
@@ -718,7 +819,8 @@
                     msgSection.style.display = 'none';
                 }
 
-                return myHopsForCache.map(hop => ({
+                // Return ONLY My Hops for the Grid
+                return window.myHopsCache.map(hop => ({
                     type: 'hopping',
                     date: new Date(hop.hopped_at),
                     data: hop
