@@ -309,7 +309,7 @@
             grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #888;">Loading latest hops...</p>';
 
             try {
-                // Step 1: Fetch public hops with Bar data (User join removed to avoid FK error)
+                // Step 1: Fetch public hops with Bar data
                 const { data: hopsData, error: hopsError } = await window.supabaseClient
                     .from('hoppings')
                     .select('*, bars(id, title)')
@@ -339,24 +339,32 @@
                     }
                 }
 
-                // Step 3: Merge and Render
-                grid.innerHTML = hopsData.map(hop => {
-                    const barTitle = hop.bars?.title || 'Unknown Bar';
-                    const barId = hop.bars?.id || '';
+                // Step 3: Prepare Cache for Gallery (Standardize Object Structure)
+                window.latestHops = hopsData.map(hop => {
+                    const u = usersMap[hop.user_id];
+                    return {
+                        ...hop,
+                        bar_title: hop.bars?.title || 'Unknown Bar',
+                        bar_id: hop.bars?.id,
+                        user: u // Attach user object for potential usage
+                    };
+                });
+
+                // Step 4: Render
+                grid.innerHTML = window.latestHops.map(hop => {
                     const dateStr = new Date(hop.hopped_at).toLocaleDateString();
                     const stars = '★'.repeat(hop.rating) + '☆'.repeat(5 - hop.rating);
 
-                    // User Info from Map
-                    const u = usersMap[hop.user_id];
+                    const u = hop.user;
                     const userName = u?.hopper_nickname || u?.name || 'Anonymous';
                     const userAvatar = u?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random`;
 
-                    // Escape strings for onclick
                     const descEsc = hop.description ? hop.description.replace(/'/g, "\\'") : '';
-                    const titleEsc = barTitle.replace(/'/g, "\\'");
+                    const titleEsc = hop.bar_title.replace(/'/g, "\\'");
 
+                    // Use openGenericHoppingGallery for consistent "Gallery" experience (arrows)
                     return `
-                    <div class="art-card" onclick="window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', '${hop.rating}', '${descEsc}', '${hop.id}', '${hop.user_id}', false, '${titleEsc}', '${barId}')" style="cursor: pointer; position: relative; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: transform 0.3s; display: flex; flex-direction: column;">
+                    <div class="art-card" onclick="if(window.openGenericHoppingGallery) window.openGenericHoppingGallery(event, '${hop.id}', 'latestHops'); else window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', '${hop.rating}', '${descEsc}', '${hop.id}', '${hop.user_id}', false, '${titleEsc}', '${hop.bar_id}')" style="cursor: pointer; position: relative; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: transform 0.3s; display: flex; flex-direction: column;">
                         
                         <!-- Image -->
                         <div style="width: 100%; aspect-ratio: 1/1; overflow: hidden;">
@@ -375,7 +383,7 @@
                             </div>
 
                             <!-- Bar Title -->
-                            <h3 style="font-family: var(--font-display); font-size: 1.2rem; margin: 0 0 0.4rem 0; color: #1b1b1b; line-height: 1.3;">${barTitle}</h3>
+                            <h3 style="font-family: var(--font-display); font-size: 1.2rem; margin: 0 0 0.4rem 0; color: #1b1b1b; line-height: 1.3;">${hop.bar_title}</h3>
                             
                             <!-- Rating -->
                             <div style="color: var(--bg-red); font-size: 1rem; margin-bottom: 0.6rem; letter-spacing: 1px;">${stars}</div>
