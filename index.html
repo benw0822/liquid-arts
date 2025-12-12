@@ -309,34 +309,45 @@
             grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #888;">Loading latest hops...</p>';
 
             try {
-                // Fetch public hops with Bar and User data
-                // Removed 'user:' alias which might be causing 400 error
-                const { data, error } = await window.supabaseClient
+                // Step 1: Fetch public hops with Bar data (User join removed to avoid FK error)
+                const { data: hopsData, error: hopsError } = await window.supabaseClient
                     .from('hoppings')
-                    .select('*, bars(id, title), users(id, name, hopper_nickname, hopper_image_url)')
+                    .select('*, bars(id, title)')
                     .eq('is_public', true)
                     .order('hopped_at', { ascending: false })
                     .limit(8);
 
-                if (error) {
-                    console.error('Supabase request failed:', error);
-                    throw error;
-                }
+                if (hopsError) throw hopsError;
 
-                if (!data || data.length === 0) {
+                if (!hopsData || hopsData.length === 0) {
                     grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #888;">No recent hops found.</p>';
                     return;
                 }
 
-                // Render Cards
-                grid.innerHTML = data.map(hop => {
+                // Step 2: Fetch Users separately
+                const userIds = [...new Set(hopsData.map(h => h.user_id).filter(Boolean))];
+                let usersMap = {};
+
+                if (userIds.length > 0) {
+                    const { data: usersData, error: usersError } = await window.supabaseClient
+                        .from('users')
+                        .select('id, name, hopper_nickname, hopper_image_url')
+                        .in('id', userIds);
+
+                    if (usersData) {
+                        usersData.forEach(u => { usersMap[u.id] = u; });
+                    }
+                }
+
+                // Step 3: Merge and Render
+                grid.innerHTML = hopsData.map(hop => {
                     const barTitle = hop.bars?.title || 'Unknown Bar';
                     const barId = hop.bars?.id || '';
                     const dateStr = new Date(hop.hopped_at).toLocaleDateString();
                     const stars = '★'.repeat(hop.rating) + '☆'.repeat(5 - hop.rating);
 
-                    // User Info - Access via 'users' (default relation name)
-                    const u = hop.users || hop.user;
+                    // User Info from Map
+                    const u = usersMap[hop.user_id];
                     const userName = u?.hopper_nickname || u?.name || 'Anonymous';
                     const userAvatar = u?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random`;
 
@@ -380,7 +391,7 @@
 
             } catch (err) {
                 console.error('Error fetching hops:', JSON.stringify(err, null, 2));
-                grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #ef4444;">Could not load hops.</p>';
+                grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #ef4444;">Could not load recent hops.</p>';
             }
         }
 
