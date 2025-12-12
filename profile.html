@@ -607,12 +607,13 @@
                         privateMsgs = pData.map(m => {
                             const isMeSender = m.sender_id === user.id;
                             const otherId = isMeSender ? m.receiver_id : m.sender_id;
+                            const otherUser = userMap[otherId] || { id: otherId, name: 'Unknown', hopper_nickname: 'Unknown', hopper_image_url: '' };
                             return {
                                 ...m,
                                 user_id: m.sender_id,
-                                user: isMeSender ? { id: user.id } : (userMap[otherId] || { id: otherId, name: 'Unknown' }),
+                                user: isMeSender ? { id: user.id } : otherUser,
                                 is_private: true,
-                                other_user_details: userMap[otherId]
+                                other_user_details: otherUser
                             };
                         });
                     }
@@ -628,7 +629,8 @@
                 comments.forEach(c => addToMap(c.hopping_id, { ...c, is_private: false }));
                 privateMsgs.forEach(m => addToMap(m.related_hop_id, m));
 
-                const myHopsForCache = data.map(item => ({ ...item, comments: commentsMap[item.id] || [] }));
+                // Use freshHops instead of 'data' if 'data' is undefined or shadowed
+                const myHopsForCache = freshHops.map(item => ({ ...item, comments: commentsMap[item.id] || [] }));
 
                 // IMPORTANT: 'myHopsCache' usually stores ONLY hops I OWN for the grid below.
                 // But now we fetched others' hops too. 
