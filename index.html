@@ -306,15 +306,17 @@
             const grid = document.getElementById('hop-feed');
             if (!grid) return;
 
-            // Adjust Layout for Feed Style (Single Column, Centered)
+            // Adjust Layout for Feed Style (3-Column Grid)
             grid.classList.remove('masonry-grid');
-            grid.style.display = 'flex';
-            grid.style.flexDirection = 'column';
-            grid.style.alignItems = 'center';
-            grid.style.gap = '40px';
+            grid.style.display = 'grid';
+            // Use responsive grid: 3 columns on desktop, fewer on smaller screens
+            grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(300px, 1fr))';
+            grid.style.gap = '24px';
             grid.style.marginTop = '3rem';
+            grid.style.width = '100%';
+            grid.style.justifyContent = 'center';
 
-            grid.innerHTML = '<p style="text-align: center; color: #888;">Loading latest hops...</p>';
+            grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #888;">Loading latest hops...</p>';
 
             try {
                 // Step 1: Fetch public hops with Bar data
@@ -323,12 +325,12 @@
                     .select('*, bars(id, title)')
                     .eq('is_public', true)
                     .order('hopped_at', { ascending: false })
-                    .limit(8);
+                    .limit(9); // Limit 9 for nice 3x3 grid
 
                 if (hopsError) throw hopsError;
 
                 if (!hopsData || hopsData.length === 0) {
-                    grid.innerHTML = '<p style="text-align: center; color: #888;">No recent hops found.</p>';
+                    grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #888;">No recent hops found.</p>';
                     return;
                 }
 
@@ -348,25 +350,20 @@
                 const hopIds = hopsData.map(h => h.id);
                 let commentsMap = {};
                 if (hopIds.length > 0) {
-                    // Fetch recent comments for these hops
                     const { data: commentsData } = await window.supabaseClient
                         .from('hopping_comments')
                         .select('hopping_id, content, user:users(name, hopper_nickname, hopper_image_url)')
                         .in('hopping_id', hopIds)
-                        .order('created_at', { ascending: false }); // Get newest first
+                        .order('created_at', { ascending: false });
 
                     if (commentsData) {
-                        // Map 1 latest comment per hop
                         commentsData.forEach(c => {
-                            if (!commentsMap[c.hopping_id]) {
-                                commentsMap[c.hopping_id] = c;
-                            }
+                            if (!commentsMap[c.hopping_id]) commentsMap[c.hopping_id] = c;
                         });
                     }
                 }
 
-                // Step 4: Render Full Feed Cards
-                // Removing hardcoded max-width: 500px to allow JS syncing
+                // Step 4: Render Cards in Grid
                 grid.innerHTML = hopsData.map(hop => {
                     const dateObj = new Date(hop.hopped_at);
                     const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ' • ' + dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
@@ -376,8 +373,9 @@
                     const userName = u?.hopper_nickname || u?.name || 'Anonymous';
                     const userAvatar = u?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random`;
 
-                    const role = 'Hopper'; // Static for now
+                    const role = 'Hopper';
 
+                    // Comments Pill
                     const latestComment = commentsMap[hop.id];
                     let commentHtml = '';
                     if (latestComment) {
@@ -395,8 +393,14 @@
                         `;
                     }
 
+                    // Description Logic: Only show if exists
+                    const descriptionHtml = hop.description ? `
+                        <p style="font-size: 0.95rem; color: #555; font-style: italic; font-family: 'Playfair Display', serif; line-height: 1.5; margin: 0;">
+                            "${hop.description}"
+                        </p>` : '';
+
                     return `
-                    <div class="hop-feed-card" style="background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 0; display: flex; flex-direction: column; width: 100%;">
+                    <div class="hop-feed-card" style="background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); display: flex; flex-direction: column; width: 100%;">
                         
                         <!-- Image Area -->
                         <div style="position: relative; width: 100%; padding-top: 100%;">
@@ -448,45 +452,12 @@
                             <div style="font-size: 0.7rem; color: #aaa; letter-spacing: 1px; margin-bottom: 0.8rem; text-transform: uppercase;">${dateStr}</div>
 
                             <!-- Description -->
-                            <p style="font-size: 0.95rem; color: #555; font-style: italic; font-family: 'Playfair Display', serif; line-height: 1.5; margin: 0;">
-                                "${hop.description || ''}"
-                            </p>
+                            ${descriptionHtml}
 
                         </div>
                     </div>
                     `;
                 }).join('');
-
-                // 5. Sync Width with 'Bar Card' (Event Card)
-                const syncHopCardWidth = () => {
-                    const cards = document.querySelectorAll('.hop-feed-card');
-                    if (cards.length === 0) return;
-
-                    // Try to find the reference 'Bar Card' (Events)
-                    // Usually .event-card or .swiper-slide within the events section
-                    // We check for visible cards to get the 'rendered' width
-                    const refCard = document.querySelector('.event-card') || document.querySelector('.swiper-slide');
-
-                    if (refCard) {
-                        const widthIdx = refCard.getBoundingClientRect().width;
-                        if (widthIdx > 0) {
-                            cards.forEach(card => {
-                                card.style.width = widthIdx + 'px';
-                                card.style.maxWidth = 'none'; // Lock to Ref
-                            });
-                            return; // Success
-                        }
-                    }
-
-                    // Fallback to limited width if ref not found yet
-                    // No-op if we want 100% default
-                };
-
-                // Sync immediately, and on resize, and delayed (for async loads)
-                syncHopCardWidth();
-                window.addEventListener('resize', syncHopCardWidth);
-                setTimeout(syncHopCardWidth, 500);
-                setTimeout(syncHopCardWidth, 2000);
 
             } catch (err) {
                 console.error('Error fetching hops:', JSON.stringify(err, null, 2));
