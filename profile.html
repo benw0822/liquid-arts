@@ -1352,6 +1352,65 @@
                 }
             };
 
+            // --- Realtime Subscription ---
+            const setupRealtime = () => {
+                const channel = supabase.channel('profile-chat-updates')
+                    .on(
+                        'postgres_changes',
+                        { event: 'INSERT', schema: 'public', table: 'private_messages' },
+                        (payload) => {
+                            const msg = payload.new;
+                            if (msg.sender_id === user.id || msg.receiver_id === user.id) {
+                                console.log('[Realtime] New Private Message:', msg);
+                                handleNewMessage(msg, true);
+                            }
+                        }
+                    )
+                    .on(
+                        'postgres_changes',
+                        { event: 'INSERT', schema: 'public', table: 'hopping_comments' },
+                        (payload) => {
+                            const comment = payload.new;
+                            const isMyHop = window.myHopsCache && window.myHopsCache.some(h => h.id === comment.hopping_id);
+
+                            if (isMyHop || comment.user_id === user.id) {
+                                console.log('[Realtime] New Comment:', comment);
+                                handleNewMessage(comment, false);
+                            } else {
+                                const relevant = allItems.some(i => i.type === 'hopping' && i.data.id === comment.hopping_id);
+                                if (relevant) {
+                                    handleNewMessage(comment, false);
+                                }
+                            }
+                        }
+                    )
+                    .subscribe();
+
+                console.log('[Realtime] Subscribed to chat updates.');
+            };
+
+            const handleNewMessage = async (newPayload, isPrivate) => {
+                console.log('Refreshing Inbox...');
+                const freshHops = await fetchHops();
+
+                const nonHops = allItems.filter(i => i.type !== 'hopping');
+                const newHopItems = freshHops.map(h => ({
+                    type: 'hopping',
+                    date: new Date(h.hopped_at),
+                    data: h
+                }));
+
+                allItems = [...nonHops, ...newHopItems];
+                allItems.sort((a, b) => b.date - a.date);
+
+                const activeFilter = document.querySelector('.filter-tab.active').dataset.filter;
+                if (activeFilter === 'all' || activeFilter === 'hopping') {
+                    renderUnifiedGrid(activeFilter);
+                }
+            };
+
+            setupRealtime();
+
             // --- Filter Event Listeners ---
             document.querySelectorAll('.filter-tab').forEach(btn => {
                 btn.addEventListener('click', () => {
