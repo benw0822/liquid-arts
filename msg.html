@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages - Liquid Arts</title>
+    <link rel="stylesheet" href="css/styles.css?v=force">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:wght@400;700&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body class="light-mode">
+    <nav class="navbar">
+        <div class="container nav-content" style="display: flex; align-items: center; justify-content: space-between;">
+            <a href="index.html" class="logo">
+                <img src="assets/logo_horizontal.png" alt="Liquid Arts" class="logo-img">
+            </a>
+
+            <!-- Desktop Nav Links -->
+            <div class="nav-links" style="margin-left: 2rem;">
+                <a href="bars.html" class="nav-link">Bars</a>
+                <a href="map.html" class="nav-link">Map</a>
+                <a href="journal.html" class="nav-link">Journal</a>
+                <a href="events.html" class="nav-link">Event</a>
+                <a href="about.html" class="nav-link">About</a>
+                <a href="msg.html" class="nav-link active">Messages</a>
+            </div>
+
+            <!-- Global Auth Button (Mobile & Desktop) -->
+            <a href="profile.html" id="global-auth-btn" class="nav-link" aria-label="Profile"
+                style="margin-left: auto; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; color: var(--text-accent);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+            </a>
+        </div>
+    </nav>
+
+    <main class="container" style="margin-top: 6rem; min-height: 80vh;">
+        <!-- Auth Wall -->
+        <div id="auth-wall" style="text-align: center; display: none; padding-top: 4rem;">
+            <h2>Please Log In</h2>
+            <p>You need to be logged in to view your messages.</p>
+            <button onclick="window.login()" class="btn" style="margin-top: 1rem;">Login with Google</button>
+        </div>
+
+        <!-- User View -->
+        <div id="user-view" style="display: none;">
+
+            <div class="section-header" style="justify-content: flex-start; margin-bottom: 2rem;">
+                <h2 class="display-text" style="font-size: 2.5rem;">MESSAGES</h2>
+            </div>
+
+            <div id="messages-loading" style="text-align: center; color: #888;">Loading conversations...</div>
+
+            <!-- Messages Section -->
+            <div id="messages-container" style="display: none;">
+                <div id="messages-list"
+                    style="display: flex; flex-direction: column; gap: 10px; max-width: 800px; margin: 0 auto;">
+                    <!-- Messages injected here -->
+                </div>
+                <div id="no-messages" style="display: none; text-align: center; color: #888; margin-top: 2rem;">
+                    No messages yet. Start hopping to chat!
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <nav class="bottom-nav">
+        <a href="bars.html" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M12 21v-8"></path>
+                <path d="M5 4l7 9 7-9H5z"></path>
+                <path d="M7 21h10"></path>
+            </svg>
+            <span>Bars</span>
+        </a>
+        <a href="map.html" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+            <span>Map</span>
+        </a>
+        <a href="msg.html" class="nav-item active">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+            <span>Messages</span>
+        </a>
+        <a href="journal.html" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M6 13L17 4"></path>
+                <path d="M4 15L15 6"></path>
+                <path d="M4 15L6 13"></path>
+                <path d="M15 6L17 4"></path>
+                <path d="M11 10L8 21"></path>
+                <path d="M11 10L14 21"></path>
+            </svg>
+            <span>Journal</span>
+        </a>
+        <a href="profile.html" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+            </svg>
+            <span>Pocket</span>
+        </a>
+    </nav>
+
+    <script src="js/app.js?v=force"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Auth & Init
+            // app.js inits window.supabaseClient
+            const authWall = document.getElementById('auth-wall');
+            const userView = document.getElementById('user-view');
+            const msgList = document.getElementById('messages-list');
+            const msgContainer = document.getElementById('messages-container');
+            const loading = document.getElementById('messages-loading');
+            const noMessages = document.getElementById('no-messages');
+
+            // Wait a tick for app.js to theoretically init? 
+            // Ideally we should wait for onAuthStateChange or just check session
+            const supabase = window.supabaseClient || window.supabase.createClient('https://cbmtgmcgpzguospmgntg.supabase.co', 'YOUR_KEY_IF_NEEDED_BUT_APP_JS_DOES_IT');
+            // Assuming app.js does it.
+
+            const { data: { session } } = await window.supabaseClient.auth.getSession();
+            const user = session?.user;
+
+            if (!user) {
+                authWall.style.display = 'block';
+                return;
+            }
+
+            // Logged In
+            userView.style.display = 'block';
+            window.currentUser = user;
+
+            // --- Fetch Messages Logic ---
+            const fetchMessages = async () => {
+                try {
+                    loading.style.display = 'block';
+                    msgContainer.style.display = 'none';
+                    noMessages.style.display = 'none';
+
+                    // 1. Identify RELEVANT Hop IDs
+                    const relevantHopIds = new Set();
+
+                    // A. My Hops
+                    const { data: myHops } = await window.supabaseClient
+                        .from('hoppings').select('id').eq('user_id', user.id);
+                    if (myHops) myHops.forEach(h => relevantHopIds.add(h.id));
+
+                    // B. Commented Hops
+                    const { data: myComments } = await window.supabaseClient
+                        .from('hopping_comments').select('hopping_id').eq('user_id', user.id);
+                    if (myComments) myComments.forEach(c => relevantHopIds.add(c.hopping_id));
+
+                    // C. DM'd Hops
+                    const { data: myMsgs } = await window.supabaseClient
+                        .from('private_messages')
+                        .select('related_hop_id')
+                        .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`);
+                    if (myMsgs) myMsgs.forEach(m => { if (m.related_hop_id) relevantHopIds.add(m.related_hop_id); });
+
+                    const hopIds = Array.from(relevantHopIds);
+                    if (hopIds.length === 0) {
+                        loading.style.display = 'none';
+                        noMessages.style.display = 'block';
+                        msgContainer.style.display = 'block';
+                        return;
+                    }
+
+                    // 2. Fetch Hop Data + Bars
+                    const { data: hopsData } = await window.supabaseClient
+                        .from('hoppings')
+                        .select('*, bars (id, title, location, google_map_url)')
+                        .in('id', hopIds);
+
+                    if (!hopsData || hopsData.length === 0) {
+                        loading.style.display = 'none';
+                        noMessages.style.display = 'block';
+                        return;
+                    }
+
+                    // 3. Fetch Users (Owners)
+                    const userIds = new Set(hopsData.map(h => h.user_id));
+                    const { data: owners } = await window.supabaseClient
+                        .from('users').select('id, name, hopper_nickname, hopper_image_url').in('id', Array.from(userIds));
+                    const userMap = {};
+                    if (owners) owners.forEach(u => userMap[u.id] = u);
+                    hopsData.forEach(h => h.user = userMap[h.user_id] || {});
+
+                    // 4. Fetch All Comments/DMs
+                    let allInteractions = [];
+
+                    // Comments
+                    const { data: cData } = await window.supabaseClient
+                        .from('hopping_comments')
+                        .select('id, hopping_id, content, created_at, user_id, user:users(id, name, hopper_nickname, hopper_image_url)')
+                        .in('hopping_id', hopIds)
+                        .order('created_at', { ascending: true });
+                    if (cData) allInteractions.push(...cData.map(c => ({ ...c, type: 'comment', hopId: c.hopping_id })));
+
+                    // Private Msgs
+                    const { data: pData } = await window.supabaseClient
+                        .from('private_messages')
+                        .select('id, sender_id, receiver_id, content, created_at, related_hop_id')
+                        .in('related_hop_id', hopIds)
+                        .order('created_at', { ascending: true });
+
+                    if (pData) {
+                        // Fetch other participants
+                        const others = new Set();
+                        pData.forEach(m => {
+                            if (m.sender_id !== user.id) others.add(m.sender_id);
+                            if (m.receiver_id !== user.id) others.add(m.receiver_id);
+                        });
+                        if (others.size > 0) {
+                            const { data: pUsers } = await window.supabaseClient.from('users').select('id, name, hopper_nickname, hopper_image_url').in('id', Array.from(others));
+                            if (pUsers) pUsers.forEach(u => userMap[u.id] = u);
+                        }
+
+                        allInteractions.push(...pData.map(m => {
+                            const isMeSender = m.sender_id === user.id;
+                            const otherId = isMeSender ? m.receiver_id : m.sender_id;
+                            const otherUser = userMap[otherId] || { name: 'Unknown' };
+                            return {
+                                ...m,
+                                type: 'private',
+                                hopId: m.related_hop_id,
+                                user_id: m.sender_id,
+                                user: isMeSender ? { id: user.id } : otherUser,
+                                is_private: true,
+                                other_user_details: otherUser
+                            };
+                        }));
+                    }
+
+                    // 5. Group by Thread
+                    // Thread Key: HopID + "CommunicationPartnerID"
+                    let threads = {};
+
+                    allInteractions.forEach(item => {
+                        const hop = hopsData.find(h => h.id === item.hopId);
+                        if (!hop) return;
+
+                        const amIOwner = hop.user_id === user.id;
+                        let partnerId;
+
+                        if (amIOwner) {
+                            // I am owner. Partner is whoever wrote the comment/msg.
+                            if (item.user_id === user.id) {
+                                // I wrote it. Need to find who I wrote TO.
+                                if (item.is_private) partnerId = item.receiver_id;
+                                else return; // Ignore my public comments unless replying? (Simplification: Ignore my own public comments for thread grouping, they appear in existing threads)
+                            } else {
+                                partnerId = item.user_id;
+                            }
+                        } else {
+                            // I am NOT owner. My only conversation is with Owner.
+                            // Ignore other people's interactions.
+                            if (item.user_id !== user.id && item.user_id !== hop.user_id) return;
+                            partnerId = hop.user_id;
+                        }
+
+                        if (!partnerId) return;
+
+                        const key = `${hop.id}_${partnerId}`;
+                        if (!threads[key]) {
+                            threads[key] = {
+                                hop: hop,
+                                partnerId: partnerId,
+                                partnerUser: userMap[partnerId] || { name: 'User' },
+                                messages: []
+                            };
+                        }
+                        threads[key].messages.push(item);
+                    });
+
+                    // 5b. Add my own public comments to relevant threads (Second Pass)
+                    if (allInteractions.length > 0) {
+                        const myPublicComments = allInteractions.filter(i => i.user_id === user.id && i.type === 'comment');
+                        myPublicComments.forEach(c => {
+                            const hop = hopsData.find(h => h.id === c.hopId);
+                            if (!hop) return;
+                            const amIOwner = hop.user_id === user.id;
+
+                            if (amIOwner) {
+                                // Add to ALL threads involved with this hop? 
+                                // OR just don't show my public comments in "Inbox" unless it's a reply?
+                                // For now: don't add. Simpler. User sees their DMs and incoming comments.
+                                // If I comment publicly, it's on the card.
+                                // Wait, if I reply to a comment publicly, I want it in the thread?
+                                // Let's iterate existing threads for this hop and add it.
+                                Object.values(threads).forEach(t => {
+                                    if (t.hop.id === hop.id) t.messages.push(c);
+                                });
+                            } else {
+                                // Not owner. Add to my thread with owner.
+                                const key = `${hop.id}_${hop.user_id}`;
+                                if (threads[key]) threads[key].messages.push(c);
+                            }
+                        });
+                    }
+
+                    // 6. Convert to Array, Sort, Render
+                    let threadArray = Object.values(threads);
+
+                    // Filter empty
+                    threadArray = threadArray.filter(t => t.messages.length > 0);
+
+                    // Sort messages in thread
+                    threadArray.forEach(t => {
+                        // Dedup messages (in case added multiple times)
+                        const unique = new Set();
+                        t.messages = t.messages.filter(m => {
+                            const k = m.id + (m.is_private ? 'p' : 'c');
+                            if (unique.has(k)) return false;
+                            unique.add(k);
+                            return true;
+                        });
+                        t.messages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+                    });
+
+                    // Determine Latest Activity for Thread Sorting
+                    threadArray.forEach(t => {
+                        t.latestDate = new Date(t.messages[t.messages.length - 1].created_at);
+                    });
+
+                    // Sort Threads: Newest First
+                    threadArray.sort((a, b) => b.latestDate - a.latestDate);
+
+                    if (threadArray.length === 0) {
+                        loading.style.display = 'none';
+                        noMessages.style.display = 'block';
+                        msgContainer.style.display = 'block';
+                        return;
+                    }
+
+                    // Render HTML
+                    msgList.innerHTML = threadArray.map(t => {
+                        const { hop, partnerUser, messages } = t;
+                        const partnerName = partnerUser.hopper_nickname || partnerUser.name || 'Anonymous';
+                        const partnerAvatar = partnerUser.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(partnerName)}&background=random`;
+
+                        const amIOwner = hop.user_id === user.id;
+
+                        // Bubbles
+                        const bubbles = messages.map(m => {
+                            const isMe = m.user_id === user.id;
+                            const align = isMe ? 'flex-end' : 'flex-start';
+                            const bg = isMe ? (m.is_private ? '#d1e9ff' : '#e3f2fd') : '#f5f5f5';
+                            const radius = isMe ? '12px 0 12px 12px' : '0 12px 12px 12px';
+                            const border = m.is_private ? '1px solid #cce5ff' : 'none';
+
+                            return `
+                                 <div style="display: flex; justify-content: ${align}; width: 100%;">
+                                     <div style="background: ${bg}; border: ${border}; padding: 8px 12px; border-radius: ${radius}; font-size: 0.9rem; color: #333; max-width: 85%; margin-bottom: 6px;">
+                                         ${m.content}
+                                     </div>
+                                 </div>
+                             `;
+                        }).join('');
+
+                        // Reply Logic
+                        let disableReply = false;
+                        let placeholderText = 'Type a message...';
+
+                        // Validation: Non-owner cannot double text owner?
+                        if (!amIOwner) {
+                            const lastMsg = messages[messages.length - 1];
+                            if (lastMsg.user_id === user.id) {
+                                disableReply = true;
+                                placeholderText = 'Waiting for owner reply...';
+                            }
+                        }
+
+                        return `
+                              <div style="background: white; padding: 12px; border-radius: 12px; border: 1px solid #eee; transition: background 0.2s;">
+                                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0;">
+                                     <img src="${partnerAvatar}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+                                     <div style="flex: 1;">
+                                         <div style="font-weight: 600; font-size: 0.95rem; color: #333;">${partnerName}</div>
+                                         <div style="font-size: 0.75rem; color: #888;">@ ${hop.bars?.title || 'Unknown Bar'}</div>
+                                     </div>
+                                     <img src="${hop.image_url}" 
+                                          style="width: 32px; height: 32px; border-radius: 6px; object-fit: cover;">
+                                 </div>
+                                 <div style="display: flex; flex-direction: column; gap: 4px; padding: 0 4px 10px 4px; max-height: 300px; overflow-y: auto;">
+                                     ${bubbles}
+                                 </div>
+                                 
+                                 <!-- Inline Input -->
+                                 <div style="margin-top: 5px; display: flex; gap: 8px; border-top: 1px solid #f0f0f0; padding-top: 10px;">
+                                     <input type="text" id="reply-input-${hop.id}" 
+                                            placeholder="${placeholderText}" 
+                                            ${disableReply ? 'disabled' : ''}
+                                            onkeydown="if(event.key === 'Enter') window.sendInlineReply('${hop.id}', '${partnerUser.id}')"
+                                            style="flex: 1; border: 1px solid #eee; border-radius: 20px; padding: 8px 12px; font-size: 0.9rem; outline: none; background: ${disableReply ? '#fafafa' : 'white'}; color: #333; transition: border 0.2s;">
+                                     <button id="btn-reply-${hop.id}"
+                                             onclick="window.sendInlineReply('${hop.id}', '${partnerUser.id}')" 
+                                             ${disableReply ? 'disabled' : ''}
+                                             style="background: ${disableReply ? '#e0e0e0' : 'var(--bg-red)'}; color: white; border: none; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: ${disableReply ? 'not-allowed' : 'pointer'}; transition: background 0.2s; flex-shrink: 0;">
+                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                                     </button>
+                                 </div>
+                             </div>
+                         `;
+
+                    }).join('');
+
+                    loading.style.display = 'none';
+                    msgContainer.style.display = 'block';
+
+                } catch (err) {
+                    console.error('Fetch Msg Error:', err);
+                    loading.textContent = 'Error loading messages.';
+                }
+            };
+
+            fetchMessages();
+
+            // Realtime
+            const channel = window.supabaseClient.channel('msg-page-updates')
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'private_messages' }, () => fetchMessages())
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'hopping_comments' }, () => fetchMessages())
+                .subscribe();
+
+            // Send Function (Global for onclick)
+            window.sendInlineReply = async (hopId, receiverId) => {
+                const inputEl = document.getElementById(`reply-input-${hopId}`);
+                const btnEl = document.getElementById(`btn-reply-${hopId}`);
+                const content = inputEl.value.trim();
+
+                if (!content) return;
+
+                const originalBtnContent = btnEl.innerHTML;
+                btnEl.innerHTML = '...';
+                btnEl.disabled = true;
+                inputEl.disabled = true;
+
+                const { error } = await window.supabaseClient
+                    .from('private_messages')
+                    .insert([{ sender_id: window.currentUser.id, receiver_id: receiverId, content: content, related_hop_id: hopId }]);
+
+                if (error) {
+                    alert('Error: ' + error.message);
+                    btnEl.innerHTML = originalBtnContent;
+                    btnEl.disabled = false;
+                    inputEl.disabled = false;
+                } else {
+                    // Success (Realtime will refresh, but optmistic for snappy feel?)
+                    inputEl.value = '';
+                    fetchMessages(); // Trigger refresh immediately
+                }
+            };
+
+            // Global Login Helper
+            window.login = async () => {
+                const { error } = await window.supabaseClient.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: { redirectTo: window.location.href }
+                });
+                if (error) alert(error.message);
+            };
+
+        });
+    </script>
+</body>
+
+</html>

@@ -27,6 +27,7 @@
                 <a href="map.html" class="nav-link">Map</a>
                 <a href="journal.html" class="nav-link">Journal</a>
                 <a href="events.html" class="nav-link">Event</a>
+                <a href="msg.html" class="nav-link">Messages</a>
                 <a href="about.html" class="nav-link">About</a>
             </div>
 
@@ -324,21 +325,7 @@
                     </div>
                 </div>
 
-                <!-- Messages / Notifications Section -->
-                <div id="profile-messages-section" style="margin-bottom: 2rem; display: none;">
-                    <h3
-                        style="font-size: 1.1rem; margin-bottom: 1rem; color: #333; display: flex; align-items: center; gap: 8px;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            style="color: var(--bg-red);">
-                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                        </svg>
-                        Latest Messages
-                    </h3>
-                    <div id="profile-messages-list" style="display: flex; flex-direction: column; gap: 10px;">
-                        <!-- Messages injected here -->
-                    </div>
-                </div>
+                <!-- Messages Removed (Moved to msg.html) -->
 
                 <!-- Filter Navigation -->
                 <div class="profile-filter-nav">
@@ -396,6 +383,13 @@
                 <line x1="3" y1="10" x2="21" y2="10"></line>
             </svg>
             <span>Event</span>
+        </a>
+        <a href="msg.html" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+            <span>Messages</span>
         </a>
         <a href="profile.html" class="nav-item">
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
@@ -796,7 +790,7 @@
                 const topThreads = threadArray.slice(0, 10);
 
                 if (topThreads.length > 0) {
-                    msgSection.style.display = 'block';
+                    // msgSection.style.display = 'block'; // REMOVED auto-show. Controlled by Tabs now.
                     msgList.innerHTML = topThreads.map(t => {
                         const { hop, otherUser, comments, otherUserId } = t;
                         const otherName = otherUser?.hopper_nickname || otherUser?.name || 'Anonymous';
