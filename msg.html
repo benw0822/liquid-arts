@@ -167,7 +167,7 @@
                 // Find hop in allThreads
                 let foundHop = null;
                 for (const t of allThreads) {
-                    if (t.hop.id === hopId) {
+                    if (t.hop.id == hopId) { // Loose equality for String/Number match
                         foundHop = t.hop;
                         break;
                     }
@@ -320,7 +320,6 @@
                     if (!threadEl) {
                         // Create New
                         threadEl = document.createElement('div');
-                        threadEl.id = threadId;
                         threadEl.className = 'thread-card';
                         threadEl.style.cssText = "background: white; padding: 16px; border-radius: 12px; border: 1px solid #eee; transition: all 0.3s; margin-bottom: 10px;"; // Added margin here because flex gap might fail if we manipulate sort order manually
                         threadEl.innerHTML = innerContent;
@@ -328,7 +327,11 @@
 
                         // Scroll to bottom
                         const bubbles = threadEl.querySelector('.bubbles-container');
-                        if (bubbles) bubbles.scrollTop = bubbles.scrollHeight;
+                        if (bubbles) {
+                            setTimeout(() => {
+                                bubbles.scrollTo({ top: bubbles.scrollHeight, behavior: 'smooth' });
+                            }, 50);
+                        }
                     } else {
                         // Update Existing
                         // Only update bubbles and input status to preserve potential selection or focus?
@@ -343,13 +346,20 @@
 
                             // Scroll to bottom
                             const bubbles = threadEl.querySelector('.bubbles-container');
-                            if (bubbles) bubbles.scrollTop = bubbles.scrollHeight;
+                            if (bubbles) {
+                                setTimeout(() => {
+                                    bubbles.scrollTo({ top: bubbles.scrollHeight, behavior: 'smooth' });
+                                }, 50);
+                            }
 
-                            // Restore focus logic?
-                            // If we just sent a message, we probably want focus back or cleared.
-                            // Complex to handle perfectly.
-                            // But since 'refreshDOM' usually comes from background fetch or manual load more,
-                            // it's acceptable to refresh.
+                            // Restore focus
+                            if (isFocused) {
+                                const input = threadEl.querySelector('.reply-input');
+                                if (input) {
+                                    input.value = currentVal;
+                                    input.focus();
+                                }
+                            }
                         }
                     }
 
