@@ -366,6 +366,7 @@
                 }
 
                 // Step 4: Render Full Feed Cards
+                // Removing hardcoded max-width: 500px to allow JS syncing
                 grid.innerHTML = hopsData.map(hop => {
                     const dateObj = new Date(hop.hopped_at);
                     const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ' • ' + dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
@@ -395,7 +396,7 @@
                     }
 
                     return `
-                    <div class="hop-feed-card" style="background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 0; display: flex; flex-direction: column; width: 100%; max-width: 500px;">
+                    <div class="hop-feed-card" style="background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 0; display: flex; flex-direction: column; width: 100%;">
                         
                         <!-- Image Area -->
                         <div style="position: relative; width: 100%; padding-top: 100%;">
@@ -455,6 +456,37 @@
                     </div>
                     `;
                 }).join('');
+
+                // 5. Sync Width with 'Bar Card' (Event Card)
+                const syncHopCardWidth = () => {
+                    const cards = document.querySelectorAll('.hop-feed-card');
+                    if (cards.length === 0) return;
+
+                    // Try to find the reference 'Bar Card' (Events)
+                    // Usually .event-card or .swiper-slide within the events section
+                    // We check for visible cards to get the 'rendered' width
+                    const refCard = document.querySelector('.event-card') || document.querySelector('.swiper-slide');
+
+                    if (refCard) {
+                        const widthIdx = refCard.getBoundingClientRect().width;
+                        if (widthIdx > 0) {
+                            cards.forEach(card => {
+                                card.style.width = widthIdx + 'px';
+                                card.style.maxWidth = 'none'; // Lock to Ref
+                            });
+                            return; // Success
+                        }
+                    }
+
+                    // Fallback to limited width if ref not found yet
+                    // No-op if we want 100% default
+                };
+
+                // Sync immediately, and on resize, and delayed (for async loads)
+                syncHopCardWidth();
+                window.addEventListener('resize', syncHopCardWidth);
+                setTimeout(syncHopCardWidth, 500);
+                setTimeout(syncHopCardWidth, 2000);
 
             } catch (err) {
                 console.error('Error fetching hops:', JSON.stringify(err, null, 2));
