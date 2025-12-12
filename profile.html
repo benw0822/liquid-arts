@@ -329,8 +329,7 @@
 
                 <!-- Filter Navigation -->
                 <div class="profile-filter-nav">
-                    <button class="filter-tab active" data-filter="all">ALL</button>
-                    <button class="filter-tab" data-filter="bar">BAR</button>
+                    <button class="filter-tab active" data-filter="bar">BAR</button>
                     <button class="filter-tab" data-filter="hopping">HOP</button>
                     <button class="filter-tab" data-filter="journal">JOURNAL</button>
                 </div>
@@ -611,7 +610,7 @@
                 // Sort by Date Descending
                 allItems.sort((a, b) => b.date - a.date);
 
-                renderUnifiedGrid('all');
+                renderUnifiedGrid('bar');
 
             } catch (err) {
                 console.error('Error fetching profile data:', err);
@@ -1063,7 +1062,7 @@
                 allItems.sort((a, b) => b.date - a.date);
 
                 const activeFilter = document.querySelector('.filter-tab.active').dataset.filter;
-                if (activeFilter === 'all' || activeFilter === 'hopping') {
+                if (activeFilter === 'hopping') {
                     renderUnifiedGrid(activeFilter);
                 }
             };
