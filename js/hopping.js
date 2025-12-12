@@ -162,7 +162,8 @@ function initHoppingLogic() {
     // Submit Logic
     submitBtn.onclick = async () => {
         if (!window.currentUser) { alert('Please login to Hop!'); return; }
-        if (!cropper) { alert('Please snap a photo!'); return; } // Changed from !cropper to !cropper && !fileInput.files[0]
+        if (!cropper) { alert('Please snap a photo!'); return; }
+        if (parseInt(ratingInput.value) === 0) { alert('Please give a rating! / 請評分！'); return; }
 
         // Start Animation
         submitBtn.style.backgroundColor = '#eab308'; // Yellow
