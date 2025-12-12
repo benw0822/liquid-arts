@@ -629,13 +629,13 @@
                     const hopOwner = hop.user; // Owner details
 
                     hop.comments.forEach(c => {
-                        if (!c.user) return; // safety
+                        // REMOVED STRICT CHECK: if (!c.user) return; 
 
                         let otherUserId;
                         let otherUser = null;
 
                         // Logic:
-                        // If I Own Hop: I see threads with [User X]. ignore [User Y] talking to [User Z] (unlikely in this schema).
+                        // If I Own Hop: I see threads with [User X]. ignore [User Y] talking to [User Z].
                         // If I Don't Own: I see thread with [Owner]. Ignore [User X] talking.
 
                         if (amIOwner) {
@@ -648,13 +648,8 @@
                                 otherUserId = c.user_id;
                             }
 
-                            // If it's MY private msg or MY comment, I need to know who I'm talking to.
-                            // For Public comments by Me: I am broadcasting. Do we add to ALL threads?
-                            // Earlier logic: Yes, add to all.
-                            if (c.user_id === user.id) {
-                                // Handled in second pass
-                                return;
-                            }
+                            // Skip my own "first pass" items
+                            if (c.user_id === user.id) return;
                         } else {
                             // Not My Hop: I only care about conversation between ME and OWNER.
                             // Other people's comments are noise in my inbox.
@@ -666,20 +661,25 @@
                             const isByMe = c.user_id === user.id;
                             const isByOwner = c.user_id === hop.user_id;
 
-                            if (!isByMe && !isByOwner) return; // Filter out third parties
+                            if (!isByMe && !isByOwner) return;
 
                             // The "Other Peer" is ALWAYS the Owner.
                             otherUserId = hop.user_id;
-                            otherUser = hop.user;
+                            otherUser = hop.user; // Owner details should exist if hop exists
                         }
 
                         // Determine Other User Object
                         if (amIOwner) {
                             if (c.is_private) {
-                                otherUser = c.other_user_details || c.user; // fallback
+                                otherUser = c.other_user_details || c.user;
                             } else {
                                 otherUser = c.user;
                             }
+                        }
+
+                        // Fallback object if user details missing but ID exists
+                        if (!otherUser && otherUserId) {
+                            otherUser = { id: otherUserId, name: 'Unknown User', hopper_nickname: 'Unknown User' };
                         }
 
                         if (!otherUserId) return;
@@ -703,20 +703,12 @@
 
                     hop.comments.forEach(c => {
                         if (c.user_id === user.id) {
-                            // It's Me.
-
                             if (amIOwner) {
-                                // I am owner. My comments/replies go to specific threads?
-                                // Private: Goes to specific receiver.
-                                // Public: Goes to ALL threads on this hop.
-
                                 if (c.is_private) {
                                     const receiverId = c.receiver_id;
                                     const key = `${hop.id}_${receiverId}`;
                                     if (threads[key]) threads[key].comments.push(c);
                                 } else {
-                                    // Public: Add to all existing threads on this hop?
-                                    // Or only threads that "exist" (i.e. someone spoke to me).
                                     Object.keys(threads).forEach(k => {
                                         if (threads[k].hop.id === hop.id) {
                                             threads[k].comments.push(c);
@@ -724,15 +716,12 @@
                                     });
                                 }
                             } else {
-                                // Not Owner. I am talking to Owner.
-                                // My comments (Public or Private) go to the thread with Owner.
                                 const key = `${hop.id}_${hop.user_id}`;
-
-                                // Create thread if doesn't exist (e.g. I started conversation)
                                 if (!threads[key]) {
+                                    // Create thread if it doesn't exist (I started it)
                                     threads[key] = {
                                         hop: hop,
-                                        otherUser: hop.user,
+                                        otherUser: hop.user || { id: hop.user_id, name: 'Owner' },
                                         otherUserId: hop.user_id,
                                         comments: []
                                     };
@@ -746,7 +735,7 @@
                 let threadArray = Object.values(threads);
                 threadArray.forEach(t => {
                     t.comments.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-                    // Dedupe
+
                     const uniqueIds = new Set();
                     t.comments = t.comments.filter(c => {
                         const uniqueKey = c.id + (c.is_private ? '_p' : '_c');
@@ -754,6 +743,7 @@
                         uniqueIds.add(uniqueKey);
                         return true;
                     });
+
                     if (t.comments.length > 0) {
                         t.latestTime = new Date(t.comments[t.comments.length - 1].created_at);
                     } else {
@@ -761,8 +751,10 @@
                     }
                 });
 
-                // Filter out empty threads
+                // REMOVED STRICT CHECK: threadArray = threadArray.filter(t => t.otherUser);
+                // Ensure otherUser exists (we added fallback above), but filter empty threads
                 threadArray = threadArray.filter(t => t.comments.length > 0);
+
                 threadArray.sort((a, b) => b.latestTime - a.latestTime);
 
                 const topThreads = threadArray.slice(0, 10);
