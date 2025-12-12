@@ -117,6 +117,7 @@
     </nav>
 
     <script src="js/app.js?v=force"></script>
+    <script src="js/hopping.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             // --- Global State ---
@@ -145,46 +146,32 @@
             // Logged In Setup
             userView.style.display = 'block';
             currentUser = user;
-            // View Hop Modal Logic
-            const viewModalHtml = `
-            <div id="view-hop-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
-                <div style="background: white; width: 90%; max-width: 400px; border-radius: 20px; overflow: hidden; position: relative; animation: slideUp 0.3s ease;">
-                    <button onclick="document.getElementById('view-hop-modal').style.display='none'" style="position: absolute; top: 15px; right: 15px; background: rgba(0,0,0,0.5); border: none; color: white; border-radius: 50%; width: 32px; height: 32px; font-size: 18px; cursor: pointer; z-index: 10;">&times;</button>
-                    <img id="view-hop-img" src="" style="width: 100%; height: 300px; object-fit: cover;">
-                    <div style="padding: 20px;">
-                        <a id="view-hop-bar" href="#" style="font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; color: #333; text-decoration: none; display: block; margin-bottom: 5px;"></a>
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                            <div id="view-hop-date" style="font-size: 0.85rem; color: #888;"></div>
-                            <div id="view-hop-rating" style="color: var(--bg-red); letter-spacing: 2px;"></div>
-                        </div>
-                        <p id="view-hop-desc" style="font-size: 0.95rem; color: #555; line-height: 1.5; font-style: italic; background: #f9f9f9; padding: 15px; border-radius: 12px; margin: 0;"></p>
-                    </div>
-                </div>
-            </div>`;
-            document.body.insertAdjacentHTML('beforeend', viewModalHtml);
-
+            // View Hop Modal Logic (Using standard hopping.js)
             window.viewHop = (hopId) => {
                 // Find hop in allThreads
                 let foundHop = null;
                 for (const t of allThreads) {
-                    if (t.hop.id == hopId) { // Loose equality for String/Number match
+                    if (t.hop.id == hopId) {
                         foundHop = t.hop;
                         break;
                     }
                 }
 
-                if (!foundHop) return;
+                if (!foundHop || !window.showHoppingDetails) return;
 
-                document.getElementById('view-hop-img').src = foundHop.image_url;
-                const barLink = document.getElementById('view-hop-bar');
-                barLink.textContent = foundHop.bars?.title || 'Unknown Bar';
-                barLink.href = `bar-details.html?id=${foundHop.bars?.id}`;
-
-                document.getElementById('view-hop-date').textContent = new Date(foundHop.date).toLocaleDateString();
-                document.getElementById('view-hop-rating').textContent = '★'.repeat(foundHop.rating) + '☆'.repeat(5 - foundHop.rating);
-                document.getElementById('view-hop-desc').textContent = foundHop.description || 'No description...';
-
-                document.getElementById('view-hop-modal').style.display = 'flex';
+                // Call standard modal
+                window.showHoppingDetails(
+                    null,
+                    foundHop.image_url,
+                    foundHop.hopped_at || foundHop.created_at,
+                    foundHop.rating,
+                    foundHop.description,
+                    foundHop.id,
+                    foundHop.user_id,
+                    true,
+                    foundHop.bars?.title,
+                    foundHop.bars?.id
+                );
             };
 
             // Helper: Format Time
