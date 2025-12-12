@@ -539,14 +539,34 @@
                 const hopIds = Array.from(relevantHopIds);
                 if (hopIds.length === 0) return [];
 
-                // 2. Fetch Full Hop Data
+                // 2. Fetch Full Hop Data (Without User Join to avoid 400 error)
                 const { data } = await window.supabaseClient
                     .from('hoppings')
-                    .select('*, bars (*), user:users(id, name, hopper_nickname, hopper_image_url)') // Include Owner details
+                    .select('*, bars (*)')
                     .in('id', hopIds)
                     .order('hopped_at', { ascending: false });
 
                 if (!data) return [];
+
+                // 2.1 Fetch Owners manually
+                const ownerIds = new Set();
+                data.forEach(h => ownerIds.add(h.user_id));
+
+                let usersMap = {};
+                if (ownerIds.size > 0) {
+                    const { data: owners } = await window.supabaseClient
+                        .from('users')
+                        .select('id, name, hopper_nickname, hopper_image_url')
+                        .in('id', Array.from(ownerIds));
+                    if (owners) {
+                        owners.forEach(u => usersMap[u.id] = u);
+                    }
+                }
+
+                // Attach User to Hops
+                data.forEach(h => {
+                    h.user = usersMap[h.user_id] || { id: h.user_id, name: 'Unknown', hopper_nickname: 'Unknown' };
+                });
 
                 // 3. Batch Fetch All Interactions for these Hops
                 // We fetch EVERYTHING, then filter in memory for display logic
@@ -835,14 +855,18 @@
                 const content = document.getElementById('reply-input').value.trim();
                 if (!content) return;
 
-                if (!currentReplyHopId || !currentReplyReceiverId) return;
+                if (!currentReplyHopId || !currentReplyReceiverId) {
+                    console.error("Missing Hop or Receiver ID");
+                    alert("Error: Cannot send reply. Missing recipient info.");
+                    return;
+                }
 
                 const btn = document.querySelector('#reply-modal .btn-submit-hop');
                 const originalText = btn.textContent;
                 btn.textContent = 'Sending...';
                 btn.disabled = true;
 
-                // Insert into PRIVATE MESSAGES now
+                // Insert into PRIVATE MESSAGES
                 const { error } = await window.supabaseClient
                     .from('private_messages')
                     .insert([
@@ -853,6 +877,14 @@
                             related_hop_id: currentReplyHopId
                         }
                     ]);
+
+                if (error) {
+                    console.error("Send Error:", error);
+                    alert("Failed to send message.");
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                    return;
+                }
 
                 if (error) {
                     // Fallback? No, just alert error.
