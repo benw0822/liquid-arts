@@ -629,8 +629,8 @@
                 comments.forEach(c => addToMap(c.hopping_id, { ...c, is_private: false }));
                 privateMsgs.forEach(m => addToMap(m.related_hop_id, m));
 
-                // Use freshHops instead of 'data' if 'data' is undefined or shadowed
-                const myHopsForCache = freshHops.map(item => ({ ...item, comments: commentsMap[item.id] || [] }));
+                // Use data (fetched locally)
+                const myHopsForCache = data.map(item => ({ ...item, comments: commentsMap[item.id] || [] }));
 
                 // IMPORTANT: 'myHopsCache' usually stores ONLY hops I OWN for the grid below.
                 // But now we fetched others' hops too. 
