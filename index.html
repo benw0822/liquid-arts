@@ -350,49 +350,68 @@
                     };
                 });
 
-                // Step 4: Render
+                // Step 4: Render Full Feed Cards (No Modal)
                 grid.innerHTML = window.latestHops.map(hop => {
-                    const dateStr = new Date(hop.hopped_at).toLocaleDateString();
+                    const dateObj = new Date(hop.hopped_at);
+                    const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ' • ' + dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
                     const stars = '★'.repeat(hop.rating) + '☆'.repeat(5 - hop.rating);
 
                     const u = hop.user;
                     const userName = u?.hopper_nickname || u?.name || 'Anonymous';
                     const userAvatar = u?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random`;
 
-                    const descEsc = hop.description ? hop.description.replace(/'/g, "\\'") : '';
-                    const titleEsc = hop.bar_title.replace(/'/g, "\\'");
+                    // Role Logic
+                    // (Simplified, can be enhanced if needed, default to 'Hopper')
+                    const role = 'Hopper';
 
-                    // Use showHoppingDetails directly with internal=false to disable arrows (Single View)
-                    // Matches layout of Bar Card (Profile, Pill) but enforces "cannot switch" constraint.
                     return `
-                    <div class="art-card" onclick="window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', '${hop.rating}', '${descEsc}', '${hop.id}', '${hop.user_id}', false, '${titleEsc}', '${hop.bar_id}')" style="cursor: pointer; position: relative; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: transform 0.3s; display: flex; flex-direction: column;">
+                    <div class="hop-feed-card" style="background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 0; display: flex; flex-direction: column;">
                         
-                        <!-- Image -->
-                        <div style="width: 100%; aspect-ratio: 1/1; overflow: hidden;">
-                            <img src="${hop.image_url}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                        <!-- Image Area -->
+                        <div style="position: relative; width: 100%; padding-top: 100%;">
+                            <img src="${hop.image_url}" style="position: absolute; top:0; left:0; width: 100%; height: 100%; object-fit: cover;">
+                            
+                            <!-- Bar Pill -->
+                            <a href="bar-details.html?id=${hop.bar_id}" style="position: absolute; bottom: 12px; right: 12px; background: rgba(0,0,0,0.6); color: white; padding: 6px 14px; border-radius: 20px; text-decoration: none; font-size: 0.75rem; font-weight: 500; display: flex; align-items: center; gap: 4px; backdrop-filter: blur(4px);">
+                                <span>📍</span> ${hop.bar_title}
+                            </a>
                         </div>
 
-                        <!-- Content -->
-                        <div style="padding: 1.2rem; flex: 1; display: flex; flex-direction: column;">
-                            <!-- Header: User & Date -->
-                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.8rem;">
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <img src="${userAvatar}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;">
-                                    <span style="font-size: 0.85rem; font-weight: 600; color: #333;">${userName}</span>
-                                </div>
-                                <span style="font-size: 0.75rem; color: #888;">${dateStr}</span>
+                        <!-- Content Area -->
+                        <div style="padding: 0 1.5rem 1.5rem 1.5rem; text-align: center; position: relative;">
+                            
+                            <!-- Overlapping Avatar -->
+                            <div style="margin-top: -30px; margin-bottom: 0.8rem; display: flex; justify-content: center;">
+                                <img src="${userAvatar}" style="width: 60px; height: 60px; border-radius: 50%; border: 4px solid #fff; object-fit: cover; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                             </div>
 
-                            <!-- Bar Title -->
-                            <h3 style="font-family: var(--font-display); font-size: 1.2rem; margin: 0 0 0.4rem 0; color: #1b1b1b; line-height: 1.3;">${hop.bar_title}</h3>
-                            
-                            <!-- Rating -->
-                            <div style="color: var(--bg-red); font-size: 1rem; margin-bottom: 0.6rem; letter-spacing: 1px;">${stars}</div>
+                            <!-- User Info -->
+                            <div style="margin-bottom: 1rem;">
+                                <div style="font-weight: 700; font-size: 1rem; color: #333;">${userName}</div>
+                                <div style="font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.05em;">${role}</div>
+                            </div>
 
-                            <!-- Description (Truncated) -->
-                            <p style="font-size: 0.9rem; color: #666; font-style: italic; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin: 0;">
-                                "${hop.description || 'Checking in...'}"
+                            <!-- Actions (Static for Feed View) -->
+                            <div style="display: flex; justify-content: center; gap: 12px; margin-bottom: 1rem;">
+                                <button style="background: #fff; border: 1px solid #eee; border-radius: 20px; padding: 6px 16px; display: flex; align-items: center; gap: 6px; color: #333; font-size: 0.9rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                                    <span style="color: var(--bg-red);">🍷</span> <span>1</span>
+                                </button>
+                                <button style="background: #fff; border: 1px solid #eee; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; color: #333; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                                </button>
+                            </div>
+
+                            <!-- Rating -->
+                            <div style="color: var(--bg-red); font-size: 1.1rem; letter-spacing: 2px; margin-bottom: 0.5rem;">${stars}</div>
+
+                            <!-- Date -->
+                            <div style="font-size: 0.7rem; color: #aaa; letter-spacing: 1px; margin-bottom: 0.8rem; text-transform: uppercase;">${dateStr}</div>
+
+                            <!-- Description -->
+                            <p style="font-size: 0.95rem; color: #555; font-style: italic; font-family: 'Playfair Display', serif; line-height: 1.5; margin: 0;">
+                                "${hop.description || ''}"
                             </p>
+
                         </div>
                     </div>
                     `;
