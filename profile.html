@@ -822,25 +822,32 @@
 
                         // Logic to restrict reply if not owner and last msg is from me
                         let disableReply = false;
-                        let replyBtnText = 'Reply (Chat)';
+                        let placeholderText = 'Type a message...';
 
                         if (!amIOwner) {
                             const lastMsg = comments[comments.length - 1];
                             const lastSenderId = lastMsg.is_private ? lastMsg.sender_id : lastMsg.user_id;
                             if (lastSenderId === user.id) {
                                 disableReply = true;
-                                replyBtnText = 'Waiting for reply...';
+                                placeholderText = 'Waiting for owner reply...';
                             }
                         }
 
-                        // Reply Button HTML
-                        const replyBtnHtml = `
-                            <button onclick="window.openReplyModal('${hop.id}', '${otherName.replace(/'/g, "\\'")}', '${otherUserId}')" 
-                                ${disableReply ? 'disabled' : ''}
-                                style="background: transparent; border: 1px solid ${disableReply ? '#eee' : '#ddd'}; padding: 4px 12px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; color: ${disableReply ? '#bbb' : '#555'}; cursor: ${disableReply ? 'not-allowed' : 'pointer'}; display: flex; align-items: center; gap: 4px;">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"></polyline><path d="M20 18v-2a4 4 0 0 0-4-4H4"></path></svg>
-                                ${replyBtnText}
-                            </button>
+                        // Inline Reply Input HTML
+                        const replyInputHtml = `
+                            <div style="margin-top: 10px; display: flex; gap: 8px; border-top: 1px solid #f0f0f0; padding-top: 10px;">
+                                <input type="text" id="reply-input-${hop.id}" 
+                                       placeholder="${placeholderText}" 
+                                       ${disableReply ? 'disabled' : ''}
+                                       onkeydown="if(event.key === 'Enter') window.sendInlineReply('${hop.id}', '${otherUserId}')"
+                                       style="flex: 1; border: 1px solid #eee; border-radius: 20px; padding: 8px 12px; font-size: 0.9rem; outline: none; background: ${disableReply ? '#fafafa' : 'white'}; color: #333; transition: border 0.2s;">
+                                <button id="btn-reply-${hop.id}"
+                                        onclick="window.sendInlineReply('${hop.id}', '${otherUserId}')" 
+                                        ${disableReply ? 'disabled' : ''}
+                                        style="background: ${disableReply ? '#e0e0e0' : 'var(--bg-red)'}; color: white; border: none; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: ${disableReply ? 'not-allowed' : 'pointer'}; transition: background 0.2s; flex-shrink: 0;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                                </button>
+                            </div>
                         `;
 
                         return `
@@ -857,9 +864,7 @@
                                 <div style="display: flex; flex-direction: column; gap: 4px; padding: 0 4px;">
                                     ${bubblesHtml}
                                 </div>
-                                <div style="margin-top: 10px; display: flex; justify-content: flex-end;">
-                                    ${replyBtnHtml}
-                                </div>
+                                ${replyInputHtml}
                             </div>
                         `;
                     }).join('');
@@ -875,33 +880,19 @@
                 }));
             };
 
-            // Reply Modal Logic
-            let currentReplyHopId = null;
-            let currentReplyReceiverId = null;
+            // Inline Send Logic
+            window.sendInlineReply = async (hopId, receiverId) => {
+                const inputEl = document.getElementById(`reply-input-${hopId}`);
+                const btnEl = document.getElementById(`btn-reply-${hopId}`);
+                const content = inputEl.value.trim();
 
-            window.openReplyModal = (hopId, name, receiverId) => {
-                currentReplyHopId = hopId;
-                currentReplyReceiverId = receiverId;
-                document.getElementById('reply-target-name').textContent = name;
-                document.getElementById('reply-input').value = '';
-                document.getElementById('reply-modal').style.display = 'flex';
-                // Focus input
-                setTimeout(() => document.getElementById('reply-input').focus(), 100);
-            };
-
-            window.sendReply = async () => {
-                const content = document.getElementById('reply-input').value.trim();
                 if (!content) return;
 
-                if (!currentReplyHopId || !currentReplyReceiverId) {
-                    console.error("Missing Hop or Receiver ID");
-                    return;
-                }
-
-                const btn = document.querySelector('#reply-modal .btn-submit-hop');
-                const originalText = btn.textContent;
-                btn.textContent = 'Sending...';
-                btn.disabled = true;
+                // UI Loading State
+                const originalBtnContent = btnEl.innerHTML;
+                btnEl.innerHTML = '<div class="loader-spinner" style="width:14px; height:14px; border:2px solid #fff; border-top-color:transparent; border-radius:50%; animation: spin 1s linear infinite;"></div>';
+                btnEl.disabled = true;
+                inputEl.disabled = true;
 
                 // Insert into PRIVATE MESSAGES
                 const { error, data } = await window.supabaseClient
@@ -909,42 +900,44 @@
                     .insert([
                         {
                             sender_id: user.id,
-                            receiver_id: currentReplyReceiverId,
+                            receiver_id: receiverId,
                             content: content,
-                            related_hop_id: currentReplyHopId
+                            related_hop_id: hopId
                         }
-                    ]).select(); // Select to get data back for local update if needed
+                    ]).select();
 
+                // Restore UI
                 if (error) {
                     console.error("Send Error:", error);
-                    alert("Failed to send message: " + error.message);
-                    btn.textContent = originalText;
-                    btn.disabled = false;
+                    alert("Failed to send: " + error.message);
+                    btnEl.innerHTML = originalBtnContent;
+                    btnEl.disabled = false;
+                    inputEl.disabled = false;
+                    inputEl.focus();
                     return;
                 }
 
                 // Success
-                document.getElementById('reply-modal').style.display = 'none';
-                btn.textContent = originalText;
-                btn.disabled = false;
+                inputEl.value = ''; // Clear input
+                btnEl.innerHTML = originalBtnContent;
+                btnEl.disabled = false; // Keep disabled until new msg arrives? No, let them type.
+                inputEl.disabled = false;
+                inputEl.focus();
 
-                // Trigger Update immediately (Optimistic-ish)
-                // We rely on Realtime generally, but manual call ensures speed.
-                // Assuming handleNewMessage is available in scope.
+                // Optimistic Update
                 if (typeof handleNewMessage === 'function') {
-                    // Pass dummy private message to trigger refresh
-                    // Or precise data if we have it
                     const newMsg = data ? data[0] : { sender_id: user.id };
                     handleNewMessage(newMsg, true);
                 } else {
-                    // Fallback if handleNewMessage not found (should be there)
-                    if (setupRealtime) {
-                        // Realtime should catch it
-                    } else {
-                        window.location.reload();
-                    }
+                    // Fallback
+                    if (!setupRealtime) window.location.reload();
                 }
             };
+
+            // Styles for spinner
+            const style = document.createElement('style');
+            style.innerHTML = '@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }';
+            document.head.appendChild(style);
 
             // End re-define
 
