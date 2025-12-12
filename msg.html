@@ -121,8 +121,7 @@
     <script src="js/app.js?v=force"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
-            // Auth & Init
-            // app.js inits window.supabaseClient
+            // --- Global State ---
             const authWall = document.getElementById('auth-wall');
             const userView = document.getElementById('user-view');
             const msgList = document.getElementById('messages-list');
@@ -130,12 +129,14 @@
             const loading = document.getElementById('messages-loading');
             const noMessages = document.getElementById('no-messages');
 
-            // Wait a tick for app.js to theoretically init? 
-            // Ideally we should wait for onAuthStateChange or just check session
-            const supabase = window.supabaseClient || window.supabase.createClient('https://cbmtgmcgpzguospmgntg.supabase.co', 'YOUR_KEY_IF_NEEDED_BUT_APP_JS_DOES_IT');
-            // Assuming app.js does it.
+            // Pagination & State
+            let allThreads = [];
+            let visibleLimit = 10;
+            let currentUser = null;
 
-            const { data: { session } } = await window.supabaseClient.auth.getSession();
+            // Auth Check
+            const supabase = window.supabaseClient || window.supabase.createClient('https://cbmtgmcgpzguospmgntg.supabase.co', 'YOUR_KEY_IF_NEEDED');
+            const { data: { session } } = await supabase.auth.getSession();
             const user = session?.user;
 
             if (!user) {
@@ -143,331 +144,413 @@
                 return;
             }
 
-            // Logged In
+            // Logged In Setup
             userView.style.display = 'block';
+            currentUser = user;
             window.currentUser = user;
 
-            // --- Fetch Messages Logic ---
-            const fetchMessages = async () => {
+            // Helper: Format Time
+            const formatTime = (isoString) => {
+                const date = new Date(isoString);
+                return date.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true, month: 'short', day: 'numeric' });
+            };
+
+            // --- Render Logic ---
+            const renderThreads = (refreshDOM = false) => {
+                const displayThreads = allThreads.slice(0, visibleLimit);
+                const listEl = document.getElementById('messages-list');
+
+                if (displayThreads.length === 0) {
+                    loading.style.display = 'none';
+                    noMessages.style.display = 'block';
+                    msgContainer.style.display = 'block';
+                    return;
+                }
+
+                noMessages.style.display = 'none';
+                msgContainer.style.display = 'block';
+
+                // We want to update DOM intelligently to avoid full reload flicker
+                // But for "Load More" or initial load, we might need structure.
+
+                // Strategy: 
+                // 1. Iterate displayThreads.
+                // 2. If element exists, update content if needed (or just verify position).
+                // 3. If element doesn't exist, create it.
+                // 4. Ensure order matches displayThreads order.
+
+                displayThreads.forEach((thread, index) => {
+                    const threadId = `thread-${thread.hop.id}-${thread.partnerId}`;
+                    let threadEl = document.getElementById(threadId);
+
+                    // Logic for "Disable Reply"
+                    const amIOwner = thread.hop.user_id === user.id;
+                    const messages = thread.messages;
+                    let disableReply = false;
+                    let placeholderText = 'Type a message...';
+
+                    // Rule 1: Non-Owner cannot double text owner?
+                    // User Request: "Once owner replies, officially open... BUT max 5 consecutive messages... until owner replies again"
+
+                    if (!amIOwner) {
+                        // Check if owner has EVER replied/participated in this thread
+                        // Note: For public comments, author is user_id. For DMs, sender_id.
+                        // Thread messages are normalized.
+                        const ownerParticipated = messages.some(m => {
+                            const sender = m.user_id; // normalized
+                            return sender === thread.hop.user_id;
+                        });
+
+                        // Count consecutive messages from ME at the end
+                        let myConsecutiveCount = 0;
+                        for (let i = messages.length - 1; i >= 0; i--) {
+                            if (messages[i].user_id === user.id) {
+                                myConsecutiveCount++;
+                            } else {
+                                break;
+                            }
+                        }
+
+                        if (!ownerParticipated) {
+                            // Strict Rule: If owner hasn't replied yet, maybe limit to 1?
+                            // User said: "Once hop owner has replied, it officially opens".
+                            // Implicitly: Before that, it's NOT open (Limit 1?).
+                            if (myConsecutiveCount >= 1) {
+                                disableReply = true;
+                                placeholderText = 'Waiting for owner to accept chat...';
+                            }
+                        } else {
+                            // Open, but max 5
+                            if (myConsecutiveCount >= 5) {
+                                disableReply = true;
+                                placeholderText = 'Limit 5 messages until owner replies...';
+                            }
+                        }
+                    }
+
+                    const bubblesHtml = messages.map(m => {
+                        const isMe = m.user_id === user.id;
+                        const align = isMe ? 'flex-end' : 'flex-start';
+                        const bg = isMe ? (m.is_private ? '#d1e9ff' : '#e3f2fd') : '#f5f5f5';
+                        const radius = isMe ? '12px 0 12px 12px' : '0 12px 12px 12px';
+                        const border = m.is_private ? '1px solid #cce5ff' : 'none';
+                        const time = formatTime(m.created_at);
+
+                        return `
+                             <div style="display: flex; flex-direction: column; align-items: ${align}; width: 100%; margin-bottom: 10px;">
+                                 <div style="background: ${bg}; border: ${border}; padding: 8px 12px; border-radius: ${radius}; font-size: 0.95rem; color: #333; max-width: 85%; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                                     ${m.content}
+                                 </div>
+                                 <div style="font-size: 0.65rem; color: #999; margin-top: 2px; margin-right: 4px; margin-left: 4px;">${time}</div>
+                             </div>
+                         `;
+                    }).join('');
+
+                    const innerContent = `
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0;">
+                             <img src="${thread.partnerAvatar}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover;">
+                             <div style="flex: 1;">
+                                 <div style="font-weight: 600; font-size: 0.95rem; color: #333;">${thread.partnerName}</div>
+                                 <div style="font-size: 0.75rem; color: #888;">@ ${thread.hop.bars?.title || 'Unknown Bar'}</div>
+                             </div>
+                             <img src="${thread.hop.image_url}" 
+                                  style="width: 36px; height: 36px; border-radius: 6px; object-fit: cover; border: 1px solid #eee;">
+                        </div>
+                        <div class="bubbles-container" style="display: flex; flex-direction: column; padding: 0 4px 10px 4px; max-height: 350px; overflow-y: auto;">
+                             ${bubblesHtml}
+                        </div>
+                        
+                        <!-- Inline Input -->
+                        <div style="margin-top: 5px; display: flex; gap: 8px; border-top: 1px solid #f0f0f0; padding-top: 10px;">
+                             <input type="text" id="reply-input-${thread.hop.id}-${thread.partnerId}" 
+                                    class="reply-input"
+                                    placeholder="${placeholderText}" 
+                                    ${disableReply ? 'disabled' : ''}
+                                    onkeydown="if(event.key === 'Enter') window.sendInlineReply('${thread.hop.id}', '${thread.partnerId}')"
+                                    style="flex: 1; border: 1px solid #eee; border-radius: 20px; padding: 10px 14px; font-size: 0.9rem; outline: none; background: ${disableReply ? '#fafafa' : 'white'}; color: #333; transition: border 0.2s;">
+                             <button id="btn-reply-${thread.hop.id}-${thread.partnerId}"
+                                     onclick="window.sendInlineReply('${thread.hop.id}', '${thread.partnerId}')" 
+                                     ${disableReply ? 'disabled' : ''}
+                                     style="background: ${disableReply ? '#e0e0e0' : 'var(--bg-red)'}; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: ${disableReply ? 'not-allowed' : 'pointer'}; transition: background 0.2s; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                             </button>
+                        </div>
+                    `;
+
+                    if (!threadEl) {
+                        // Create New
+                        threadEl = document.createElement('div');
+                        threadEl.id = threadId;
+                        threadEl.className = 'thread-card';
+                        threadEl.style.cssText = "background: white; padding: 16px; border-radius: 12px; border: 1px solid #eee; transition: all 0.3s; margin-bottom: 10px;"; // Added margin here because flex gap might fail if we manipulate sort order manually
+                        threadEl.innerHTML = innerContent;
+                        listEl.appendChild(threadEl);
+                    } else {
+                        // Update Existing
+                        // Only update bubbles and input status to preserve potential selection or focus?
+                        // Ideally we only update if content changed.
+                        // For simplicity, we update innerHTML, BUT we want to scroll to bottom if it was us typing?
+                        // Or we can just check if bubbles length changed.
+                        // However, to ensure timestamps and disable logic are fresh, we update.
+
+                        // NOTE: Updating innerHTML kills input focus.
+                        // We should check if active element is inside this thread.
+                        const activeEl = document.activeElement;
+                        const isFocused = threadEl.contains(activeEl);
+                        const currentVal = isFocused ? activeEl.value : '';
+
+                        if (refreshDOM) {
+                            threadEl.innerHTML = innerContent;
+
+                            // Restore focus logic?
+                            // If we just sent a message, we probably want focus back or cleared.
+                            // Complex to handle perfectly.
+                            // But since 'refreshDOM' usually comes from background fetch or manual load more,
+                            // it's acceptable to refresh.
+                        }
+                    }
+
+                    // Re-Order in DOM (Move to correct index)
+                    // listEl.children is live collection.
+                    // We want this threadEl to be at 'index'.
+                    const currentChild = listEl.children[index];
+                    if (currentChild !== threadEl) {
+                        listEl.insertBefore(threadEl, currentChild);
+                    }
+                });
+
+                // Remove excess elements (if list shrank or we re-rendered partial)
+                while (listEl.children.length > displayThreads.length) {
+                    listEl.removeChild(listEl.lastChild);
+                }
+
+                // Load More Button
+                let loadMoreBtn = document.getElementById('load-more-btn');
+                if (allThreads.length > visibleLimit) {
+                    if (!loadMoreBtn) {
+                        loadMoreBtn = document.createElement('button');
+                        loadMoreBtn.id = 'load-more-btn';
+                        loadMoreBtn.textContent = 'Load More Messages';
+                        loadMoreBtn.className = 'btn-outline-sm'; // Assuming class exists or style it
+                        loadMoreBtn.style.cssText = 'display: block; margin: 2rem auto; width: fit-content; padding: 8px 20px;';
+                        loadMoreBtn.onclick = () => {
+                            visibleLimit += 10;
+                            renderThreads(true);
+                        };
+                        msgContainer.after(loadMoreBtn); // Place after container
+                    } else {
+                        msgContainer.parentNode.appendChild(loadMoreBtn); // Ensure it's at bottom
+                    }
+                } else {
+                    if (loadMoreBtn) loadMoreBtn.remove();
+                }
+
+                loading.style.display = 'none';
+            };
+
+
+            // --- Fetch Logic (Data Only) ---
+            const fetchThreads = async () => {
                 try {
-                    loading.style.display = 'block';
-                    msgContainer.style.display = 'none';
-                    noMessages.style.display = 'none';
+                    // Only show global loader on FIRST load
+                    if (allThreads.length === 0) loading.style.display = 'block';
 
-                    // 1. Identify RELEVANT Hop IDs
+                    // 1. Identify IDs
                     const relevantHopIds = new Set();
-
-                    // A. My Hops
-                    const { data: myHops } = await window.supabaseClient
-                        .from('hoppings').select('id').eq('user_id', user.id);
+                    const { data: myHops } = await window.supabaseClient.from('hoppings').select('id').eq('user_id', user.id);
                     if (myHops) myHops.forEach(h => relevantHopIds.add(h.id));
 
-                    // B. Commented Hops
-                    const { data: myComments } = await window.supabaseClient
-                        .from('hopping_comments').select('hopping_id').eq('user_id', user.id);
+                    const { data: myComments } = await window.supabaseClient.from('hopping_comments').select('hopping_id').eq('user_id', user.id);
                     if (myComments) myComments.forEach(c => relevantHopIds.add(c.hopping_id));
 
-                    // C. DM'd Hops
-                    const { data: myMsgs } = await window.supabaseClient
-                        .from('private_messages')
-                        .select('related_hop_id')
-                        .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`);
+                    const { data: myMsgs } = await window.supabaseClient.from('private_messages')
+                        .select('related_hop_id').or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`);
                     if (myMsgs) myMsgs.forEach(m => { if (m.related_hop_id) relevantHopIds.add(m.related_hop_id); });
 
                     const hopIds = Array.from(relevantHopIds);
-                    if (hopIds.length === 0) {
-                        loading.style.display = 'none';
-                        noMessages.style.display = 'block';
-                        msgContainer.style.display = 'block';
-                        return;
-                    }
+                    if (hopIds.length === 0) { allThreads = []; renderThreads(true); return; }
 
-                    // 2. Fetch Hop Data + Bars
-                    const { data: hopsData } = await window.supabaseClient
-                        .from('hoppings')
-                        .select('*, bars (id, title, location, google_map_url)')
-                        .in('id', hopIds);
+                    // 2. Fetch Hops
+                    const { data: hopsData } = await window.supabaseClient.from('hoppings')
+                        .select('*, bars (id, title, location, google_map_url)').in('id', hopIds);
+                    if (!hopsData) { allThreads = []; renderThreads(true); return; }
 
-                    if (!hopsData || hopsData.length === 0) {
-                        loading.style.display = 'none';
-                        noMessages.style.display = 'block';
-                        return;
-                    }
-
-                    // 3. Fetch Users (Owners)
+                    // 3. Owners
                     const userIds = new Set(hopsData.map(h => h.user_id));
-                    const { data: owners } = await window.supabaseClient
-                        .from('users').select('id, name, hopper_nickname, hopper_image_url').in('id', Array.from(userIds));
+                    const { data: owners } = await window.supabaseClient.from('users').select('id, name, hopper_nickname, hopper_image_url').in('id', Array.from(userIds));
                     const userMap = {};
                     if (owners) owners.forEach(u => userMap[u.id] = u);
                     hopsData.forEach(h => h.user = userMap[h.user_id] || {});
 
-                    // 4. Fetch All Comments/DMs
+                    // 4. Interactions
                     let allInteractions = [];
-
-                    // Comments
-                    const { data: cData } = await window.supabaseClient
-                        .from('hopping_comments')
-                        .select('id, hopping_id, content, created_at, user_id, user:users(id, name, hopper_nickname, hopper_image_url)')
-                        .in('hopping_id', hopIds)
-                        .order('created_at', { ascending: true });
+                    const { data: cData } = await window.supabaseClient.from('hopping_comments')
+                        .select('id, hopping_id, content, created_at, user_id, user:users(id, name, hopper_nickname, hopper_image_url)').in('hopping_id', hopIds).order('created_at', { ascending: true });
                     if (cData) allInteractions.push(...cData.map(c => ({ ...c, type: 'comment', hopId: c.hopping_id })));
 
-                    // Private Msgs
-                    const { data: pData } = await window.supabaseClient
-                        .from('private_messages')
-                        .select('id, sender_id, receiver_id, content, created_at, related_hop_id')
-                        .in('related_hop_id', hopIds)
-                        .order('created_at', { ascending: true });
+                    const { data: pData } = await window.supabaseClient.from('private_messages')
+                        .select('id, sender_id, receiver_id, content, created_at, related_hop_id').in('related_hop_id', hopIds).order('created_at', { ascending: true });
 
                     if (pData) {
-                        // Fetch other participants
                         const others = new Set();
                         pData.forEach(m => {
                             if (m.sender_id !== user.id) others.add(m.sender_id);
                             if (m.receiver_id !== user.id) others.add(m.receiver_id);
                         });
                         if (others.size > 0) {
-                            const { data: pUsers } = await window.supabaseClient.from('users').select('id, name, hopper_nickname, hopper_image_url').in('id', Array.from(others));
+                            const { data: pUsers } = await window.supabaseClient.from('users').select('id,name,hopper_nickname,hopper_image_url').in('id', Array.from(others));
                             if (pUsers) pUsers.forEach(u => userMap[u.id] = u);
                         }
-
-                        allInteractions.push(...pData.map(m => {
-                            const isMeSender = m.sender_id === user.id;
-                            const otherId = isMeSender ? m.receiver_id : m.sender_id;
-                            const otherUser = userMap[otherId] || { name: 'Unknown' };
-                            return {
-                                ...m,
-                                type: 'private',
-                                hopId: m.related_hop_id,
-                                user_id: m.sender_id,
-                                user: isMeSender ? { id: user.id } : otherUser,
-                                is_private: true,
-                                other_user_details: otherUser
-                            };
-                        }));
+                        allInteractions.push(...pData.map(m => ({
+                            ...m, type: 'private', hopId: m.related_hop_id, user_id: m.sender_id, is_private: true
+                        })));
                     }
 
-                    // 5. Group by Thread
-                    // Thread Key: HopID + "CommunicationPartnerID"
+                    // 5. Group
                     let threads = {};
-
                     allInteractions.forEach(item => {
                         const hop = hopsData.find(h => h.id === item.hopId);
                         if (!hop) return;
-
                         const amIOwner = hop.user_id === user.id;
                         let partnerId;
-
                         if (amIOwner) {
-                            // I am owner. Partner is whoever wrote the comment/msg.
-                            if (item.user_id === user.id) {
-                                // I wrote it. Need to find who I wrote TO.
-                                if (item.is_private) partnerId = item.receiver_id;
-                                else return; // Ignore my public comments unless replying? (Simplification: Ignore my own public comments for thread grouping, they appear in existing threads)
-                            } else {
-                                partnerId = item.user_id;
-                            }
+                            if (item.user_id === user.id) partnerId = item.is_private ? item.receiver_id : null;
+                            else partnerId = item.user_id;
                         } else {
-                            // I am NOT owner. My only conversation is with Owner.
-                            // Ignore other people's interactions.
                             if (item.user_id !== user.id && item.user_id !== hop.user_id) return;
                             partnerId = hop.user_id;
                         }
-
                         if (!partnerId) return;
 
                         const key = `${hop.id}_${partnerId}`;
                         if (!threads[key]) {
                             threads[key] = {
-                                hop: hop,
-                                partnerId: partnerId,
-                                partnerUser: userMap[partnerId] || { name: 'User' },
-                                messages: []
+                                hop: hop, partnerId: partnerId, partnerUser: userMap[partnerId] || { name: 'User' }, messages: []
                             };
                         }
                         threads[key].messages.push(item);
                     });
 
-                    // 5b. Add my own public comments to relevant threads (Second Pass)
-                    if (allInteractions.length > 0) {
-                        const myPublicComments = allInteractions.filter(i => i.user_id === user.id && i.type === 'comment');
-                        myPublicComments.forEach(c => {
-                            const hop = hopsData.find(h => h.id === c.hopId);
-                            if (!hop) return;
-                            const amIOwner = hop.user_id === user.id;
+                    // 5b. My Public Comments (Lazy Add to Threads)
+                    const myPublic = allInteractions.filter(i => i.user_id === user.id && i.type === 'comment');
+                    myPublic.forEach(c => {
+                        const hop = hopsData.find(h => h.id === c.hopId);
+                        if (!hop) return;
+                        const amIOwner = hop.user_id === user.id;
+                        if (amIOwner) {
+                            Object.values(threads).filter(t => t.hop.id === hop.id).forEach(t => t.messages.push(c));
+                        } else {
+                            const key = `${hop.id}_${hop.user_id}`;
+                            if (threads[key]) threads[key].messages.push(c);
+                        }
+                    });
 
-                            if (amIOwner) {
-                                // Add to ALL threads involved with this hop? 
-                                // OR just don't show my public comments in "Inbox" unless it's a reply?
-                                // For now: don't add. Simpler. User sees their DMs and incoming comments.
-                                // If I comment publicly, it's on the card.
-                                // Wait, if I reply to a comment publicly, I want it in the thread?
-                                // Let's iterate existing threads for this hop and add it.
-                                Object.values(threads).forEach(t => {
-                                    if (t.hop.id === hop.id) t.messages.push(c);
-                                });
-                            } else {
-                                // Not owner. Add to my thread with owner.
-                                const key = `${hop.id}_${hop.user_id}`;
-                                if (threads[key]) threads[key].messages.push(c);
-                            }
-                        });
-                    }
-
-                    // 6. Convert to Array, Sort, Render
-                    let threadArray = Object.values(threads);
-
-                    // Filter empty
-                    threadArray = threadArray.filter(t => t.messages.length > 0);
-
-                    // Sort messages in thread
+                    // 6. Process
+                    let threadArray = Object.values(threads).filter(t => t.messages.length > 0);
                     threadArray.forEach(t => {
-                        // Dedup messages (in case added multiple times)
                         const unique = new Set();
                         t.messages = t.messages.filter(m => {
-                            const k = m.id + (m.is_private ? 'p' : 'c');
+                            const k = m.id + (m.is_private || m.type === 'private' ? 'p' : 'c');
                             if (unique.has(k)) return false;
                             unique.add(k);
                             return true;
                         });
                         t.messages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-                    });
-
-                    // Determine Latest Activity for Thread Sorting
-                    threadArray.forEach(t => {
                         t.latestDate = new Date(t.messages[t.messages.length - 1].created_at);
+
+                        // User Avatar Fallback
+                        t.partnerName = t.partnerUser.hopper_nickname || t.partnerUser.name || 'Anonymous';
+                        t.partnerAvatar = t.partnerUser.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(t.partnerName)}&background=random`;
                     });
 
-                    // Sort Threads: Newest First
                     threadArray.sort((a, b) => b.latestDate - a.latestDate);
 
-                    if (threadArray.length === 0) {
-                        loading.style.display = 'none';
-                        noMessages.style.display = 'block';
-                        msgContainer.style.display = 'block';
-                        return;
-                    }
+                    // Update Global State
+                    allThreads = threadArray;
 
-                    // Render HTML
-                    msgList.innerHTML = threadArray.map(t => {
-                        const { hop, partnerUser, messages } = t;
-                        const partnerName = partnerUser.hopper_nickname || partnerUser.name || 'Anonymous';
-                        const partnerAvatar = partnerUser.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(partnerName)}&background=random`;
-
-                        const amIOwner = hop.user_id === user.id;
-
-                        // Bubbles
-                        const bubbles = messages.map(m => {
-                            const isMe = m.user_id === user.id;
-                            const align = isMe ? 'flex-end' : 'flex-start';
-                            const bg = isMe ? (m.is_private ? '#d1e9ff' : '#e3f2fd') : '#f5f5f5';
-                            const radius = isMe ? '12px 0 12px 12px' : '0 12px 12px 12px';
-                            const border = m.is_private ? '1px solid #cce5ff' : 'none';
-
-                            return `
-                                 <div style="display: flex; justify-content: ${align}; width: 100%;">
-                                     <div style="background: ${bg}; border: ${border}; padding: 8px 12px; border-radius: ${radius}; font-size: 0.9rem; color: #333; max-width: 85%; margin-bottom: 6px;">
-                                         ${m.content}
-                                     </div>
-                                 </div>
-                             `;
-                        }).join('');
-
-                        // Reply Logic
-                        let disableReply = false;
-                        let placeholderText = 'Type a message...';
-
-                        // Validation: Non-owner cannot double text owner?
-                        if (!amIOwner) {
-                            const lastMsg = messages[messages.length - 1];
-                            if (lastMsg.user_id === user.id) {
-                                disableReply = true;
-                                placeholderText = 'Waiting for owner reply...';
-                            }
-                        }
-
-                        return `
-                              <div style="background: white; padding: 12px; border-radius: 12px; border: 1px solid #eee; transition: background 0.2s;">
-                                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0;">
-                                     <img src="${partnerAvatar}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
-                                     <div style="flex: 1;">
-                                         <div style="font-weight: 600; font-size: 0.95rem; color: #333;">${partnerName}</div>
-                                         <div style="font-size: 0.75rem; color: #888;">@ ${hop.bars?.title || 'Unknown Bar'}</div>
-                                     </div>
-                                     <img src="${hop.image_url}" 
-                                          style="width: 32px; height: 32px; border-radius: 6px; object-fit: cover;">
-                                 </div>
-                                 <div style="display: flex; flex-direction: column; gap: 4px; padding: 0 4px 10px 4px; max-height: 300px; overflow-y: auto;">
-                                     ${bubbles}
-                                 </div>
-                                 
-                                 <!-- Inline Input -->
-                                 <div style="margin-top: 5px; display: flex; gap: 8px; border-top: 1px solid #f0f0f0; padding-top: 10px;">
-                                     <input type="text" id="reply-input-${hop.id}" 
-                                            placeholder="${placeholderText}" 
-                                            ${disableReply ? 'disabled' : ''}
-                                            onkeydown="if(event.key === 'Enter') window.sendInlineReply('${hop.id}', '${partnerUser.id}')"
-                                            style="flex: 1; border: 1px solid #eee; border-radius: 20px; padding: 8px 12px; font-size: 0.9rem; outline: none; background: ${disableReply ? '#fafafa' : 'white'}; color: #333; transition: border 0.2s;">
-                                     <button id="btn-reply-${hop.id}"
-                                             onclick="window.sendInlineReply('${hop.id}', '${partnerUser.id}')" 
-                                             ${disableReply ? 'disabled' : ''}
-                                             style="background: ${disableReply ? '#e0e0e0' : 'var(--bg-red)'}; color: white; border: none; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: ${disableReply ? 'not-allowed' : 'pointer'}; transition: background 0.2s; flex-shrink: 0;">
-                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-                                     </button>
-                                 </div>
-                             </div>
-                         `;
-
-                    }).join('');
-
-                    loading.style.display = 'none';
-                    msgContainer.style.display = 'block';
+                    // Render
+                    renderThreads(true);
 
                 } catch (err) {
-                    console.error('Fetch Msg Error:', err);
-                    loading.textContent = 'Error loading messages.';
+                    console.error('Fetch Error:', err);
                 }
             };
 
-            fetchMessages();
+            // Initial Load
+            fetchThreads();
 
-            // Realtime
-            const channel = window.supabaseClient.channel('msg-page-updates')
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'private_messages' }, () => fetchMessages())
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'hopping_comments' }, () => fetchMessages())
-                .subscribe();
 
-            // Send Function (Global for onclick)
-            window.sendInlineReply = async (hopId, receiverId) => {
-                const inputEl = document.getElementById(`reply-input-${hopId}`);
-                const btnEl = document.getElementById(`btn-reply-${hopId}`);
+            // --- Optimistic Send ---
+            window.sendInlineReply = async (hopId, partnerId) => {
+                const inputEl = document.getElementById(`reply-input-${hopId}-${partnerId}`);
+                const btnEl = document.getElementById(`btn-reply-${hopId}-${partnerId}`);
                 const content = inputEl.value.trim();
-
                 if (!content) return;
 
-                const originalBtnContent = btnEl.innerHTML;
-                btnEl.innerHTML = '...';
-                btnEl.disabled = true;
-                inputEl.disabled = true;
+                // 1. Optimistic Update
+                const tempMsg = {
+                    id: 'temp-' + Date.now(),
+                    content: content,
+                    user_id: user.id,
+                    created_at: new Date().toISOString(),
+                    is_private: true
+                };
 
-                const { error } = await window.supabaseClient
-                    .from('private_messages')
-                    .insert([{ sender_id: window.currentUser.id, receiver_id: receiverId, content: content, related_hop_id: hopId }]);
+                // Find Thread
+                const threadIndex = allThreads.findIndex(t => t.hop.id == hopId && t.partnerId == partnerId);
+                if (threadIndex > -1) {
+                    const thread = allThreads[threadIndex];
+                    thread.messages.push(tempMsg);
+                    thread.latestDate = new Date();
+
+                    // Move to Top
+                    allThreads.splice(threadIndex, 1);
+                    allThreads.unshift(thread);
+
+                    // Re-render (smart update)
+                    renderThreads(true);
+
+                    // Scroll to bottom of this thread's bubbles
+                    setTimeout(() => {
+                        const threadEl = document.getElementById(`thread-${hopId}-${partnerId}`);
+                        if (threadEl) {
+                            const bubbles = threadEl.querySelector('.bubbles-container');
+                            if (bubbles) bubbles.scrollTop = bubbles.scrollHeight;
+                        }
+                    }, 50);
+                }
+
+                // 2. Clear Input
+                inputEl.value = '';
+
+                // 3. Send to DB
+                const { error, data } = await window.supabaseClient.from('private_messages').insert([{
+                    sender_id: user.id, receiver_id: partnerId, content: content, related_hop_id: hopId
+                }]).select();
 
                 if (error) {
-                    alert('Error: ' + error.message);
-                    btnEl.innerHTML = originalBtnContent;
-                    btnEl.disabled = false;
-                    inputEl.disabled = false;
+                    alert('Failed to send');
+                    // Revert? For now just reload
+                    fetchThreads();
                 } else {
-                    // Success (Realtime will refresh, but optmistic for snappy feel?)
-                    inputEl.value = '';
-                    fetchMessages(); // Trigger refresh immediately
+                    // Success. 
+                    // Replace temp msg with real one? 
+                    // Background fetch will eventually handle it via Realtime.
+                    // But to be clean, we could update the ID.
                 }
             };
 
-            // Global Login Helper
+            // Realtime
+            const channel = window.supabaseClient.channel('msg-page-realtime')
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'private_messages' }, () => {
+                    // Debounce or just fetch.
+                    // Determine if it's OUR message (we optimistically added it) or incoming.
+                    // fetchThreads handles deduping so it's safe.
+                    fetchThreads();
+                })
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'hopping_comments' }, () => fetchThreads())
+                .subscribe();
+
             window.login = async () => {
                 const { error } = await window.supabaseClient.auth.signInWithOAuth({
                     provider: 'google',
@@ -475,7 +558,6 @@
                 });
                 if (error) alert(error.message);
             };
-
         });
     </script>
 </body>
