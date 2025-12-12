@@ -630,6 +630,23 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
     const modal = document.getElementById('hopping-details-modal');
     document.getElementById('hd-img').src = img;
 
+    // Show/Hide Delete Button based on ownership (Strict Check)
+    const delBtn = document.getElementById('hd-delete-btn');
+    if (delBtn) {
+        const currentUserId = window.currentUser?.id;
+        // Ensure both are treated as strings for comparison
+        if (currentUserId && ownerId && String(currentUserId) === String(ownerId)) {
+            delBtn.style.display = 'flex';
+            // Re-bind click event to ensure functionality
+            delBtn.onclick = (e) => {
+                e.stopPropagation();
+                window.deleteHopping(hopId);
+            };
+        } else {
+            delBtn.style.display = 'none';
+        }
+    }
+
     // Reset arrows if not internal (single view)
     if (!internal) {
         const prev = document.getElementById('hd-prev-btn');

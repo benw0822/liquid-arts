@@ -311,7 +311,7 @@
             grid.style.display = 'grid';
             // Use responsive grid: 3 columns on desktop, fewer on smaller screens
             grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(300px, 1fr))';
-            grid.style.gap = '24px';
+            grid.style.gap = '40px'; // More whitespace
             grid.style.marginTop = '3rem';
             grid.style.width = '100%';
             grid.style.justifyContent = 'center';
@@ -367,7 +367,8 @@
                 grid.innerHTML = hopsData.map(hop => {
                     const dateObj = new Date(hop.hopped_at);
                     const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ' • ' + dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-                    const stars = '★'.repeat(hop.rating) + '☆'.repeat(5 - hop.rating);
+                    // Stars: Ensure Red Color
+                    const stars = `<span style="color: var(--bg-red);">` + '★'.repeat(hop.rating) + '</span>' + `<span style="color: #ddd;">` + '☆'.repeat(5 - hop.rating) + '</span>';
 
                     const u = usersMap[hop.user_id];
                     const userName = u?.hopper_nickname || u?.name || 'Anonymous';
@@ -400,7 +401,7 @@
                         </p>` : '';
 
                     return `
-                    <div class="hop-feed-card" style="background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); display: flex; flex-direction: column; width: 100%;">
+                    <div class="hop-feed-card" style="background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); display: flex; flex-direction: column; width: 100%; max-width: 380px; margin: 0 auto;">
                         
                         <!-- Image Area -->
                         <div style="position: relative; width: 100%; padding-top: 100%;">
@@ -418,9 +419,9 @@
                         <!-- Content Area -->
                         <div style="padding: 0 1.5rem 1.5rem 1.5rem; text-align: center; position: relative;">
                             
-                            <!-- Overlapping Avatar -->
-                            <div style="margin-top: -30px; margin-bottom: 0.8rem; display: flex; justify-content: center;">
-                                <img src="${userAvatar}" style="width: 60px; height: 60px; border-radius: 50%; border: 4px solid #fff; object-fit: cover; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <!-- Overlapping Avatar (Large) -->
+                            <div style="margin-top: -40px; margin-bottom: 0.8rem; display: flex; justify-content: center;">
+                                <img src="${userAvatar}" style="width: 80px; height: 80px; border-radius: 50%; border: 4px solid #fff; object-fit: cover; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                             </div>
 
                             <!-- User Info -->
@@ -429,24 +430,25 @@
                                 <div style="font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.05em;">${role}</div>
                             </div>
 
-                            <!-- Actions -->
+                            <!-- Actions (Large Buttons) -->
                             <div style="display: flex; justify-content: center; gap: 12px; margin-bottom: 1rem;">
-                                <!-- Standard Cheers Icon from Hopping.js -->
-                                <button style="background: #fff; border: 1px solid #eee; border-radius: 20px; padding: 6px 16px; display: flex; align-items: center; gap: 6px; color: #333; font-size: 0.9rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); cursor: pointer;">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--bg-red);">
+                                <!-- Cheers (Red Icon) -->
+                                <button style="background: #fff; border: 1px solid #eee; border-radius: 24px; padding: 10px 24px; display: flex; align-items: center; gap: 8px; color: #333; font-size: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); cursor: pointer;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--bg-red);">
                                         <path d="M8 22h8"></path>
                                         <path d="M12 11v11"></path>
                                         <path d="M5 4h14l-7 7-7-7z"></path>
                                     </svg>
                                     <span>0</span>
                                 </button>
-                                <button style="background: #fff; border: 1px solid #eee; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; color: #333; box-shadow: 0 2px 4px rgba(0,0,0,0.05); cursor: pointer;">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                                <!-- Message (Larger Circle) -->
+                                <button style="background: #fff; border: 1px solid #eee; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: #333; box-shadow: 0 2px 4px rgba(0,0,0,0.05); cursor: pointer;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                                 </button>
                             </div>
 
-                            <!-- Rating -->
-                            <div style="color: var(--bg-red); font-size: 1.1rem; letter-spacing: 2px; margin-bottom: 0.5rem;">${stars}</div>
+                            <!-- Rating (Red) -->
+                            <div style="font-size: 1.2rem; letter-spacing: 2px; margin-bottom: 0.5rem; color: #ddd;">${stars}</div>
 
                             <!-- Date -->
                             <div style="font-size: 0.7rem; color: #aaa; letter-spacing: 1px; margin-bottom: 0.8rem; text-transform: uppercase;">${dateStr}</div>
