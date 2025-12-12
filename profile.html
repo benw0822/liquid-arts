@@ -541,78 +541,44 @@
                 const msgList = document.getElementById('profile-messages-list');
                 msgList.innerHTML = '';
 
-                // Render Messages grouped by Thread
-                // Use let if defined previously or just assignment if already const in scope?
-                // Actually, I can just not redeclare them if they are already there.
-                // But looking at previous view, they WERE declared just above.
-                // Let's just use the variables since they are already declared in lines 540/541.
-
-                // Oops, I see I pasted the declaration AGAIN in my previous edit.
-                // I need to remove lines 545-546 entirely or just use assignment.
-
-                // Wait, previous replace replaced lines 541-600.
-                // Lines 540-541 were:
-                // 540:                 const msgSection = document.getElementById('profile-messages-section');
-                // 541:                 const msgList = document.getElementById('profile-messages-list');
-
-                // My replacement content STARTED with:
-                // // Render Messages grouped by Thread
-                // const msgSection = ...
-
-                // So I have:
-                // 540: const msgSection = ...
-                // 541: const msgList = ...
-                // 542: msgList.innerHTML = '';
-                // 543: // Render Messages grouped by Thread
-                // 544: const msgSection = ... <--- Error
-
-                // I will simply remove the redeclarations.
-
                 // Group by Thread Key: HopID + OtherUserID
                 let threads = {};
 
                 myHopsForCache.forEach(hop => {
                     hop.comments.forEach(c => {
-                        // Skip if comment is null or malformed
                         if (!c.user) return;
 
                         let otherUserId;
                         let otherUser = null;
 
-                        if (c.user_id !== user.id) {
-                            // Message from someone else
-                            otherUserId = c.user_id;
-                            otherUser = c.user;
+                        // Identify the "Other Person" in this conversation
+                        if (c.is_private) {
+                            // For private msg, the 'other' is defined already
+                            if (c.sender_id === user.id) otherUserId = c.receiver_id;
+                            else otherUserId = c.sender_id;
+
+                            otherUser = c.other_user_details;
+                            if (!otherUser && c.sender_id !== user.id) otherUser = c.user; // Fallback
                         } else {
-                            // My message. Need to find who I am replying to?
-                            // Actually, if it's my hop, I am replying to commenters.
-                            // But usually, a thread is defined by the "other person".
-                            // If I commented on my own hop, it could be a general comment OR a reply.
-                            // To keep it simple: We group conversations with SPECIFIC people.
-                            // If I reply, it appears in ALL threads? No.
-
-                            // Strategy:
-                            // 1. Find all "Incoming" comments first to establish threads.
-                            // 2. Then add my comments to these threads if they are chronologically relevant?
-                            // This is hard without "reply_to" field.
-                            // BETTER Strategy for "Timeline":
-                            // Just group by Hop? 
-                            // User Request: "Others visible + My replies in same box".
-                            // If multiple people commented on one hop, do we split them?
-                            // "兩人因為同一個段落的來回在同一個框內呈現" -> Suggests 1-on-1 thread per hop.
-
-                            // So, we group by (Hop + OtherUser).
-                            // My comments on THIS hop will be added to ALL threads of this hop? 
-                            // Or we simplistically add ALL my comments on this hop to every thread on this hop.
-                            // This might duplicate my replies if I talk to 2 people. But acceptable for MVP.
-                            return; // We handle my comments later
+                            // Public Comment
+                            if (c.user_id !== user.id) {
+                                otherUserId = c.user_id;
+                                otherUser = c.user;
+                            } else {
+                                // My public comment. Skip for now, add later?
+                                // actually we skip "me" initially to define threads by others.
+                                return;
+                            }
                         }
+
+                        if (!otherUserId) return; // Should not happen
 
                         const key = `${hop.id}_${otherUserId}`;
                         if (!threads[key]) {
                             threads[key] = {
                                 hop: hop,
                                 otherUser: otherUser,
+                                otherUserId: otherUserId,
                                 comments: []
                             };
                         }
@@ -620,14 +586,14 @@
                     });
                 });
 
-                // Now add MY comments to relevant threads
+                // Now add MY Public Comments to relevant threads
                 myHopsForCache.forEach(hop => {
                     hop.comments.forEach(c => {
-                        if (c.user_id === user.id) {
-                            // This is ME. Add to ALL threads involving this Hop.
-                            // This ensures if I said "Thanks!", everyone sees it in their thread context.
+                        if (!c.is_private && c.user_id === user.id) {
+                            // Add to ALL threads involving this Hop
                             Object.keys(threads).forEach(k => {
                                 if (threads[k].hop.id === hop.id) {
+                                    // Avoid duplicates if I somehow mess up logic
                                     threads[k].comments.push(c);
                                 }
                             });
@@ -638,31 +604,49 @@
                 // Convert to array and sort threads by latest activity
                 let threadArray = Object.values(threads);
                 threadArray.forEach(t => {
-                    t.comments.sort((a, b) => new Date(a.created_at) - new Date(b.created_at)); // Oldest first (Chat style)
+                    t.comments.sort((a, b) => new Date(a.created_at) - new Date(b.created_at)); // Oldest first
+
+                    // Deduplicate (in case mixed logic added public comment twice)
+                    const uniqueIds = new Set();
+                    t.comments = t.comments.filter(c => {
+                        const uniqueKey = c.id + (c.is_private ? '_p' : '_c');
+                        if (uniqueIds.has(uniqueKey)) return false;
+                        uniqueIds.add(uniqueKey);
+                        return true;
+                    });
+
                     t.latestTime = new Date(t.comments[t.comments.length - 1].created_at);
                 });
 
+                // Exclude threads with NO other user data (safety)
+                threadArray = threadArray.filter(t => t.otherUser);
+
                 threadArray.sort((a, b) => b.latestTime - a.latestTime);
 
-                const topThreads = threadArray.slice(0, 10); // Limit to top 10 threads
+                const topThreads = threadArray.slice(0, 10);
 
                 if (topThreads.length > 0) {
                     msgSection.style.display = 'block';
                     msgList.innerHTML = topThreads.map(t => {
-                        const { hop, otherUser, comments } = t;
+                        const { hop, otherUser, comments, otherUserId } = t;
                         const otherName = otherUser?.hopper_nickname || otherUser?.name || 'Anonymous';
                         const otherAvatar = otherUser?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(otherName)}&background=random`;
 
-                        // Render Chat Bubbles
                         const bubblesHtml = comments.map(c => {
-                            const isMe = c.user_id === user.id;
+                            // Normalize user_id for public/private
+                            const cUserId = c.is_private ? c.sender_id : c.user_id;
+                            const isMe = cUserId === user.id;
+
                             const align = isMe ? 'flex-end' : 'flex-start';
-                            const bg = isMe ? '#e3f2fd' : '#f5f5f5'; // Light blue vs Light grey
+                            // Private messages get a slightly different color? Or just keep uniform?
+                            // Let's make private messages slightly darker blue for Me?
+                            const bg = isMe ? (c.is_private ? '#d1e9ff' : '#e3f2fd') : '#f5f5f5';
                             const radius = isMe ? '12px 0 12px 12px' : '0 12px 12px 12px';
+                            const border = c.is_private ? '1px solid #cce5ff' : 'none';
 
                             return `
                                 <div style="display: flex; justify-content: ${align}; width: 100%;">
-                                    <div style="background: ${bg}; padding: 8px 12px; border-radius: ${radius}; font-size: 0.9rem; color: #333; max-width: 85%; margin-bottom: 6px;">
+                                    <div style="background: ${bg}; border: ${border}; padding: 8px 12px; border-radius: ${radius}; font-size: 0.9rem; color: #333; max-width: 85%; margin-bottom: 6px;">
                                         ${c.content}
                                     </div>
                                 </div>
@@ -671,29 +655,23 @@
 
                         return `
                             <div style="background: white; padding: 12px; border-radius: 12px; border: 1px solid #eee; transition: background 0.2s;">
-                                <!-- Header: Other User & Bar -->
                                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0;">
                                     <img src="${otherAvatar}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
                                     <div style="flex: 1;">
                                         <div style="font-weight: 600; font-size: 0.95rem; color: #333;">${otherName}</div>
                                         <div style="font-size: 0.75rem; color: #888;">@ ${hop.bars?.title || 'Unknown Bar'}</div>
                                     </div>
-                                    <!-- Hop Thumbnail -->
                                     <img src="${hop.image_url}" onclick="window.openGenericHoppingGallery(event, '${hop.id}', 'myHopsCache', true)" 
                                          style="width: 32px; height: 32px; border-radius: 6px; object-fit: cover; cursor: pointer;">
                                 </div>
-
-                                <!-- Chat Body -->
                                 <div style="display: flex; flex-direction: column; gap: 4px; padding: 0 4px;">
                                     ${bubblesHtml}
                                 </div>
-
-                                <!-- Footer: Reply -->
                                 <div style="margin-top: 10px; display: flex; justify-content: flex-end;">
-                                    <button onclick="window.openReplyModal('${hop.id}', '${otherName.replace(/'/g, "\\'")}')" 
+                                    <button onclick="window.openReplyModal('${hop.id}', '${otherName.replace(/'/g, "\\'")}', '${otherUserId}')" 
                                         style="background: transparent; border: 1px solid #ddd; padding: 4px 12px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; color: #555; cursor: pointer; display: flex; align-items: center; gap: 4px;">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"></polyline><path d="M20 18v-2a4 4 0 0 0-4-4H4"></path></svg>
-                                        Reply
+                                        Reply (Chat)
                                     </button>
                                 </div>
                             </div>
@@ -712,8 +690,11 @@
 
             // Reply Modal Logic
             let currentReplyHopId = null;
-            window.openReplyModal = (hopId, name) => {
+            let currentReplyReceiverId = null; // New
+
+            window.openReplyModal = (hopId, name, receiverId) => {
                 currentReplyHopId = hopId;
+                currentReplyReceiverId = receiverId;
                 document.getElementById('reply-target-name').textContent = name;
                 document.getElementById('reply-input').value = '';
                 document.getElementById('reply-modal').style.display = 'flex';
@@ -723,31 +704,35 @@
                 const content = document.getElementById('reply-input').value.trim();
                 if (!content) return;
 
-                if (!currentReplyHopId) return;
+                if (!currentReplyHopId || !currentReplyReceiverId) return;
 
                 const btn = document.querySelector('#reply-modal .btn-submit-hop');
                 const originalText = btn.textContent;
                 btn.textContent = 'Sending...';
                 btn.disabled = true;
 
+                // Insert into PRIVATE MESSAGES now
                 const { error } = await window.supabaseClient
-                    .from('hopping_comments')
+                    .from('private_messages')
                     .insert([
                         {
-                            hopping_id: currentReplyHopId,
-                            user_id: user.id,
-                            content: content
+                            sender_id: user.id,
+                            receiver_id: currentReplyReceiverId,
+                            content: content,
+                            related_hop_id: currentReplyHopId
                         }
                     ]);
 
                 if (error) {
-                    alert('Failed to send reply: ' + error.message);
+                    // Fallback? No, just alert error.
+                    // Ideally we check if error is "relation not found" but user said they added it.
+                    alert('Failed to send private message: ' + error.message);
                     btn.textContent = originalText;
                     btn.disabled = false;
                 } else {
-                    alert('Reply sent!');
+                    alert('Message sent!');
                     document.getElementById('reply-modal').style.display = 'none';
-                    window.location.reload(); // Reload to refresh list
+                    window.location.reload();
                 }
             };
 
