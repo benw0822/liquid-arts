@@ -310,14 +310,18 @@
 
             try {
                 // Fetch public hops with Bar and User data
+                // Removed 'user:' alias which might be causing 400 error
                 const { data, error } = await window.supabaseClient
                     .from('hoppings')
-                    .select('*, bars(id, title), user:users(id, name, hopper_nickname, hopper_image_url)')
+                    .select('*, bars(id, title), users(id, name, hopper_nickname, hopper_image_url)')
                     .eq('is_public', true)
                     .order('hopped_at', { ascending: false })
                     .limit(8);
 
-                if (error) throw error;
+                if (error) {
+                    console.error('Supabase request failed:', error);
+                    throw error;
+                }
 
                 if (!data || data.length === 0) {
                     grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #888;">No recent hops found.</p>';
@@ -331,8 +335,8 @@
                     const dateStr = new Date(hop.hopped_at).toLocaleDateString();
                     const stars = '★'.repeat(hop.rating) + '☆'.repeat(5 - hop.rating);
 
-                    // User Info
-                    const u = hop.user;
+                    // User Info - Access via 'users' (default relation name)
+                    const u = hop.users || hop.user;
                     const userName = u?.hopper_nickname || u?.name || 'Anonymous';
                     const userAvatar = u?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random`;
 
@@ -375,7 +379,7 @@
                 }).join('');
 
             } catch (err) {
-                console.error('Error fetching hops:', err);
+                console.error('Error fetching hops:', JSON.stringify(err, null, 2));
                 grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #ef4444;">Could not load hops.</p>';
             }
         }
