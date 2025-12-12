@@ -514,15 +514,7 @@
                     }
 
                     if (!data) return [];
-
-                    // Attach User (Self)
-                    // We know these are MY hops, but for consistency with grid renderer which might expect 'user' object:
-                    // We can just query my own profile once or use session user details?
-                    // The grid renderer uses `h.user?.hopper_nickname`.
-
-                    // Let's just fetch my user details or use what we have? 
-                    // Grid logic usually handles loading user header. 
-                    // But for the cards, let's attach 'user'.
+                    if (data.length === 0) return [];
 
                     // Fetch my user details from DB to be safe (or use session metadata if reliable)
                     const { data: userData } = await window.supabaseClient
@@ -533,13 +525,28 @@
 
                     const myUserObj = userData || { id: user.id, name: 'Me', hopper_nickname: 'Me' };
 
+                    // Fetch Public Comments for these hops (for the overlay)
+                    const hopIds = data.map(h => h.id);
+                    let commentsMap = {};
+
+                    if (hopIds.length > 0) {
+                        const { data: cData } = await window.supabaseClient
+                            .from('hopping_comments')
+                            .select('id, hopping_id, content, created_at, user_id, user:users(id, name, hopper_nickname, hopper_image_url)')
+                            .in('hopping_id', hopIds)
+                            .order('created_at', { ascending: false });
+
+                        if (cData) {
+                            cData.forEach(c => {
+                                if (!commentsMap[c.hopping_id]) commentsMap[c.hopping_id] = [];
+                                commentsMap[c.hopping_id].push(c);
+                            });
+                        }
+                    }
+
                     data.forEach(h => {
                         h.user = myUserObj;
-                        // Mock comments for grid if needed? 
-                        // Grid shows comment COUNT usually? 
-                        // renderUnifiedGrid uses `hop.comments`? Let's check.
-                        // If grid doesn't show comments, we don't need them.
-                        h.comments = [];
+                        h.comments = commentsMap[h.id] || [];
                     });
 
                     window.myHopsCache = data;
