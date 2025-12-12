@@ -306,7 +306,15 @@
             const grid = document.getElementById('hop-feed');
             if (!grid) return;
 
-            grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #888;">Loading latest hops...</p>';
+            // Adjust Layout for Feed Style (Single Column, Centered)
+            grid.classList.remove('masonry-grid');
+            grid.style.display = 'flex';
+            grid.style.flexDirection = 'column';
+            grid.style.alignItems = 'center';
+            grid.style.gap = '40px';
+            grid.style.marginTop = '3rem';
+
+            grid.innerHTML = '<p style="text-align: center; color: #888;">Loading latest hops...</p>';
 
             try {
                 // Step 1: Fetch public hops with Bar data
@@ -320,7 +328,7 @@
                 if (hopsError) throw hopsError;
 
                 if (!hopsData || hopsData.length === 0) {
-                    grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #888;">No recent hops found.</p>';
+                    grid.innerHTML = '<p style="text-align: center; color: #888;">No recent hops found.</p>';
                     return;
                 }
 
@@ -329,51 +337,76 @@
                 let usersMap = {};
 
                 if (userIds.length > 0) {
-                    const { data: usersData, error: usersError } = await window.supabaseClient
+                    const { data: usersData } = await window.supabaseClient
                         .from('users')
                         .select('id, name, hopper_nickname, hopper_image_url')
                         .in('id', userIds);
+                    if (usersData) usersData.forEach(u => { usersMap[u.id] = u; });
+                }
 
-                    if (usersData) {
-                        usersData.forEach(u => { usersMap[u.id] = u; });
+                // Step 3: Fetch Latest Comments
+                const hopIds = hopsData.map(h => h.id);
+                let commentsMap = {};
+                if (hopIds.length > 0) {
+                    // Fetch recent comments for these hops
+                    const { data: commentsData } = await window.supabaseClient
+                        .from('hopping_comments')
+                        .select('hopping_id, content, user:users(name, hopper_nickname, hopper_image_url)')
+                        .in('hopping_id', hopIds)
+                        .order('created_at', { ascending: false }); // Get newest first
+
+                    if (commentsData) {
+                        // Map 1 latest comment per hop
+                        commentsData.forEach(c => {
+                            if (!commentsMap[c.hopping_id]) {
+                                commentsMap[c.hopping_id] = c;
+                            }
+                        });
                     }
                 }
 
-                // Step 3: Prepare Cache for Gallery (Standardize Object Structure)
-                window.latestHops = hopsData.map(hop => {
-                    const u = usersMap[hop.user_id];
-                    return {
-                        ...hop,
-                        bar_title: hop.bars?.title || 'Unknown Bar',
-                        bar_id: hop.bars?.id,
-                        user: u // Attach user object for potential usage
-                    };
-                });
-
-                // Step 4: Render Full Feed Cards (No Modal)
-                grid.innerHTML = window.latestHops.map(hop => {
+                // Step 4: Render Full Feed Cards
+                grid.innerHTML = hopsData.map(hop => {
                     const dateObj = new Date(hop.hopped_at);
                     const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ' • ' + dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
                     const stars = '★'.repeat(hop.rating) + '☆'.repeat(5 - hop.rating);
 
-                    const u = hop.user;
+                    const u = usersMap[hop.user_id];
                     const userName = u?.hopper_nickname || u?.name || 'Anonymous';
                     const userAvatar = u?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random`;
 
-                    // Role Logic
-                    // (Simplified, can be enhanced if needed, default to 'Hopper')
-                    const role = 'Hopper';
+                    const role = 'Hopper'; // Static for now
+
+                    const latestComment = commentsMap[hop.id];
+                    let commentHtml = '';
+                    if (latestComment) {
+                        const cUser = latestComment.user;
+                        const cName = cUser?.hopper_nickname || cUser?.name || 'User';
+                        const cAvatar = cUser?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(cName)}&background=random`;
+
+                        commentHtml = `
+                        <div style="position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); border-radius: 20px; padding: 4px 12px 4px 4px; display: flex; align-items: center; gap: 8px; max-width: 80%;">
+                            <img src="${cAvatar}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(255,255,255,0.5);">
+                            <span style="color: #fff; font-size: 0.8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                <strong style="margin-right: 4px;">${cName}:</strong> ${latestComment.content}
+                            </span>
+                        </div>
+                        `;
+                    }
 
                     return `
-                    <div class="hop-feed-card" style="background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 0; display: flex; flex-direction: column;">
+                    <div class="hop-feed-card" style="background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 0; display: flex; flex-direction: column; width: 100%; max-width: 500px;">
                         
                         <!-- Image Area -->
                         <div style="position: relative; width: 100%; padding-top: 100%;">
                             <img src="${hop.image_url}" style="position: absolute; top:0; left:0; width: 100%; height: 100%; object-fit: cover;">
                             
+                            <!-- Comment Pill Overlay -->
+                            ${commentHtml}
+
                             <!-- Bar Pill -->
-                            <a href="bar-details.html?id=${hop.bar_id}" style="position: absolute; bottom: 12px; right: 12px; background: rgba(0,0,0,0.6); color: white; padding: 6px 14px; border-radius: 20px; text-decoration: none; font-size: 0.75rem; font-weight: 500; display: flex; align-items: center; gap: 4px; backdrop-filter: blur(4px);">
-                                <span>📍</span> ${hop.bar_title}
+                            <a href="bar-details.html?id=${hop.bars?.id}" style="position: absolute; bottom: 12px; right: 12px; background: rgba(0,0,0,0.6); color: white; padding: 6px 14px; border-radius: 20px; text-decoration: none; font-size: 0.75rem; font-weight: 500; display: flex; align-items: center; gap: 4px; backdrop-filter: blur(4px);">
+                                <span>📍</span> ${hop.bars?.title || 'Unknown Bar'}
                             </a>
                         </div>
 
@@ -391,12 +424,18 @@
                                 <div style="font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.05em;">${role}</div>
                             </div>
 
-                            <!-- Actions (Static for Feed View) -->
+                            <!-- Actions -->
                             <div style="display: flex; justify-content: center; gap: 12px; margin-bottom: 1rem;">
-                                <button style="background: #fff; border: 1px solid #eee; border-radius: 20px; padding: 6px 16px; display: flex; align-items: center; gap: 6px; color: #333; font-size: 0.9rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                                    <span style="color: var(--bg-red);">🍷</span> <span>1</span>
+                                <!-- Standard Cheers Icon from Hopping.js -->
+                                <button style="background: #fff; border: 1px solid #eee; border-radius: 20px; padding: 6px 16px; display: flex; align-items: center; gap: 6px; color: #333; font-size: 0.9rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); cursor: pointer;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--bg-red);">
+                                        <path d="M8 22h8"></path>
+                                        <path d="M12 11v11"></path>
+                                        <path d="M5 4h14l-7 7-7-7z"></path>
+                                    </svg>
+                                    <span>0</span>
                                 </button>
-                                <button style="background: #fff; border: 1px solid #eee; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; color: #333; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                                <button style="background: #fff; border: 1px solid #eee; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; color: #333; box-shadow: 0 2px 4px rgba(0,0,0,0.05); cursor: pointer;">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                                 </button>
                             </div>
