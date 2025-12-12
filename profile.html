@@ -775,6 +775,20 @@
                 // Ensure otherUser exists (we added fallback above), but filter empty threads
                 threadArray = threadArray.filter(t => t.comments.length > 0);
 
+                // Privacy/Flow Update: Hide thread from Non-Owner if Owner hasn't replied yet.
+                // This prevents "Double Texting" via Inbox and keeps Inbox clean.
+                threadArray = threadArray.filter(t => {
+                    const isMyHop = t.hop.user_id === user.id;
+                    if (isMyHop) return true; // Owner sees all
+
+                    // Non-Owner: Check if Owner has spoken in this thread
+                    const hasOwnerReply = t.comments.some(c => {
+                        const sender = c.is_private ? c.sender_id : c.user_id;
+                        return sender === t.hop.user_id;
+                    });
+                    return hasOwnerReply;
+                });
+
                 threadArray.sort((a, b) => b.latestTime - a.latestTime);
 
                 const topThreads = threadArray.slice(0, 10);
@@ -803,6 +817,29 @@
                             `;
                         }).join('');
 
+                        // Logic to restrict reply if not owner and last msg is from me
+                        let disableReply = false;
+                        let replyBtnText = 'Reply (Chat)';
+
+                        if (!amIOwner) {
+                            const lastMsg = comments[comments.length - 1];
+                            const lastSenderId = lastMsg.is_private ? lastMsg.sender_id : lastMsg.user_id;
+                            if (lastSenderId === user.id) {
+                                disableReply = true;
+                                replyBtnText = 'Waiting for reply...';
+                            }
+                        }
+
+                        // Reply Button HTML
+                        const replyBtnHtml = `
+                            <button onclick="window.openReplyModal('${hop.id}', '${otherName.replace(/'/g, "\\'")}', '${otherUserId}')" 
+                                ${disableReply ? 'disabled' : ''}
+                                style="background: transparent; border: 1px solid ${disableReply ? '#eee' : '#ddd'}; padding: 4px 12px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; color: ${disableReply ? '#bbb' : '#555'}; cursor: ${disableReply ? 'not-allowed' : 'pointer'}; display: flex; align-items: center; gap: 4px;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"></polyline><path d="M20 18v-2a4 4 0 0 0-4-4H4"></path></svg>
+                                ${replyBtnText}
+                            </button>
+                        `;
+
                         return `
                             <div style="background: white; padding: 12px; border-radius: 12px; border: 1px solid #eee; transition: background 0.2s;">
                                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0;">
@@ -818,11 +855,7 @@
                                     ${bubblesHtml}
                                 </div>
                                 <div style="margin-top: 10px; display: flex; justify-content: flex-end;">
-                                    <button onclick="window.openReplyModal('${hop.id}', '${otherName.replace(/'/g, "\\'")}', '${otherUserId}')" 
-                                        style="background: transparent; border: 1px solid #ddd; padding: 4px 12px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; color: #555; cursor: pointer; display: flex; align-items: center; gap: 4px;">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"></polyline><path d="M20 18v-2a4 4 0 0 0-4-4H4"></path></svg>
-                                        Reply (Chat)
-                                    </button>
+                                    ${replyBtnHtml}
                                 </div>
                             </div>
                         `;
@@ -841,7 +874,7 @@
 
             // Reply Modal Logic
             let currentReplyHopId = null;
-            let currentReplyReceiverId = null; // New
+            let currentReplyReceiverId = null;
 
             window.openReplyModal = (hopId, name, receiverId) => {
                 currentReplyHopId = hopId;
@@ -849,6 +882,8 @@
                 document.getElementById('reply-target-name').textContent = name;
                 document.getElementById('reply-input').value = '';
                 document.getElementById('reply-modal').style.display = 'flex';
+                // Focus input
+                setTimeout(() => document.getElementById('reply-input').focus(), 100);
             };
 
             window.sendReply = async () => {
@@ -857,7 +892,6 @@
 
                 if (!currentReplyHopId || !currentReplyReceiverId) {
                     console.error("Missing Hop or Receiver ID");
-                    alert("Error: Cannot send reply. Missing recipient info.");
                     return;
                 }
 
@@ -867,7 +901,7 @@
                 btn.disabled = true;
 
                 // Insert into PRIVATE MESSAGES
-                const { error } = await window.supabaseClient
+                const { error, data } = await window.supabaseClient
                     .from('private_messages')
                     .insert([
                         {
@@ -876,26 +910,36 @@
                             content: content,
                             related_hop_id: currentReplyHopId
                         }
-                    ]);
+                    ]).select(); // Select to get data back for local update if needed
 
                 if (error) {
                     console.error("Send Error:", error);
-                    alert("Failed to send message.");
+                    alert("Failed to send message: " + error.message);
                     btn.textContent = originalText;
                     btn.disabled = false;
                     return;
                 }
 
-                if (error) {
-                    // Fallback? No, just alert error.
-                    // Ideally we check if error is "relation not found" but user said they added it.
-                    alert('Failed to send private message: ' + error.message);
-                    btn.textContent = originalText;
-                    btn.disabled = false;
+                // Success
+                document.getElementById('reply-modal').style.display = 'none';
+                btn.textContent = originalText;
+                btn.disabled = false;
+
+                // Trigger Update immediately (Optimistic-ish)
+                // We rely on Realtime generally, but manual call ensures speed.
+                // Assuming handleNewMessage is available in scope.
+                if (typeof handleNewMessage === 'function') {
+                    // Pass dummy private message to trigger refresh
+                    // Or precise data if we have it
+                    const newMsg = data ? data[0] : { sender_id: user.id };
+                    handleNewMessage(newMsg, true);
                 } else {
-                    alert('Message sent!');
-                    document.getElementById('reply-modal').style.display = 'none';
-                    window.location.reload();
+                    // Fallback if handleNewMessage not found (should be there)
+                    if (setupRealtime) {
+                        // Realtime should catch it
+                    } else {
+                        window.location.reload();
+                    }
                 }
             };
 
