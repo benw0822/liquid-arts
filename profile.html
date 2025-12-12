@@ -800,6 +800,9 @@
                         const otherName = otherUser?.hopper_nickname || otherUser?.name || 'Anonymous';
                         const otherAvatar = otherUser?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(otherName)}&background=random`;
 
+                        // Fix for ReferenceError: Define amIOwner
+                        const amIOwner = hop.user_id === user.id;
+
                         const bubblesHtml = comments.map(c => {
                             const cUserId = c.is_private ? c.sender_id : c.user_id;
                             const isMe = cUserId === user.id;
