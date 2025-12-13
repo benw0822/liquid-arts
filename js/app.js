@@ -318,8 +318,14 @@ document.addEventListener('DOMContentLoaded', () => {
             newBtns.style.cssText = 'display: flex; gap: 10px; margin-top: 10px; margin-bottom: 0px;'; // Ensure no bottom margin
 
             newBtns.innerHTML = `
-                <a href="bar-details.html?id=${bar.id}" class="btn" style="flex:1; text-align:center; background-color: #333; color: white; border: none; padding: 10px; text-decoration: none; border-radius: 4px; font-weight: bold; display: flex; align-items: center; justify-content: center;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                <a href="bar.html?id=${bar.id}" class="btn" style="flex:1; text-align:center; background-color: var(--bg-red); color: white; border: none; padding: 10px; text-decoration: none; border-radius: 4px; font-weight: bold; display: flex; align-items: center; justify-content: center;">
+                    <!-- Two Eyes Icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 12c0-2.5 2-5 4.5-5S12 9.5 12 12s-2 5-4.5 5S3 14.5 3 12z"></path>
+                        <circle cx="7.5" cy="12" r="1.5"></circle>
+                        <path d="M12 12c0-2.5 2-5 4.5-5S21 9.5 21 12s-2 5-4.5 5S12 14.5 12 12z"></path>
+                        <circle cx="16.5" cy="12" r="1.5"></circle>
+                    </svg>
                 </a>
                 <a href="${hiddenGLink}" target="_blank" class="btn" style="flex:1; text-align:center; background-color: var(--bg-red); color: white; border: none; padding: 10px; text-decoration: none; border-radius: 4px; font-weight: bold; display: flex; align-items: center; justify-content: center;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M14.082 2.182a.5.5 0 0 1 .103.557L8.528 15.467a.5.5 0 0 1-.917-.007L5.57 10.694.803 8.652a.5.5 0 0 1-.006-.916l12.728-5.657a.5.5 0 0 1 .556.103z"/></svg>
@@ -425,11 +431,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (locationSelect) {
                 locationSelect.innerHTML = '<option value="">All Cities</option>' +
-                    cities.map(c => `<option value="${c}">${c}</option>`).join('');
+                    cities.map(c => `< option value = "${c}" > ${c}</option > `).join('');
             }
             if (vibeSelect) {
                 vibeSelect.innerHTML = '<option value="">All Vibes</option>' +
-                    vibes.map(v => `<option value="${v}">${v}</option>`).join('');
+                    vibes.map(v => `< option value = "${v}" > ${v}</option > `).join('');
             }
         }
 
@@ -486,11 +492,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (window.savedBarIds.size === 0) {
             grid.innerHTML = `
-                <div style="grid-column: 1/-1; text-align: center; padding: 3rem 1rem;">
+                < div style = "grid-column: 1/-1; text-align: center; padding: 3rem 1rem;" >
                     <h3 style="font-family: var(--font-display); color: #ccc;">No saved bars yet.</h3>
                     <a href="bars.html" class="btn" style="margin-top: 1rem; display: inline-block; background: var(--bg-red); color: white; padding: 10px 20px; border-radius: 30px; text-decoration: none;">Explore Bars</a>
-                </div>
-            `;
+                </div >
+                `;
             return;
         }
 
@@ -578,9 +584,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 container.onmouseout = () => container.style.backgroundColor = 'white';
 
                 container.innerHTML = `
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="#333" viewBox="0 0 16 16">
-                         <path d="M8 16a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm0-1A7 7 0 1 1 8 2a7 7 0 0 1 0 14zm0-7a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
-                    </svg>
+                < svg xmlns = "http://www.w3.org/2000/svg" width = "18" height = "18" fill = "#333" viewBox = "0 0 16 16" >
+                    <path d="M8 16a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm0-1A7 7 0 1 1 8 2a7 7 0 0 1 0 14zm0-7a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
+                    </svg >
                 `;
 
                 container.onclick = function (e) {
@@ -597,7 +603,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             } else {
                                 const userIcon = L.divIcon({
                                     className: 'user-marker-a',
-                                    html: `<div style="color: #D4AF37; font-family: 'Playfair Display', serif; font-size: 32px; font-weight: bold; line-height: 1; text-shadow: 0 2px 10px rgba(0,0,0,0.6); transform: translate(-50%, -50%);">A</div>`,
+                                    html: `< div style = "color: #D4AF37; font-family: 'Playfair Display', serif; font-size: 32px; font-weight: bold; line-height: 1; text-shadow: 0 2px 10px rgba(0,0,0,0.6); transform: translate(-50%, -50%);" > A</div > `,
                                     iconSize: [40, 40],
                                     iconAnchor: [20, 20]
                                 });
@@ -641,13 +647,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const savedCount = window.savedBarIds ? window.savedBarIds.size : 0;
 
                 container.innerHTML = `
-                    <svg id="saved-filter-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#333" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                    </svg>
-                    <div id="saved-filter-badge" style="position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; font-size: 10px; font-weight: bold; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.3); ${savedCount > 0 ? '' : 'display: none;'}">
-                        ${savedCount}
-                    </div>
-                `;
+                < svg id = "saved-filter-icon" xmlns = "http://www.w3.org/2000/svg" width = "20" height = "20" fill = "none" stroke = "#333" stroke - width="2" viewBox = "0 0 24 24" stroke - linecap="round" stroke - linejoin="round" >
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                    </svg >
+                <div id="saved-filter-badge" style="position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; font-size: 10px; font-weight: bold; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.3); ${savedCount > 0 ? '' : 'display: none;'}">
+                    ${savedCount}
+                </div>
+            `;
 
                 container.onclick = function (e) {
                     L.DomEvent.stopPropagation(e);
@@ -708,7 +714,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     let iconHtml;
 
                     // Thumbnail Click Handler (Keep existing logic)
-                    const thumbClick = hopId ? `event.stopPropagation(); window.showHoppingDetails(event, '${userHop.image_url}', '${userHop.hopped_at}', ${userHop.rating}, '${userHop.description?.replace(/'/g, "\\'") || ""}', '${hopId}', '${userHop.user_id}', true, '${bar.title.replace(/'/g, "\\'")}', '${bar.id}')` : '';
+                    const thumbClick = hopId ? `event.stopPropagation(); window.showHoppingDetails(event, '${userHop.image_url}', '${userHop.hopped_at}', ${userHop.rating}, '${userHop.description?.replace(/' / g, "\\'") || ""
+                        } ', '${hopId} ', '${userHop.user_id} ', true, '${bar.title.replace(/'/g, "\\'")} ', '${bar.id} ')` : '';
 
                     const thumbnailHtml = hoppingImg ? `
                         <div style="margin-bottom: -8px; position: relative; z-index: 10; pointer-events: auto;">
@@ -1921,15 +1928,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 <!-- Explore Button -->
                 <div style="display: flex; justify-content: center; margin-bottom: 1.2rem;">
-                    <a href="bar.html?id=${bar.id}" class="btn" style="padding: 6px 20px; font-size: 0.9rem; border-radius: 20px; border: none; color: white; background: var(--bg-red); transition: all 0.3s; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3); display: flex; align-items: center; gap: 6px;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M6 19a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"></path>
-                            <path d="M18 19a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"></path>
-                            <path d="M6 15v-1a6 6 0 1 1 12 0v1"></path>
-                            <circle cx="12" cy="11" r="1.5"></circle>
-                        </svg>
-                        Explore
-                    </a>
+                    <a href="bar.html?id=${bar.id}" class="btn" style="padding: 6px 20px; font-size: 0.9rem; border-radius: 20px; border: none; color: white; background: var(--bg-red); transition: all 0.3s; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">Explore</a>
                 </div>
 
                  <!-- Rating & Price -->
