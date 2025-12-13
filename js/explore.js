@@ -28,6 +28,7 @@ async function initExplore() {
         // Fetch Hop Users
         let usersMap = {};
         let commentsMap = {};
+        let cheersMap = {};
         if (hopsData && hopsData.length > 0) {
             const userIds = [...new Set(hopsData.map(h => h.user_id).filter(Boolean))];
             if (userIds.length > 0) {
@@ -55,7 +56,6 @@ async function initExplore() {
                 .select('hopping_id, user_id')
                 .in('hopping_id', hopIds);
 
-            let cheersMap = {};
             if (cheersData) {
                 const currentUserId = window.currentUser?.id;
                 cheersData.forEach(c => {
