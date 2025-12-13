@@ -236,6 +236,48 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // --- Show Bar Card Modal Logic ---
+    window.showBarCardModal = async (barId) => {
+        const modal = document.getElementById('map-bar-modal');
+        const container = document.getElementById('map-bar-card-container');
+        if (!modal || !container) return;
+
+        // Find bar data
+        const bars = await fetchBars();
+        let bar = bars.find(b => b.id == barId);
+
+        // If not found (rare), fallback
+        if (!bar) return;
+
+        // Ensure City is displayed
+        let city = bar.location;
+        if (bar.lat && bar.lng) {
+            const resolved = await fetchCityFromCoordsGlobal(bar.lat, bar.lng);
+            if (resolved) city = resolved;
+        }
+
+        // Render Card
+        container.innerHTML = window.createBarCard(bar, city);
+
+        // Enhance for Modal View (Disable Link Navigation)
+        const cardLink = container.querySelector('a');
+        if (cardLink) {
+            cardLink.removeAttribute('href');
+            cardLink.style.cursor = 'default';
+            cardLink.onclick = (e) => e.preventDefault();
+        }
+
+        modal.style.display = 'flex';
+
+        // Init Map inside modal if needed
+        if (bar.lat && bar.lng) {
+            setTimeout(() => window.initCardMapGlobal(bar.id, bar.lat, bar.lng, bar.title, window.savedBarIds.has(bar.id)), 100);
+        }
+
+        // Render Hopping Badge
+        setTimeout(() => { if (window.renderHoppingBadge) window.renderHoppingBadge(bar.id); }, 500);
+    };
+
     // --- Page Init Functions ---
 
     // 1. Home Page
@@ -426,7 +468,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Order by hopped_at desc to get latest
                 const { data: myHops } = await window.supabaseClient
                     .from('hoppings')
-                    .select('bar_id, image_url, hopped_at')
+                    .select('id, bar_id, image_url, hopped_at, rating, description, user_id, is_public')
                     .eq('user_id', window.currentUser.id)
                     .order('hopped_at', { ascending: false });
 
@@ -434,7 +476,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     myHops.forEach(h => {
                         // Only set if not already set (since we sort desc, first is latest)
                         if (!userHoppingsMap[h.bar_id]) {
-                            userHoppingsMap[h.bar_id] = h.image_url;
+                            userHoppingsMap[h.bar_id] = h; // Store full object
                         }
                     });
                 }
@@ -597,13 +639,19 @@ document.addEventListener('DOMContentLoaded', () => {
             barsToRender.forEach(bar => {
                 if (bar.lat && bar.lng) {
                     const isSaved = window.savedBarIds.has(bar.id);
-                    const hoppingImg = userHoppingsMap[bar.id]; // Check for thumbnail
+                    const userHop = userHoppingsMap[bar.id]; // Check for hopping object
+                    const hoppingImg = userHop ? userHop.image_url : null;
+                    const hopId = userHop ? userHop.id : null;
 
                     // Custom Marker
                     let iconHtml;
+
+                    // Thumbnail Click Handler
+                    const thumbClick = hopId ? `event.stopPropagation(); window.showHoppingDetails(event, '${userHop.image_url}', '${userHop.hopped_at}', ${userHop.rating}, '${userHop.description?.replace(/'/g, "\\'") || ""}', '${hopId}', '${userHop.user_id}', true, '${bar.title.replace(/'/g, "\\'")}', '${bar.id}')` : '';
+
                     const thumbnailHtml = hoppingImg ? `
                         <div style="margin-bottom: 4px; position: relative;">
-                            <img src="${hoppingImg}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3); background: #333;">
+                            <img src="${hoppingImg}" onclick="${thumbClick}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3); background: #333;">
                         </div>
                     ` : '';
 
@@ -612,7 +660,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         iconHtml = `
                             <div style="display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%); cursor: pointer;">
                                 ${thumbnailHtml}
-                                <div onclick="event.stopPropagation(); window.location.href='bar-details.html?id=${bar.id}'" style="background: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; color: #333; box-shadow: 0 1px 4px rgba(0,0,0,0.5); margin-bottom: 3px; white-space: nowrap; pointer-events: auto;">
+                                <div onclick="event.stopPropagation(); window.showBarCardModal('${bar.id}')" style="background: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; color: #333; box-shadow: 0 1px 4px rgba(0,0,0,0.5); margin-bottom: 3px; white-space: nowrap; pointer-events: auto;">
                                     ${bar.title}
                                 </div>
                                 <div style="display: flex; align-items: center; justify-content: center; filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.6));">
@@ -627,7 +675,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         iconHtml = `
                             <div style="display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%); cursor: pointer;">
                                 ${thumbnailHtml}
-                                <div onclick="event.stopPropagation(); window.location.href='bar-details.html?id=${bar.id}'" style="background: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; color: #333; box-shadow: 0 1px 4px rgba(0,0,0,0.5); margin-bottom: 3px; white-space: nowrap; pointer-events: auto;">
+                                <div onclick="event.stopPropagation(); window.showBarCardModal('${bar.id}')" style="background: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; color: #333; box-shadow: 0 1px 4px rgba(0,0,0,0.5); margin-bottom: 3px; white-space: nowrap; pointer-events: auto;">
                                     ${bar.title}
                                 </div>
                                 <div style="width: 14px; height: 14px; background: #ef4444; border: 2px solid white; border-radius: 50%; box-shadow: 0 0 10px rgba(239, 68, 68, 0.6);"></div>
@@ -643,11 +691,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
 
                     const marker = L.marker([bar.lat, bar.lng], { icon: customIcon }).addTo(markersLayer);
+                    // Standard popup on marker click (optional, or disable it?)
+                    // Current behavior: Marker name/icon label has specific onclicks.
+                    // The marker itself also has a popup. Let's keep popup for the red dot click?
+                    // Or prioritize the label interactions.
                     marker.bindPopup(`
                         <div style="color: #333; text-align: center; min-width: 150px;">
                             <h3 style="margin: 0 0 5px 0; font-family: var(--font-display); font-size: 1.1rem;">${bar.title}</h3>
-                            <p style="margin: 0 0 10px 0; font-size: 0.85rem; color: #666;">${bar.location}</p>
-                            <a href="bar-details.html?id=${bar.id}" style="display: inline-block; padding: 6px 16px; background: #9c100f; color: white; border-radius: 20px; text-decoration: none; font-size: 0.8rem;">View Details</a>
+                            <button onclick="window.showBarCardModal('${bar.id}')" style="display: inline-block; padding: 6px 16px; background: #9c100f; color: white; border: none; border-radius: 20px; text-decoration: none; font-size: 0.8rem; cursor: pointer;">View Card</button>
                         </div>
                     `);
                     // No need to push to markers array anymore
