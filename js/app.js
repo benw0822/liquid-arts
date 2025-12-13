@@ -2183,8 +2183,16 @@ window.createHopCard = function (hop, user, comment = null, bar = null) {
                     <span id="cheers-count-${hop.id}">0</span>
                 </button>
                 <!-- Message (Larger Circle) -->
-                <button onclick="window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', ${hop.rating}, '${hop.description?.replace(/'/g, "\\'") || ""}', '${hop.id}', '${hop.user_id}', true, '${barInfo?.title?.replace(/'/g, "\\'") || ''}', '${barInfo?.id || ''}', true)" style="background: #fff; border: 1px solid #eee; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: #333; box-shadow: 0 2px 4px rgba(0,0,0,0.05); cursor: pointer;">
+                <button onclick="event.stopPropagation(); window.toggleCardComment('${hop.id}')" style="background: #fff; border: 1px solid #eee; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: #333; box-shadow: 0 2px 4px rgba(0,0,0,0.05); cursor: pointer;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                </button>
+            </div>
+
+            <!-- Inline Comment Box (Hidden) -->
+            <div id="card-comment-box-${hop.id}" style="display: none; margin-bottom: 1rem; gap: 8px; align-items: center;">
+                <input type="text" id="inline-comment-input-${hop.id}" placeholder="Say something..." style="flex: 1; border: 1px solid #ddd; border-radius: 20px; padding: 8px 12px; font-size: 0.9rem;">
+                <button onclick="window.submitInlineComment('${hop.id}')" style="background: var(--bg-red); color: white; border: none; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                 </button>
             </div>
 
@@ -2205,14 +2213,34 @@ window.createHopCard = function (hop, user, comment = null, bar = null) {
     `;
 };
 
-window.handleHopComment = async (hopId) => {
+// Toggle Inline Comment
+window.toggleCardComment = (hopId) => {
+    const box = document.getElementById(`card-comment-box-${hopId}`);
+    if (box) {
+        const isHidden = box.style.display === 'none';
+        box.style.display = isHidden ? 'flex' : 'none';
+        if (isHidden) {
+            // Focus
+            setTimeout(() => {
+                const input = document.getElementById(`inline-comment-input-${hopId}`);
+                if (input) input.focus();
+            }, 100);
+        }
+    }
+};
+
+// Submit Inline Comment
+window.submitInlineComment = async (hopId) => {
     if (!window.currentUser) {
         alert('Please log in to comment.');
         return;
     }
 
-    const text = prompt("Leave a comment:");
-    if (!text || text.trim() === "") return;
+    const input = document.getElementById(`inline-comment-input-${hopId}`);
+    if (!input) return;
+    const text = input.value.trim();
+
+    if (!text) return;
 
     try {
         const { error } = await window.supabaseClient
@@ -2220,12 +2248,17 @@ window.handleHopComment = async (hopId) => {
             .insert([{
                 hopping_id: hopId,
                 user_id: window.currentUser.id,
-                content: text.trim()
+                content: text
             }]);
 
         if (error) throw error;
 
-        alert('Comment posted!');
+        // Use a less intrusive notification or maybe inject the comment?
+        // Injecting the comment pill is complex because it replaces the image overlay.
+        // For now, simple alert and clear.
+        alert('Comment Posted!');
+        input.value = '';
+        window.toggleCardComment(hopId); // Hide it
     } catch (e) {
         console.error('Comment error:', e);
         alert('Failed to post comment.');
