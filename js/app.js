@@ -603,7 +603,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     let iconHtml;
                     const thumbnailHtml = hoppingImg ? `
                         <div style="margin-bottom: 4px; position: relative;">
-                            <img src="${hoppingImg}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 6px; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3); background: #333;">
+                            <img src="${hoppingImg}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3); background: #333;">
                         </div>
                     ` : '';
 
@@ -612,7 +612,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         iconHtml = `
                             <div style="display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%); cursor: pointer;">
                                 ${thumbnailHtml}
-                                <div style="background: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; color: #333; box-shadow: 0 1px 4px rgba(0,0,0,0.5); margin-bottom: 3px; white-space: nowrap;">
+                                <div onclick="event.stopPropagation(); window.location.href='bar-details.html?id=${bar.id}'" style="background: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; color: #333; box-shadow: 0 1px 4px rgba(0,0,0,0.5); margin-bottom: 3px; white-space: nowrap; pointer-events: auto;">
                                     ${bar.title}
                                 </div>
                                 <div style="display: flex; align-items: center; justify-content: center; filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.6));">
@@ -627,7 +627,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         iconHtml = `
                             <div style="display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%); cursor: pointer;">
                                 ${thumbnailHtml}
-                                <div style="background: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; color: #333; box-shadow: 0 1px 4px rgba(0,0,0,0.5); margin-bottom: 3px; white-space: nowrap;">
+                                <div onclick="event.stopPropagation(); window.location.href='bar-details.html?id=${bar.id}'" style="background: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; color: #333; box-shadow: 0 1px 4px rgba(0,0,0,0.5); margin-bottom: 3px; white-space: nowrap; pointer-events: auto;">
                                     ${bar.title}
                                 </div>
                                 <div style="width: 14px; height: 14px; background: #ef4444; border: 2px solid white; border-radius: 50%; box-shadow: 0 0 10px rgba(239, 68, 68, 0.6);"></div>
