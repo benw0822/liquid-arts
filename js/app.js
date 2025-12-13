@@ -2104,7 +2104,7 @@ window.nextSignature = (barId) => {
 
 
 
-// --- Hop Card (Full Detail Version) ---
+// --- Hop Card (Full Detail Version - Exact Match) ---
 window.createHopCard = function (hop, user, latestComment = null, bar = null) {
     const dateObj = new Date(hop.hopped_at);
     const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ' • ' + dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
@@ -2114,24 +2114,37 @@ window.createHopCard = function (hop, user, latestComment = null, bar = null) {
 
     const userName = user?.hopper_nickname || user?.name || 'Anonymous';
     const userAvatar = user?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random`;
-    const role = 'Hopper'; // Simplified logic or pass role
+    const role = 'Hopper';
 
     const descriptionHtml = hop.description ? `“${hop.description}”` : '';
 
     const barInfo = bar || hop.bars;
+    // Bar Link (Overlay style)
     const barLink = barInfo ? `
-        <div style="margin-top: 1rem; text-align: center;">
-            <a href="bar-details.html?id=${barInfo.id}" style="display: inline-flex; align-items: center; gap: 6px; color: #666; text-decoration: none; font-size: 0.85rem; padding: 6px 16px; background: #f8f8f8; border-radius: 20px; transition: background 0.2s;">
-                <span>📍</span> <span style="font-weight: 500;">${barInfo.title || 'Unknown Bar'}</span>
-            </a>
-        </div>` : '';
+        <a href="bar-details.html?id=${barInfo.id}" class="hd-bar-pill" style="position: absolute; bottom: 15px; right: 15px; background: rgba(0,0,0,0.7); color: white; padding: 4px 12px; border-radius: 20px; text-decoration: none; font-size: 0.8rem; font-weight: 500; display: flex; z-index: 55; align-items: center; gap: 4px;">
+            <span>📍</span> <span>${barInfo.title || 'Unknown Bar'}</span>
+        </a>` : '';
 
-    // Latest Comment Display
+    // Comment Preview (Overlay style - Top Left)
+    let commentPreviewHtml = '';
     let commentListHtml = '<div style="text-align: center; color: #888; font-size: 0.9rem; margin-top: 20px;">No comments yet. Be the first!</div>';
+
     if (latestComment) {
         const cUser = latestComment.user;
         const cName = cUser?.hopper_nickname || cUser?.name || 'User';
         const cAvatar = cUser?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(cName)}&background=random`;
+
+        // Preview Pill
+        commentPreviewHtml = `
+            <div style="background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); border-radius: 20px; padding: 4px 12px 4px 4px; display: flex; align-items: center; gap: 8px;">
+                <img src="${cAvatar}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(255,255,255,0.5);">
+                <div style="color: #fff; font-size: 0.8rem; max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    <strong style="margin-right: 4px;">${cName}:</strong> ${latestComment.content}
+                </div>
+            </div>
+        `;
+
+        // Panel List Item
         commentListHtml = `
             <div style="display: flex; gap: 10px; margin-bottom: 12px;">
                 <img src="${cAvatar}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
@@ -2144,11 +2157,29 @@ window.createHopCard = function (hop, user, latestComment = null, bar = null) {
         `;
     }
 
+    // Delete Button (Owner Only)
+    let deleteBtnHtml = '';
+    if (window.currentUser && hop.user_id && String(window.currentUser.id) === String(hop.user_id)) {
+        deleteBtnHtml = `
+        <button onclick="event.stopPropagation(); window.deleteHopping('${hop.id}')" class="btn-close-detail" style="right: auto; left: 15px; top: auto; bottom: 15px; background: rgba(220, 38, 38, 0.8); z-index: 60;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        </button>`;
+    }
+
     return `
     <div class="hop-detail-card grid-item" style="margin: 0 auto; margin-bottom: 2rem;">
         <div class="hop-detail-image-wrapper">
+            <!-- Close Button (Hidden) -->
+            <!-- <button class="btn-close-detail" style="display:none">&times;</button> -->
+            
             <img src="${hop.image_url}" class="hop-detail-image" onclick="window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', ${hop.rating}, '${hop.description?.replace(/'/g, "\\'") || ""}', '${hop.id}', '${hop.user_id}', true, '${barInfo?.title?.replace(/'/g, "\\'") || ''}', '${barInfo?.id || ''}', true)">
             
+            <!-- Comment Preview Overlay -->
+            <div style="position: absolute; top: 15px; left: 15px; z-index: 55; display: flex; flex-direction: column; gap: 6px; max-width: 60%; pointer-events: none;">
+                ${commentPreviewHtml}
+            </div>
+
+            <!-- Hopper Profile Container -->
             <div class="hopper-profile-container">
                 <img src="${userAvatar}" class="hopper-avatar">
                 <span class="hopper-name">${userName}</span>
@@ -2169,13 +2200,18 @@ window.createHopCard = function (hop, user, latestComment = null, bar = null) {
                     </button>
                 </div>
             </div>
+
+            <!-- Delete Button (Overlay) -->
+            ${deleteBtnHtml}
+
+            <!-- Bar Link (Overlay) -->
+            ${barLink}
         </div>
 
         <div class="hop-detail-content">
             <div class="hop-detail-stars">${stars}</div>
             <span class="hop-detail-date">${dateStr}</span>
             <div class="hop-detail-desc">${descriptionHtml}</div>
-            ${barLink}
         </div>
 
         <!-- Comments Panel (Hidden) -->
