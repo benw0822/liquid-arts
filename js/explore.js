@@ -94,7 +94,7 @@ async function initExplore() {
             if (item.type === 'bar') {
                 return window.createBarCard(item.data);
             } else if (item.type === 'hop') {
-                return window.createHopCard(item.data, usersMap[item.data.user_id], commentsMap[item.data.id] || []);
+                return window.createHopCard(item.data, usersMap[item.data.user_id], commentsMap[item.data.id] || [], item.data.bars);
             } else if (item.type === 'article') {
                 return window.createArticleCard(item.data);
             }

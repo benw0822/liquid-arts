@@ -1084,13 +1084,11 @@ window.toggleCheers = async (hopId) => {
 
 function updateCheersUI(hopId, isActive) {
     // 1. Feed Card Button (explore/index)
-    // Need a selector. In createHopCard, svg has color var(--bg-red).
-    // Maybe toggle a class?
-    // Current implementation in createHopCard doesn't have an ID on the button, only onclick.
-    // Ideally we should add an ID or class to the button in createHopCard. 
-    // But for now, we only requested "function calls".
-    // "active" style isn't defined for feed card yet.
-    // But we can update the SVG fill?
+    const feedBtn = document.getElementById(`cheers-btn-${hopId}`);
+    if (feedBtn) {
+        if (isActive) feedBtn.classList.add('active');
+        else feedBtn.classList.remove('active');
+    }
 
     // 2. Modal Button
     const modalBtn = document.getElementById('btn-cheers');
@@ -1223,7 +1221,7 @@ window.getHopCardHTML = function (hop, user, comments = [], barInfo) {
                  <span class="hopper-name">${userName}</span>
                  <span class="hopper-role">${role}</span>
                  <div class="hop-interactions">
-                    <button class="btn-interaction" onclick="window.toggleCheers('${hopId}')">
+                    <button id="cheers-btn-${hopId}" class="btn-interaction" onclick="window.toggleCheers('${hopId}')">
                         <svg class="interaction-icon cheers-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M8 22h8" class="glass-base"/>
                             <path d="M12 11v11" class="glass-stem"/>
