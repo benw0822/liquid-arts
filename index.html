@@ -345,7 +345,8 @@
 
                     if (commentsData) {
                         commentsData.forEach(c => {
-                            if (!commentsMap[c.hopping_id]) commentsMap[c.hopping_id] = c;
+                            if (!commentsMap[c.hopping_id]) commentsMap[c.hopping_id] = [];
+                            commentsMap[c.hopping_id].push(c);
                         });
                     }
                 }
@@ -374,11 +375,11 @@
                 // Step 5: Render Cards using Shared Logic (window.createHopCard)
                 grid.innerHTML = hopsData.map(hop => {
                     const user = usersMap[hop.user_id];
-                    const latestComment = commentsMap[hop.id];
+                    const hopComments = commentsMap[hop.id] || [];
                     const bar = hop.bars; // Already joined
                     const cheersInfo = cheersMap[hop.id] || { count: 0, isCheered: false };
 
-                    return window.createHopCard(hop, user, latestComment, bar, cheersInfo);
+                    return window.createHopCard(hop, user, hopComments, bar, cheersInfo);
                 }).join('');
 
             } catch (err) {
