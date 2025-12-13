@@ -417,21 +417,6 @@ document.addEventListener('DOMContentLoaded', () => {
         await window.initAuthAndSaved();
 
         const allBars = await fetchBars();
-
-        // Fetch User's Hops (Visited Bars)
-        let userHopsMap = new Map();
-        if (window.currentUser) {
-            const { data: hops } = await window.supabaseClient
-                .from('hoppings')
-                .select('bar_id, image_url')
-                .eq('user_id', window.currentUser.id)
-                .order('hopped_at', { ascending: true }); // Use latest image implies overwriting key
-
-            if (hops) {
-                hops.forEach(h => userHopsMap.set(h.bar_id, h.image_url));
-            }
-        }
-
         // Default View
         const map = L.map('map', { zoomControl: false }).setView([25.0330, 121.5654], 14);
         L.control.zoom({ position: 'bottomright' }).addTo(map);
@@ -565,6 +550,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         map.addControl(new SavedFilterControl());
 
+
+
+
         // Helper: Haversine Distance (km)
         const getDistance = (lat1, lon1, lat2, lon2) => {
             const R = 6371;
@@ -582,33 +570,10 @@ document.addEventListener('DOMContentLoaded', () => {
             barsToRender.forEach(bar => {
                 if (bar.lat && bar.lng) {
                     const isSaved = window.savedBarIds.has(bar.id);
-                    const hopImg = userHopsMap.get(bar.id);
                     // Custom Marker
                     let iconHtml;
-
-                    if (hopImg) {
-                        // --- CHECKED IN (HOPPED) MARKER style ---
-                        iconHtml = `
-                            <div style="display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%); cursor: pointer; position: relative;">
-                                <!-- Thumbnail -->
-                                <img src="${hopImg}" style="width: 44px; height: 44px; border-radius: 6px; border: 2px solid white; object-fit: cover; box-shadow: 0 2px 5px rgba(0,0,0,0.3); margin-bottom: -4px; z-index: 10; background: #fff;">
-                                
-                                <!-- Label -->
-                                <div style="background: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; color: #333; box-shadow: 0 1px 4px rgba(0,0,0,0.5); margin-bottom: 3px; white-space: nowrap; z-index: 9;">
-                                    ${bar.title}
-                                </div>
-                                
-                                <!-- Dot Container (On Coordinates) -->
-                                <div style="position: relative; display: flex; justify-content: center; align-items: center;">
-                                     <!-- Yellow Halo (Underneath) -->
-                                     <div style="position: absolute; width: 32px; height: 32px; background: rgba(255, 215, 0, 0.5); border-radius: 50%; z-index: 1;"></div>
-                                     <!-- Red Dot (Standard) -->
-                                     <div style="width: 14px; height: 14px; background: #ef4444; border: 2px solid white; border-radius: 50%; box-shadow: 0 0 5px rgba(239, 68, 68, 0.4); z-index: 2;"></div>
-                                </div>
-                            </div>
-                        `;
-                    } else if (isSaved) {
-                        // --- SAVED MARKER ---
+                    if (isSaved) {
+                        // Golden Heart with Label
                         iconHtml = `
                             <div style="display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%); cursor: pointer;">
                                 <div style="background: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; color: #333; box-shadow: 0 1px 4px rgba(0,0,0,0.5); margin-bottom: 3px; white-space: nowrap;">
@@ -622,7 +587,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                         `;
                     } else {
-                        // --- DEFAULT MARKER ---
+                        // Red Dot with Label (Default)
                         iconHtml = `
                             <div style="display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%); cursor: pointer;">
                                 <div style="background: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; color: #333; box-shadow: 0 1px 4px rgba(0,0,0,0.5); margin-bottom: 3px; white-space: nowrap;">
@@ -645,12 +610,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div style="color: #333; text-align: center; min-width: 150px;">
                             <h3 style="margin: 0 0 5px 0; font-family: var(--font-display); font-size: 1.1rem;">${bar.title}</h3>
                             <p style="margin: 0 0 10px 0; font-size: 0.85rem; color: #666;">${bar.location}</p>
-                            ${hopImg ?
-                            `<p style="margin: 0 0 10px 0; font-size: 0.8rem; color: #DC2626; font-weight: bold;">Hopped Here!</p>` :
-                            ''}
                             <a href="bar-details.html?id=${bar.id}" style="display: inline-block; padding: 6px 16px; background: #9c100f; color: white; border-radius: 20px; text-decoration: none; font-size: 0.8rem;">View Details</a>
                         </div>
                     `);
+                    // No need to push to markers array anymore
                 }
             });
         };
