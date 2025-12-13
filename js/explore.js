@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function initExplore() {
+    await window.initAuthAndSaved();
     const grid = document.getElementById('explore-feed');
     if (!grid) return;
 
