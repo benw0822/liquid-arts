@@ -2174,7 +2174,7 @@ window.createHopCard = function (hop, user, comment = null, bar = null) {
             <!-- Actions (Large Buttons) -->
             <div style="display: flex; justify-content: center; gap: 12px; margin-bottom: 1rem;">
                 <!-- Cheers (Red Icon) -->
-                <button onclick="window.toggleCheers('${hop.id}')" style="background: #fff; border: 1px solid #eee; border-radius: 24px; padding: 10px 24px; display: flex; align-items: center; gap: 8px; color: #333; font-size: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); cursor: pointer;">
+                <button onclick="event.stopPropagation(); window.toggleCheers('${hop.id}')" style="background: #fff; border: 1px solid #eee; border-radius: 24px; padding: 10px 24px; display: flex; align-items: center; gap: 8px; color: #333; font-size: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); cursor: pointer;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--bg-red);">
                         <path d="M8 22h8"></path>
                         <path d="M12 11v11"></path>
@@ -2183,7 +2183,7 @@ window.createHopCard = function (hop, user, comment = null, bar = null) {
                     <span id="cheers-count-${hop.id}">0</span>
                 </button>
                 <!-- Message (Larger Circle) -->
-                <button onclick="window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', ${hop.rating}, '${hop.description?.replace(/'/g, "\\'") || ""}', '${hop.id}', '${hop.user_id}', true, '${barInfo?.title?.replace(/'/g, "\\'") || ''}', '${barInfo?.id || ''}')" style="background: #fff; border: 1px solid #eee; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: #333; box-shadow: 0 2px 4px rgba(0,0,0,0.05); cursor: pointer;">
+                <button onclick="event.stopPropagation(); window.handleHopComment('${hop.id}')" style="background: #fff; border: 1px solid #eee; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: #333; box-shadow: 0 2px 4px rgba(0,0,0,0.05); cursor: pointer;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                 </button>
             </div>
@@ -2203,4 +2203,31 @@ window.createHopCard = function (hop, user, comment = null, bar = null) {
         </div>
     </div>
     `;
+};
+
+window.handleHopComment = async (hopId) => {
+    if (!window.currentUser) {
+        alert('Please log in to comment.');
+        return;
+    }
+
+    const text = prompt("Leave a comment:");
+    if (!text || text.trim() === "") return;
+
+    try {
+        const { error } = await window.supabaseClient
+            .from('hopping_comments')
+            .insert([{
+                hopping_id: hopId,
+                user_id: window.currentUser.id,
+                content: text.trim()
+            }]);
+
+        if (error) throw error;
+
+        alert('Comment posted!');
+    } catch (e) {
+        console.error('Comment error:', e);
+        alert('Failed to post comment.');
+    }
 };

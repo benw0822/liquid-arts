@@ -97,9 +97,17 @@ async function initExplore() {
             return '';
         }).join('');
 
-        // Init Masonry or Grid Adjustments if needed?
-        // Using generic grid-item css might be enough if heights are consistent or if using CSS Grid.
-        // Assuming CSS Grid (defined in explore.html head).
+        // Initialize maps for bars
+        mixedContent.forEach(item => {
+            if (item.type === 'bar' && item.data.lat && item.data.lng) {
+                // Determine title and saved status (mock saved status for now or pass false)
+                setTimeout(() => {
+                    if (window.initCardMapGlobal) {
+                        window.initCardMapGlobal(item.data.id, item.data.lat, item.data.lng, item.data.title, false);
+                    }
+                }, 500);
+            }
+        });
 
     } catch (e) {
         console.error('Explore Init Error', e);
