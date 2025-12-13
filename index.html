@@ -409,11 +409,6 @@
                             
                             <!-- Comment Pill Overlay -->
                             ${commentHtml}
-
-                            <!-- Bar Pill -->
-                            <a href="bar-details.html?id=${hop.bars?.id}" style="position: absolute; bottom: 12px; right: 12px; background: rgba(0,0,0,0.6); color: white; padding: 6px 14px; border-radius: 20px; text-decoration: none; font-size: 0.75rem; font-weight: 500; display: flex; align-items: center; gap: 4px; backdrop-filter: blur(4px);">
-                                <span>📍</span> ${hop.bars?.title || 'Unknown Bar'}
-                            </a>
                         </div>
 
                         <!-- Content Area -->
@@ -455,6 +450,13 @@
 
                             <!-- Description -->
                             ${descriptionHtml}
+
+                            <!-- Bar Link (Moved Below) -->
+                            <div style="margin-top: 1rem;">
+                                <a href="bar-details.html?id=${hop.bars?.id}" style="display: inline-flex; align-items: center; gap: 6px; color: #666; text-decoration: none; font-size: 0.85rem; padding: 6px 16px; background: #f8f8f8; border-radius: 20px; transition: background 0.2s;">
+                                    <span>📍</span> <span style="font-weight: 500;">${hop.bars?.title || 'Unknown Bar'}</span>
+                                </a>
+                            </div>
 
                         </div>
                     </div>
