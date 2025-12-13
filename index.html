@@ -274,8 +274,8 @@
         </div>
     </footer>
 
-    <script src="js/app.js"></script>
-    <script src="js/hopping.js"></script>
+    <script src="js/app.js?v=force"></script>
+    <script src="js/hopping.js?v=force"></script>
     <script src="js/talent_front.js"></script>
     <script>
         // Navbar Scroll Effect
@@ -382,7 +382,7 @@
                 }).join('');
 
             } catch (err) {
-                console.error('Error fetching hops:', JSON.stringify(err, null, 2));
+                console.error('Error fetching hops:', err);
                 grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #ef4444;">Could not load recent hops.</p>';
             }
         }
