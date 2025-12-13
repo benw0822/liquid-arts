@@ -262,81 +262,61 @@ document.addEventListener('DOMContentLoaded', () => {
         // Enhance for Modal View (Disable Link Navigation & Hide Map)
         const cardLink = container.querySelector('a');
         if (cardLink) {
-            // Remove the wrapping <a> tag behavior but keep content?
-            // Actually createBarCard DOES NOT wrap the whole thing in <a> usually, looking at the code, it returns a <div> wrapper.
-            // Wait, previous grep showed createBarCard returning a string starting with <div ...
-            // Let's re-read carefully.
-            // Ah, createBarCard MIGHT return a string that is innerHTML.
-            // The code view showed:
-            // window.createBarCard = function ... { return `...` }
-            // So cardLink selector might be targeting the first link.
-            // If the user wants to "Explore", we need a button for it.
-
-            // Let's just focus on the buttons requested.
+            // Disable main card click
+            cardLink.removeAttribute('href');
+            cardLink.style.cursor = 'default';
+            cardLink.onclick = (e) => e.preventDefault();
         }
 
-        // 1. Hide Map & Gray Area (Parent container of map)
-        const cardMap = container.querySelector(`#detail-map`);
-        if (cardMap) {
-            const mapContainer = cardMap.parentElement; // The div containing Address, Map, and Google Map Button
-            // User wants to hide the map but keep the Google Map button (moved).
-            // Actually user wants "Explore" and "Google Map" buttons side by side.
-            // The existing "Open in Google Maps" button is IN this container.
-            // So we should HIDE the map element itself, and the Address label if needed?
-            // User said "hidden mini map bottom gray block".
-            // Let's hide #detail-map and the spacing around it.
-            if (mapContainer) { // Hide the parent container of the map
-                mapContainer.style.display = 'none';
-            } else { // Fallback to just hiding the map if parent not found
-                cardMap.style.display = 'none';
+        // 1. Hide unwanted "Explore" button (The red one in the middle)
+        const allBtns = container.querySelectorAll('.btn');
+        allBtns.forEach(btn => {
+            if (btn.textContent.trim().toUpperCase() === 'EXPLORE') {
+                // Only hide if it's NOT the one we just added (though we add ours later).
+                // Safest to hide the PARENT div if it's a centered wrapper
+                if (btn.parentElement.style.justifyContent === 'center') {
+                    btn.parentElement.style.display = 'none';
+                } else {
+                    btn.style.display = 'none';
+                }
             }
+        });
+
+        // 2. Hide Map Container (The gray block)
+        const cardMap = container.querySelector('.card-map'); // Select by class is safer/easier
+        if (cardMap) {
+            cardMap.style.display = 'none';
         }
 
-        // 2. Refine Buttons (Google Maps -> Explore + Google Maps)
-        // Find existing Google Maps button
-        const gMapBtn = container.querySelector('a[href*="maps.google"], a[href*="google.com/maps"]'); // Heuristic
-        // Or find by text content if referencing variable?
-        // The code uses: ${bar.google_map_url ? `<a href="${bar.google_map_url}" ...>Open in Google Maps</a>` : ''}
-        // It's the last element in that bottom section.
+        // Also hide any leftover map elements if ID specific
+        const cardMapId = container.querySelector(`#card-map-${bar.id}`);
+        if (cardMapId) cardMapId.style.display = 'none';
+
+
+        // 3. Refine Bottom Buttons (Google Maps -> Explore + Google Maps)
+        // Find existing Google Maps button (LAST button usually)
+        const gMapBtn = container.querySelector('a[href*="maps.google"], a[href*="google.com/maps"]');
 
         if (gMapBtn) {
-            const btnContainer = gMapBtn.parentElement;
-            // distinct Google Map URL
-            const gLink = gMapBtn.href;
+            const hiddenGLink = gMapBtn.href;
 
             // Create new container
             const newBtns = document.createElement('div');
             newBtns.style.cssText = 'display: flex; gap: 10px; margin-top: 10px;';
 
             newBtns.innerHTML = `
-                <a href="bar-details.html?id=${bar.id}" class="btn" style="flex:1; text-align:center; background-color: #333; color: white; border: none; padding: 10px; text-decoration: none; border-radius: 4px; font-weight: bold;">EXPLORE</a>
-                <a href="${gLink}" target="_blank" class="btn" style="flex:1; text-align:center; background-color: var(--bg-red); color: white; border: none; padding: 10px; text-decoration: none; border-radius: 4px; font-weight: bold;">MAP</a>
+                <a href="bar-details.html?id=${bar.id}" class="btn" style="flex:1; text-align:center; background-color: #333; color: white; border: none; padding: 10px; text-decoration: none; border-radius: 4px; font-weight: bold; font-family: var(--font-display);">EXPLORE</a>
+                <a href="${hiddenGLink}" target="_blank" class="btn" style="flex:1; text-align:center; background-color: var(--bg-red); color: white; border: none; padding: 10px; text-decoration: none; border-radius: 4px; font-weight: bold; font-family: var(--font-display);">MAP</a>
             `;
 
             // Replace the old button
             gMapBtn.replaceWith(newBtns);
         }
 
-        // 3. Hide "Explore" above rating?
-        // In the code, there isn't a clear "Explore" button above rating.
-        // Maybe the user refers to "Book Now" or "Facebook" buttons in the Opening Hours section?
-        // "google rating上方的 explore" -> "Explore above Google Rating".
-        // In the "About" card (Left Column), there is no button above Google Rating.
-        // Wait, looking at lines 1121-: Awards are below.
-        // Opening hours has buttons.
-        // Maybe user means the "Book Now" which is often next to social links.
-        // Let's try to find and hide .btn-primary (Book Now) inside Opening Hours.
-        const bookBtn = container.querySelector('.content-card .btn-primary');
-        if (bookBtn) {
-            bookBtn.style.display = 'none';
-        }
-
         modal.style.display = 'flex';
 
         // Init Map inside modal -> DISABLED
-        // if (bar.lat && bar.lng) {
-        //     setTimeout(() => window.initCardMapGlobal(bar.id, bar.lat, bar.lng, bar.title, window.savedBarIds.has(bar.id)), 100);
-        // }
+        // setTimeout(...) 
 
         // Render Hopping Badge
         setTimeout(() => { if (window.renderHoppingBadge) window.renderHoppingBadge(bar.id); }, 500);
