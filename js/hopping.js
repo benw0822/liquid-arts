@@ -603,7 +603,7 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
                         <div style="text-align: center; color: #888; font-size: 0.9rem; margin-top: 20px;">Loading comments...</div>
                     </div>
                     <div style="padding: 12px; border-top: 1px solid #eee; display: flex; gap: 8px; background: #fff; align-items: center;">
-                        <input id="hd-comment-input" type="text" placeholder="Add a comment..." style="flex: 1; border: 1px solid #ddd; border-radius: 24px; padding: 10px 16px; font-size: 0.9rem; outline: none;">
+                        <input id="hd-comment-input" type="text" placeholder="Add a comment..." style="flex: 1; border: 1px solid #ddd; border-radius: 24px; padding: 10px 16px; font-size: 16px; outline: none;">
                         <button id="hd-comment-submit" style="background: var(--bg-red); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);">
                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                         </button>

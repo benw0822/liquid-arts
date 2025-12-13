@@ -669,6 +669,16 @@ h6 {
     border-bottom-color: var(--bg-red);
 }
 
+/* Mobile Input Zoom Fix */
+@media (max-width: 768px) {
+
+    input,
+    select,
+    textarea {
+        font-size: 16px !important;
+    }
+}
+
 /* Rating Stars */
 .hop-star {
     font-size: 2rem;

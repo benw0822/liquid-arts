@@ -304,7 +304,7 @@
                                     placeholder="${placeholderText}" 
                                     ${disableReply ? 'disabled' : ''}
                                     onkeydown="if(event.key === 'Enter') window.sendInlineReply('${thread.hop.id}', '${thread.partnerId}')"
-                                    style="flex: 1; border: 1px solid #eee; border-radius: 20px; padding: 10px 14px; font-size: 0.9rem; outline: none; background: ${disableReply ? '#fafafa' : 'white'}; color: #333; transition: border 0.2s;">
+                                    style="flex: 1; border: 1px solid #eee; border-radius: 20px; padding: 10px 14px; font-size: 16px; outline: none; background: ${disableReply ? '#fafafa' : 'white'}; color: #333; transition: border 0.2s;">
                              <button id="btn-reply-${thread.hop.id}-${thread.partnerId}"
                                      onclick="window.sendInlineReply('${thread.hop.id}', '${thread.partnerId}')" 
                                      ${disableReply ? 'disabled' : ''}
