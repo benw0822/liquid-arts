@@ -2105,9 +2105,9 @@ window.nextSignature = (barId) => {
 
 
 // --- Hop Card (Full Detail Version - Exact Match Wrapper) ---
-window.createHopCard = function (hop, user, latestComment = null, bar = null) {
+window.createHopCard = function (hop, user, latestComment = null, bar = null, cheersInfo = null) {
     if (window.getHopCardHTML) {
-        return window.getHopCardHTML(hop, user, latestComment, bar);
+        return window.getHopCardHTML(hop, user, latestComment, bar, cheersInfo);
     }
     console.warn('window.getHopCardHTML not found');
     return '';

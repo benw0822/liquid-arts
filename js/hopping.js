@@ -1115,7 +1115,7 @@ function updateCheersCount(hopId, delta) {
 }
 
 // --- Hop Card HTML Generator (Shared with Explore) ---
-window.getHopCardHTML = function (hop, user, comments = [], barInfo) {
+window.getHopCardHTML = function (hop, user, comments = [], barInfo, cheersInfo = { count: 0, isCheered: false }) {
     const hopId = hop.id;
     const dateObj = new Date(hop.hopped_at);
     const dateString = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -1123,7 +1123,6 @@ window.getHopCardHTML = function (hop, user, comments = [], barInfo) {
     const dateDisplay = `${dateString} • ${timeString}`;
 
     const stars = '★'.repeat(hop.rating) + '☆'.repeat(5 - hop.rating);
-    // Desc: No quotes if empty
     const descDisplay = (hop.description && hop.description !== 'null' && hop.description.trim() !== '')
         ? `“${hop.description}”`
         : '';
@@ -1132,16 +1131,14 @@ window.getHopCardHTML = function (hop, user, comments = [], barInfo) {
     const userAvatar = user?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random`;
     const role = 'Hopper';
 
-    // Comment Preview (Top Left - Multiple)
+    // Comment Preview
     let commentPreviewHtml = '';
     const top3 = comments.slice(0, 3);
-
     if (top3.length > 0) {
         const itemsHtml = top3.map(c => {
             const cUser = c.user;
             const cName = cUser?.hopper_nickname || cUser?.name || 'User';
             const cAvatar = cUser?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(cName)}&background=random`;
-            // Escape content?
             const safeContent = c.content?.replace(/"/g, '&quot;') || '';
 
             return `
@@ -1163,7 +1160,7 @@ window.getHopCardHTML = function (hop, user, comments = [], barInfo) {
         commentPreviewHtml = itemsHtml + badgeHtml;
     }
 
-    // Comment List (Panel)
+    // Comment List (Panel) - Exact Modal Match (Speech Bubble)
     let commentListHtml = '<div style="text-align: center; color: #888; font-size: 0.9rem; margin-top: 20px;">No comments yet. Be the first!</div>';
     if (comments.length > 0) {
         commentListHtml = comments.map(c => {
@@ -1171,7 +1168,6 @@ window.getHopCardHTML = function (hop, user, comments = [], barInfo) {
             const cName = cUser?.hopper_nickname || cUser?.name || 'User';
             const cAvatar = cUser?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(cName)}&background=random`;
 
-            // Time
             let timeDisplay = 'Just now';
             if (c.created_at) {
                 const d = new Date(c.created_at);
@@ -1180,19 +1176,21 @@ window.getHopCardHTML = function (hop, user, comments = [], barInfo) {
 
             return `
             <div style="display: flex; gap: 10px; margin-bottom: 12px;">
-                <img src="${cAvatar}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
-                <div style="background: white; padding: 8px 12px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); flex: 1;">
-                    <div style="display: flex; justify-content: space-between; align-items: baseline;">
-                        <span style="font-weight: 700; font-size: 0.85rem; color: #333;">${cName}</span>
-                        <span style="font-size: 0.7rem; color: #aaa;">${timeDisplay}</span>
+                <img src="${cAvatar}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
+                <div style="max-width: 85%;">
+                    <div style="background: white; padding: 8px 12px; border-radius: 4px 16px 16px 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: relative;">
+                        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 2px;">
+                            <span style="font-weight: 700; font-size: 0.85rem; color: #333;">${cName}</span>
+                            <span style="font-size: 0.7rem; color: #999;">${timeDisplay}</span>
+                        </div>
+                        <div style="font-size: 0.95rem; color: #444; word-break: break-word; line-height: 1.4;">${c.content}</div>
                     </div>
-                    <div style="font-size: 0.9rem; color: #333; line-height: 1.4;">${c.content}</div>
                 </div>
             </div>`;
         }).join('');
     }
 
-    // Bar Info (Content Area)
+    // Bar Info
     const barHtml = barInfo ? `
         <div style="margin-top: 1.5rem; text-align: center;">
             <a href="bar-details.html?id=${barInfo.id}" style="display: inline-flex; align-items: center; gap: 6px; color: #555; text-decoration: none; font-size: 0.85rem; padding: 8px 16px; background: #f5f5f5; border-radius: 20px; transition: background 0.2s;">
@@ -1203,15 +1201,19 @@ window.getHopCardHTML = function (hop, user, comments = [], barInfo) {
     const canDelete = window.currentUser && String(window.currentUser.id) === String(hop.user_id);
     const deleteBtn = canDelete ? `
         <button onclick="event.stopPropagation(); window.deleteHopping('${hopId}')" class="btn-close-detail" style="right: auto; left: 15px; top: auto; bottom: 15px; background: rgba(220, 38, 38, 0.8); z-index: 60;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
         </button>` : '';
+
+    // Cheers State
+    const cheersCount = cheersInfo.count || 0;
+    const isCheered = cheersInfo.isCheered || false;
+    const activeClass = isCheered ? 'active' : '';
 
     return `
     <div class="hop-detail-card grid-item" style="margin: 0 auto; margin-bottom: 2rem;">
         <div class="hop-detail-image-wrapper">
              <img src="${hop.image_url}" class="hop-detail-image" onclick="window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', ${hop.rating}, '${hop.description?.replace(/'/g, "\\'") || ""}', '${hopId}', '${hop.user_id}', true, '${barInfo?.title?.replace(/'/g, "\\'") || ''}', '${barInfo?.id || ''}', true)">
              
-             <!-- Comment Preview -->
              <div style="position: absolute; top: 15px; left: 15px; z-index: 55; display: flex; flex-direction: column; gap: 6px; max-width: 60%; pointer-events: none;">
                 ${commentPreviewHtml}
              </div>
@@ -1221,14 +1223,14 @@ window.getHopCardHTML = function (hop, user, comments = [], barInfo) {
                  <span class="hopper-name">${userName}</span>
                  <span class="hopper-role">${role}</span>
                  <div class="hop-interactions">
-                    <button id="cheers-btn-${hopId}" class="btn-interaction" onclick="window.toggleCheers('${hopId}')">
+                    <button id="cheers-btn-${hopId}" class="btn-interaction ${activeClass}" onclick="window.toggleCheers('${hopId}')">
                         <svg class="interaction-icon cheers-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M8 22h8" class="glass-base"/>
                             <path d="M12 11v11" class="glass-stem"/>
                             <path d="M5 4h14l-7 7-7-7z" class="glass-bowl-outline"/>
                             <path d="M6 5h12l-6 6-6-6z" class="cheers-liquid" fill="currentColor" stroke="none" />
                         </svg>
-                        <span id="cheers-count-${hopId}">0</span>
+                        <span id="cheers-count-${hopId}">${cheersCount}</span>
                     </button>
                     <button class="btn-interaction" onclick="window.toggleCardPanel('${hopId}')">
                         <svg class="interaction-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2-2z"></path></svg>

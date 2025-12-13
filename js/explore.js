@@ -48,6 +48,24 @@ async function initExplore() {
                     commentsMap[c.hopping_id].push(c);
                 }
             });
+
+            // Fetch Cheers
+            const { data: cheersData } = await window.supabaseClient
+                .from('hopping_cheers')
+                .select('hopping_id, user_id')
+                .in('hopping_id', hopIds);
+
+            let cheersMap = {};
+            if (cheersData) {
+                const currentUserId = window.currentUser?.id;
+                cheersData.forEach(c => {
+                    if (!cheersMap[c.hopping_id]) cheersMap[c.hopping_id] = { count: 0, isCheered: false };
+                    cheersMap[c.hopping_id].count++;
+                    if (currentUserId && c.user_id === currentUserId) {
+                        cheersMap[c.hopping_id].isCheered = true;
+                    }
+                });
+            }
         }
 
         // 3. Fetch Articles (Latest 5)
@@ -94,7 +112,7 @@ async function initExplore() {
             if (item.type === 'bar') {
                 return window.createBarCard(item.data);
             } else if (item.type === 'hop') {
-                return window.createHopCard(item.data, usersMap[item.data.user_id], commentsMap[item.data.id] || [], item.data.bars);
+                return window.createHopCard(item.data, usersMap[item.data.user_id], commentsMap[item.data.id] || [], item.data.bars, cheersMap[item.data.id] || { count: 0, isCheered: false });
             } else if (item.type === 'article') {
                 return window.createArticleCard(item.data);
             }
