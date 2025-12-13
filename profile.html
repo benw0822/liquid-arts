@@ -32,6 +32,371 @@
             </div>
 
             <!-- Global Auth Button (Mobile & Desktop) -->
+            <a href="profile.html" id="global-auth-btn" class="nav-link" aria-label="Profile"
+                style="margin-left: auto; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; color: var(--text-accent);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+            </a>
+        </div>
+    </nav>
+
+    <main class="container" style="margin-top: 4rem;">
+        <!-- CropperJS -->
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+        <div class="main-content">
+            <!-- Guest View -->
+            <div id="guest-view" style="display: none; text-align: center; padding: 4rem 1rem;">
+                <h2>Welcome to Liquid Arts</h2>
+                <p style="margin-bottom: 2rem;">Sign in to track your hoppings and favorites.</p>
+                <button id="profile-login-btn" class="btn">Login with Google</button>
+            </div>
+
+            <!-- User View -->
+            <div id="user-view" style="display: none; max-width: 1200px; margin: 0 auto;">
+
+                <!-- Hopper Card Section -->
+                <div class="user-profile-header"
+                    style="position: relative; margin-bottom: 2rem; background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; flex-direction: column; align-items: center; text-align: center;">
+                    <div style="position: absolute; top: 1rem; right: 1rem;">
+                        <button onclick="window.openHopperEditor()"
+                            style="background: none; border: none; cursor: pointer; color: #888; transition: color 0.2s;"
+                            title="Edit Hopper Card">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Hopper Image -->
+                    <div
+                        style="width: 120px; height: 120px; border-radius: 50%; overflow: hidden; margin-bottom: 1rem; border: 3px solid var(--bg-red); box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                        <img id="hopper-img" src="assets/logo_vertical.png"
+                            style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+
+                    <!-- Text Info -->
+                    <h2 id="hopper-nickname"
+                        style="font-family: var(--font-display); font-size: 1.8rem; margin: 0 0 0.5rem 0; color: #1b1b1b;">
+                        Hopper</h2>
+
+                    <p id="hopper-bio"
+                        style="font-size: 0.95rem; color: #555; max-width: 500px; line-height: 1.5; font-style: italic; margin-bottom: 1rem;">
+                        "Join the hop."
+                    </p>
+
+                    <div style="font-size: 0.8rem; color: #aaa; text-transform: uppercase; letter-spacing: 1px;">
+                        Privacy Level: <span id="hopper-level-display">1</span>
+                    </div>
+                </div>
+
+                <!-- Edit Modal (Stylish) -->
+                <div id="hopper-modal" class="hopping-modal-overlay" style="display: none;">
+                    <div class="hopping-modal-card">
+                        <button onclick="document.getElementById('hopper-modal').style.display='none'"
+                            class="btn-close-minimal">&times;</button>
+                        <h2 class="hopping-title" style="text-align: center;">Hopper Card</h2>
+
+                        <!-- Image Upload -->
+                        <div style="margin-bottom: 1.5rem; text-align: center; position: relative;">
+                            <input type="file" id="hopper-file-input" accept="image/*" style="display: none;"
+                                onchange="window.handleHopperFile(this)">
+
+                            <div id="custom-hopper-upload"
+                                onclick="document.getElementById('hopper-file-input').click()"
+                                class="upload-zone-stylish"
+                                style="width: 120px; height: 120px; margin: 0 auto; border-radius: 50%; position: relative; overflow: visible; background: #f0f0f0; border: 2px solid #ddd;">
+                                <img id="hopper-preview" src=""
+                                    style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block;">
+
+                                <!-- Camera Badge -->
+                                <div
+                                    style="position: absolute; bottom: 0; right: 0; background: #333; color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); border: 2px solid white;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <path
+                                            d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z">
+                                        </path>
+                                        <circle cx="12" cy="13" r="4"></circle>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Crop Area -->
+                        <div id="hopper-crop-container" style="display: none; margin-bottom: 1rem;">
+                            <label class="hopping-label">Crop</label>
+                            <div style="height: 300px; background: #333; margin-bottom: 10px;">
+                                <img id="hopper-crop-img" style="max-width: 100%; max-height: 300px;">
+                            </div>
+                            <button onclick="window.confirmHopperCrop()" class="btn"
+                                style="width: 100%; background: var(--bg-red); color: white;">Confirm Crop</button>
+                        </div>
+
+                        <!-- Fields -->
+                        <div style="margin-bottom: 1rem; text-align: center;">
+                            <label class="hopping-label" style="text-align: center;">Hopper Name</label>
+                            <input type="text" id="edit-hopper-nickname" class="hopping-input-minimal"
+                                placeholder="Enter hopper name" style="text-align: center;">
+                        </div>
+
+                        <div style="margin-bottom: 1rem; text-align: center;">
+                            <label class="hopping-label" style="text-align: center;">Bio (Max 140)</label>
+                            <textarea id="edit-hopper-bio" class="hopping-input-minimal" rows="3" maxlength="140"
+                                placeholder="Describe yourself..." style="text-align: center;"></textarea>
+                        </div>
+
+                        <div style="margin-bottom: 1.5rem; text-align: center;">
+                            <div
+                                style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 5px;">
+                                <label class="hopping-label" style="margin: 0;">Privacy Level</label>
+                                <span id="edit-level-val" style="color: var(--bg-red); font-weight: bold;">1</span>
+                            </div>
+                            <input type="range" id="edit-hopper-level" min="1" max="5" value="1"
+                                style="width: 100%; accent-color: var(--bg-red);">
+                        </div>
+
+                        <button onclick="window.saveHopperCard()" class="btn-submit-hop"
+                            style="width: 100%; background-color: var(--bg-red); color: white; padding: 12px 0; border: none; border-radius: 4px; font-weight: 600; display: flex; justify-content: center; align-items: center; gap: 8px; transition: background 0.3s; margin-top: 0; font-family: var(--font-main);">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                <polyline points="7 3 7 8 15 8"></polyline>
+                            </svg>
+                            <span style="font-size: 1rem; text-transform: uppercase; letter-spacing: 1px;">Save
+                                Changes</span>
+                        </button>
+                        <p id="hopper-save-status"
+                            style="text-align: center; color: #888; font-size: 0.8rem; margin-top: 10px;"></p>
+                    </div>
+                </div>
+
+                <!-- Talent Editor Modal -->
+                <div id="talent-modal" class="hopping-modal-overlay" style="display: none;">
+                    <div class="hopping-modal-card" style="max-width: 600px;">
+                        <button onclick="window.closeTalentEditor()" class="btn-close-minimal">&times;</button>
+                        <h2 class="hopping-title" style="text-align: center; margin-bottom: 1.5rem;">Talent Profile</h2>
+
+                        <!-- 1. Image Upload (1028x1028) -->
+                        <div style="margin-bottom: 2rem; text-align: center;">
+                            <input type="file" id="talent-file-input" accept="image/*" style="display: none;"
+                                onchange="window.handleTalentFile(this)">
+
+                            <div onclick="document.getElementById('talent-file-input').click()"
+                                class="upload-zone-stylish"
+                                style="width: 150px; height: 150px; margin: 0 auto; border-radius: 50%; position: relative; overflow: hidden; background: #f0f0f0; border: 2px dashed #ccc; cursor: pointer;">
+                                <img id="talent-preview" src=""
+                                    style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                                <div id="talent-upload-placeholder"
+                                    style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: #888;">
+                                    <span style="display: block; font-size: 2rem;">+</span>
+                                    <span style="font-size: 0.8rem;">Photo</span>
+                                </div>
+                            </div>
+                            <p style="font-size: 0.75rem; color: #888; margin-top: 0.5rem;">Recommended: 1028 x 1028</p>
+                        </div>
+
+                        <!-- Crop Area -->
+                        <div id="talent-crop-container" style="display: none; margin-bottom: 1rem;">
+                            <div style="height: 300px; background: #333; margin-bottom: 10px;">
+                                <img id="talent-crop-img" style="max-width: 100%; max-height: 300px;">
+                            </div>
+                            <button onclick="window.confirmTalentCrop()" class="btn"
+                                style="width: 100%; background: var(--bg-red); color: white;">Confirm Crop</button>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 1.5rem; text-align: left;">
+                            <!-- Basic Info -->
+                            <div>
+                                <label class="hopping-label">Professional Name (名號)</label>
+                                <input type="text" id="talent-name" class="hopping-input-minimal"
+                                    placeholder="e.g. The Mixologist">
+                            </div>
+
+                            <div>
+                                <label class="hopping-label">Quote (一句代表性的話)</label>
+                                <textarea id="talent-quote" class="hopping-input-minimal" rows="2"
+                                    placeholder="Your philosophy..."></textarea>
+                            </div>
+
+                            <div>
+                                <label class="hopping-label">Description (描述)</label>
+                                <textarea id="talent-desc" class="hopping-input-minimal" rows="4"
+                                    placeholder="Full professional biography..."></textarea>
+                            </div>
+
+                            <!-- Dynamic Lists -->
+                            <!-- Bar Roles -->
+                            <div>
+                                <label class="hopping-label">Bar Affiliations & Roles</label>
+                                <div id="talent-roles-list"
+                                    style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px;">
+                                </div>
+                                <button onclick="window.addTalentRoleItem()" class="btn-outline-sm">+ Add Bar
+                                    Role</button>
+                            </div>
+
+                            <!-- Experience -->
+                            <div>
+                                <label class="hopping-label">Experience (經歷)</label>
+                                <div id="talent-exp-list"
+                                    style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px;">
+                                </div>
+                                <button onclick="window.addTalentExpItem()" class="btn-outline-sm">+ Add
+                                    Experience</button>
+                            </div>
+
+                            <!-- Awards -->
+                            <div>
+                                <label class="hopping-label">Awards (獎項)</label>
+                                <div id="talent-award-list"
+                                    style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px;">
+                                </div>
+                                <button onclick="window.addTalentAwardItem()" class="btn-outline-sm">+ Add
+                                    Award</button>
+                            </div>
+                        </div>
+
+                        <button onclick="window.saveTalentProfile()" class="btn-submit-hop"
+                            style="margin-top: 2rem; width: 100%; background: var(--bg-red); color: white;">
+                            Save Profile
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Reply Modal -->
+                <div id="reply-modal" class="hopping-modal-overlay" style="display: none; z-index: 10000;">
+                    <div class="hopping-modal-card" style="max-width: 400px; padding: 20px;">
+                        <button onclick="document.getElementById('reply-modal').style.display='none'"
+                            class="btn-close-minimal">&times;</button>
+                        <h3 style="text-align: center; margin-bottom: 1rem; color: #333;">Reply to <span
+                                id="reply-target-name"></span></h3>
+
+                        <textarea id="reply-input" class="hopping-input-minimal" rows="4"
+                            placeholder="Write your reply..." style="margin-bottom: 1rem;"></textarea>
+
+                        <button onclick="window.sendReply()" class="btn-submit-hop"
+                            style="width: 100%; background: var(--bg-red); color: white;">
+                            Send Reply
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Account / Settings Section -->
+                <div
+                    style="background: var(--bg-secondary); padding: 1rem 1.5rem; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 2rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <img id="account-avatar" src="" alt="Avatar"
+                            style="width: 40px; height: 40px; border-radius: 50%; opacity: 0.8;">
+                        <div>
+                            <div id="account-name"
+                                style="font-weight: 600; color: var(--text-primary); font-size: 0.95rem;">User Name
+                            </div>
+                            <div id="account-email" style="font-size: 0.85rem; color: var(--text-secondary);">
+                                user@example.com</div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <!-- Admin Button Container -->
+                        <span id="admin-action-container"></span>
+
+                        <button id="logout-btn" class="btn"
+                            style="background: transparent; border: 1px solid var(--border-color); color: var(--text-primary); padding: 6px 16px; font-size: 0.8rem;">Logout</button>
+                    </div>
+
+                    <!-- Talent Button (Injected by JS) -->
+                    <div id="talent-action-container"
+                        style="width: 100%; display: flex; justify-content: flex-end; display: none;">
+                        <button onclick="window.openTalentEditor()" class="btn"
+                            style="background: #1b1b1b; color: white; padding: 8px 20px; font-size: 0.9rem;">
+                            Edit Talent Profile
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Messages Removed (Moved to msg.html) -->
+
+                <!-- Filter Navigation -->
+                <div class="profile-filter-nav">
+                    <button class="filter-tab active" data-filter="bar">BAR</button>
+                    <button class="filter-tab" data-filter="hopping">HOP</button>
+                    <button class="filter-tab" data-filter="journal">JOURNAL</button>
+                </div>
+
+                <!-- Unified Grid -->
+                <div id="unified-grid" class="unified-grid">
+                    <p style="text-align: center; color: #888; width: 100%; margin-top: 2rem;">Loading collection...</p>
+                </div>
+            </div> <!-- End User View -->
+    </main>
+
+    <nav class="bottom-nav">
+        <a href="bars.html" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                stroke-linejoin="round">
+                <!-- Triangle Cocktail Glass -->
+                <path d="M12 21v-8"></path>
+                <path d="M5 4l7 9 7-9H5z"></path>
+                <path d="M7 21h10"></path>
+            </svg>
+            <span>Bars</span>
+        </a>
+        <a href="map.html" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+            <span>Map</span>
+        </a>
+        <a href="journal.html" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                stroke-linejoin="round">
+                <!-- Vintage Astronomical Telescope on Tripod -->
+                <path d="M6 13L17 4"></path> <!-- Tube Top -->
+                <path d="M4 15L15 6"></path> <!-- Tube Bottom -->
+                <path d="M4 15L6 13"></path> <!-- Eyepiece cap -->
+                <path d="M15 6L17 4"></path> <!-- Lens cap -->
+                <path d="M11 10L8 21"></path> <!-- Leg L -->
+                <path d="M11 10L14 21"></path> <!-- Leg R -->
+            </svg>
+            <span>Journal</span>
+        </a>
+        <a href="events.html" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            <span>Event</span>
+        </a>
+        <a href="msg.html" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+            <span>Messages</span>
+        </a>
+        <a href="profile.html" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+            </svg>
+            <span>Pocket</span>
+        </a>
     </nav>
     <script src="js/app.js?v=force"></script>
     <script src="js/hopping.js"></script>
