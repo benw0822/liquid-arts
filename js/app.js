@@ -2104,8 +2104,8 @@ window.nextSignature = (barId) => {
 
 
 
-// --- Hop Card (Reusable) ---
-window.createHopCard = function (hop, user, comment = null, bar = null) {
+// --- Hop Card (Full Detail Version) ---
+window.createHopCard = function (hop, user, latestComment = null, bar = null) {
     const dateObj = new Date(hop.hopped_at);
     const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ' • ' + dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
@@ -2114,153 +2114,153 @@ window.createHopCard = function (hop, user, comment = null, bar = null) {
 
     const userName = user?.hopper_nickname || user?.name || 'Anonymous';
     const userAvatar = user?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random`;
-    const role = 'Hopper';
+    const role = 'Hopper'; // Simplified logic or pass role
 
-    // Comment Pill
-    let commentHtml = '';
-    if (comment) {
-        const cUser = comment.user;
-        const cName = cUser?.hopper_nickname || cUser?.name || 'User';
-        const cAvatar = cUser?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(cName)}&background=random`;
+    const descriptionHtml = hop.description ? `“${hop.description}”` : '';
 
-        commentHtml = `
-        <div style="position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); border-radius: 20px; padding: 4px 12px 4px 4px; display: flex; align-items: center; gap: 8px; max-width: 80%;">
-            <img src="${cAvatar}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(255,255,255,0.5);">
-            <span style="color: #fff; font-size: 0.8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                <strong style="margin-right: 4px;">${cName}:</strong> ${comment.content}
-            </span>
-        </div>
-        `;
-    }
-
-    // Description
-    const descriptionHtml = hop.description ? `
-        <p style="font-size: 0.95rem; color: #555; font-style: italic; font-family: 'Playfair Display', serif; line-height: 1.5; margin: 0;">
-            "${hop.description}"
-        </p>` : '';
-
-    // Bar Info (If available)
-    const barInfo = bar || hop.bars; // Accommodate different data structures
+    const barInfo = bar || hop.bars;
     const barLink = barInfo ? `
-        <div style="margin-top: 1rem;">
+        <div style="margin-top: 1rem; text-align: center;">
             <a href="bar-details.html?id=${barInfo.id}" style="display: inline-flex; align-items: center; gap: 6px; color: #666; text-decoration: none; font-size: 0.85rem; padding: 6px 16px; background: #f8f8f8; border-radius: 20px; transition: background 0.2s;">
                 <span>📍</span> <span style="font-weight: 500;">${barInfo.title || 'Unknown Bar'}</span>
             </a>
         </div>` : '';
 
+    // Latest Comment Display
+    let commentListHtml = '<div style="text-align: center; color: #888; font-size: 0.9rem; margin-top: 20px;">No comments yet. Be the first!</div>';
+    if (latestComment) {
+        const cUser = latestComment.user;
+        const cName = cUser?.hopper_nickname || cUser?.name || 'User';
+        const cAvatar = cUser?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(cName)}&background=random`;
+        commentListHtml = `
+            <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+                <img src="${cAvatar}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+                <div style="background: white; padding: 8px 12px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); flex: 1;">
+                    <div style="font-weight: 700; font-size: 0.85rem; margin-bottom: 2px;">${cName}</div>
+                    <div style="font-size: 0.9rem; color: #333; line-height: 1.4;">${latestComment.content}</div>
+                </div>
+            </div>
+            ${latestComment.more ? '<div style="text-align:center; color: #888; font-size: 0.8rem;">View more in details...</div>' : ''}
+        `;
+    }
+
     return `
-    <div class="hop-feed-card grid-item" style="background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); display: flex; flex-direction: column; width: 100%; max-width: 380px; margin: 0 auto; margin-bottom: 2rem;">
-        
-        <!-- Image Area -->
-        <div style="position: relative; width: 100%; padding-top: 100%;">
-            <img src="${hop.image_url}" style="position: absolute; top:0; left:0; width: 100%; height: 100%; object-fit: cover; cursor: pointer;" onclick="window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', ${hop.rating}, '${hop.description?.replace(/'/g, "\\'") || ""}', '${hop.id}', '${hop.user_id}', true, '${barInfo?.title?.replace(/'/g, "\\'") || ''}', '${barInfo?.id || ''}')">
-            ${commentHtml}
+    <div class="hop-detail-card grid-item" style="margin: 0 auto; margin-bottom: 2rem;">
+        <div class="hop-detail-image-wrapper">
+            <img src="${hop.image_url}" class="hop-detail-image" onclick="window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', ${hop.rating}, '${hop.description?.replace(/'/g, "\\'") || ""}', '${hop.id}', '${hop.user_id}', true, '${barInfo?.title?.replace(/'/g, "\\'") || ''}', '${barInfo?.id || ''}', true)">
+            
+            <div class="hopper-profile-container">
+                <img src="${userAvatar}" class="hopper-avatar">
+                <span class="hopper-name">${userName}</span>
+                <span class="hopper-role">${role}</span>
+                
+                <div class="hop-interactions">
+                    <button class="btn-interaction" onclick="window.toggleCheers('${hop.id}')">
+                        <svg class="interaction-icon cheers-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--bg-red);">
+                            <path d="M8 22h8" class="glass-base"/>
+                            <path d="M12 11v11" class="glass-stem"/>
+                            <path d="M5 4h14l-7 7-7-7z" class="glass-bowl-outline"/>
+                            <path d="M6 5h12l-6 6-6-6z" class="cheers-liquid" fill="currentColor" stroke="none" />
+                        </svg>
+                        <span id="cheers-count-${hop.id}">0</span>
+                    </button>
+                    <button class="btn-interaction" onclick="window.toggleCardPanel('${hop.id}')">
+                        <svg class="interaction-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    </button>
+                </div>
+            </div>
         </div>
 
-        <!-- Content Area -->
-        <div style="padding: 0 1.5rem 1.5rem 1.5rem; text-align: center; position: relative;">
-            
-            <!-- Overlapping Avatar (Large) -->
-            <div style="margin-top: -40px; margin-bottom: 0.8rem; display: flex; justify-content: center;">
-                <img src="${userAvatar}" style="width: 80px; height: 80px; border-radius: 50%; border: 4px solid #fff; object-fit: cover; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-            </div>
-
-            <!-- User Info -->
-            <div style="margin-bottom: 1rem;">
-                <div style="font-weight: 700; font-size: 1rem; color: #333;">${userName}</div>
-                <div style="font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.05em;">${role}</div>
-            </div>
-
-            <!-- Actions (Large Buttons) -->
-            <div style="display: flex; justify-content: center; gap: 12px; margin-bottom: 1rem;">
-                <!-- Cheers (Red Icon) -->
-                <button onclick="event.stopPropagation(); window.toggleCheers('${hop.id}')" style="background: #fff; border: 1px solid #eee; border-radius: 24px; padding: 10px 24px; display: flex; align-items: center; gap: 8px; color: #333; font-size: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); cursor: pointer;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--bg-red);">
-                        <path d="M8 22h8"></path>
-                        <path d="M12 11v11"></path>
-                        <path d="M5 4h14l-7 7-7-7z"></path>
-                    </svg>
-                    <span id="cheers-count-${hop.id}">0</span>
-                </button>
-                <!-- Message (Larger Circle) -->
-                <button onclick="event.stopPropagation(); window.toggleCardComment('${hop.id}')" style="background: #fff; border: 1px solid #eee; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: #333; box-shadow: 0 2px 4px rgba(0,0,0,0.05); cursor: pointer;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                </button>
-            </div>
-
-            <!-- Inline Comment Box (Hidden) -->
-            <div id="card-comment-box-${hop.id}" style="display: none; margin-bottom: 1rem; gap: 8px; align-items: center;">
-                <input type="text" id="inline-comment-input-${hop.id}" placeholder="Say something..." style="flex: 1; border: 1px solid #ddd; border-radius: 20px; padding: 8px 12px; font-size: 0.9rem;">
-                <button onclick="window.submitInlineComment('${hop.id}')" style="background: var(--bg-red); color: white; border: none; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-                </button>
-            </div>
-
-            <!-- Rating (Red) -->
-            <div style="font-size: 1.2rem; letter-spacing: 2px; margin-bottom: 0.5rem; color: #ddd;">${stars}</div>
-
-            <!-- Date -->
-            <div style="font-size: 0.7rem; color: #aaa; letter-spacing: 1px; margin-bottom: 0.8rem; text-transform: uppercase;">${dateStr}</div>
-
-            <!-- Description -->
-            ${descriptionHtml}
-
-            <!-- Bar Link -->
+        <div class="hop-detail-content">
+            <div class="hop-detail-stars">${stars}</div>
+            <span class="hop-detail-date">${dateStr}</span>
+            <div class="hop-detail-desc">${descriptionHtml}</div>
             ${barLink}
+        </div>
 
+        <!-- Comments Panel (Hidden) -->
+        <div id="card-panel-${hop.id}" style="display: none; position: absolute; bottom: 0; left: 0; width: 100%; height: 60%; background: white; border-radius: 16px 16px 0 0; z-index: 70; flex-direction: column; overflow: hidden; box-shadow: 0 -4px 20px rgba(0,0,0,0.3);">
+            <!-- Header -->
+            <div style="padding: 12px 16px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background: #fff;">
+                <span style="font-weight: 700; font-size: 0.95rem; color: #333;">Comments</span>
+                <button onclick="window.toggleCardPanel('${hop.id}')" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #888;">&times;</button>
+            </div>
+            <!-- List -->
+            <div id="card-comments-list-${hop.id}" style="flex: 1; overflow-y: auto; padding: 16px; background: #f9f9f9;">
+                ${commentListHtml}
+            </div>
+            <!-- Input -->
+            <div style="padding: 12px; border-top: 1px solid #eee; display: flex; gap: 8px; background: #fff; align-items: center;">
+                <input id="card-input-${hop.id}" type="text" placeholder="Add a comment..." style="flex: 1; border: 1px solid #ddd; border-radius: 24px; padding: 10px 16px; font-size: 16px; outline: none;">
+                <button onclick="window.submitCardPanelComment('${hop.id}')" style="background: var(--bg-red); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                </button>
+            </div>
         </div>
     </div>
     `;
 };
 
-// Toggle Inline Comment
-window.toggleCardComment = (hopId) => {
-    const box = document.getElementById(`card-comment-box-${hopId}`);
-    if (box) {
-        const isHidden = box.style.display === 'none';
-        box.style.display = isHidden ? 'flex' : 'none';
+// Toggle Panel
+window.toggleCardPanel = (hopId) => {
+    const panel = document.getElementById(`card-panel-${hopId}`);
+    if (panel) {
+        const isHidden = panel.style.display === 'none';
+        panel.style.display = isHidden ? 'flex' : 'none';
         if (isHidden) {
-            // Focus
+            // focus input
             setTimeout(() => {
-                const input = document.getElementById(`inline-comment-input-${hopId}`);
-                if (input) input.focus();
+                const inp = document.getElementById(`card-input-${hopId}`);
+                if (inp) inp.focus();
             }, 100);
         }
     }
 };
 
-// Submit Inline Comment
-window.submitInlineComment = async (hopId) => {
-    if (!window.currentUser) {
-        alert('Please log in to comment.');
-        return;
-    }
+// Submit Panel Comment
+window.submitCardPanelComment = async (hopId) => {
+    if (!window.currentUser) { alert('Please log in.'); return; }
 
-    const input = document.getElementById(`inline-comment-input-${hopId}`);
-    if (!input) return;
-    const text = input.value.trim();
-
+    const input = document.getElementById(`card-input-${hopId}`);
+    const text = input?.value.trim();
     if (!text) return;
 
     try {
         const { error } = await window.supabaseClient
             .from('hopping_comments')
-            .insert([{
-                hopping_id: hopId,
-                user_id: window.currentUser.id,
-                content: text
-            }]);
+            .insert([{ hopping_id: hopId, user_id: window.currentUser.id, content: text }]);
 
         if (error) throw error;
 
-        // Use a less intrusive notification or maybe inject the comment?
-        // Injecting the comment pill is complex because it replaces the image overlay.
-        // For now, simple alert and clear.
-        alert('Comment Posted!');
+        // Append to list optimistically
+        const list = document.getElementById(`card-comments-list-${hopId}`);
+        if (list) {
+            // Remove "No comments" if present
+            if (list.innerHTML.includes('No comments yet')) list.innerHTML = '';
+
+            const uName = window.currentUser.hopper_nickname || window.currentUser.name || 'Me';
+            // Placeholder avatar
+            const avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(uName)}&background=random`;
+
+            const div = document.createElement('div');
+            div.innerHTML = `
+            <div style="display: flex; gap: 10px; margin-bottom: 12px; animation: fadeIn 0.3s;">
+                <img src="${avatar}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+                <div style="background: white; padding: 8px 12px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); flex: 1;">
+                    <div style="font-weight: 700; font-size: 0.85rem; margin-bottom: 2px;">${uName}</div>
+                    <div style="font-size: 0.9rem; color: #333; line-height: 1.4;">${text}</div>
+                    <div style="font-size: 0.7rem; color: #aaa; margin-top: 4px;">Just now</div>
+                </div>
+            </div>`;
+            list.appendChild(div);
+            // Scroll to bottom
+            list.scrollTop = list.scrollHeight;
+        }
+
         input.value = '';
-        window.toggleCardComment(hopId); // Hide it
+
     } catch (e) {
-        console.error('Comment error:', e);
-        alert('Failed to post comment.');
+        console.error('Comment Error', e);
+        alert('Failed.');
     }
 };
