@@ -1938,7 +1938,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${address}
                 </p>
                 
-                <div id="card-map-${bar.id}" class="card-map" style="height: 120px; width: 100%; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-left-radius: 0; border-bottom-right-radius: 0; margin-bottom: 0; z-index: 1; margin-top: auto;"></div>
+                <div id="card-map-${bar.id}" class="card-map" style="height: 120px; width: 100%; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-left-radius: 0; border-bottom-right-radius: 0; margin-bottom: 0; z-index: 1;"></div>
 
                 <!-- Button Wrapper (Bottom Anchored) -->
                 <div style="margin-top: 0;">
