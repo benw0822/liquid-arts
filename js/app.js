@@ -309,7 +309,7 @@ document.addEventListener('DOMContentLoaded', () => {
             newBtns.style.cssText = 'display: flex; gap: 10px; margin-top: 10px; margin-bottom: 0px;'; // Ensure no bottom margin
 
             newBtns.innerHTML = `
-                <a href="bar-details.html?id=${bar.id}" class="btn" style="flex:1; text-align:center; background-color: #333; color: white; border: none; padding: 10px; text-decoration: none; border-radius: 4px; font-weight: bold; font-family: var(--font-display);">EXPLORE</a>
+                <a href="bar-details.html?id=${bar.id}" class="btn" style="flex:1; text-align:center; background-color: var(--bg-red); color: white; border: none; padding: 10px; text-decoration: none; border-radius: 4px; font-weight: bold; font-family: var(--font-display);">EXPLORE</a>
                 <a href="${hiddenGLink}" target="_blank" class="btn" style="flex:1; text-align:center; background-color: var(--bg-red); color: white; border: none; padding: 10px; text-decoration: none; border-radius: 4px; font-weight: bold; font-family: var(--font-display);">MAP</a>
             `;
 
