@@ -83,8 +83,15 @@ async function initExplore() {
         // 4. Mix Content
         let mixedContent = [];
 
-        // Add Bars (Pick 6 random)
+        // Add Bars (Pick 6 random) - With City Fetch
         if (barsData) {
+            // Pre-fetch cities
+            await Promise.all(barsData.map(async (bar) => {
+                if (bar.lat && bar.lng && window.fetchCityFromCoordsGlobal) {
+                    bar.cityDisplay = await window.fetchCityFromCoordsGlobal(bar.lat, bar.lng);
+                }
+            }));
+
             const shuffledBars = barsData.sort(() => 0.5 - Math.random()).slice(0, 6);
             shuffledBars.forEach(bar => mixedContent.push({ type: 'bar', data: bar }));
         }
@@ -110,7 +117,7 @@ async function initExplore() {
 
         grid.innerHTML = mixedContent.map(item => {
             if (item.type === 'bar') {
-                return window.createBarCard(item.data);
+                return window.createBarCard(item.data, item.data.cityDisplay);
             } else if (item.type === 'hop') {
                 return window.createHopCard(item.data, usersMap[item.data.user_id], commentsMap[item.data.id] || [], item.data.bars, cheersMap[item.data.id] || { count: 0, isCheered: false });
             } else if (item.type === 'article') {

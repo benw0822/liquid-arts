@@ -1889,8 +1889,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div style="width: 100%; border-bottom: 1px solid #f0f0f0; position: relative;">
                     <img src="${bar.image}" alt="${bar.title}" style="width: 100%; height: auto; display: block; transition: transform 0.5s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                 </div>
-                <div style="text-align: center; padding: 1.5rem 1rem 0.5rem 1rem;">
-                    <h3 style="font-family: var(--font-display); font-size: 1.8rem; margin: 0 0 0.5rem 0; color: #1b1b1b;">
+                <div style="text-align: center; padding: 1.2rem 1rem 0.2rem 1rem;">
+                    <h3 style="font-family: var(--font-display); font-size: 1.8rem; margin: 0 0 0.2rem 0; color: #1b1b1b;">
                         ${bar.title}
                     </h3>
                     <p style="font-family: var(--font-main); font-size: 1rem; color: #888; margin: 0;">
@@ -1899,7 +1899,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </a>
             
-            <div class="card-content" style="padding: 0 1.5rem 1.5rem 1.5rem; text-align: center; flex: 1; display: flex; flex-direction: column;">
+            <div class="card-content" style="padding: 0.8rem 1.5rem 1.5rem 1.5rem; text-align: center; flex: 1; display: flex; flex-direction: column;">
 
                 ${bar.editorial_review ? `
                     <div style="margin-bottom: 1.2rem; padding: 15px; background: var(--bg-red); color: white; border-radius: 12px; text-align: center;">
