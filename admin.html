@@ -630,43 +630,6 @@
                 </div>
             </div>
 
-            <!-- HOPPER PROFILE SECTION -->
-            <div style="margin-bottom: 2rem; border-top: 1px solid #eee; padding-top: 1rem;">
-                <h4 style="margin: 0 0 1rem 0; color: #333;">Hopper Profile</h4>
-
-                <div style="margin-bottom: 1rem;">
-                    <label class="info-label">Hopper Nickname</label>
-                    <input type="text" id="hopper-nickname" class="search-input" style="width: 100%;"
-                        placeholder="DisplayName">
-                </div>
-
-                <div style="text-align: center;">
-                    <label class="info-label" style="text-align: left;">Hopper Image</label>
-                    <input type="file" id="hopper-file-input" accept="image/*" style="display: none;"
-                        onchange="window.handleHopperFile(this)">
-
-                    <div onclick="document.getElementById('hopper-file-input').click()" class="upload-zone-stylish"
-                        style="width: 100px; height: 100px; margin: 0 auto 10px auto; border-radius: 50%; position: relative; overflow: hidden; background: #f0f0f0; border: 2px dashed #ccc; cursor: pointer;">
-                        <img id="hopper-preview" src=""
-                            style="width: 100%; height: 100%; object-fit: cover; display: none;">
-                        <div id="hopper-upload-placeholder"
-                            style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: #888;">
-                            <span style="display: block; font-size: 1.5rem;">+</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Cropper (Hidden by default) -->
-                <div id="hopper-crop-container" style="display: none; margin-top: 10px;">
-                    <div style="height: 250px; background: #333; margin-bottom: 10px;">
-                        <img id="hopper-crop-img" style="max-width: 100%; max-height: 250px;">
-                    </div>
-                    <button type="button" onclick="window.confirmHopperCrop()" class="btn"
-                        style="width: 100%; background: var(--admin-accent); color: white;">Confirm Crop</button>
-                    <button type="button" onclick="window.cancelHopperCrop()" class="btn btn-secondary"
-                        style="width: 100%; margin-top: 5px;">Cancel</button>
-                </div>
-            </div>
             <div style="margin-bottom: 1.5rem;">
                 <label class="info-label">Assign to Bar (Optional)</label>
                 <!-- Multi-Select Container -->
@@ -801,6 +764,52 @@
                 style="margin-top: 2rem; width: 100%; background: var(--bg-red); color: white;">
                 Save Profile
             </button>
+        </div>
+    </div>
+
+    <!-- Hopper Modal (New) -->
+    <div id="hopper-modal" class="lightbox">
+        <div class="lightbox-content">
+            <h3 id="hopper-modal-title">Edit Hopper Profile</h3>
+            <input type="hidden" id="hopper-user-id">
+
+            <div style="margin-bottom: 1rem;">
+                <label class="info-label">Hopper Nickname</label>
+                <input type="text" id="hopper-nickname" class="search-input" style="width: 100%;"
+                    placeholder="DisplayName">
+            </div>
+
+            <div style="text-align: center;">
+                <label class="info-label" style="text-align: left;">Hopper Image</label>
+                <input type="file" id="hopper-file-input" accept="image/*" style="display: none;"
+                    onchange="window.handleHopperFile(this)">
+
+                <div onclick="document.getElementById('hopper-file-input').click()" class="upload-zone-stylish"
+                    style="width: 100px; height: 100px; margin: 0 auto 10px auto; border-radius: 50%; position: relative; overflow: hidden; background: #f0f0f0; border: 2px dashed #ccc; cursor: pointer;">
+                    <img id="hopper-preview" src=""
+                        style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                    <div id="hopper-upload-placeholder"
+                        style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: #888;">
+                        <span style="display: block; font-size: 1.5rem;">+</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cropper -->
+            <div id="hopper-crop-container" style="display: none; margin-top: 10px;">
+                <div style="height: 250px; background: #333; margin-bottom: 10px;">
+                    <img id="hopper-crop-img" style="max-width: 100%; max-height: 250px;">
+                </div>
+                <button type="button" onclick="window.confirmHopperCrop()" class="btn"
+                    style="width: 100%; background: var(--admin-accent); color: white;">Confirm Crop</button>
+                <button type="button" onclick="window.cancelHopperCrop()" class="btn btn-secondary"
+                    style="width: 100%; margin-top: 5px;">Cancel</button>
+            </div>
+
+            <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                <button id="save-hopper-btn" class="btn" style="flex: 1;">Save Hopper</button>
+                <button id="close-hopper-btn" class="btn btn-secondary" style="flex: 1;">Cancel</button>
+            </div>
         </div>
     </div>
 

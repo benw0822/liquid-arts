@@ -341,8 +341,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     </td>
                     <td style="padding: 1rem;">${roleBadges}</td>
                     <td style="padding: 1rem;">${linkedBar ? linkedBar.title : '-'}</td>
-                    <td style="padding: 1rem; text-align: right;">
                         ${isTalent ? `<button onclick="window.openTalentEditor('${u.id}')" class="btn btn-secondary" style="padding:4px 8px; font-size:0.8rem; margin-right: 5px;">Talent</button>` : ''}
+                        <button onclick="window.openHopperModal('${u.id}')" class="btn btn-secondary" style="padding:4px 8px; font-size:0.8rem; margin-right: 5px;">Hopper</button>
                         <button onclick="editUser('${u.id}')" class="btn btn-secondary" style="padding:4px 8px; font-size:0.8rem; margin-right: 5px;">Edit</button>
                         <button onclick="deleteUser('${u.id}')" class="btn btn-secondary" style="padding:4px 8px; font-size:0.8rem; color:red; border-color:red;">Delete</button>
                     </td>
@@ -367,10 +367,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('user-email').value = '';
         document.getElementById('user-password').value = '';
         document.querySelectorAll('.role-checkbox').forEach(cb => cb.checked = false);
-        document.getElementById('hopper-nickname').value = '';
-        document.getElementById('hopper-preview').src = '';
-        document.getElementById('hopper-preview').style.display = 'none';
-        document.getElementById('hopper-upload-placeholder').style.display = 'block';
         window.hopperCropper = null; // Reset cropper global
         document.getElementById('hopper-crop-container').style.display = 'none';
 
@@ -426,14 +422,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (cb) cb.checked = true;
                     });
                 }
-                // Populate Hopper Profile
-                document.getElementById('hopper-nickname').value = user.hopper_nickname || '';
-                if (user.hopper_image_url) {
-                    const img = document.getElementById('hopper-preview');
-                    img.src = user.hopper_image_url;
-                    img.style.display = 'block';
-                    document.getElementById('hopper-upload-placeholder').style.display = 'none';
-                }
             }
         } else {
             document.getElementById('user-modal-title').textContent = 'Add User';
@@ -448,6 +436,81 @@ document.addEventListener('DOMContentLoaded', () => {
 
         userModal.classList.add('active');
     }
+
+    // --- Hopper Modal Logic ---
+    window.openHopperModal = async (userId) => {
+        // Reset
+        document.getElementById('hopper-user-id').value = userId;
+        document.getElementById('hopper-nickname').value = '';
+        document.getElementById('hopper-preview').src = '';
+        document.getElementById('hopper-preview').style.display = 'none';
+        document.getElementById('hopper-upload-placeholder').style.display = 'block';
+        if (window.hopperCropper) { window.hopperCropper.destroy(); window.hopperCropper = null; }
+        document.getElementById('hopper-crop-container').style.display = 'none';
+
+        // Fetch
+        const { data: user, error } = await supabase.from('users').select('*').eq('id', userId).single();
+        if (user) {
+            document.getElementById('hopper-nickname').value = user.hopper_nickname || '';
+            if (user.hopper_image_url) {
+                const img = document.getElementById('hopper-preview');
+                img.src = user.hopper_image_url;
+                img.style.display = 'block';
+                document.getElementById('hopper-upload-placeholder').style.display = 'none';
+            }
+        } else {
+            alert('User not found.');
+            return;
+        }
+
+        document.getElementById('hopper-modal').classList.add('active');
+    };
+
+    document.getElementById('close-hopper-btn').addEventListener('click', () => {
+        document.getElementById('hopper-modal').classList.remove('active');
+    });
+
+    document.getElementById('save-hopper-btn').addEventListener('click', async () => {
+        const btn = document.getElementById('save-hopper-btn');
+        const id = document.getElementById('hopper-user-id').value;
+        const nickname = document.getElementById('hopper-nickname').value;
+
+        btn.textContent = 'Saving...';
+        btn.disabled = true;
+
+        try {
+            const updates = { hopper_nickname: nickname };
+
+            // Upload Image if changed (window.hopperImageBlob set by cropper confirmation)
+            if (window.hopperImageBlob) {
+                const fileName = `hopper_${id}_${Date.now()}.jpg`;
+                const { data: uploadData, error: uploadError } = await supabase.storage
+                    .from('hoppings')
+                    .upload(fileName, window.hopperImageBlob);
+
+                if (uploadError) {
+                    console.error('Upload failed:', uploadError);
+                    alert('Image upload failed, but saving text data.');
+                } else {
+                    const publicUrl = supabase.storage.from('hoppings').getPublicUrl(fileName).data.publicUrl;
+                    updates.hopper_image_url = publicUrl;
+                }
+            }
+
+            const { error } = await supabase.from('users').update(updates).eq('id', id);
+            if (error) throw error;
+
+            document.getElementById('hopper-modal').classList.remove('active');
+            window.hopperImageBlob = null; // Clear
+            alert('Hopper Profile Saved!');
+            loadUsers(); // Refresh list to maybe show changes if we decide to show hopper nickname in table
+        } catch (err) {
+            alert('Error: ' + err.message);
+        } finally {
+            btn.textContent = 'Save Hopper';
+            btn.disabled = false;
+        }
+    });
 
     // --- Hopper Image Logic ---
     window.hopperCropper = null;
@@ -523,28 +586,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 saveUserBtn.textContent = 'Save';
                 return;
             } else {
-                // Update User Profile (Roles, Email, Hopper Data)
+                // Update User Profile (Roles, Email) - Removed Hopper Logic
                 const updates = {
                     roles: roles,
-                    email: email,
-                    hopper_nickname: document.getElementById('hopper-nickname').value
+                    email: email
                 };
-
-                // Upload Image if changed
-                if (window.hopperImageBlob) {
-                    const fileName = `hopper_${id}_${Date.now()}.jpg`;
-                    const { data: uploadData, error: uploadError } = await supabase.storage
-                        .from('hoppings') // Using 'hoppings' bucket as fallback
-                        .upload(fileName, window.hopperImageBlob);
-
-                    if (uploadError) {
-                        console.error('Upload failed:', uploadError);
-                        alert('Image upload failed, but saving text data.');
-                    } else {
-                        const publicUrl = supabase.storage.from('hoppings').getPublicUrl(fileName).data.publicUrl;
-                        updates.hopper_image_url = publicUrl;
-                    }
-                }
 
                 const { error } = await supabase.from('users').update(updates).eq('id', id);
                 if (error) throw error;
