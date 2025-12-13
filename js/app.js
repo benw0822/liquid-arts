@@ -293,6 +293,15 @@ document.addEventListener('DOMContentLoaded', () => {
             // Check if it has a parent wrapper that is just for it? No, usually direct child of card-content.
         });
 
+        // 2.5 Resize Image (Force Fix)
+        const mainImg = container.querySelector('img');
+        if (mainImg) {
+            mainImg.style.setProperty('height', '180px', 'important');
+            mainImg.style.setProperty('width', '100%', 'important');
+            mainImg.style.setProperty('object-fit', 'cover', 'important');
+            mainImg.style.setProperty('object-position', 'center', 'important');
+        }
+
         // Also hide the address paragraph if it looks like an address to save space?
         // User didn't strictly ask to hide address, but "save space". 
         // Let's keep address for now unless user complains, but focus on the "gray block".
