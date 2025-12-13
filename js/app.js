@@ -259,7 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Render Card
         container.innerHTML = window.createBarCard(bar, city);
 
-        // Enhance for Modal View (Disable Link Navigation)
+        // Enhance for Modal View (Disable Link Navigation & Hide Map)
         const cardLink = container.querySelector('a');
         if (cardLink) {
             cardLink.removeAttribute('href');
@@ -267,12 +267,18 @@ document.addEventListener('DOMContentLoaded', () => {
             cardLink.onclick = (e) => e.preventDefault();
         }
 
+        // HIDE MAP within the card (User Request)
+        const cardMap = container.querySelector(`#card-map-${bar.id}`);
+        if (cardMap) {
+            cardMap.style.display = 'none';
+        }
+
         modal.style.display = 'flex';
 
-        // Init Map inside modal if needed
-        if (bar.lat && bar.lng) {
-            setTimeout(() => window.initCardMapGlobal(bar.id, bar.lat, bar.lng, bar.title, window.savedBarIds.has(bar.id)), 100);
-        }
+        // Init Map inside modal -> DISABLED (Map is hidden)
+        // if (bar.lat && bar.lng) {
+        //     setTimeout(() => window.initCardMapGlobal(bar.id, bar.lat, bar.lng, bar.title, window.savedBarIds.has(bar.id)), 100);
+        // }
 
         // Render Hopping Badge
         setTimeout(() => { if (window.renderHoppingBadge) window.renderHoppingBadge(bar.id); }, 500);
