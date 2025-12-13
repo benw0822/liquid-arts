@@ -367,6 +367,12 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('user-email').value = '';
         document.getElementById('user-password').value = '';
         document.querySelectorAll('.role-checkbox').forEach(cb => cb.checked = false);
+        document.getElementById('hopper-nickname').value = '';
+        document.getElementById('hopper-preview').src = '';
+        document.getElementById('hopper-preview').style.display = 'none';
+        document.getElementById('hopper-upload-placeholder').style.display = 'block';
+        window.hopperCropper = null; // Reset cropper global
+        document.getElementById('hopper-crop-container').style.display = 'none';
 
         // Load Bars logic for Multi-Select
         const barContainer = document.getElementById('bar-select-container');
@@ -420,6 +426,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (cb) cb.checked = true;
                     });
                 }
+                // Populate Hopper Profile
+                document.getElementById('hopper-nickname').value = user.hopper_nickname || '';
+                if (user.hopper_image_url) {
+                    const img = document.getElementById('hopper-preview');
+                    img.src = user.hopper_image_url;
+                    img.style.display = 'block';
+                    document.getElementById('hopper-upload-placeholder').style.display = 'none';
+                }
             }
         } else {
             document.getElementById('user-modal-title').textContent = 'Add User';
@@ -434,6 +448,57 @@ document.addEventListener('DOMContentLoaded', () => {
 
         userModal.classList.add('active');
     }
+
+    // --- Hopper Image Logic ---
+    window.hopperCropper = null;
+    window.hopperImageBlob = null; // Store final blob to upload
+
+    window.handleHopperFile = (input) => {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const cropImg = document.getElementById('hopper-crop-img');
+                const cropContainer = document.getElementById('hopper-crop-container');
+                cropImg.src = e.target.result;
+                cropContainer.style.display = 'block';
+
+                if (window.hopperCropper) window.hopperCropper.destroy();
+                window.hopperCropper = new Cropper(cropImg, {
+                    aspectRatio: 1,
+                    viewMode: 1
+                });
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    };
+
+    window.confirmHopperCrop = () => {
+        if (!window.hopperCropper) return;
+        window.hopperCropper.getCroppedCanvas({ width: 500, height: 500 }).toBlob((blob) => {
+            window.hopperImageBlob = blob;
+
+            // Show preview
+            const url = URL.createObjectURL(blob);
+            const preview = document.getElementById('hopper-preview');
+            preview.src = url;
+            preview.style.display = 'block';
+            document.getElementById('hopper-upload-placeholder').style.display = 'none';
+
+            // Hide cropper
+            document.getElementById('hopper-crop-container').style.display = 'none';
+            window.hopperCropper.destroy();
+            window.hopperCropper = null;
+        }, 'image/jpeg', 0.8);
+    };
+
+    window.cancelHopperCrop = () => {
+        document.getElementById('hopper-crop-container').style.display = 'none';
+        if (window.hopperCropper) {
+            window.hopperCropper.destroy();
+            window.hopperCropper = null;
+        }
+        document.getElementById('hopper-file-input').value = ''; // Reset input
+    };
 
     saveUserBtn.onclick = async () => {
         const id = document.getElementById('user-id').value;
@@ -458,8 +523,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 saveUserBtn.textContent = 'Save';
                 return;
             } else {
-                // Update User Roles
-                const { error } = await supabase.from('users').update({ roles: roles, email: email }).eq('id', id);
+                // Update User Profile (Roles, Email, Hopper Data)
+                const updates = {
+                    roles: roles,
+                    email: email,
+                    hopper_nickname: document.getElementById('hopper-nickname').value
+                };
+
+                // Upload Image if changed
+                if (window.hopperImageBlob) {
+                    const fileName = `hopper_${id}_${Date.now()}.jpg`;
+                    const { data: uploadData, error: uploadError } = await supabase.storage
+                        .from('hoppings') // Using 'hoppings' bucket as fallback
+                        .upload(fileName, window.hopperImageBlob);
+
+                    if (uploadError) {
+                        console.error('Upload failed:', uploadError);
+                        alert('Image upload failed, but saving text data.');
+                    } else {
+                        const publicUrl = supabase.storage.from('hoppings').getPublicUrl(fileName).data.publicUrl;
+                        updates.hopper_image_url = publicUrl;
+                    }
+                }
+
+                const { error } = await supabase.from('users').update(updates).eq('id', id);
                 if (error) throw error;
 
                 if (password) {
