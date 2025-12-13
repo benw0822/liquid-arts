@@ -282,16 +282,20 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // 2. Hide Map Container (The gray block)
-        const cardMap = container.querySelector('.card-map'); // Select by class is safer/easier
-        if (cardMap) {
-            cardMap.style.display = 'none';
-        }
+        // 2. Hide Map Container (The gray block) & Address if needed to save space?
+        // User said "hidden mini map bottom gray block" - likely the map div itself.
+        const cardMaps = container.querySelectorAll('.card-map, [id^="card-map-"]');
+        cardMaps.forEach(mapDiv => {
+            mapDiv.style.setProperty('display', 'none', 'important');
+            mapDiv.style.setProperty('height', '0', 'important');
+            mapDiv.style.setProperty('margin', '0', 'important');
+            mapDiv.style.setProperty('padding', '0', 'important');
+            // Check if it has a parent wrapper that is just for it? No, usually direct child of card-content.
+        });
 
-        // Also hide any leftover map elements if ID specific
-        const cardMapId = container.querySelector(`#card-map-${bar.id}`);
-        if (cardMapId) cardMapId.style.display = 'none';
-
+        // Also hide the address paragraph if it looks like an address to save space?
+        // User didn't strictly ask to hide address, but "save space". 
+        // Let's keep address for now unless user complains, but focus on the "gray block".
 
         // 3. Refine Bottom Buttons (Google Maps -> Explore + Google Maps)
         // Find existing Google Maps button (LAST button usually)
@@ -302,7 +306,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Create new container
             const newBtns = document.createElement('div');
-            newBtns.style.cssText = 'display: flex; gap: 10px; margin-top: 10px;';
+            newBtns.style.cssText = 'display: flex; gap: 10px; margin-top: 10px; margin-bottom: 0px;'; // Ensure no bottom margin
 
             newBtns.innerHTML = `
                 <a href="bar-details.html?id=${bar.id}" class="btn" style="flex:1; text-align:center; background-color: #333; color: white; border: none; padding: 10px; text-decoration: none; border-radius: 4px; font-weight: bold; font-family: var(--font-display);">EXPLORE</a>
