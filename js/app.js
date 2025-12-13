@@ -2103,3 +2103,104 @@ window.nextSignature = (barId) => {
 };
 
 
+
+// --- Hop Card (Reusable) ---
+window.createHopCard = function (hop, user, comment = null, bar = null) {
+    const dateObj = new Date(hop.hopped_at);
+    const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ' • ' + dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+    // Stars
+    const stars = `<span style="color: var(--bg-red);">` + '★'.repeat(hop.rating) + '</span>' + `<span style="color: #ddd;">` + '☆'.repeat(5 - hop.rating) + '</span>';
+
+    const userName = user?.hopper_nickname || user?.name || 'Anonymous';
+    const userAvatar = user?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random`;
+    const role = 'Hopper';
+
+    // Comment Pill
+    let commentHtml = '';
+    if (comment) {
+        const cUser = comment.user;
+        const cName = cUser?.hopper_nickname || cUser?.name || 'User';
+        const cAvatar = cUser?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(cName)}&background=random`;
+
+        commentHtml = `
+        <div style="position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); border-radius: 20px; padding: 4px 12px 4px 4px; display: flex; align-items: center; gap: 8px; max-width: 80%;">
+            <img src="${cAvatar}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(255,255,255,0.5);">
+            <span style="color: #fff; font-size: 0.8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                <strong style="margin-right: 4px;">${cName}:</strong> ${comment.content}
+            </span>
+        </div>
+        `;
+    }
+
+    // Description
+    const descriptionHtml = hop.description ? `
+        <p style="font-size: 0.95rem; color: #555; font-style: italic; font-family: 'Playfair Display', serif; line-height: 1.5; margin: 0;">
+            "${hop.description}"
+        </p>` : '';
+
+    // Bar Info (If available)
+    const barInfo = bar || hop.bars; // Accommodate different data structures
+    const barLink = barInfo ? `
+        <div style="margin-top: 1rem;">
+            <a href="bar-details.html?id=${barInfo.id}" style="display: inline-flex; align-items: center; gap: 6px; color: #666; text-decoration: none; font-size: 0.85rem; padding: 6px 16px; background: #f8f8f8; border-radius: 20px; transition: background 0.2s;">
+                <span>📍</span> <span style="font-weight: 500;">${barInfo.title || 'Unknown Bar'}</span>
+            </a>
+        </div>` : '';
+
+    return `
+    <div class="hop-feed-card grid-item" style="background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); display: flex; flex-direction: column; width: 100%; max-width: 380px; margin: 0 auto; margin-bottom: 2rem;">
+        
+        <!-- Image Area -->
+        <div style="position: relative; width: 100%; padding-top: 100%;">
+            <img src="${hop.image_url}" style="position: absolute; top:0; left:0; width: 100%; height: 100%; object-fit: cover; cursor: pointer;" onclick="window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', ${hop.rating}, '${hop.description?.replace(/'/g, "\\'") || ""}', '${hop.id}', '${hop.user_id}', true, '${barInfo?.title?.replace(/'/g, "\\'") || ''}', '${barInfo?.id || ''}')">
+            ${commentHtml}
+        </div>
+
+        <!-- Content Area -->
+        <div style="padding: 0 1.5rem 1.5rem 1.5rem; text-align: center; position: relative;">
+            
+            <!-- Overlapping Avatar (Large) -->
+            <div style="margin-top: -40px; margin-bottom: 0.8rem; display: flex; justify-content: center;">
+                <img src="${userAvatar}" style="width: 80px; height: 80px; border-radius: 50%; border: 4px solid #fff; object-fit: cover; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            </div>
+
+            <!-- User Info -->
+            <div style="margin-bottom: 1rem;">
+                <div style="font-weight: 700; font-size: 1rem; color: #333;">${userName}</div>
+                <div style="font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.05em;">${role}</div>
+            </div>
+
+            <!-- Actions (Large Buttons) -->
+            <div style="display: flex; justify-content: center; gap: 12px; margin-bottom: 1rem;">
+                <!-- Cheers (Red Icon) -->
+                <button onclick="window.toggleCheers('${hop.id}')" style="background: #fff; border: 1px solid #eee; border-radius: 24px; padding: 10px 24px; display: flex; align-items: center; gap: 8px; color: #333; font-size: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); cursor: pointer;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--bg-red);">
+                        <path d="M8 22h8"></path>
+                        <path d="M12 11v11"></path>
+                        <path d="M5 4h14l-7 7-7-7z"></path>
+                    </svg>
+                    <span id="cheers-count-${hop.id}">0</span>
+                </button>
+                <!-- Message (Larger Circle) -->
+                <button onclick="window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', ${hop.rating}, '${hop.description?.replace(/'/g, "\\'") || ""}', '${hop.id}', '${hop.user_id}', true, '${barInfo?.title?.replace(/'/g, "\\'") || ''}', '${barInfo?.id || ''}')" style="background: #fff; border: 1px solid #eee; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: #333; box-shadow: 0 2px 4px rgba(0,0,0,0.05); cursor: pointer;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                </button>
+            </div>
+
+            <!-- Rating (Red) -->
+            <div style="font-size: 1.2rem; letter-spacing: 2px; margin-bottom: 0.5rem; color: #ddd;">${stars}</div>
+
+            <!-- Date -->
+            <div style="font-size: 0.7rem; color: #aaa; letter-spacing: 1px; margin-bottom: 0.8rem; text-transform: uppercase;">${dateStr}</div>
+
+            <!-- Description -->
+            ${descriptionHtml}
+
+            <!-- Bar Link -->
+            ${barLink}
+
+        </div>
+    </div>
+    `;
+};
