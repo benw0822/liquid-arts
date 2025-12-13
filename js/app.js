@@ -318,8 +318,12 @@ document.addEventListener('DOMContentLoaded', () => {
             newBtns.style.cssText = 'display: flex; gap: 10px; margin-top: 10px; margin-bottom: 0px;'; // Ensure no bottom margin
 
             newBtns.innerHTML = `
-                <a href="bar-details.html?id=${bar.id}" class="btn" style="flex:1; text-align:center; background-color: var(--bg-red); color: white; border: none; padding: 10px; text-decoration: none; border-radius: 4px; font-weight: bold; font-family: var(--font-display);">EXPLORE</a>
-                <a href="${hiddenGLink}" target="_blank" class="btn" style="flex:1; text-align:center; background-color: var(--bg-red); color: white; border: none; padding: 10px; text-decoration: none; border-radius: 4px; font-weight: bold; font-family: var(--font-display);">MAP</a>
+                <a href="bar-details.html?id=${bar.id}" class="btn" style="flex:1; text-align:center; background-color: #333; color: white; border: none; padding: 10px; text-decoration: none; border-radius: 4px; font-weight: bold; display: flex; align-items: center; justify-content: center;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </a>
+                <a href="${hiddenGLink}" target="_blank" class="btn" style="flex:1; text-align:center; background-color: var(--bg-red); color: white; border: none; padding: 10px; text-decoration: none; border-radius: 4px; font-weight: bold; display: flex; align-items: center; justify-content: center;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M14.082 2.182a.5.5 0 0 1 .103.557L8.528 15.467a.5.5 0 0 1-.917-.007L5.57 10.694.803 8.652a.5.5 0 0 1-.006-.916l12.728-5.657a.5.5 0 0 1 .556.103z"/></svg>
+                </a>
             `;
 
             // Replace the old button
@@ -703,12 +707,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Custom Marker
                     let iconHtml;
 
-                    // Thumbnail Click Handler
+                    // Thumbnail Click Handler (Keep existing logic)
                     const thumbClick = hopId ? `event.stopPropagation(); window.showHoppingDetails(event, '${userHop.image_url}', '${userHop.hopped_at}', ${userHop.rating}, '${userHop.description?.replace(/'/g, "\\'") || ""}', '${hopId}', '${userHop.user_id}', true, '${bar.title.replace(/'/g, "\\'")}', '${bar.id}')` : '';
 
                     const thumbnailHtml = hoppingImg ? `
-                        <div style="margin-bottom: 4px; position: relative;">
-                            <img src="${hoppingImg}" onclick="${thumbClick}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3); background: #333;">
+                        <div style="margin-bottom: -15px; position: relative; z-index: 10; pointer-events: auto;">
+                            <img src="${hoppingImg}" onclick="${thumbClick}" style="width: 44px; height: 44px; object-fit: cover; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3); background: #333;">
                         </div>
                     ` : '';
 
@@ -717,25 +721,25 @@ document.addEventListener('DOMContentLoaded', () => {
                         iconHtml = `
                             <div style="display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%); cursor: pointer;">
                                 ${thumbnailHtml}
-                                <div onclick="event.stopPropagation(); window.showBarCardModal('${bar.id}')" style="background: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; color: #333; box-shadow: 0 1px 4px rgba(0,0,0,0.5); margin-bottom: 3px; white-space: nowrap; pointer-events: auto;">
+                                <div onclick="event.stopPropagation(); window.showBarCardModal('${bar.id}')" style="background: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; color: #333; box-shadow: 0 1px 4px rgba(0,0,0,0.5); margin-bottom: 3px; white-space: nowrap; pointer-events: auto; position: relative; z-index: 5;">
                                     ${bar.title}
                                 </div>
-                                <div style="display: flex; align-items: center; justify-content: center; filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.6));">
-                                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="#FFD700" stroke="white" stroke-width="1.5" viewBox="0 0 16 16" style="overflow: visible;">
-                                        <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"/>
+                                <div onclick="event.stopPropagation(); window.showBarCardModal('${bar.id}')" style="display: flex; align-items: center; justify-content: center; filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.6)); pointer-events: auto;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#FFD700" stroke="#FFD700" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                                     </svg>
                                 </div>
                             </div>
                         `;
                     } else {
-                        // Red Dot with Label (Default)
+                        // Red Dot with Label
                         iconHtml = `
                             <div style="display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%); cursor: pointer;">
                                 ${thumbnailHtml}
-                                <div onclick="event.stopPropagation(); window.showBarCardModal('${bar.id}')" style="background: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; color: #333; box-shadow: 0 1px 4px rgba(0,0,0,0.5); margin-bottom: 3px; white-space: nowrap; pointer-events: auto;">
+                                <div onclick="event.stopPropagation(); window.showBarCardModal('${bar.id}')" style="background: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; color: #333; box-shadow: 0 1px 4px rgba(0,0,0,0.5); margin-bottom: 3px; white-space: nowrap; pointer-events: auto; position: relative; z-index: 5;">
                                     ${bar.title}
                                 </div>
-                                <div style="width: 14px; height: 14px; background: #ef4444; border: 2px solid white; border-radius: 50%; box-shadow: 0 0 10px rgba(239, 68, 68, 0.6);"></div>
+                                <div onclick="event.stopPropagation(); window.showBarCardModal('${bar.id}')" style="width: 14px; height: 14px; background: #ef4444; border: 2px solid white; border-radius: 50%; box-shadow: 0 0 10px rgba(239, 68, 68, 0.6); pointer-events: auto;"></div>
                             </div>
                         `;
                     }
