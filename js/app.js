@@ -417,6 +417,32 @@ document.addEventListener('DOMContentLoaded', () => {
         await window.initAuthAndSaved();
 
         const allBars = await fetchBars();
+
+        // --- Fetch User Hoppings for Map Thumbnails ---
+        let userHoppingsMap = {}; // { bar_id: image_url }
+        if (window.currentUser) {
+            try {
+                // Fetch latest public OR private hopping per bar for current user
+                // Order by hopped_at desc to get latest
+                const { data: myHops } = await window.supabaseClient
+                    .from('hoppings')
+                    .select('bar_id, image_url, hopped_at')
+                    .eq('user_id', window.currentUser.id)
+                    .order('hopped_at', { ascending: false });
+
+                if (myHops) {
+                    myHops.forEach(h => {
+                        // Only set if not already set (since we sort desc, first is latest)
+                        if (!userHoppingsMap[h.bar_id]) {
+                            userHoppingsMap[h.bar_id] = h.image_url;
+                        }
+                    });
+                }
+            } catch (err) {
+                console.warn('Map Hopping Fetch Error:', err);
+            }
+        }
+
         // Default View
         const map = L.map('map', { zoomControl: false }).setView([25.0330, 121.5654], 14);
         L.control.zoom({ position: 'bottomright' }).addTo(map);
@@ -565,17 +591,27 @@ document.addEventListener('DOMContentLoaded', () => {
             return R * c;
         };
 
+
         const renderBars = (barsToRender) => {
             markersLayer.clearLayers();
             barsToRender.forEach(bar => {
                 if (bar.lat && bar.lng) {
                     const isSaved = window.savedBarIds.has(bar.id);
+                    const hoppingImg = userHoppingsMap[bar.id]; // Check for thumbnail
+
                     // Custom Marker
                     let iconHtml;
+                    const thumbnailHtml = hoppingImg ? `
+                        <div style="margin-bottom: 4px; position: relative;">
+                            <img src="${hoppingImg}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 6px; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3); background: #333;">
+                        </div>
+                    ` : '';
+
                     if (isSaved) {
                         // Golden Heart with Label
                         iconHtml = `
                             <div style="display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%); cursor: pointer;">
+                                ${thumbnailHtml}
                                 <div style="background: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; color: #333; box-shadow: 0 1px 4px rgba(0,0,0,0.5); margin-bottom: 3px; white-space: nowrap;">
                                     ${bar.title}
                                 </div>
@@ -590,6 +626,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         // Red Dot with Label (Default)
                         iconHtml = `
                             <div style="display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%); cursor: pointer;">
+                                ${thumbnailHtml}
                                 <div style="background: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; color: #333; box-shadow: 0 1px 4px rgba(0,0,0,0.5); margin-bottom: 3px; white-space: nowrap;">
                                     ${bar.title}
                                 </div>
