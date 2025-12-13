@@ -1185,7 +1185,7 @@ window.getHopCardHTML = function (hop, user, comments = [], barInfo) {
                 <img src="${cAvatar}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
                 <div style="background: white; padding: 8px 12px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); flex: 1;">
                     <div style="display: flex; justify-content: space-between; align-items: baseline;">
-                        <span style="font-weight: 700; font-size: 0.85rem;">${cName}</span>
+                        <span style="font-weight: 700; font-size: 0.85rem; color: #333;">${cName}</span>
                         <span style="font-size: 0.7rem; color: #aaa;">${timeDisplay}</span>
                     </div>
                     <div style="font-size: 0.9rem; color: #333; line-height: 1.4;">${c.content}</div>
@@ -1224,7 +1224,7 @@ window.getHopCardHTML = function (hop, user, comments = [], barInfo) {
                  <span class="hopper-role">${role}</span>
                  <div class="hop-interactions">
                     <button class="btn-interaction" onclick="window.toggleCheers('${hopId}')">
-                        <svg class="interaction-icon cheers-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--bg-red);">
+                        <svg class="interaction-icon cheers-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M8 22h8" class="glass-base"/>
                             <path d="M12 11v11" class="glass-stem"/>
                             <path d="M5 4h14l-7 7-7-7z" class="glass-bowl-outline"/>
