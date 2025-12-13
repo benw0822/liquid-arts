@@ -17,11 +17,30 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     <style>
         .explore-feed-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
+            column-count: 3;
+            column-gap: 20px;
             width: 100%;
-            justify-content: center;
+        }
+
+        @media (max-width: 900px) {
+            .explore-feed-grid {
+                column-count: 2;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .explore-feed-grid {
+                column-count: 1;
+            }
+        }
+
+        /* Ensure items don't break across columns */
+        .grid-item {
+            break-inside: avoid;
+            margin-bottom: 20px;
+            display: inline-block;
+            /* Helps some browsers */
+            width: 100%;
         }
     </style>
 </head>
