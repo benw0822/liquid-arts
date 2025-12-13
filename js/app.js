@@ -1885,7 +1885,7 @@ document.addEventListener('DOMContentLoaded', () => {
              </div>
 
              <!-- Main Link Wrapper -->
-            <a href="bar-details.html?id=${bar.id}" style="text-decoration: none; display: block; display: flex; flex-direction: column;">
+            <a href="bar.html?id=${bar.id}" style="text-decoration: none; display: block; display: flex; flex-direction: column;">
                 <div style="width: 100%; border-bottom: 1px solid #f0f0f0; position: relative;">
                     <img src="${bar.image}" alt="${bar.title}" style="width: 100%; height: auto; display: block; transition: transform 0.5s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                 </div>

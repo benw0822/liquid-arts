@@ -1193,7 +1193,7 @@ window.getHopCardHTML = function (hop, user, comments = [], barInfo, cheersInfo 
     // Bar Info
     const barHtml = barInfo ? `
         <div style="margin-top: 1.5rem; text-align: center;">
-            <a href="bar-details.html?id=${barInfo.id}" style="display: inline-flex; align-items: center; gap: 6px; color: #555; text-decoration: none; font-size: 0.85rem; padding: 8px 16px; background: #f5f5f5; border-radius: 20px; transition: background 0.2s;">
+            <a href="bar.html?id=${barInfo.id}" style="display: inline-flex; align-items: center; gap: 6px; color: #555; text-decoration: none; font-size: 0.85rem; padding: 8px 16px; background: #f5f5f5; border-radius: 20px; transition: background 0.2s;">
                 <span>📍</span> <span style="font-weight: 600;">${barInfo.title || 'Unknown Bar'}</span>
             </a>
         </div>` : '';

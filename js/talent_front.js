@@ -85,7 +85,7 @@ function renderTalentShowcase(talent) {
                 link.textContent = `${barText} ${roleText}`;
 
                 if (role.bar_id) {
-                    link.href = `bar-details.html?id=${role.bar_id}`;
+                    link.href = `bar.html?id=${role.bar_id}`;
                 } else {
                     link.href = 'bars.html';
                 }

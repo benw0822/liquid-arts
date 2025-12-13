@@ -275,7 +275,7 @@
                              <img src="${thread.partnerAvatar}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover;">
                              <div style="flex: 1;">
                                  <div style="font-weight: 600; font-size: 0.95rem; color: #333;">${thread.partnerName}</div>
-                                 <a href="bar-details.html?id=${thread.hop.bars?.id}" style="font-size: 0.75rem; color: #888; text-decoration: none; border-bottom: 1px dotted #999;">@ ${thread.hop.bars?.title || 'Unknown Bar'}</a>
+                                 <a href="bar.html?id=${thread.hop.bars?.id}" style="font-size: 0.75rem; color: #888; text-decoration: none; border-bottom: 1px dotted #999;">@ ${thread.hop.bars?.title || 'Unknown Bar'}</a>
                              </div>
                              <div onclick="window.viewHop('${thread.hop.id}')" style="cursor: pointer; position: relative;">
                                 <img src="${thread.hop.image_url}" 

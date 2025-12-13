@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </label>
 
                         <div style="margin-left: auto; display: flex; gap: 8px;">
-                            <button onclick="window.open('bar-details.html?id=${bar.id}', '_blank')" class="btn btn-secondary">View</button>
+                            <button onclick="window.open('bar.html?id=${bar.id}', '_blank')" class="btn btn-secondary">View</button>
                             <button onclick="editBar('${bar.id}')" class="btn">Edit</button>
                             <button onclick="deleteBar('${bar.id}')" class="btn btn-secondary">Delete</button>
                         </div>
