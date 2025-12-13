@@ -296,7 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // 2.5 Resize Image (Force Fix)
         const mainImg = container.querySelector('img');
         if (mainImg) {
-            mainImg.style.setProperty('height', '180px', 'important');
+            mainImg.style.setProperty('height', '240px', 'important');
             mainImg.style.setProperty('width', '100%', 'important');
             mainImg.style.setProperty('object-fit', 'cover', 'important');
             mainImg.style.setProperty('object-position', 'center', 'important');
@@ -1921,7 +1921,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 <!-- Explore Button -->
                 <div style="display: flex; justify-content: center; margin-bottom: 1.2rem;">
-                    <a href="bar.html?id=${bar.id}" class="btn" style="padding: 6px 20px; font-size: 0.9rem; border-radius: 20px; border: none; color: white; background: var(--bg-red); transition: all 0.3s; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">Explore</a>
+                    <a href="bar.html?id=${bar.id}" class="btn" style="padding: 6px 20px; font-size: 0.9rem; border-radius: 20px; border: none; color: white; background: var(--bg-red); transition: all 0.3s; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3); display: flex; align-items: center; gap: 6px;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M6 19a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"></path>
+                            <path d="M18 19a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"></path>
+                            <path d="M6 15v-1a6 6 0 1 1 12 0v1"></path>
+                            <circle cx="12" cy="11" r="1.5"></circle>
+                        </svg>
+                        Explore
+                    </a>
                 </div>
 
                  <!-- Rating & Price -->
