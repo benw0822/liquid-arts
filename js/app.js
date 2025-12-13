@@ -319,12 +319,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             newBtns.innerHTML = `
                 <a href="bar.html?id=${bar.id}" class="btn" style="flex:1; text-align:center; background-color: var(--bg-red); color: white; border: none; padding: 10px; text-decoration: none; border-radius: 4px; font-weight: bold; display: flex; align-items: center; justify-content: center;">
-                    <!-- Two Eyes Icon -->
+                    <!-- Telescope Icon -->
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M3 12c0-2.5 2-5 4.5-5S12 9.5 12 12s-2 5-4.5 5S3 14.5 3 12z"></path>
-                        <circle cx="7.5" cy="12" r="1.5"></circle>
-                        <path d="M12 12c0-2.5 2-5 4.5-5S21 9.5 21 12s-2 5-4.5 5S12 14.5 12 12z"></path>
-                        <circle cx="16.5" cy="12" r="1.5"></circle>
+                        <path d="M6 13L17 4"></path>
+                        <path d="M4 15L15 6"></path>
+                        <path d="M4 15L6 13"></path>
+                        <path d="M15 6L17 4"></path>
+                        <path d="M11 10L8 21"></path>
+                        <path d="M11 10L14 21"></path>
                     </svg>
                 </a>
                 <a href="${hiddenGLink}" target="_blank" class="btn" style="flex:1; text-align:center; background-color: var(--bg-red); color: white; border: none; padding: 10px; text-decoration: none; border-radius: 4px; font-weight: bold; display: flex; align-items: center; justify-content: center;">
