@@ -714,8 +714,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     let iconHtml;
 
                     // Thumbnail Click Handler (Keep existing logic)
-                    const thumbClick = hopId ? `event.stopPropagation(); window.showHoppingDetails(event, '${userHop.image_url}', '${userHop.hopped_at}', ${userHop.rating}, '${userHop.description?.replace(/' / g, "\\'") || ""
-                        } ', '${hopId} ', '${userHop.user_id} ', true, '${bar.title.replace(/'/g, "\\'")} ', '${bar.id} ')` : '';
+                    const thumbClick = hopId ? `event.stopPropagation(); window.showHoppingDetails(event, '${userHop.image_url}', '${userHop.hopped_at}', ${userHop.rating}, '${userHop.description?.replace(/'/g, "\\'") || ""}', '${hopId}', '${userHop.user_id}', true, '${bar.title.replace(/'/g, "\\'")}', '${bar.id}')` : '';
 
                     const thumbnailHtml = hoppingImg ? `
                         <div style="margin-bottom: -8px; position: relative; z-index: 10; pointer-events: auto;">
