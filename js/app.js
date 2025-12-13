@@ -711,7 +711,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const thumbClick = hopId ? `event.stopPropagation(); window.showHoppingDetails(event, '${userHop.image_url}', '${userHop.hopped_at}', ${userHop.rating}, '${userHop.description?.replace(/'/g, "\\'") || ""}', '${hopId}', '${userHop.user_id}', true, '${bar.title.replace(/'/g, "\\'")}', '${bar.id}')` : '';
 
                     const thumbnailHtml = hoppingImg ? `
-                        <div style="margin-bottom: -15px; position: relative; z-index: 10; pointer-events: auto;">
+                        <div style="margin-bottom: -8px; position: relative; z-index: 10; pointer-events: auto;">
                             <img src="${hoppingImg}" onclick="${thumbClick}" style="width: 44px; height: 44px; object-fit: cover; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3); background: #333;">
                         </div>
                     ` : '';
