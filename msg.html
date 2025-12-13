@@ -3,18 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <style>
-        /* Prevent Auto-Zoom on Input Focus for Mobile */
-        @media screen and (max-width: 768px) {
-
-            input,
-            textarea,
-            select {
-                font-size: 16px !important;
-            }
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Messages - Liquid Arts</title>
     <link rel="stylesheet" href="css/styles.css?v=force">
     <link
@@ -41,6 +30,15 @@
             </div>
 
             <!-- Global Auth Button (Mobile & Desktop) -->
+            <a href="profile.html" id="global-auth-btn" class="nav-link" aria-label="Profile"
+                style="margin-left: auto; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; color: var(--text-accent);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+            </a>
+        </div>
     </nav>
 
     <main class="container" style="margin-top: 6rem; min-height: 80vh;">
@@ -53,6 +51,9 @@
 
         <!-- User View -->
         <div id="user-view" style="display: none;">
+
+
+
             <div id="messages-loading" style="text-align: center; color: #888;">Loading conversations...</div>
 
             <!-- Messages Section -->
@@ -65,6 +66,7 @@
                     No messages yet. Start hopping to chat!
                 </div>
             </div>
+
         </div>
     </main>
 
@@ -113,7 +115,14 @@
                 stroke-linejoin="round">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
             </svg>
-            <span>Msg</span>
+            <span>Messages</span>
+        </a>
+        <a href="profile.html" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+            </svg>
+            <span>Pocket</span>
         </a>
     </nav>
 
