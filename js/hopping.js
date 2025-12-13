@@ -1117,7 +1117,7 @@ function updateCheersCount(hopId, delta) {
 }
 
 // --- Hop Card HTML Generator (Shared with Explore) ---
-window.getHopCardHTML = function (hop, user, latestComment, barInfo) {
+window.getHopCardHTML = function (hop, user, comments = [], barInfo) {
     const hopId = hop.id;
     const dateObj = new Date(hop.hopped_at);
     const dateString = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -1125,44 +1125,82 @@ window.getHopCardHTML = function (hop, user, latestComment, barInfo) {
     const dateDisplay = `${dateString} • ${timeString}`;
 
     const stars = '★'.repeat(hop.rating) + '☆'.repeat(5 - hop.rating);
-    const desc = hop.description || '';
+    // Desc: No quotes if empty
+    const descDisplay = (hop.description && hop.description !== 'null' && hop.description.trim() !== '')
+        ? `“${hop.description}”`
+        : '';
 
     const userName = user?.hopper_nickname || user?.name || 'Anonymous';
     const userAvatar = user?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random`;
     const role = 'Hopper';
 
+    // Comment Preview (Top Left - Multiple)
     let commentPreviewHtml = '';
-    let commentListHtml = '<div style="text-align: center; color: #888; font-size: 0.9rem; margin-top: 20px;">No comments yet. Be the first!</div>';
+    const top3 = comments.slice(0, 3);
 
-    if (latestComment) {
-        const cUser = latestComment.user;
-        const cName = cUser?.hopper_nickname || cUser?.name || 'User';
-        const cAvatar = cUser?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(cName)}&background=random`;
+    if (top3.length > 0) {
+        const itemsHtml = top3.map(c => {
+            const cUser = c.user;
+            const cName = cUser?.hopper_nickname || cUser?.name || 'User';
+            const cAvatar = cUser?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(cName)}&background=random`;
+            // Escape content?
+            const safeContent = c.content?.replace(/"/g, '&quot;') || '';
 
-        commentPreviewHtml = `
-            <div style="background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); border-radius: 20px; padding: 4px 12px 4px 4px; display: flex; align-items: center; gap: 8px;">
-                <img src="${cAvatar}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(255,255,255,0.5);">
-                <div style="color: #fff; font-size: 0.8rem; max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                    <strong style="margin-right: 4px;">${cName}:</strong> ${latestComment.content}
-                </div>
+            return `
+            <div style="display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); padding: 4px 8px; border-radius: 12px; width: fit-content; margin-bottom: 4px; cursor: pointer; pointer-events: auto; max-width: 100%; transition: transform 0.1s;" onclick="window.toggleCardPanel('${hopId}')" onmousedown="this.style.transform='scale(0.95)'" onmouseup="this.style.transform='scale(1)'">
+                 <img src="${cAvatar}" style="width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.3);">
+                 <span style="color: white; font-size: 0.8rem; font-weight: 500; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 180px;">
+                    <span style="font-weight: 700; color: #fff;">${cName}:</span> <span style="color: #eee;">${safeContent}</span>
+                 </span>
             </div>`;
+        }).join('');
 
-        commentListHtml = `
+        let badgeHtml = '';
+        if (comments.length > 3) {
+            badgeHtml = `
+            <div style="background: rgba(239, 68, 68, 0.9); color: white; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; width: fit-content; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.3); pointer-events: auto;" onclick="window.toggleCardPanel('${hopId}')">
+                ${comments.length}+
+            </div>`;
+        }
+        commentPreviewHtml = itemsHtml + badgeHtml;
+    }
+
+    // Comment List (Panel)
+    let commentListHtml = '<div style="text-align: center; color: #888; font-size: 0.9rem; margin-top: 20px;">No comments yet. Be the first!</div>';
+    if (comments.length > 0) {
+        commentListHtml = comments.map(c => {
+            const cUser = c.user;
+            const cName = cUser?.hopper_nickname || cUser?.name || 'User';
+            const cAvatar = cUser?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(cName)}&background=random`;
+
+            // Time
+            let timeDisplay = 'Just now';
+            if (c.created_at) {
+                const d = new Date(c.created_at);
+                timeDisplay = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            }
+
+            return `
             <div style="display: flex; gap: 10px; margin-bottom: 12px;">
                 <img src="${cAvatar}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
                 <div style="background: white; padding: 8px 12px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); flex: 1;">
-                    <div style="font-weight: 700; font-size: 0.85rem; margin-bottom: 2px;">${cName}</div>
-                    <div style="font-size: 0.9rem; color: #333; line-height: 1.4;">${latestComment.content}</div>
+                    <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                        <span style="font-weight: 700; font-size: 0.85rem;">${cName}</span>
+                        <span style="font-size: 0.7rem; color: #aaa;">${timeDisplay}</span>
+                    </div>
+                    <div style="font-size: 0.9rem; color: #333; line-height: 1.4;">${c.content}</div>
                 </div>
-            </div>
-            ${latestComment.more ? '<div style="text-align:center; color: #888; font-size: 0.8rem;">View more in details...</div>' : ''}
-         `;
+            </div>`;
+        }).join('');
     }
 
+    // Bar Info (Content Area)
     const barHtml = barInfo ? `
-        <a href="bar-details.html?id=${barInfo.id}" class="hd-bar-pill" style="position: absolute; bottom: 15px; right: 15px; background: rgba(0,0,0,0.7); color: white; padding: 4px 12px; border-radius: 20px; text-decoration: none; font-size: 0.8rem; font-weight: 500; display: flex; z-index: 55; align-items: center; gap: 4px;">
-            <span>📍</span> <span>${barInfo.title || 'Unknown Bar'}</span>
-        </a>` : '';
+        <div style="margin-top: 1.5rem; text-align: center;">
+            <a href="bar-details.html?id=${barInfo.id}" style="display: inline-flex; align-items: center; gap: 6px; color: #555; text-decoration: none; font-size: 0.85rem; padding: 8px 16px; background: #f5f5f5; border-radius: 20px; transition: background 0.2s;">
+                <span>📍</span> <span style="font-weight: 600;">${barInfo.title || 'Unknown Bar'}</span>
+            </a>
+        </div>` : '';
 
     const canDelete = window.currentUser && String(window.currentUser.id) === String(hop.user_id);
     const deleteBtn = canDelete ? `
@@ -1175,6 +1213,7 @@ window.getHopCardHTML = function (hop, user, latestComment, barInfo) {
         <div class="hop-detail-image-wrapper">
              <img src="${hop.image_url}" class="hop-detail-image" onclick="window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', ${hop.rating}, '${hop.description?.replace(/'/g, "\\'") || ""}', '${hopId}', '${hop.user_id}', true, '${barInfo?.title?.replace(/'/g, "\\'") || ''}', '${barInfo?.id || ''}', true)">
              
+             <!-- Comment Preview -->
              <div style="position: absolute; top: 15px; left: 15px; z-index: 55; display: flex; flex-direction: column; gap: 6px; max-width: 60%; pointer-events: none;">
                 ${commentPreviewHtml}
              </div>
@@ -1194,19 +1233,20 @@ window.getHopCardHTML = function (hop, user, latestComment, barInfo) {
                         <span id="cheers-count-${hopId}">0</span>
                     </button>
                     <button class="btn-interaction" onclick="window.toggleCardPanel('${hopId}')">
-                        <svg class="interaction-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                        <svg class="interaction-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2-2z"></path></svg>
                     </button>
                  </div>
              </div>
 
              ${deleteBtn}
-             ${barHtml}
+             <!-- Bar Link Removed from Overlay to put below -->
         </div>
 
         <div class="hop-detail-content">
             <div class="hop-detail-stars" style="color: #ef4444;">${stars}</div>
             <span class="hop-detail-date">${dateDisplay}</span>
-            <div class="hop-detail-desc">“${desc}”</div>
+            <div class="hop-detail-desc">${descDisplay}</div>
+            ${barHtml}
         </div>
 
         <div id="card-panel-${hopId}" style="display: none; position: absolute; bottom: 0; left: 0; width: 100%; height: 60%; background: white; border-radius: 16px 16px 0 0; z-index: 70; flex-direction: column; overflow: hidden; box-shadow: 0 -4px 20px rgba(0,0,0,0.3);">

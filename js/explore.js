@@ -38,12 +38,15 @@ async function initExplore() {
             const hopIds = hopsData.map(h => h.id);
             const { data: comments } = await window.supabaseClient
                 .from('hopping_comments')
-                .select('hopping_id, content, user:users(name, hopper_nickname, hopper_image_url)')
+                .select('id, hopping_id, content, created_at, user:users(name, hopper_nickname, hopper_image_url)')
                 .in('hopping_id', hopIds)
                 .order('created_at', { ascending: false });
 
             comments?.forEach(c => {
-                if (!commentsMap[c.hopping_id]) commentsMap[c.hopping_id] = c;
+                if (!commentsMap[c.hopping_id]) commentsMap[c.hopping_id] = [];
+                if (commentsMap[c.hopping_id].length < 5) {
+                    commentsMap[c.hopping_id].push(c);
+                }
             });
         }
 
@@ -91,7 +94,7 @@ async function initExplore() {
             if (item.type === 'bar') {
                 return window.createBarCard(item.data);
             } else if (item.type === 'hop') {
-                return window.createHopCard(item.data, usersMap[item.data.user_id], commentsMap[item.data.id]);
+                return window.createHopCard(item.data, usersMap[item.data.user_id], commentsMap[item.data.id] || []);
             } else if (item.type === 'article') {
                 return window.createArticleCard(item.data);
             }
