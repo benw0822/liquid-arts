@@ -2183,7 +2183,7 @@ window.createHopCard = function (hop, user, comment = null, bar = null) {
                     <span id="cheers-count-${hop.id}">0</span>
                 </button>
                 <!-- Message (Larger Circle) -->
-                <button onclick="event.stopPropagation(); window.handleHopComment('${hop.id}')" style="background: #fff; border: 1px solid #eee; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: #333; box-shadow: 0 2px 4px rgba(0,0,0,0.05); cursor: pointer;">
+                <button onclick="window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', ${hop.rating}, '${hop.description?.replace(/'/g, "\\'") || ""}', '${hop.id}', '${hop.user_id}', true, '${barInfo?.title?.replace(/'/g, "\\'") || ''}', '${barInfo?.id || ''}', true)" style="background: #fff; border: 1px solid #eee; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: #333; box-shadow: 0 2px 4px rgba(0,0,0,0.05); cursor: pointer;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                 </button>
             </div>

@@ -98,13 +98,17 @@ async function initExplore() {
             return '';
         }).join('');
 
-        // Initialize maps for bars
+        // Initialize maps and badges for bars
         mixedContent.forEach(item => {
-            if (item.type === 'bar' && item.data.lat && item.data.lng) {
-                // Determine title and saved status (mock saved status for now or pass false)
+            if (item.type === 'bar') {
                 setTimeout(() => {
-                    if (window.initCardMapGlobal) {
+                    // Map
+                    if (item.data.lat && item.data.lng && window.initCardMapGlobal) {
                         window.initCardMapGlobal(item.data.id, item.data.lat, item.data.lng, item.data.title, false);
+                    }
+                    // Hopping Badge
+                    if (window.renderHoppingBadge) {
+                        window.renderHoppingBadge(item.data.id);
                     }
                 }, 500);
             }

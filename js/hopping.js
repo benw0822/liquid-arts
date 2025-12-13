@@ -1029,3 +1029,89 @@ window.closeHoppingDetails = () => {
     if (m) m.style.display = 'none';
     document.body.style.overflow = ''; // Unlock Scroll
 };
+
+// --- Global Cheers Toggle ---
+window.toggleCheers = async (hopId) => {
+    if (!window.currentUser) {
+        alert('Please login to Cheers!');
+        return;
+    }
+
+    try {
+        // Check local state or fetch
+        // Optimistic UI update could be tricky without verify, but let's fetch first for safety
+        const { data: existing } = await window.supabaseClient
+            .from('hopping_cheers')
+            .select('id')
+            .eq('hopping_id', hopId)
+            .eq('user_id', window.currentUser.id)
+            .single();
+
+        let newCountDelta = 0;
+
+        if (existing) {
+            // Un-Cheer (Delete)
+            const { error } = await window.supabaseClient
+                .from('hopping_cheers')
+                .delete()
+                .eq('id', existing.id);
+
+            if (error) throw error;
+            newCountDelta = -1;
+
+            // Remove active class
+            updateCheersUI(hopId, false);
+        } else {
+            // Cheer (Insert)
+            const { error } = await window.supabaseClient
+                .from('hopping_cheers')
+                .insert([{ hopping_id: hopId, user_id: window.currentUser.id }]);
+
+            if (error) throw error;
+            newCountDelta = 1;
+
+            // Add active class
+            updateCheersUI(hopId, true);
+        }
+
+        // Update Counts globally
+        updateCheersCount(hopId, newCountDelta);
+
+    } catch (err) {
+        console.error('Toggle Cheers Error:', err);
+    }
+};
+
+function updateCheersUI(hopId, isActive) {
+    // 1. Feed Card Button (explore/index)
+    // Need a selector. In createHopCard, svg has color var(--bg-red).
+    // Maybe toggle a class?
+    // Current implementation in createHopCard doesn't have an ID on the button, only onclick.
+    // Ideally we should add an ID or class to the button in createHopCard. 
+    // But for now, we only requested "function calls".
+    // "active" style isn't defined for feed card yet.
+    // But we can update the SVG fill?
+
+    // 2. Modal Button
+    const modalBtn = document.getElementById('btn-cheers');
+    // Only if modal is open and matching hopId
+    // (Logic inside modal handles its own state mostly, but we can sync)
+    if (modalBtn && isActive) modalBtn.classList.add('active');
+    else if (modalBtn) modalBtn.classList.remove('active');
+}
+
+function updateCheersCount(hopId, delta) {
+    // 1. Feed Card Count
+    const feedCountEl = document.getElementById(`cheers-count-${hopId}`);
+    if (feedCountEl) {
+        let val = parseInt(feedCountEl.textContent) || 0;
+        feedCountEl.textContent = Math.max(0, val + delta);
+    }
+
+    // 2. Modal Count
+    const modalCountEl = document.getElementById('cheers-count');
+    if (modalCountEl) {
+        let val = parseInt(modalCountEl.textContent) || 0;
+        modalCountEl.textContent = Math.max(0, val + delta);
+    }
+}
