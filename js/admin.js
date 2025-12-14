@@ -130,6 +130,15 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('stat-users-count').innerText = userCount || 0;
 
         // 2. Latest 5
+        // First, fetch ALL Talents to map User IDs -> Talent Names (for highlighting)
+        const { data: allTalents } = await supabase.from('talents').select('id, user_id, display_name');
+        const talentMap = {};
+        if (allTalents) {
+            allTalents.forEach(t => {
+                talentMap[t.user_id] = { name: t.display_name, id: t.id };
+            });
+        }
+
         // Bars
         // Use select('*') to avoid 400 error if specific columns (like liquid_arts_score) are missing in DB schema
         const { data: latestBars } = await supabase.from('bars').select('*').order('created_at', { ascending: false }).limit(5);
@@ -157,23 +166,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }).join('');
         }
 
-        // Talents
-        const { data: latestTalents } = await supabase.from('talents').select('id, display_name, image_url, created_at, user_id').order('created_at', { ascending: false }).limit(5);
-        if (latestTalents) {
-            document.getElementById('latest-talents-list').innerHTML = latestTalents.map(t => `
-                <div style="display: flex; gap: 10px; background: #fafafa; padding: 10px; border-radius: 6px; border: 1px solid #eee;">
-                    <div style="width: 50px; height: 50px; background: #eee url('${t.image_url || ''}') center/cover; border-radius: 50%; flex-shrink: 0;"></div>
-                    <div style="flex: 1;">
-                        <div style="font-weight: 500; margin-top: 5px;">${t.display_name}</div>
-                        <div style="font-size: 0.8rem; color: #999;">${new Date(t.created_at).toLocaleDateString()}</div>
-                    </div>
-                     <div style="display: flex; align-items: center; gap: 5px;">
-                        <button onclick="window.open('talent.html?id=${t.user_id}', '_blank')" style="background:none; border:none; cursor:pointer; font-size: 1.1rem;" title="View">👁️</button>
-                        <button onclick="window.openTalentEditor('${t.user_id}')" style="background:none; border:none; cursor:pointer; font-size: 1.1rem;" title="Edit">✏️</button>
-                    </div>
-                </div>
-            `).join('');
-        }
+        // Talents - (Removed from Dashboard Overview Grid as per request, but keeping fetching for User highlighting)
+        // If element exists (in case we revert), we can populate it, but HTML removed it.
+        // We still need to populate the "TALENTS" VIEW (loadTalents function), not Dashboard Widget.
 
         // Articles
         const { data: latestArts } = await supabase.from('articles').select('id, title, cover_image, author_name, created_at, category').order('created_at', { ascending: false }).limit(5);
@@ -199,19 +194,26 @@ document.addEventListener('DOMContentLoaded', () => {
         // Users
         const { data: latestUsers } = await supabase.from('users').select('id, email, hopper_nickname, hopper_image_url, created_at').order('created_at', { ascending: false }).limit(5);
         if (latestUsers) {
-            document.getElementById('latest-users-list').innerHTML = latestUsers.map(u => `
-                 <div style="display: flex; gap: 10px; background: #fafafa; padding: 10px; border-radius: 6px; border: 1px solid #eee;">
+            document.getElementById('latest-users-list').innerHTML = latestUsers.map(u => {
+                const isTalent = talentMap[u.id]; // Check if user ID exists in talent map
+
+                // Style: Yellow BG if Talent
+                const bgStyle = isTalent ? 'background: #fff9c4;' : 'background: #fafafa;';
+                const displayName = isTalent ? `🎭 ${isTalent.name}` : (u.hopper_nickname || u.email.split('@')[0]);
+
+                return `
+                 <div style="display: flex; gap: 10px; padding: 10px; border-radius: 6px; border: 1px solid #eee; ${bgStyle}">
                      <div style="width: 50px; height: 50px; background: #eee url('${u.hopper_image_url || 'https://placehold.co/100x100?text=User'}') center/cover; border-radius: 50%; flex-shrink: 0;"></div>
                      <div style="flex: 1; overflow: hidden;">
-                         <div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${u.hopper_nickname || u.email.split('@')[0]}</div>
+                         <div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${displayName}</div>
                          <div style="font-size: 0.8rem; color: #999;">${u.email}</div>
                      </div>
                      <div style="display: flex; align-items: center; gap: 5px;">
-                        <!-- No public view for generic users usually, but let's add minimal set -->
                         <button onclick="editUser('${u.id}')" style="background:none; border:none; cursor:pointer; font-size: 1.1rem;" title="Edit">✏️</button>
                     </div>
                  </div>
-             `).join('');
+             `;
+            }).join('');
         }
     }
 
@@ -716,7 +718,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <h4 style="margin: 0 0 5px 0;">${t.display_name}</h4>
                     <p style="margin: 0; color: #666; font-size: 0.9rem;">${t.quote || 'No Code'}</p>
                     <div style="margin-top: 10px;">
-                        <button onclick="window.open('talent.html?id=${t.user_id}', '_blank')" class="btn btn-secondary" style="padding: 4px 10px;" title="View">👁️</button>
+                        <button onclick="window.open('talent.html?id=${t.id}', '_blank')" class="btn btn-secondary" style="padding: 4px 10px;" title="View">👁️</button>
                          <button onclick="window.openTalentEditor('${t.user_id}')" class="btn btn-secondary" style="padding: 4px 10px;" title="Edit">✏️</button>
                     </div>
                 </div>

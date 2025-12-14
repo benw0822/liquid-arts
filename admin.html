@@ -67,7 +67,7 @@
         /* Cards */
         .dash-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 20px;
             margin-bottom: 40px;
         }
@@ -520,25 +520,29 @@
         <div id="view-dashboard">
             <!-- Stats Grid (4 Cols) -->
             <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 40px;">
-                <div class="stat-card">
-                    <div class="stat-number" id="stat-bars-count">-</div>
-                    <div class="stat-label">BARS</div>
+                <div class="stat-card" onclick="switchView('bars')"
+                    style="cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; aspect-ratio: 1.5;">
+                    <div class="stat-label" style="margin-bottom: 10px; font-weight: 600; color: #666;">BARS</div>
+                    <div class="stat-number" id="stat-bars-count" style="margin: 0;">-</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="stat-articles-count">-</div>
-                    <div class="stat-label">STORIES</div>
+                <div class="stat-card" onclick="switchView('articles')"
+                    style="cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; aspect-ratio: 1.5;">
+                    <div class="stat-label" style="margin-bottom: 10px; font-weight: 600; color: #666;">STORIES</div>
+                    <div class="stat-number" id="stat-articles-count" style="margin: 0;">-</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="stat-talents-count">-</div>
-                    <div class="stat-label">TALENTS</div>
+                <div class="stat-card" onclick="switchView('talents')"
+                    style="cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; aspect-ratio: 1.5;">
+                    <div class="stat-label" style="margin-bottom: 10px; font-weight: 600; color: #666;">TALENTS</div>
+                    <div class="stat-number" id="stat-talents-count" style="margin: 0;">-</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="stat-users-count">-</div>
-                    <div class="stat-label">USERS</div>
+                <div class="stat-card" onclick="switchView('users')"
+                    style="cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; aspect-ratio: 1.5;">
+                    <div class="stat-label" style="margin-bottom: 10px; font-weight: 600; color: #666;">USERS</div>
+                    <div class="stat-number" id="stat-users-count" style="margin: 0;">-</div>
                 </div>
             </div>
 
-            <!-- Latest Lists Grid (2x2) -->
+            <!-- Latest Lists Grid (3 Cols) -->
             <div class="dash-grid">
                 <!-- 1. Bars -->
                 <div class="latest-section">
@@ -552,13 +556,7 @@
                     <div id="latest-articles-list" class="latest-list">Loading...</div>
                 </div>
 
-                <!-- 3. Talents -->
-                <div class="latest-section">
-                    <h3>New Talents</h3>
-                    <div id="latest-talents-list" class="latest-list">Loading...</div>
-                </div>
-
-                <!-- 4. Users -->
+                <!-- 3. Users -->
                 <div class="latest-section">
                     <h3>New Users</h3>
                     <div id="latest-users-list" class="latest-list">Loading...</div>
