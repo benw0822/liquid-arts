@@ -131,7 +131,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 2. Latest 5
         // Bars
-        const { data: latestBars } = await supabase.from('bars').select('id, title, image, location, liquid_arts_score, created_at').order('created_at', { ascending: false }).limit(5);
+        // Use select('*') to avoid 400 error if specific columns (like liquid_arts_score) are missing in DB schema
+        const { data: latestBars } = await supabase.from('bars').select('*').order('created_at', { ascending: false }).limit(5);
         if (latestBars) {
             document.getElementById('latest-bars-list').innerHTML = latestBars.map(b => {
                 const city = getCityDisplay(b.location);
@@ -191,7 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (latestUsers) {
             document.getElementById('latest-users-list').innerHTML = latestUsers.map(u => `
                  <div style="display: flex; gap: 10px; background: #fafafa; padding: 10px; border-radius: 6px; border: 1px solid #eee;">
-                     <div style="width: 50px; height: 50px; background: #eee url('${u.hopper_image_url || 'assets/default_avatar.png'}') center/cover; border-radius: 50%; flex-shrink: 0;"></div>
+                     <div style="width: 50px; height: 50px; background: #eee url('${u.hopper_image_url || 'https://placehold.co/100x100?text=User'}') center/cover; border-radius: 50%; flex-shrink: 0;"></div>
                      <div style="flex: 1; overflow: hidden;">
                          <div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${u.hopper_nickname || u.email.split('@')[0]}</div>
                          <div style="font-size: 0.8rem; color: #999;">${u.email}</div>
@@ -449,7 +450,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const isTalent = (u.roles || []).some(r => ['talent', 'kol'].includes(r));
             const hopperName = u.hopper_nickname || 'No Hopper Name';
-            const hopperImg = u.hopper_image_url || 'assets/default_avatar.png';
+            const hopperImg = u.hopper_image_url || 'https://placehold.co/100x100?text=User';
 
             return `
             <div class="article-item" style="display: flex; gap: 1rem; margin-bottom: 1.5rem; background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
