@@ -586,6 +586,7 @@ async function loadBar(id) {
         if (bar) {
             titleInput.value = bar.title || '';
             slugInput.value = bar.slug || ''; // NEW
+            slugInput.dispatchEvent(new Event('input')); // Trigger URL Preview
             vibeInput.value = bar.vibe || '';
             descriptionInput.value = bar.description || '';
 
