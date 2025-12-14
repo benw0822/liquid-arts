@@ -103,15 +103,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Toggle Views
-        ['dashboard', 'bars', 'talents', 'articles', 'users'].forEach(v => {
+        ['dashboard', 'bars', 'articles', 'talents', 'users'].forEach(v => {
             const el = document.getElementById(`view-${v}`);
             if (el) el.style.display = (v === viewName) ? 'block' : 'none';
         });
 
         // Load Data on Demand
         if (viewName === 'bars') loadBars();
-        if (viewName === 'talents') loadTalents();
         if (viewName === 'articles') loadArticles();
+        if (viewName === 'talents') loadTalents();
         if (viewName === 'users') loadUsers();
         if (viewName === 'dashboard') loadDashboardStats();
     };
@@ -130,45 +130,54 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('stat-users-count').innerText = userCount || 0;
 
         // 2. Latest 5
-        // First, fetch ALL Talents to map User IDs -> Talent Names (for highlighting)
-        const { data: allTalents } = await supabase.from('talents').select('id, user_id, display_name');
-        const talentMap = {};
-        if (allTalents) {
-            allTalents.forEach(t => {
-                talentMap[t.user_id] = { name: t.display_name, id: t.id };
-            });
-        }
-
-        // Bars
-        // Use select('*') to avoid 400 error if specific columns (like liquid_arts_score) are missing in DB schema
+        // Bars (Async City Fetch)
         const { data: latestBars } = await supabase.from('bars').select('*').order('created_at', { ascending: false }).limit(5);
         if (latestBars) {
-            document.getElementById('latest-bars-list').innerHTML = latestBars.map(b => {
-                // Fix: Use Coordinate-based City Logic
-                const city = getCityFromCoords(b.lat, b.lng) || getCityDisplay(b.location);
-                const score = b.liquid_arts_score ? `LA Score: ${b.liquid_arts_score}` : 'Unrated';
+            // Process async geocoding
+            const barsWithCity = await Promise.all(latestBars.map(async b => {
+                let city = 'Unknown City';
+                if (b.lat && b.lng) {
+                    city = await fetchCityFromCoords(b.lat, b.lng) || 'Unknown City';
+                } else {
+                    city = getCityDisplay(b.location); // Fallback to string parsing
+                }
+                return { ...b, cityDisplay: city };
+            }));
 
+            document.getElementById('latest-bars-list').innerHTML = barsWithCity.map(b => {
+                const score = b.liquid_arts_score ? `<span style="color:var(--bg-red); font-weight:700;">★ ${b.liquid_arts_score}</span>` : '<span style="color:#999; font-size:0.8rem;">Unrated</span>';
                 return `
-                <div class="article-item" style="display: flex; gap: 1rem; padding: 10px; background: #fafafa; border-radius: 6px; border: 1px solid #eee;">
-                    <div style="width: 50px; height: 50px; background: #eee url('${b.image || 'assets/gallery_1.png'}') center/cover; border-radius: 4px; flex-shrink: 0;"></div>
+                <div style="display: flex; gap: 10px; background: #fafafa; padding: 10px; border-radius: 6px; border: 1px solid #eee;">
+                    <div style="width: 50px; height: 50px; background: #eee url('${b.image || ''}') center/cover; border-radius: 4px; flex-shrink: 0;"></div>
                     <div style="flex: 1; overflow: hidden;">
-                        <h4 style="margin: 0 0 2px 0; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${b.title}</h4>
-                        <div style="font-size: 0.8rem; color: #666; display: flex; align-items: center; gap: 5px;">
-                           <span>${city}</span> • <span style="color: var(--bg-red); font-weight: 500;">${score}</span>
+                        <div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${b.title}</div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+                            <span style="font-size: 0.8rem; color: #666;">${b.cityDisplay}</span>
+                            ${score}
                         </div>
                     </div>
-                     <div style="display: flex; align-items: center; gap: 5px;">
-                        <button onclick="window.open('bar.html?id=${b.id}', '_blank')" style="background:none; border:none; cursor:pointer; font-size: 1.1rem;" title="View Frontend">👁️</button>
-                        <button onclick="editBar('${b.id}')" style="background:none; border:none; cursor:pointer; font-size: 1.1rem;" title="Edit Backend">✏️</button>
-                    </div>
-                </div>
-                `;
+                </div>`;
             }).join('');
         }
 
-        // Talents - (Removed from Dashboard Overview Grid as per request, but keeping fetching for User highlighting)
-        // If element exists (in case we revert), we can populate it, but HTML removed it.
-        // We still need to populate the "TALENTS" VIEW (loadTalents function), not Dashboard Widget.
+        // Talents
+        const { data: latestTalents } = await supabase.from('talents').select('id, display_name, image_url, created_at, user_id').order('created_at', { ascending: false }).limit(5);
+        if (latestTalents) {
+            document.getElementById('latest-talents-list').innerHTML = latestTalents.map(t => `
+                <div style="display: flex; gap: 10px; background: #fafafa; padding: 10px; border-radius: 6px; border: 1px solid #eee;">
+                    <div style="width: 50px; height: 50px; background: #eee url('${t.image_url || ''}') center/cover; border-radius: 50%; flex-shrink: 0;"></div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 500; margin-top: 5px;">${t.display_name}</div>
+                        <div style="font-size: 0.8rem; color: #999;">${new Date(t.created_at).toLocaleDateString()}</div>
+                    </div>
+                     <div style="display: flex; align-items: center; gap: 5px;">
+                        <button onclick="window.openTalentEditor('${t.user_id}')" style="background:none; border:none; cursor:pointer;" title="Edit">
+                            ✏️
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
 
         // Articles
         const { data: latestArts } = await supabase.from('articles').select('id, title, cover_image, author_name, created_at, category').order('created_at', { ascending: false }).limit(5);
@@ -183,10 +192,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             <span style="background: #e0e0e0; padding: 1px 6px; border-radius: 4px; font-size: 0.7rem;">${a.category}</span>
                         </div>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 5px;">
-                        <button onclick="window.open('journal-details.html?id=${a.id}', '_blank')" style="background:none; border:none; cursor:pointer; font-size: 1.1rem;" title="View">👁️</button>
-                        <button onclick="editArticle('${a.id}')" style="background:none; border:none; cursor:pointer; font-size: 1.1rem;" title="Edit">✏️</button>
-                    </div>
                 </div>
             `).join('');
         }
@@ -194,26 +199,15 @@ document.addEventListener('DOMContentLoaded', () => {
         // Users
         const { data: latestUsers } = await supabase.from('users').select('id, email, hopper_nickname, hopper_image_url, created_at').order('created_at', { ascending: false }).limit(5);
         if (latestUsers) {
-            document.getElementById('latest-users-list').innerHTML = latestUsers.map(u => {
-                const isTalent = talentMap[u.id]; // Check if user ID exists in talent map
-
-                // Style: Yellow BG if Talent
-                const bgStyle = isTalent ? 'background: #fff9c4;' : 'background: #fafafa;';
-                const displayName = isTalent ? `🎭 ${isTalent.name}` : (u.hopper_nickname || u.email.split('@')[0]);
-
-                return `
-                 <div style="display: flex; gap: 10px; padding: 10px; border-radius: 6px; border: 1px solid #eee; ${bgStyle}">
+            document.getElementById('latest-users-list').innerHTML = latestUsers.map(u => `
+                 <div style="display: flex; gap: 10px; background: #fafafa; padding: 10px; border-radius: 6px; border: 1px solid #eee;">
                      <div style="width: 50px; height: 50px; background: #eee url('${u.hopper_image_url || 'https://placehold.co/100x100?text=User'}') center/cover; border-radius: 50%; flex-shrink: 0;"></div>
                      <div style="flex: 1; overflow: hidden;">
-                         <div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${displayName}</div>
+                         <div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${u.hopper_nickname || u.email.split('@')[0]}</div>
                          <div style="font-size: 0.8rem; color: #999;">${u.email}</div>
                      </div>
-                     <div style="display: flex; align-items: center; gap: 5px;">
-                        <button onclick="editUser('${u.id}')" style="background:none; border:none; cursor:pointer; font-size: 1.1rem;" title="Edit">✏️</button>
-                    </div>
                  </div>
-             `;
-            }).join('');
+             `).join('');
         }
     }
 
@@ -250,7 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <h4 style="margin: 0 0 5px 0; font-size: 1.2rem; font-weight: 600;">${bar.title}</h4>
                          ${bar.liquid_arts_score ? `<span style="color:var(--bg-red); font-weight:700;">★ ${bar.liquid_arts_score}</span>` : '<span style="color:#999; font-size:0.8rem;">Unrated</span>'}
                     </div>
-                    <p style="margin: 0 0 5px 0; color: #555;">${getCityFromCoords(bar.lat, bar.lng) || getCityDisplay(bar.location)}</p>
+                    <p style="margin: 0 0 5px 0; color: #555;">${getCityDisplay(bar.location)}</p>
                     
                     <div style="margin-top: 10px; display: flex; align-items: center; gap: 15px;">
                         <!-- Publish Toggle -->
@@ -447,10 +441,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const userListFull = document.getElementById('user-list-full');
         userListFull.innerHTML = '<tr><td colspan="4" style="padding:1rem;">Loading...</td></tr>';
 
-        // Fetch Users and their Linked Bars (if any)
         const { data: users, error } = await supabase.from('users').select('*').order('created_at', { ascending: false });
-        // Fetch bars to map owners
         const { data: bars } = await supabase.from('bars').select('id, title, owner_user_id');
+        const { data: talents } = await supabase.from('talents').select('user_id, display_name');
 
         if (error) {
             userListFull.innerHTML = `<p style="color:red">Error: ${error.message}</p>`;
@@ -463,19 +456,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 `<span class="tag-badge" style="background:${getRoleColor(r)}; color:white; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">${r}</span>`
             ).join(' ');
 
-            const isTalent = (u.roles || []).some(r => ['talent', 'kol'].includes(r));
+            // Talent Logic
+            const talentProfile = talents ? talents.find(t => t.user_id === u.id) : null;
+            const isTalentRole = (u.roles || []).some(r => ['talent', 'kol'].includes(r)); // Role check
+            const isTalent = isTalentRole || !!talentProfile; // Combine checks
+
             const hopperName = u.hopper_nickname || 'No Hopper Name';
             const hopperImg = u.hopper_image_url || 'https://placehold.co/100x100?text=User';
 
+            // Styling
+            const bgStyle = isTalent ? 'background: #fff9c4;' : 'background: #fff;';
+            const nameDisplay = talentProfile
+                ? `<div style="font-weight:700; font-size:1.05rem; color:#d97706;">${talentProfile.display_name}</div>
+                   <div style="font-size:0.85rem; color:#666;">${hopperName} <span style="font-weight:400; color:#888;">(${u.email})</span></div>`
+                : `<h4 style="margin: 0 0 5px 0;">${hopperName} <span style="font-weight:400; font-size:0.9rem; color:#888;">(${u.email})</span></h4>`;
+
             return `
-            <div class="article-item" style="display: flex; gap: 1rem; margin-bottom: 1.5rem; background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+            <div class="article-item" style="display: flex; gap: 1rem; margin-bottom: 1.5rem; ${bgStyle} padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
                 <div style="width: 80px; height: 80px; background: #eee url('${hopperImg}') center/cover; border-radius: 50%; flex-shrink: 0;"></div>
                 <div style="flex: 1;">
                     <div style="display: flex; justify-content: space-between;">
-                        <h4 style="margin: 0 0 5px 0;">${hopperName} <span style="font-weight:400; font-size:0.9rem; color:#888;">(${u.email})</span></h4>
+                        <div>${nameDisplay}</div>
                         <div style="display:flex; gap:5px;">${roleBadges}</div>
                     </div>
-                    <p style="margin: 0; color: #666; font-size: 0.9rem;">
+                    <p style="margin: 5px 0 0 0; color: #666; font-size: 0.9rem;">
                         Linked Bar: ${linkedBar ? linkedBar.title : 'None'}
                     </p>
                     
@@ -661,38 +665,20 @@ document.addEventListener('DOMContentLoaded', () => {
         return locationString.split(',')[0].trim();
     }
 
-    // New: Coordinate-based City Logic
-    function getCityFromCoords(lat, lng) {
-        if (!lat || !lng) return null; // Fallback to getCityDisplay if no coords
-
-        // Simple Haversine-like or distance check to major cities
-        const cities = [
-            { name: 'Taipei', lat: 25.0330, lng: 121.5654 },
-            { name: 'New Taipei', lat: 25.0120, lng: 121.4657 },
-            { name: 'Taoyuan', lat: 24.9936, lng: 121.3000 },
-            { name: 'Taichung', lat: 24.1477, lng: 120.6736 },
-            { name: 'Tainan', lat: 22.9997, lng: 120.2270 },
-            { name: 'Kaohsiung', lat: 22.6273, lng: 120.3014 },
-            { name: 'Hsinchu', lat: 24.8138, lng: 120.9675 },
-            { name: 'Keelung', lat: 25.1276, lng: 121.7392 }
-        ];
-
-        let closest = null;
-        let minDist = Infinity;
-
-        cities.forEach(c => {
-            const dist = Math.sqrt(Math.pow(c.lat - lat, 2) + Math.pow(c.lng - lng, 2));
-            if (dist < minDist) {
-                minDist = dist;
-                closest = c;
+    // Reverse Geocoding Helper
+    async function fetchCityFromCoords(lat, lng) {
+        try {
+            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=en`);
+            const data = await response.json();
+            if (data.address) {
+                // Try city, then town, then village, then county
+                return data.address.city || data.address.town || data.address.village || data.address.county || '';
             }
-        });
-
-        // Threshold: approx 0.3 degrees (~30km)
-        if (closest && minDist < 0.3) {
-            return closest.name;
+            return '';
+        } catch (e) {
+            console.error('City fetch error:', e);
+            return '';
         }
-        return 'Taiwan'; // Value outside major cities
     }
 
     async function loadTalents() {
@@ -718,7 +704,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <h4 style="margin: 0 0 5px 0;">${t.display_name}</h4>
                     <p style="margin: 0; color: #666; font-size: 0.9rem;">${t.quote || 'No Code'}</p>
                     <div style="margin-top: 10px;">
-                        <button onclick="window.open('talent.html?id=${t.id}', '_blank')" class="btn btn-secondary" style="padding: 4px 10px;" title="View">👁️</button>
+                        <button onclick="window.open('talent.html?id=${t.user_id}', '_blank')" class="btn btn-secondary" style="padding: 4px 10px;" title="View">👁️</button>
                          <button onclick="window.openTalentEditor('${t.user_id}')" class="btn btn-secondary" style="padding: 4px 10px;" title="Edit">✏️</button>
                     </div>
                 </div>
