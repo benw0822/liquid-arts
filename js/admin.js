@@ -148,6 +148,10 @@ document.addEventListener('DOMContentLoaded', () => {
                            <span>${city}</span> • <span style="color: var(--bg-red); font-weight: 500;">${score}</span>
                         </div>
                     </div>
+                     <div style="display: flex; align-items: center; gap: 5px;">
+                        <button onclick="window.open('bar.html?id=${b.id}', '_blank')" style="background:none; border:none; cursor:pointer; font-size: 1.1rem;" title="View Frontend">👁️</button>
+                        <button onclick="editBar('${b.id}')" style="background:none; border:none; cursor:pointer; font-size: 1.1rem;" title="Edit Backend">✏️</button>
+                    </div>
                 </div>
                 `;
             }).join('');
@@ -164,9 +168,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div style="font-size: 0.8rem; color: #999;">${new Date(t.created_at).toLocaleDateString()}</div>
                     </div>
                      <div style="display: flex; align-items: center; gap: 5px;">
-                        <button onclick="window.openTalentEditor('${t.user_id}')" style="background:none; border:none; cursor:pointer;" title="Edit">
-                            ✏️
-                        </button>
+                        <button onclick="window.open('talent.html?id=${t.user_id}', '_blank')" style="background:none; border:none; cursor:pointer; font-size: 1.1rem;" title="View">👁️</button>
+                        <button onclick="window.openTalentEditor('${t.user_id}')" style="background:none; border:none; cursor:pointer; font-size: 1.1rem;" title="Edit">✏️</button>
                     </div>
                 </div>
             `).join('');
@@ -185,6 +188,10 @@ document.addEventListener('DOMContentLoaded', () => {
                             <span style="background: #e0e0e0; padding: 1px 6px; border-radius: 4px; font-size: 0.7rem;">${a.category}</span>
                         </div>
                     </div>
+                    <div style="display: flex; align-items: center; gap: 5px;">
+                        <button onclick="window.open('journal-details.html?id=${a.id}', '_blank')" style="background:none; border:none; cursor:pointer; font-size: 1.1rem;" title="View">👁️</button>
+                        <button onclick="editArticle('${a.id}')" style="background:none; border:none; cursor:pointer; font-size: 1.1rem;" title="Edit">✏️</button>
+                    </div>
                 </div>
             `).join('');
         }
@@ -199,6 +206,10 @@ document.addEventListener('DOMContentLoaded', () => {
                          <div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${u.hopper_nickname || u.email.split('@')[0]}</div>
                          <div style="font-size: 0.8rem; color: #999;">${u.email}</div>
                      </div>
+                     <div style="display: flex; align-items: center; gap: 5px;">
+                        <!-- No public view for generic users usually, but let's add minimal set -->
+                        <button onclick="editUser('${u.id}')" style="background:none; border:none; cursor:pointer; font-size: 1.1rem;" title="Edit">✏️</button>
+                    </div>
                  </div>
              `).join('');
         }
