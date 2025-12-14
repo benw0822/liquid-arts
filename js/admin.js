@@ -133,32 +133,39 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('stat-users-count').innerText = userCount || 0;
 
         // 2. Latest 5
-        // Bars (Async City Fetch)
+        // Bars
         const { data: latestBars } = await supabase.from('bars').select('*').order('created_at', { ascending: false }).limit(5);
         if (latestBars) {
-            // Process async geocoding
+            // Async Geocoding
             const barsWithCity = await Promise.all(latestBars.map(async b => {
                 let city = 'Unknown City';
                 if (b.lat && b.lng) {
-                    city = await fetchCityFromCoords(b.lat, b.lng) || 'Unknown City';
+                    city = await fetchCityFromCoords(b.lat, b.lng) || getCityDisplay(b.location) || 'Unknown City';
                 } else {
-                    city = getCityDisplay(b.location); // Fallback to string parsing
+                    city = getCityDisplay(b.location);
                 }
+                if (!city || city === 'Unknown City') city = b.location || 'Unknown';
                 return { ...b, cityDisplay: city };
             }));
 
             document.getElementById('latest-bars-list').innerHTML = barsWithCity.map(b => {
                 const scoreVal = b.editorial_rating !== null && b.editorial_rating !== undefined ? b.editorial_rating : (b.liquid_arts_score || null);
                 const score = scoreVal !== null ? `<span style="color:var(--bg-red); font-weight:700;">★ ${scoreVal}</span>` : '<span style="color:#999; font-size:0.8rem;">Unrated</span>';
+
                 return `
-                <div style="display: flex; gap: 10px; background: #fafafa; padding: 10px; border-radius: 6px; border: 1px solid #eee;">
-                    <img src="${b.image || ''}" style="width: 60px; height: 60px; object-fit: contain; background: #eee; border-radius: 4px; flex-shrink: 0;" alt="${b.title}">
+                <div style="display: flex; gap: 10px; background: #fafafa; padding: 10px; border-radius: 6px; border: 1px solid #eee; align-items: center;">
+                    <img src="${b.image || ''}" style="width: 50px; height: 50px; object-fit: contain; background: #eee; border-radius: 4px; flex-shrink: 0;" alt="${b.title}">
                     <div style="flex: 1;">
                         <div style="font-weight: 500; line-height: 1.3;">${b.title}</div>
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
                             <span style="font-size: 0.8rem; color: #666;">${b.cityDisplay}</span>
                             ${score}
                         </div>
+                    </div>
+                    <!-- Mini Actions -->
+                    <div style="display: flex; gap: 4px;">
+                        <button onclick="window.open('bar.html?id=${b.id}', '_blank')" style="border:none; background:none; cursor:pointer; color:#666;" title="View">👁️</button>
+                        <button onclick="editBar('${b.id}')" style="border:none; background:none; cursor:pointer;" title="Edit">✏️</button>
                     </div>
                 </div>`;
             }).join('');
@@ -168,28 +175,50 @@ document.addEventListener('DOMContentLoaded', () => {
         const { data: latestArticles } = await supabase.from('articles').select('id, title, cover_image, author_name, created_at, category').order('created_at', { ascending: false }).limit(5);
         if (latestArticles) {
             document.getElementById('latest-articles-list').innerHTML = latestArticles.map(a => `
-                <div style="display: flex; gap: 10px; background: #fafafa; padding: 10px; border-radius: 6px; border: 1px solid #eee;">
-                    <img src="${a.cover_image || ''}" style="width: 60px; height: 60px; object-fit: contain; background: #eee; border-radius: 4px; flex-shrink: 0;" alt="${a.title}">
+                <div style="display: flex; gap: 10px; background: #fafafa; padding: 10px; border-radius: 6px; border: 1px solid #eee; align-items: center;">
+                    <img src="${a.cover_image || ''}" style="width: 50px; height: 50px; object-fit: contain; background: #eee; border-radius: 4px; flex-shrink: 0;" alt="${a.title}">
                     <div style="flex: 1;">
                          <div style="font-weight: 500; line-height: 1.3;">${a.title}</div>
                          <div style="font-size: 0.8rem; color: #666; margin-top: 4px;">By ${a.author_name || 'Admin'}</div>
+                    </div>
+                    <!-- Mini Actions -->
+                    <div style="display: flex; gap: 4px;">
+                        <button onclick="window.open('journal-details.html?id=${a.id}', '_blank')" style="border:none; background:none; cursor:pointer; color:#666;" title="View">👁️</button>
+                        <button onclick="editArticle('${a.id}')" style="border:none; background:none; cursor:pointer;" title="Edit">✏️</button>
                     </div>
                 </div>
             `).join('');
         }
 
-        // Users
-        const { data: latestUsers } = await supabase.from('users').select('id, email, hopper_nickname, hopper_image_url, created_at').order('created_at', { ascending: false }).limit(5);
+        // Users - Needs Talent Data!
+        const { data: latestUsers } = await supabase.from('users').select('*').order('created_at', { ascending: false }).limit(5); // Changed select to * to catch roles
+        const { data: talData } = await supabase.from('talents').select('user_id, display_name'); // Simplify fetch for matching
+
         if (latestUsers) {
-            document.getElementById('latest-users-list').innerHTML = latestUsers.map(u => `
-                  <div style="display: flex; gap: 10px; background: #fafafa; padding: 10px; border-radius: 6px; border: 1px solid #eee;">
-                      <img src="${u.hopper_image_url || 'https://placehold.co/100x100?text=User'}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 50%; flex-shrink: 0; background:#eee;" alt="User">
+            document.getElementById('latest-users-list').innerHTML = latestUsers.map(u => {
+                const talentProfile = talData ? talData.find(t => t.user_id === u.id) : null;
+                const isTalentRole = (u.roles || []).some(r => ['talent', 'kol'].includes(r));
+                const isTalent = isTalentRole || !!talentProfile;
+
+                const bgStyle = isTalent ? 'background: #fff9c4;' : 'background: #fafafa;';
+                const nameDisplay = talentProfile
+                    ? `<span style="color:#d97706; font-weight:700;">${talentProfile.display_name}</span>`
+                    : (u.hopper_nickname || u.email.split('@')[0]);
+
+                return `
+                  <div style="display: flex; gap: 10px; ${bgStyle} padding: 10px; border-radius: 6px; border: 1px solid #eee; align-items: center;">
+                      <img src="${u.hopper_image_url || 'https://placehold.co/100x100?text=User'}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 50%; flex-shrink: 0; background:#eee;" alt="User">
                       <div style="flex: 1;">
-                          <div style="font-weight: 500; line-height: 1.3;">${u.hopper_nickname || u.email.split('@')[0]}</div>
+                          <div style="font-weight: 500; line-height: 1.3;">${nameDisplay}</div>
                           <div style="font-size: 0.8rem; color: #999; word-break: break-all;">${u.email}</div>
                       </div>
+                      <!-- Mini Actions -->
+                      <div style="display: flex; gap: 4px;">
+                            <button onclick="window.openTalentEditor('${u.id}')" style="border:none; background:none; cursor:pointer;" title="Talent Profile">🎭</button>
+                            <button onclick="editUser('${u.id}')" style="border:none; background:none; cursor:pointer;" title="Edit User">✏️</button>
+                      </div>
                   </div>
-             `).join('');
+             `}).join('');
         }
     }
 
@@ -214,43 +243,28 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // --- Async City Geocoding for ALL bars (Batching recommended but for now Parallel) ---
-        // Note: Nominatim has usage limits (1 req/sec strict). 
-        // We really should cache this in DB. But for now, we'll try to fetch only if 'location' string is missing or looks like coords?
-        // Actually, just apply the same logic as dashboard but be careful.
-        // For better UX, we render first, then update cities? Or just wait? 
-        // User complained it's "not reading out". I will wait.
-
-        const barsWithCity = await Promise.all(bars.map(async b => {
-            let city = 'Unknown City';
-            // If lat/lng exist, prefer them
-            if (b.lat && b.lng) {
-                // Simple caching check: if we already have a location string that looks like a city, keep it?
-                // No, user wants correct city.
-                city = await fetchCityFromCoords(b.lat, b.lng) || getCityDisplay(b.location);
-            } else {
-                city = getCityDisplay(b.location);
-            }
-            if (!city || city === 'Unknown City') city = b.location || 'Unknown';
-            return { ...b, cityDisplay: city };
-        }));
-
-        barListFull.innerHTML = barsWithCity.map(bar => {
+        // Render immediately with existing data
+        barListFull.innerHTML = bars.map(bar => {
             const isPublished = bar.is_published !== false;
             const statusText = isPublished ? 'Published' : 'Hidden';
-            // Score check: defined and not null, prefer editorial_rating
+
+            // Initial City Display (DB value or placeholder)
+            let initialCity = getCityDisplay(bar.location) || 'Unknown City';
+            if (initialCity === 'Unknown City' && bar.location) initialCity = bar.location;
+
+            // Score logic
             const scoreVal = bar.editorial_rating !== null && bar.editorial_rating !== undefined ? bar.editorial_rating : (bar.liquid_arts_score !== null && bar.liquid_arts_score !== undefined ? bar.liquid_arts_score : null);
             const hasScore = scoreVal !== null;
 
             return `
-            <div class="article-item" style="display: flex; gap: 1rem; margin-bottom: 1.5rem; background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+            <div class="article-item" id="bar-item-${bar.id}" style="display: flex; gap: 1rem; margin-bottom: 1.5rem; background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
                 <img src="${bar.image || ''}" style="width: 100px; height: 100px; object-fit: contain; background: #eee; border-radius: 8px; flex-shrink: 0;" alt="${bar.title}">
                 <div style="flex: 1;">
                     <div style="display: flex; justify-content: space-between;">
                         <h4 style="margin: 0 0 5px 0; font-size: 1.2rem; font-weight: 600;">${bar.title}</h4>
                          ${hasScore ? `<span style="color:var(--bg-red); font-weight:700;">★ ${scoreVal}</span>` : '<span style="color:#999; font-size:0.8rem;">Unrated</span>'}
                     </div>
-                    <p style="margin: 0 0 5px 0; color: #555;">${bar.cityDisplay}</p>
+                    <p class="city-display" style="margin: 0 0 5px 0; color: #555;">${initialCity}</p>
                     
                     <div style="margin-top: 10px; display: flex; align-items: center; gap: 15px;">
                         <!-- Publish Toggle -->
@@ -270,6 +284,26 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
         }).join('');
+
+        // Async Enrichment: Update Cities one by one to avoid rate limits and blocking
+        enrichCities(bars);
+    }
+
+    async function enrichCities(bars) {
+        for (const bar of bars) {
+            // Only fetch if we don't have a good city
+            const currentDisplay = getCityDisplay(bar.location);
+            if ((!currentDisplay || currentDisplay === 'Unknown City') && bar.lat && bar.lng) {
+                // Fetch
+                const city = await fetchCityFromCoords(bar.lat, bar.lng);
+                if (city) {
+                    const el = document.querySelector(`#bar-item-${bar.id} .city-display`);
+                    if (el) el.textContent = city;
+                }
+                // Courtesy delay for API
+                await new Promise(r => setTimeout(r, 600));
+            }
+        }
     }
 
     async function loadArticles(user, roles) {
