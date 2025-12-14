@@ -1,0 +1,39 @@
+{
+    "rewrites": [
+        {
+            "source": "/bar/:slug",
+            "destination": "/bar.html?slug=:slug"
+        },
+        {
+            "source": "/bar/id/:id",
+            "destination": "/bar.html?id=:id"
+        },
+        {
+            "source": "/talent/:id",
+            "destination": "/talent.html?id=:id"
+        },
+        {
+            "source": "/article/:id",
+            "destination": "/article.html?id=:id"
+        }
+    ],
+    "headers": [
+        {
+            "source": "/(.*)",
+            "headers": [
+                {
+                    "key": "X-Content-Type-Options",
+                    "value": "nosniff"
+                },
+                {
+                    "key": "X-Frame-Options",
+                    "value": "DENY"
+                },
+                {
+                    "key": "X-XSS-Protection",
+                    "value": "1; mode=block"
+                }
+            ]
+        }
+    ]
+}

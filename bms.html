@@ -262,13 +262,32 @@
 
                 <div style="margin-bottom: 1.5rem;">
                     <label class="info-label">Custom Slug (URL)</label>
-                    <div style="display: flex; gap: 10px; align-items: center;">
+                    <div class="input-group" style="display: flex; gap: 5px;">
                         <input type="text" id="bar-slug" class="form-input" placeholder="e.g. midnight-mixology"
                             style="margin-bottom: 0;">
-                        <button id="btn-check-slug" class="secondary-btn"
-                            style="padding: 10px; font-size: 0.9rem; white-space: nowrap;">Check</button>
+                        <button id="btn-check-slug" class="secondary-btn" style="white-space: nowrap;">Check</button>
                     </div>
-                    <p id="slug-feedback" style="font-size: 0.8rem; margin: 5px 0 0 0; color: #888;">Leave empty to
+                    <p id="slug-feedback" style="font-size: 0.85rem; height: 1.2em; margin: 5px 0 0 0; color: #888;">
+                    </p>
+
+                    <!-- URL Preview & Copy -->
+                    <div id="slug-url-container"
+                        style="display: none; align-items: center; gap: 10px; margin-top: 8px; background: #f0f7ff; padding: 8px 12px; border-radius: 6px; border: 1px solid #cce3ff;">
+                        <span
+                            style="font-size: 0.85rem; color: #0066cc; font-weight: 500; white-space: nowrap;">URL:</span>
+                        <code id="final-slug-url"
+                            style="font-size: 0.85rem; color: #333; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></code>
+                        <button id="btn-copy-url" title="Copy Link"
+                            style="background: none; border: none; cursor: pointer; color: #0066cc; display: flex; align-items: center; padding: 4px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <p id="slug-feedback-help" style="font-size: 0.8rem; margin: 5px 0 0 0; color: #888;">Leave empty to
                         auto-generate from name.</p>
                 </div>
 
@@ -447,7 +466,7 @@
                 <div style="margin-bottom: 1rem;">
                     <label class="info-label">City (Auto-detected)</label>
                     <input type="text" id="bar-city" class="form-input" placeholder="Auto-filled from coordinates"
-                        readonly style="background: #f9f9f9; color: #666; cursor: not-allowed;">
+                        readonly style="background: #f0f0f0; color: #333; font-weight: bold; cursor: default;">
                 </div>
 
                 <div
