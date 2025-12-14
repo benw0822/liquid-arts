@@ -396,6 +396,11 @@ btnLoadMap.addEventListener('click', (e) => {
             parsed = true;
             alert('Could not find Place Name in URL, but updated Map coordinates.');
         }
+
+        // Auto-fetch City
+        fetchCityFromCoords(lat, lng).then(city => {
+            if (city) cityInput.value = city;
+        });
     }
 
     if (!parsed) {
@@ -600,6 +605,12 @@ async function loadBar(id) {
 
             if (bar.lat && bar.lng) {
                 updateMapPreview(bar.lat, bar.lng);
+                // If city is missing but we have coords, fetch it now
+                if (!bar.city) {
+                    fetchCityFromCoords(bar.lat, bar.lng).then(city => {
+                        if (city) cityInput.value = city;
+                    });
+                }
             }
 
             ownerInput.value = bar.owner_name || '';
