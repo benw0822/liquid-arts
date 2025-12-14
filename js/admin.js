@@ -138,9 +138,9 @@ document.addEventListener('DOMContentLoaded', () => {
             supabase.from('articles').select('*', { count: 'exact', head: true }),
             supabase.from('users').select('*', { count: 'exact', head: true }),
             // Optimised Selects
-            supabase.from('bars').select('id, title, image, location, lat, lng, created_at, liquid_arts_score, editorial_rating').order('created_at', { ascending: false }).limit(5),
-            supabase.from('articles').select('id, title, cover_image, author_name, created_at, category').order('created_at', { ascending: false }).limit(5),
-            supabase.from('users').select('id, email, hopper_nickname, hopper_image_url, created_at, roles').order('created_at', { ascending: false }).limit(5),
+            supabase.from('bars').select('*').order('created_at', { ascending: false }).limit(5),
+            supabase.from('articles').select('*').order('created_at', { ascending: false }).limit(5),
+            supabase.from('users').select('*').order('created_at', { ascending: false }).limit(5),
             supabase.from('talents').select('user_id, display_name')
         ]);
 
