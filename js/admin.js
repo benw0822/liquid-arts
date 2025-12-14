@@ -148,7 +148,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }));
 
             document.getElementById('latest-bars-list').innerHTML = barsWithCity.map(b => {
-                const score = b.liquid_arts_score ? `<span style="color:var(--bg-red); font-weight:700;">★ ${b.liquid_arts_score}</span>` : '<span style="color:#999; font-size:0.8rem;">Unrated</span>';
+                const scoreVal = b.editorial_rating !== null && b.editorial_rating !== undefined ? b.editorial_rating : (b.liquid_arts_score || null);
+                const score = scoreVal !== null ? `<span style="color:var(--bg-red); font-weight:700;">★ ${scoreVal}</span>` : '<span style="color:#999; font-size:0.8rem;">Unrated</span>';
                 return `
                 <div style="display: flex; gap: 10px; background: #fafafa; padding: 10px; border-radius: 6px; border: 1px solid #eee;">
                     <img src="${b.image || ''}" style="width: 60px; height: 60px; object-fit: contain; background: #eee; border-radius: 4px; flex-shrink: 0;" alt="${b.title}">
@@ -237,8 +238,9 @@ document.addEventListener('DOMContentLoaded', () => {
         barListFull.innerHTML = barsWithCity.map(bar => {
             const isPublished = bar.is_published !== false;
             const statusText = isPublished ? 'Published' : 'Hidden';
-            // Score check: defined and not null
-            const hasScore = (bar.liquid_arts_score !== null && bar.liquid_arts_score !== undefined);
+            // Score check: defined and not null, prefer editorial_rating
+            const scoreVal = bar.editorial_rating !== null && bar.editorial_rating !== undefined ? bar.editorial_rating : (bar.liquid_arts_score !== null && bar.liquid_arts_score !== undefined ? bar.liquid_arts_score : null);
+            const hasScore = scoreVal !== null;
 
             return `
             <div class="article-item" style="display: flex; gap: 1rem; margin-bottom: 1.5rem; background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
@@ -246,7 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div style="flex: 1;">
                     <div style="display: flex; justify-content: space-between;">
                         <h4 style="margin: 0 0 5px 0; font-size: 1.2rem; font-weight: 600;">${bar.title}</h4>
-                         ${hasScore ? `<span style="color:var(--bg-red); font-weight:700;">★ ${bar.liquid_arts_score}</span>` : '<span style="color:#999; font-size:0.8rem;">Unrated</span>'}
+                         ${hasScore ? `<span style="color:var(--bg-red); font-weight:700;">★ ${scoreVal}</span>` : '<span style="color:#999; font-size:0.8rem;">Unrated</span>'}
                     </div>
                     <p style="margin: 0 0 5px 0; color: #555;">${bar.cityDisplay}</p>
                     
