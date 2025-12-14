@@ -22,10 +22,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 1. Listen for Auth Changes (Redirects, Logouts)
     supabase.auth.onAuthStateChange((event, session) => {
-        if (session) {
-            verifyAccess(session.user);
-        } else {
-            showLogin();
+        try {
+            if (session) {
+                verifyAccess(session.user);
+            } else {
+                showLogin();
+            }
+        } catch (err) {
+            console.error('Auth State Change Error:', err);
+            alert('Critical Error in Auth Logic: ' + err.message);
         }
     });
 
@@ -366,7 +371,7 @@ document.addEventListener('DOMContentLoaded', () => {
     addJournalBtn.addEventListener('click', () => { window.location.href = 'cms.html'; });
 
     // --- User Management Logic ---
-    // const usersSection = document.getElementById('users-section'); // Legacy
+    const usersSection = document.getElementById('view-users'); // Corrected ID
     // const userList = document.getElementById('user-list'); // Legacy
     const userModal = document.getElementById('user-modal');
     const addUserBtn = document.getElementById('add-user-btn');
@@ -389,7 +394,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 btn.onclick = () => {
                     document.querySelector('.dash-grid').style.display = 'none';
                     document.getElementById('articles-section').style.display = 'none';
-                    usersSection.style.display = 'block';
+                    if (usersSection) usersSection.style.display = 'block';
                     loadUsers();
                 };
                 // Add to header actions
