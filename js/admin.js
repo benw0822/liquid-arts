@@ -135,19 +135,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const { data: latestBars } = await supabase.from('bars').select('*').order('created_at', { ascending: false }).limit(5);
         if (latestBars) {
             document.getElementById('latest-bars-list').innerHTML = latestBars.map(b => {
-                const city = getCityDisplay(b.location);
-                const score = b.liquid_arts_score ? `<span style="color:var(--bg-red); font-weight:700;">★ ${b.liquid_arts_score}</span>` : '<span style="color:#999; font-size:0.8rem;">Unrated</span>';
+                // Fix: Use Coordinate-based City Logic
+                const city = getCityFromCoords(b.lat, b.lng) || getCityDisplay(b.location);
+                const score = b.liquid_arts_score ? `LA Score: ${b.liquid_arts_score}` : 'Unrated';
+
                 return `
-                <div style="display: flex; gap: 10px; background: #fafafa; padding: 10px; border-radius: 6px; border: 1px solid #eee;">
-                    <div style="width: 50px; height: 50px; background: #eee url('${b.image || ''}') center/cover; border-radius: 4px; flex-shrink: 0;"></div>
+                <div class="article-item" style="display: flex; gap: 1rem; padding: 10px; background: #fafafa; border-radius: 6px; border: 1px solid #eee;">
+                    <div style="width: 50px; height: 50px; background: #eee url('${b.image || 'assets/gallery_1.png'}') center/cover; border-radius: 4px; flex-shrink: 0;"></div>
                     <div style="flex: 1; overflow: hidden;">
-                        <div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${b.title}</div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
-                            <span style="font-size: 0.8rem; color: #666;">${city}</span>
-                            ${score}
+                        <h4 style="margin: 0 0 2px 0; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${b.title}</h4>
+                        <div style="font-size: 0.8rem; color: #666; display: flex; align-items: center; gap: 5px;">
+                           <span>${city}</span> • <span style="color: var(--bg-red); font-weight: 500;">${score}</span>
                         </div>
                     </div>
-                </div>`;
+                </div>
+                `;
             }).join('');
         }
 
@@ -235,7 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <h4 style="margin: 0 0 5px 0; font-size: 1.2rem; font-weight: 600;">${bar.title}</h4>
                          ${bar.liquid_arts_score ? `<span style="color:var(--bg-red); font-weight:700;">★ ${bar.liquid_arts_score}</span>` : '<span style="color:#999; font-size:0.8rem;">Unrated</span>'}
                     </div>
-                    <p style="margin: 0 0 5px 0; color: #555;">${getCityDisplay(bar.location)}</p>
+                    <p style="margin: 0 0 5px 0; color: #555;">${getCityFromCoords(bar.lat, bar.lng) || getCityDisplay(bar.location)}</p>
                     
                     <div style="margin-top: 10px; display: flex; align-items: center; gap: 15px;">
                         <!-- Publish Toggle -->
@@ -644,6 +646,40 @@ document.addEventListener('DOMContentLoaded', () => {
         if (locationString.includes('Taichung')) return 'Taichung';
         if (locationString.includes('Tainan')) return 'Tainan';
         return locationString.split(',')[0].trim();
+    }
+
+    // New: Coordinate-based City Logic
+    function getCityFromCoords(lat, lng) {
+        if (!lat || !lng) return null; // Fallback to getCityDisplay if no coords
+
+        // Simple Haversine-like or distance check to major cities
+        const cities = [
+            { name: 'Taipei', lat: 25.0330, lng: 121.5654 },
+            { name: 'New Taipei', lat: 25.0120, lng: 121.4657 },
+            { name: 'Taoyuan', lat: 24.9936, lng: 121.3000 },
+            { name: 'Taichung', lat: 24.1477, lng: 120.6736 },
+            { name: 'Tainan', lat: 22.9997, lng: 120.2270 },
+            { name: 'Kaohsiung', lat: 22.6273, lng: 120.3014 },
+            { name: 'Hsinchu', lat: 24.8138, lng: 120.9675 },
+            { name: 'Keelung', lat: 25.1276, lng: 121.7392 }
+        ];
+
+        let closest = null;
+        let minDist = Infinity;
+
+        cities.forEach(c => {
+            const dist = Math.sqrt(Math.pow(c.lat - lat, 2) + Math.pow(c.lng - lng, 2));
+            if (dist < minDist) {
+                minDist = dist;
+                closest = c;
+            }
+        });
+
+        // Threshold: approx 0.3 degrees (~30km)
+        if (closest && minDist < 0.3) {
+            return closest.name;
+        }
+        return 'Taiwan'; // Value outside major cities
     }
 
     async function loadTalents() {
