@@ -867,12 +867,13 @@ document.addEventListener('DOMContentLoaded', () => {
         let id = params.get('id');
         let slug = params.get('slug');
 
-        // Support Vercel Rewrite paths: /bar/:slug
+        // Support Vercel Rewrite paths: /:slug (root level)
         if (!id && !slug) {
+            // pathname: "/some-slug" -> [ "", "some-slug" ]
             const pathParts = window.location.pathname.split('/');
-            // /bar/some-slug -> ["", "bar", "some-slug"]
-            if (pathParts.length > 2 && (pathParts[1] === 'bar' || pathParts[1] === 'bar.html')) {
-                slug = pathParts[2];
+            // Exclude known paths if needed (though map.html etc are static)
+            if (pathParts.length >= 2 && pathParts[1]) {
+                slug = pathParts[1];
             }
         }
 

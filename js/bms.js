@@ -117,8 +117,8 @@ function initSlugLogic() {
         const slug = slugInput.value.trim();
         if (slug) {
             slugUrlContainer.style.display = 'flex';
-            // Use current origin + /bar/ + slug to mimic the rewrite path
-            const fullUrl = `${window.location.origin}/bar/${slug}`;
+            // Use current origin + / + slug
+            const fullUrl = `${window.location.origin}/${slug}`;
             finalSlugUrl.textContent = fullUrl;
         } else {
             slugUrlContainer.style.display = 'none';
