@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Toggle Views
-        ['dashboard', 'bars', 'articles', 'talents', 'users'].forEach(v => {
+        ['dashboard', 'bars', 'articles', 'users'].forEach(v => {
             const el = document.getElementById(`view-${v}`);
             if (el) el.style.display = (v === viewName) ? 'block' : 'none';
         });
@@ -111,7 +111,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // Load Data on Demand
         if (viewName === 'bars') loadBars();
         if (viewName === 'articles') loadArticles();
-        if (viewName === 'talents') loadTalents();
         if (viewName === 'users') loadUsers();
         if (viewName === 'dashboard') loadDashboardStats();
     };
@@ -125,7 +124,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const { count: userCount } = await supabase.from('users').select('*', { count: 'exact', head: true });
 
         document.getElementById('stat-bars-count').innerText = barCount || 0;
-        document.getElementById('stat-talents-count').innerText = talentCount || 0;
         document.getElementById('stat-articles-count').innerText = articleCount || 0;
         document.getElementById('stat-users-count').innerText = userCount || 0;
 
@@ -160,37 +158,15 @@ document.addEventListener('DOMContentLoaded', () => {
             }).join('');
         }
 
-        // Talents
-        const { data: latestTalents } = await supabase.from('talents').select('id, display_name, image_url, created_at, user_id').order('created_at', { ascending: false }).limit(5);
-        if (latestTalents) {
-            document.getElementById('latest-talents-list').innerHTML = latestTalents.map(t => `
-                <div style="display: flex; gap: 10px; background: #fafafa; padding: 10px; border-radius: 6px; border: 1px solid #eee;">
-                    <div style="width: 50px; height: 50px; background: #eee url('${t.image_url || ''}') center/cover; border-radius: 50%; flex-shrink: 0;"></div>
-                    <div style="flex: 1;">
-                        <div style="font-weight: 500; margin-top: 5px;">${t.display_name}</div>
-                        <div style="font-size: 0.8rem; color: #999;">${new Date(t.created_at).toLocaleDateString()}</div>
-                    </div>
-                     <div style="display: flex; align-items: center; gap: 5px;">
-                        <button onclick="window.openTalentEditor('${t.user_id}')" style="background:none; border:none; cursor:pointer;" title="Edit">
-                            ✏️
-                        </button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
         // Articles
-        const { data: latestArts } = await supabase.from('articles').select('id, title, cover_image, author_name, created_at, category').order('created_at', { ascending: false }).limit(5);
-        if (latestArts) {
-            document.getElementById('latest-articles-list').innerHTML = latestArts.map(a => `
+        const { data: latestArticles } = await supabase.from('articles').select('id, title, cover_image, author_name, created_at, category').order('created_at', { ascending: false }).limit(5);
+        if (latestArticles) {
+            document.getElementById('latest-articles-list').innerHTML = latestArticles.map(a => `
                 <div style="display: flex; gap: 10px; background: #fafafa; padding: 10px; border-radius: 6px; border: 1px solid #eee;">
                     <div style="width: 50px; height: 50px; background: #eee url('${a.cover_image || ''}') center/cover; border-radius: 4px; flex-shrink: 0;"></div>
                     <div style="flex: 1; overflow: hidden;">
                         <div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${a.title}</div>
-                        <div style="display: flex; justify-content: space-between; margin-top: 4px; font-size: 0.8rem; color: #666;">
-                            <span>${a.author_name || 'Unknown'}</span>
-                            <span style="background: #e0e0e0; padding: 1px 6px; border-radius: 4px; font-size: 0.7rem;">${a.category}</span>
-                        </div>
+                        <div style="font-size: 0.8rem; color: #666;">By ${a.author_name || 'Admin'}</div>
                     </div>
                 </div>
             `).join('');
@@ -471,11 +447,21 @@ document.addEventListener('DOMContentLoaded', () => {
                    <div style="font-size:0.85rem; color:#666;">${hopperName} <span style="font-weight:400; color:#888;">(${u.email})</span></div>`
                 : `<h4 style="margin: 0 0 5px 0;">${hopperName} <span style="font-weight:400; font-size:0.9rem; color:#888;">(${u.email})</span></h4>`;
 
+            // Icons
+            const iconStyle = "width: 14px; height: 14px; stroke-width: 2.5;";
+            const editIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
+            const hopperIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>`; // Placeholder for hopper
+            const talentIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`;
+            const deleteIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>`;
+
+            const btnBase = "display: inline-flex; align-items: center; gap: 4px; padding: 6px 10px; border-radius: 100px; font-weight: 500; font-size: 0.8rem; border: 1px solid #eee; background: white; color: #333; cursor: pointer; transition: all 0.2s;";
+            const btnHover = "hover: border-color: #9c100f; color: #9c100f;";
+
             return `
             <div class="article-item" style="display: flex; gap: 1rem; margin-bottom: 1.5rem; ${bgStyle} padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-                <div style="width: 80px; height: 80px; background: #eee url('${hopperImg}') center/cover; border-radius: 50%; flex-shrink: 0;"></div>
+                <div style="width: 80px; height: 80px; background: #eee url('${hopperImg}') center/cover; border-radius: 50%; flex-shrink: 0; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1);"></div>
                 <div style="flex: 1;">
-                    <div style="display: flex; justify-content: space-between;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                         <div>${nameDisplay}</div>
                         <div style="display:flex; gap:5px;">${roleBadges}</div>
                     </div>
@@ -483,11 +469,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         Linked Bar: ${linkedBar ? linkedBar.title : 'None'}
                     </p>
                     
-                    <div style="margin-top: 10px; display: flex; gap: 10px;">
-                        ${isTalent ? `<button onclick="window.openTalentEditor('${u.id}')" class="btn btn-secondary" style="padding:4px 10px;" title="Edit Talent Profile">🎭 Talent</button>` : ''}
-                        <button onclick="window.openHopperModal('${u.id}')" class="btn btn-secondary" style="padding:4px 10px;" title="Edit Hopper Profile">🐇 Hopper</button>
-                        <button onclick="editUser('${u.id}')" class="btn btn-secondary" style="padding:4px 10px;" title="Edit User Settings">✏️ Edit</button>
-                        <button onclick="deleteUser('${u.id}')" class="btn btn-secondary" style="padding:4px 10px; color:red;" title="Delete User">🗑️</button>
+                    <div style="margin-top: 15px; display: flex; gap: 8px;">
+                        ${isTalent ? `<button onclick="window.openTalentEditor('${u.id}')" style="${btnBase}" onmouseover="this.style.borderColor='#d97706';this.style.color='#d97706'" onmouseout="this.style.borderColor='#eee';this.style.color='#333'">${talentIcon} Talent</button>` : ''}
+                        <button onclick="window.openHopperModal('${u.id}')" style="${btnBase}" onmouseover="this.style.borderColor='#9c100f';this.style.color='#9c100f'" onmouseout="this.style.borderColor='#eee';this.style.color='#333'">${hopperIcon} Hopper</button>
+                        <button onclick="editUser('${u.id}')" style="${btnBase}" onmouseover="this.style.borderColor='#9c100f';this.style.color='#9c100f'" onmouseout="this.style.borderColor='#eee';this.style.color='#333'">${editIcon} Edit</button>
+                        <button onclick="deleteUser('${u.id}')" style="${btnBase} border-color: rgba(255,0,0,0.1); color: #ef4444;" onmouseover="this.style.borderColor='#ef4444';this.style.background='#fff0f0'" onmouseout="this.style.borderColor='rgba(255,0,0,0.1)';this.style.background='white'">${deleteIcon}</button>
                     </div>
                 </div>
             </div>
