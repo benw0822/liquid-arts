@@ -864,8 +864,18 @@ document.addEventListener('DOMContentLoaded', () => {
     window.initBarDetails = async () => {
         await initAuthAndSaved();
         const params = new URLSearchParams(window.location.search);
-        const id = params.get('id');
-        const slug = params.get('slug'); // NEW
+        let id = params.get('id');
+        let slug = params.get('slug');
+
+        // Support Vercel Rewrite paths: /bar/:slug
+        if (!id && !slug) {
+            const pathParts = window.location.pathname.split('/');
+            // /bar/some-slug -> ["", "bar", "some-slug"]
+            if (pathParts.length > 2 && (pathParts[1] === 'bar' || pathParts[1] === 'bar.html')) {
+                slug = pathParts[2];
+            }
+        }
+
         const container = document.getElementById('bar-detail-container');
 
         if (!id && !slug) {
