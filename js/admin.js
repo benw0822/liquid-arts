@@ -667,36 +667,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function loadTalents() {
-        const listContainer = document.getElementById('talent-list-full');
-        listContainer.innerHTML = '<p>Loading talents...</p>';
 
-        const { data: talents, error } = await supabase.from('talents').select('*').order('created_at', { ascending: false });
-
-        if (error) {
-            listContainer.innerHTML = `<p style="color:red">Error: ${error.message}</p>`;
-            return;
-        }
-
-        if (!talents || talents.length === 0) {
-            listContainer.innerHTML = '<p>No talents found.</p>';
-            return;
-        }
-
-        listContainer.innerHTML = talents.map(t => `
-            <div class="article-item" style="display: flex; gap: 1rem; margin-bottom: 1.5rem; background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-                <div style="width: 80px; height: 80px; background: #eee url('${t.image_url || ''}') center/cover; border-radius: 50%; flex-shrink: 0;"></div>
-                <div style="flex: 1;">
-                    <h4 style="margin: 0 0 5px 0;">${t.display_name}</h4>
-                    <p style="margin: 0; color: #666; font-size: 0.9rem;">${t.quote || 'No Code'}</p>
-                    <div style="margin-top: 10px;">
-                        <button onclick="window.open('talent.html?id=${t.user_id}', '_blank')" class="btn btn-secondary" style="padding: 4px 10px;" title="View">👁️</button>
-                         <button onclick="window.openTalentEditor('${t.user_id}')" class="btn btn-secondary" style="padding: 4px 10px;" title="Edit">✏️</button>
-                    </div>
-                </div>
-            </div>
-        `).join('');
-    }
     // --- Hopper Image Logic ---
     window.hopperCropper = null;
     window.hopperImageBlob = null; // Store final blob to upload
