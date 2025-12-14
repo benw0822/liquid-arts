@@ -865,15 +865,26 @@ document.addEventListener('DOMContentLoaded', () => {
         await initAuthAndSaved();
         const params = new URLSearchParams(window.location.search);
         const id = params.get('id');
+        const slug = params.get('slug'); // NEW
         const container = document.getElementById('bar-detail-container');
 
-        if (!id) {
+        if (!id && !slug) {
             container.innerHTML = '<p style="text-align:center; margin-top: 50px;">Bar not found.</p>';
             return;
         }
 
         const bars = await fetchBars();
-        const bar = bars.find(b => b.id == id);
+        let bar;
+
+        if (id) {
+            bar = bars.find(b => b.id == id);
+        } else if (slug) {
+            bar = bars.find(b => b.slug === slug);
+        }
+
+        // If found by slug but URL doesn't have ID, maybe we keep it clean?
+        // Or if found by ID, we could rewrite URL to use slug? (Optional enhancement)
+
 
         if (!bar) {
             container.innerHTML = '<p style="text-align:center; margin-top: 50px;">Bar not found.</p>';
