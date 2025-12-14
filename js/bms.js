@@ -16,6 +16,9 @@ const descriptionInput = document.getElementById('bar-description'); // Restored
 const slugInput = document.getElementById('bar-slug'); // NEW
 const checkSlugBtn = document.getElementById('btn-check-slug'); // NEW
 const slugFeedback = document.getElementById('slug-feedback'); // NEW
+const slugUrlContainer = document.getElementById('slug-url-container'); // NEW
+const finalSlugUrl = document.getElementById('final-slug-url'); // NEW
+const btnCopyUrl = document.getElementById('btn-copy-url'); // NEW
 
 const ownerInput = document.getElementById('bar-owner');
 const bartenderInput = document.getElementById('bar-bartender');
@@ -109,15 +112,52 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // --- Slug Logic ---
 function initSlugLogic() {
+    // Helper to update URL display
+    const updateUrlDisplay = () => {
+        const slug = slugInput.value.trim();
+        if (slug) {
+            slugUrlContainer.style.display = 'flex';
+            // Use current origin + /bar/ + slug to mimic the rewrite path
+            const fullUrl = `${window.location.origin}/bar/${slug}`;
+            finalSlugUrl.textContent = fullUrl;
+        } else {
+            slugUrlContainer.style.display = 'none';
+        }
+    };
+
     checkSlugBtn.addEventListener('click', async (e) => {
         e.preventDefault();
         const slug = slugInput.value.trim();
         if (!slug) return;
         await checkSlugAvailability(slug);
+        updateUrlDisplay();
     });
 
+    slugInput.addEventListener('input', updateUrlDisplay);
     slugInput.addEventListener('blur', () => {
         if (slugInput.value.trim()) checkSlugAvailability(slugInput.value.trim());
+        updateUrlDisplay();
+    });
+
+    // Initial check if value exists (e.g. edit mode)
+    updateUrlDisplay();
+
+    // Copy Button Logic
+    btnCopyUrl.addEventListener('click', (e) => {
+        e.preventDefault();
+        const text = finalSlugUrl.textContent;
+        if (text) {
+            navigator.clipboard.writeText(text).then(() => {
+                const originalIcon = btnCopyUrl.innerHTML;
+                // Check mark icon
+                btnCopyUrl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="green" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+                setTimeout(() => {
+                    btnCopyUrl.innerHTML = originalIcon;
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+            });
+        }
     });
 }
 
