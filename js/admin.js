@@ -103,13 +103,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Toggle Views
-        ['dashboard', 'bars', 'articles', 'users'].forEach(v => {
+        ['dashboard', 'bars', 'talents', 'articles', 'users'].forEach(v => {
             const el = document.getElementById(`view-${v}`);
             if (el) el.style.display = (v === viewName) ? 'block' : 'none';
         });
 
         // Load Data on Demand
         if (viewName === 'bars') loadBars();
+        if (viewName === 'talents') loadTalents();
         if (viewName === 'articles') loadArticles();
         if (viewName === 'users') loadUsers();
         if (viewName === 'dashboard') loadDashboardStats();
@@ -119,46 +120,82 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadDashboardStats() {
         // 1. Counts
         const { count: barCount } = await supabase.from('bars').select('*', { count: 'exact', head: true });
+        const { count: talentCount } = await supabase.from('talents').select('*', { count: 'exact', head: true });
         const { count: articleCount } = await supabase.from('articles').select('*', { count: 'exact', head: true });
         const { count: userCount } = await supabase.from('users').select('*', { count: 'exact', head: true });
 
         document.getElementById('stat-bars-count').innerText = barCount || 0;
+        document.getElementById('stat-talents-count').innerText = talentCount || 0;
         document.getElementById('stat-articles-count').innerText = articleCount || 0;
         document.getElementById('stat-users-count').innerText = userCount || 0;
 
         // 2. Latest 5
         // Bars
-        const { data: latestBars } = await supabase.from('bars').select('id, title, created_at').order('created_at', { ascending: false }).limit(5);
+        const { data: latestBars } = await supabase.from('bars').select('id, title, image, location, liquid_arts_score, created_at').order('created_at', { ascending: false }).limit(5);
         if (latestBars) {
-            document.getElementById('latest-bars-list').innerHTML = latestBars.map(b => `
-                <div style="padding: 10px; background: #fafafa; border-radius: 6px; border: 1px solid #eee; display: flex; justify-content: space-between;">
-                    <span style="font-weight: 500;">${b.title}</span>
-                    <span style="color: #999; font-size: 0.8rem;">${new Date(b.created_at).toLocaleDateString()}</span>
+            document.getElementById('latest-bars-list').innerHTML = latestBars.map(b => {
+                const city = getCityDisplay(b.location);
+                const score = b.liquid_arts_score ? `<span style="color:var(--bg-red); font-weight:700;">★ ${b.liquid_arts_score}</span>` : '<span style="color:#999; font-size:0.8rem;">Unrated</span>';
+                return `
+                <div style="display: flex; gap: 10px; background: #fafafa; padding: 10px; border-radius: 6px; border: 1px solid #eee;">
+                    <div style="width: 50px; height: 50px; background: #eee url('${b.image || ''}') center/cover; border-radius: 4px; flex-shrink: 0;"></div>
+                    <div style="flex: 1; overflow: hidden;">
+                        <div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${b.title}</div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+                            <span style="font-size: 0.8rem; color: #666;">${city}</span>
+                            ${score}
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // Talents
+        const { data: latestTalents } = await supabase.from('talents').select('id, display_name, image_url, created_at, user_id').order('created_at', { ascending: false }).limit(5);
+        if (latestTalents) {
+            document.getElementById('latest-talents-list').innerHTML = latestTalents.map(t => `
+                <div style="display: flex; gap: 10px; background: #fafafa; padding: 10px; border-radius: 6px; border: 1px solid #eee;">
+                    <div style="width: 50px; height: 50px; background: #eee url('${t.image_url || ''}') center/cover; border-radius: 50%; flex-shrink: 0;"></div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 500; margin-top: 5px;">${t.display_name}</div>
+                        <div style="font-size: 0.8rem; color: #999;">${new Date(t.created_at).toLocaleDateString()}</div>
+                    </div>
+                     <div style="display: flex; align-items: center; gap: 5px;">
+                        <button onclick="window.openTalentEditor('${t.user_id}')" style="background:none; border:none; cursor:pointer;" title="Edit">
+                            ✏️
+                        </button>
+                    </div>
                 </div>
             `).join('');
         }
 
         // Articles
-        const { data: latestArts } = await supabase.from('articles').select('id, title, created_at, category').order('created_at', { ascending: false }).limit(5);
+        const { data: latestArts } = await supabase.from('articles').select('id, title, cover_image, author_name, created_at, category').order('created_at', { ascending: false }).limit(5);
         if (latestArts) {
             document.getElementById('latest-articles-list').innerHTML = latestArts.map(a => `
-                <div style="padding: 10px; background: #fafafa; border-radius: 6px; border: 1px solid #eee;">
-                    <div style="font-weight: 500; font-size: 0.95rem;">${a.title}</div>
-                    <div style="display: flex; justify-content: space-between; margin-top: 4px;">
-                        <span style="font-size: 0.75rem; background: #e0e0e0; padding: 2px 6px; border-radius: 4px;">${a.category}</span>
-                        <span style="color: #999; font-size: 0.8rem;">${new Date(a.created_at).toLocaleDateString()}</span>
+                <div style="display: flex; gap: 10px; background: #fafafa; padding: 10px; border-radius: 6px; border: 1px solid #eee;">
+                    <div style="width: 50px; height: 50px; background: #eee url('${a.cover_image || ''}') center/cover; border-radius: 4px; flex-shrink: 0;"></div>
+                    <div style="flex: 1; overflow: hidden;">
+                        <div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${a.title}</div>
+                        <div style="display: flex; justify-content: space-between; margin-top: 4px; font-size: 0.8rem; color: #666;">
+                            <span>${a.author_name || 'Unknown'}</span>
+                            <span style="background: #e0e0e0; padding: 1px 6px; border-radius: 4px; font-size: 0.7rem;">${a.category}</span>
+                        </div>
                     </div>
                 </div>
             `).join('');
         }
 
         // Users
-        const { data: latestUsers } = await supabase.from('users').select('id, email, created_at').order('created_at', { ascending: false }).limit(5);
+        const { data: latestUsers } = await supabase.from('users').select('id, email, hopper_nickname, hopper_image_url, created_at').order('created_at', { ascending: false }).limit(5);
         if (latestUsers) {
             document.getElementById('latest-users-list').innerHTML = latestUsers.map(u => `
-                 <div style="padding: 10px; background: #fafafa; border-radius: 6px; border: 1px solid #eee; display: flex; justify-content: space-between;">
-                     <span style="font-weight: 500; overflow: hidden; text-overflow: ellipsis; max-width: 60%;">${u.email}</span>
-                     <span style="color: #999; font-size: 0.8rem;">${new Date(u.created_at).toLocaleDateString()}</span>
+                 <div style="display: flex; gap: 10px; background: #fafafa; padding: 10px; border-radius: 6px; border: 1px solid #eee;">
+                     <div style="width: 50px; height: 50px; background: #eee url('${u.hopper_image_url || 'assets/default_avatar.png'}') center/cover; border-radius: 50%; flex-shrink: 0;"></div>
+                     <div style="flex: 1; overflow: hidden;">
+                         <div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${u.hopper_nickname || u.email.split('@')[0]}</div>
+                         <div style="font-size: 0.8rem; color: #999;">${u.email}</div>
+                     </div>
                  </div>
              `).join('');
         }
@@ -193,9 +230,11 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="article-item" style="display: flex; gap: 1rem; margin-bottom: 1.5rem; background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
                 <div style="width: 100px; height: 100px; background-image: url('${bar.image || ''}'); background-size: cover; background-position: center; border-radius: 8px; flex-shrink: 0; background-color: #eee;"></div>
                 <div style="flex: 1;">
-                    <h4 style="margin: 0 0 5px 0; font-size: 1.2rem; font-weight: 600;">${bar.title}</h4>
-                    <p style="margin: 0 0 5px 0; color: #555;">${bar.location || 'No location'}</p>
-                    <p class="meta-text" style="max-height: 40px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${bar.description || 'No description'}</p>
+                    <div style="display: flex; justify-content: space-between;">
+                        <h4 style="margin: 0 0 5px 0; font-size: 1.2rem; font-weight: 600;">${bar.title}</h4>
+                         ${bar.liquid_arts_score ? `<span style="color:var(--bg-red); font-weight:700;">★ ${bar.liquid_arts_score}</span>` : '<span style="color:#999; font-size:0.8rem;">Unrated</span>'}
+                    </div>
+                    <p style="margin: 0 0 5px 0; color: #555;">${getCityDisplay(bar.location)}</p>
                     
                     <div style="margin-top: 10px; display: flex; align-items: center; gap: 15px;">
                         <!-- Publish Toggle -->
@@ -206,9 +245,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         </label>
 
                         <div style="margin-left: auto; display: flex; gap: 8px;">
-                            <button onclick="window.open('bar.html?id=${bar.id}', '_blank')" class="btn btn-secondary">View</button>
-                            <button onclick="editBar('${bar.id}')" class="btn">Edit</button>
-                            <button onclick="deleteBar('${bar.id}')" class="btn btn-secondary">Delete</button>
+                            <button onclick="window.open('bar.html?id=${bar.id}', '_blank')" class="btn btn-secondary" title="View Frontend">👁️</button>
+                            <button onclick="editBar('${bar.id}')" class="btn" title="Edit Backend">✏️</button>
+                            <button onclick="deleteBar('${bar.id}')" class="btn btn-secondary" style="color:red;" title="Delete">🗑️</button>
                         </div>
                     </div>
                 </div>
@@ -271,9 +310,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         </label>
 
                          <div style="margin-left: auto; display: flex; gap: 8px;">
-                            <button onclick="window.open('journal-details.html?id=${art.id}', '_blank')" class="btn btn-secondary">View</button>
-                            <button onclick="editArticle('${art.id}')" class="btn">Edit</button>
-                            <button onclick="deleteArticle('${art.id}')" class="btn btn-secondary">Delete</button>
+                            <button onclick="window.open('journal-details.html?id=${art.id}', '_blank')" class="btn btn-secondary" title="View">👁️</button>
+                            <button onclick="editArticle('${art.id}')" class="btn" title="Edit">✏️</button>
+                            <button onclick="deleteArticle('${art.id}')" class="btn btn-secondary" title="Delete">🗑️</button>
                         </div>
                     </div>
                 </div>
@@ -393,41 +432,45 @@ document.addEventListener('DOMContentLoaded', () => {
         userListFull.innerHTML = '<tr><td colspan="4" style="padding:1rem;">Loading...</td></tr>';
 
         // Fetch Users and their Linked Bars (if any)
-        // Note: 'users' table doesn't strictly have a foreign key to bars in the schema shown, 
-        // but 'bars' has 'owner_user_id'.
-
         const { data: users, error } = await supabase.from('users').select('*').order('created_at', { ascending: false });
         // Fetch bars to map owners
         const { data: bars } = await supabase.from('bars').select('id, title, owner_user_id');
 
         if (error) {
-            userListFull.innerHTML = `<tr><td colspan="4" style="color:red;">Error: ${error.message}</td></tr>`;
+            userListFull.innerHTML = `<p style="color:red">Error: ${error.message}</p>`;
             return;
         }
 
         userListFull.innerHTML = users.map(u => {
             const linkedBar = bars ? bars.find(b => b.owner_user_id === u.id) : null;
             const roleBadges = (u.roles || []).map(r =>
-                `<span class="tag-badge" style="background:${getRoleColor(r)}; color:white;">${r}</span>`
+                `<span class="tag-badge" style="background:${getRoleColor(r)}; color:white; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">${r}</span>`
             ).join(' ');
 
             const isTalent = (u.roles || []).some(r => ['talent', 'kol'].includes(r));
+            const hopperName = u.hopper_nickname || 'No Hopper Name';
+            const hopperImg = u.hopper_image_url || 'assets/default_avatar.png';
 
             return `
-                <tr style="border-bottom: 1px solid #eee;">
-                    <td style="padding: 1rem;">
-                        <div style="font-weight:600;">${u.email || 'No Email'}</div>
-                        <div style="font-size:0.8rem; color:#888;">${u.name || ''}</div>
-                    </td>
-                    <td style="padding: 1rem;">${roleBadges}</td>
-                    <td style="padding: 1rem;">${linkedBar ? linkedBar.title : '-'}</td>
-                    <td style="padding: 1rem; text-align: right;">
-                        ${isTalent ? `<button onclick="window.openTalentEditor('${u.id}')" class="btn btn-secondary" style="padding:4px 8px; font-size:0.8rem; margin-right: 5px;">Talent</button>` : ''}
-                        <button onclick="window.openHopperModal('${u.id}')" class="btn btn-secondary" style="padding:4px 8px; font-size:0.8rem; margin-right: 5px;">Hopper</button>
-                        <button onclick="editUser('${u.id}')" class="btn btn-secondary" style="padding:4px 8px; font-size:0.8rem; margin-right: 5px;">Edit</button>
-                        <button onclick="deleteUser('${u.id}')" class="btn btn-secondary" style="padding:4px 8px; font-size:0.8rem; color:red; border-color:red;">Delete</button>
-                    </td>
-                </tr>
+            <div class="article-item" style="display: flex; gap: 1rem; margin-bottom: 1.5rem; background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                <div style="width: 80px; height: 80px; background: #eee url('${hopperImg}') center/cover; border-radius: 50%; flex-shrink: 0;"></div>
+                <div style="flex: 1;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <h4 style="margin: 0 0 5px 0;">${hopperName} <span style="font-weight:400; font-size:0.9rem; color:#888;">(${u.email})</span></h4>
+                        <div style="display:flex; gap:5px;">${roleBadges}</div>
+                    </div>
+                    <p style="margin: 0; color: #666; font-size: 0.9rem;">
+                        Linked Bar: ${linkedBar ? linkedBar.title : 'None'}
+                    </p>
+                    
+                    <div style="margin-top: 10px; display: flex; gap: 10px;">
+                        ${isTalent ? `<button onclick="window.openTalentEditor('${u.id}')" class="btn btn-secondary" style="padding:4px 10px;" title="Edit Talent Profile">🎭 Talent</button>` : ''}
+                        <button onclick="window.openHopperModal('${u.id}')" class="btn btn-secondary" style="padding:4px 10px;" title="Edit Hopper Profile">🐇 Hopper</button>
+                        <button onclick="editUser('${u.id}')" class="btn btn-secondary" style="padding:4px 10px;" title="Edit User Settings">✏️ Edit</button>
+                        <button onclick="deleteUser('${u.id}')" class="btn btn-secondary" style="padding:4px 10px; color:red;" title="Delete User">🗑️</button>
+                    </div>
+                </div>
+            </div>
             `;
         }).join('');
     }
@@ -593,6 +636,45 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    function getCityDisplay(locationString) {
+        if (!locationString) return 'Unknown City';
+        if (locationString.includes('Taipei')) return 'Taipei';
+        if (locationString.includes('Kaohsiung')) return 'Kaohsiung';
+        if (locationString.includes('Taichung')) return 'Taichung';
+        if (locationString.includes('Tainan')) return 'Tainan';
+        return locationString.split(',')[0].trim();
+    }
+
+    async function loadTalents() {
+        const listContainer = document.getElementById('talent-list-full');
+        listContainer.innerHTML = '<p>Loading talents...</p>';
+
+        const { data: talents, error } = await supabase.from('talents').select('*').order('created_at', { ascending: false });
+
+        if (error) {
+            listContainer.innerHTML = `<p style="color:red">Error: ${error.message}</p>`;
+            return;
+        }
+
+        if (!talents || talents.length === 0) {
+            listContainer.innerHTML = '<p>No talents found.</p>';
+            return;
+        }
+
+        listContainer.innerHTML = talents.map(t => `
+            <div class="article-item" style="display: flex; gap: 1rem; margin-bottom: 1.5rem; background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                <div style="width: 80px; height: 80px; background: #eee url('${t.image_url || ''}') center/cover; border-radius: 50%; flex-shrink: 0;"></div>
+                <div style="flex: 1;">
+                    <h4 style="margin: 0 0 5px 0;">${t.display_name}</h4>
+                    <p style="margin: 0; color: #666; font-size: 0.9rem;">${t.quote || 'No Code'}</p>
+                    <div style="margin-top: 10px;">
+                        <button onclick="window.open('talent.html?id=${t.user_id}', '_blank')" class="btn btn-secondary" style="padding: 4px 10px;" title="View">👁️</button>
+                         <button onclick="window.openTalentEditor('${t.user_id}')" class="btn btn-secondary" style="padding: 4px 10px;" title="Edit">✏️</button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
     // --- Hopper Image Logic ---
     window.hopperCropper = null;
     window.hopperImageBlob = null; // Store final blob to upload
@@ -615,6 +697,7 @@ document.addEventListener('DOMContentLoaded', () => {
             reader.readAsDataURL(input.files[0]);
         }
     };
+
 
     window.confirmHopperCrop = () => {
         if (!window.hopperCropper) return;

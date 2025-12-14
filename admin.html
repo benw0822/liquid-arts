@@ -451,6 +451,8 @@
                     style="background: white; color: var(--bg-red); border: none; padding: 8px 16px; border-radius: 4px; font-weight: 600; cursor: pointer;">DASHBOARD</button>
                 <button onclick="switchView('bars')" id="nav-bars" class="nav-tab"
                     style="background: transparent; color: white; border: none; padding: 8px 16px; border-radius: 4px; font-weight: 500; cursor: pointer;">BARS</button>
+                <button onclick="switchView('talents')" id="nav-talents" class="nav-tab"
+                    style="background: transparent; color: white; border: none; padding: 8px 16px; border-radius: 4px; font-weight: 500; cursor: pointer;">TALENTS</button>
                 <button onclick="switchView('articles')" id="nav-articles" class="nav-tab"
                     style="background: transparent; color: white; border: none; padding: 8px 16px; border-radius: 4px; font-weight: 500; cursor: pointer;">ARTICLES</button>
                 <button onclick="switchView('users')" id="nav-users" class="nav-tab"
@@ -510,13 +512,21 @@
         <!-- View 1: Overview Dashboard -->
         <div id="view-dashboard">
             <!-- Stats Row -->
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; margin-bottom: 3rem;">
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; margin-bottom: 3rem;">
                 <div
                     style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); text-align: center;">
                     <div style="font-size: 3rem; font-weight: 700; color: var(--bg-red);" id="stat-bars-count">0</div>
                     <div
                         style="color: #666; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 0.5rem;">
-                        Total Bars</div>
+                        Bars</div>
+                </div>
+                <div
+                    style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); text-align: center;">
+                    <div style="font-size: 3rem; font-weight: 700; color: var(--bg-red);" id="stat-talents-count">0
+                    </div>
+                    <div
+                        style="color: #666; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 0.5rem;">
+                        Talents</div>
                 </div>
                 <div
                     style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); text-align: center;">
@@ -524,20 +534,19 @@
                     </div>
                     <div
                         style="color: #666; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 0.5rem;">
-                        Total Stories</div>
+                        Stories</div>
                 </div>
                 <div
                     style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); text-align: center;">
                     <div style="font-size: 3rem; font-weight: 700; color: var(--bg-red);" id="stat-users-count">0</div>
                     <div
                         style="color: #666; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 0.5rem;">
-                        Total Users</div>
+                        Users</div>
                 </div>
-                <!-- TODO: Add Hops Count? Maybe later -->
             </div>
 
             <!-- Latest 5 Grid -->
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem;">
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem;">
 
                 <!-- Latest Bars -->
                 <div>
@@ -546,6 +555,16 @@
                         Latest Bars</h3>
                     <div id="latest-bars-list" style="display: flex; flex-direction: column; gap: 1rem;">
                         <!-- Mini List Items -->
+                        <p style="color: #999;">Loading...</p>
+                    </div>
+                </div>
+
+                <!-- Latest Talents -->
+                <div>
+                    <h3
+                        style="margin-bottom: 1rem; font-size: 1.2rem; border-bottom: 2px solid #eee; padding-bottom: 0.5rem;">
+                        New Talents</h3>
+                    <div id="latest-talents-list" style="display: flex; flex-direction: column; gap: 1rem;">
                         <p style="color: #999;">Loading...</p>
                     </div>
                 </div>
@@ -584,7 +603,20 @@
             </div>
         </div>
 
-        <!-- View 3: Articles Management -->
+        <!-- View 3: Talents Management -->
+        <div id="view-talents" style="display: none;">
+            <div class="section-header">
+                <h2>Manage Talents</h2>
+                <!-- Usually Talents are created by User Signup, but Editor can edit. 
+                     Maybe just search/list here? Or "Invite Talent"?
+                     For now just a list is fine, edit logic exists. -->
+            </div>
+            <div id="talent-list-full" class="article-list">
+                <p>Loading...</p>
+            </div>
+        </div>
+
+        <!-- View 4: Articles Management -->
         <div id="view-articles" style="display: none;">
             <div class="section-header">
                 <h2>Manage Stories</h2>
@@ -595,7 +627,7 @@
             </div>
         </div>
 
-        <!-- View 4: Users Management -->
+        <!-- View 5: Users Management -->
         <div id="view-users" style="display: none;">
             <div class="section-header">
                 <h2>Manage Users</h2>
