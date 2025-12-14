@@ -151,9 +151,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const score = b.liquid_arts_score ? `<span style="color:var(--bg-red); font-weight:700;">★ ${b.liquid_arts_score}</span>` : '<span style="color:#999; font-size:0.8rem;">Unrated</span>';
                 return `
                 <div style="display: flex; gap: 10px; background: #fafafa; padding: 10px; border-radius: 6px; border: 1px solid #eee;">
-                    <div style="width: 50px; height: 50px; background: #eee url('${b.image || ''}') center/cover; border-radius: 4px; flex-shrink: 0;"></div>
-                    <div style="flex: 1; overflow: hidden;">
-                        <div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${b.title}</div>
+                    <img src="${b.image || ''}" style="width: 60px; height: 60px; object-fit: contain; background: #eee; border-radius: 4px; flex-shrink: 0;" alt="${b.title}">
+                    <div style="flex: 1;">
+                        <div style="font-weight: 500; line-height: 1.3;">${b.title}</div>
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
                             <span style="font-size: 0.8rem; color: #666;">${b.cityDisplay}</span>
                             ${score}
@@ -168,10 +168,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (latestArticles) {
             document.getElementById('latest-articles-list').innerHTML = latestArticles.map(a => `
                 <div style="display: flex; gap: 10px; background: #fafafa; padding: 10px; border-radius: 6px; border: 1px solid #eee;">
-                    <div style="width: 50px; height: 50px; background: #eee url('${a.cover_image || ''}') center/cover; border-radius: 4px; flex-shrink: 0;"></div>
-                    <div style="flex: 1; overflow: hidden;">
-                        <div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${a.title}</div>
-                        <div style="font-size: 0.8rem; color: #666;">By ${a.author_name || 'Admin'}</div>
+                    <img src="${a.cover_image || ''}" style="width: 60px; height: 60px; object-fit: contain; background: #eee; border-radius: 4px; flex-shrink: 0;" alt="${a.title}">
+                    <div style="flex: 1;">
+                         <div style="font-weight: 500; line-height: 1.3;">${a.title}</div>
+                         <div style="font-size: 0.8rem; color: #666; margin-top: 4px;">By ${a.author_name || 'Admin'}</div>
                     </div>
                 </div>
             `).join('');
@@ -181,13 +181,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const { data: latestUsers } = await supabase.from('users').select('id, email, hopper_nickname, hopper_image_url, created_at').order('created_at', { ascending: false }).limit(5);
         if (latestUsers) {
             document.getElementById('latest-users-list').innerHTML = latestUsers.map(u => `
-                 <div style="display: flex; gap: 10px; background: #fafafa; padding: 10px; border-radius: 6px; border: 1px solid #eee;">
-                     <div style="width: 50px; height: 50px; background: #eee url('${u.hopper_image_url || 'https://placehold.co/100x100?text=User'}') center/cover; border-radius: 50%; flex-shrink: 0;"></div>
-                     <div style="flex: 1; overflow: hidden;">
-                         <div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${u.hopper_nickname || u.email.split('@')[0]}</div>
-                         <div style="font-size: 0.8rem; color: #999;">${u.email}</div>
-                     </div>
-                 </div>
+                  <div style="display: flex; gap: 10px; background: #fafafa; padding: 10px; border-radius: 6px; border: 1px solid #eee;">
+                      <img src="${u.hopper_image_url || 'https://placehold.co/100x100?text=User'}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 50%; flex-shrink: 0; background:#eee;" alt="User">
+                      <div style="flex: 1;">
+                          <div style="font-weight: 500; line-height: 1.3;">${u.hopper_nickname || u.email.split('@')[0]}</div>
+                          <div style="font-size: 0.8rem; color: #999; word-break: break-all;">${u.email}</div>
+                      </div>
+                  </div>
              `).join('');
         }
     }
@@ -196,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function loadBars() {
         const barListFull = document.getElementById('bar-list-full');
-        barListFull.innerHTML = '<p style="color:#888">Loading bars...</p>';
+        // barListFull.innerHTML = '<p style="color:#888">Loading bars...</p>'; // Can keep loading state or streaming
 
         const { data: bars, error } = await supabase
             .from('bars')
@@ -213,19 +213,42 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        barListFull.innerHTML = bars.map(bar => {
-            const isPublished = bar.is_published !== false; // Default true
+        // --- Async City Geocoding for ALL bars (Batching recommended but for now Parallel) ---
+        // Note: Nominatim has usage limits (1 req/sec strict). 
+        // We really should cache this in DB. But for now, we'll try to fetch only if 'location' string is missing or looks like coords?
+        // Actually, just apply the same logic as dashboard but be careful.
+        // For better UX, we render first, then update cities? Or just wait? 
+        // User complained it's "not reading out". I will wait.
+
+        const barsWithCity = await Promise.all(bars.map(async b => {
+            let city = 'Unknown City';
+            // If lat/lng exist, prefer them
+            if (b.lat && b.lng) {
+                // Simple caching check: if we already have a location string that looks like a city, keep it?
+                // No, user wants correct city.
+                city = await fetchCityFromCoords(b.lat, b.lng) || getCityDisplay(b.location);
+            } else {
+                city = getCityDisplay(b.location);
+            }
+            if (!city || city === 'Unknown City') city = b.location || 'Unknown';
+            return { ...b, cityDisplay: city };
+        }));
+
+        barListFull.innerHTML = barsWithCity.map(bar => {
+            const isPublished = bar.is_published !== false;
             const statusText = isPublished ? 'Published' : 'Hidden';
+            // Score check: defined and not null
+            const hasScore = (bar.liquid_arts_score !== null && bar.liquid_arts_score !== undefined);
 
             return `
             <div class="article-item" style="display: flex; gap: 1rem; margin-bottom: 1.5rem; background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-                <div style="width: 100px; height: 100px; background-image: url('${bar.image || ''}'); background-size: cover; background-position: center; border-radius: 8px; flex-shrink: 0; background-color: #eee;"></div>
+                <img src="${bar.image || ''}" style="width: 100px; height: 100px; object-fit: contain; background: #eee; border-radius: 8px; flex-shrink: 0;" alt="${bar.title}">
                 <div style="flex: 1;">
                     <div style="display: flex; justify-content: space-between;">
                         <h4 style="margin: 0 0 5px 0; font-size: 1.2rem; font-weight: 600;">${bar.title}</h4>
-                         ${bar.liquid_arts_score ? `<span style="color:var(--bg-red); font-weight:700;">★ ${bar.liquid_arts_score}</span>` : '<span style="color:#999; font-size:0.8rem;">Unrated</span>'}
+                         ${hasScore ? `<span style="color:var(--bg-red); font-weight:700;">★ ${bar.liquid_arts_score}</span>` : '<span style="color:#999; font-size:0.8rem;">Unrated</span>'}
                     </div>
-                    <p style="margin: 0 0 5px 0; color: #555;">${getCityDisplay(bar.location)}</p>
+                    <p style="margin: 0 0 5px 0; color: #555;">${bar.cityDisplay}</p>
                     
                     <div style="margin-top: 10px; display: flex; align-items: center; gap: 15px;">
                         <!-- Publish Toggle -->
