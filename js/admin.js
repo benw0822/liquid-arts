@@ -122,57 +122,82 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Dashboard Stats & latest 5 ---
     async function loadDashboardStats() {
-        // 1. Counts
-        const { count: barCount } = await supabase.from('bars').select('*', { count: 'exact', head: true });
-        const { count: talentCount } = await supabase.from('talents').select('*', { count: 'exact', head: true });
-        const { count: articleCount } = await supabase.from('articles').select('*', { count: 'exact', head: true });
-        const { count: userCount } = await supabase.from('users').select('*', { count: 'exact', head: true });
+        // 1. Parallel Fetching for Speed
+        const [
+            { count: barCount },
+            { count: talentCount },
+            { count: articleCount },
+            { count: userCount },
+            { data: latestBars },
+            { data: latestArticles },
+            { data: latestUsers },
+            { data: talData }
+        ] = await Promise.all([
+            supabase.from('bars').select('*', { count: 'exact', head: true }),
+            supabase.from('talents').select('*', { count: 'exact', head: true }),
+            supabase.from('articles').select('*', { count: 'exact', head: true }),
+            supabase.from('users').select('*', { count: 'exact', head: true }),
+            // Optimised Selects
+            supabase.from('bars').select('id, title, image, location, lat, lng, created_at, liquid_arts_score, editorial_rating').order('created_at', { ascending: false }).limit(5),
+            supabase.from('articles').select('id, title, cover_image, author_name, created_at, category').order('created_at', { ascending: false }).limit(5),
+            supabase.from('users').select('id, email, hopper_nickname, hopper_image_url, created_at, roles').order('created_at', { ascending: false }).limit(5),
+            supabase.from('talents').select('user_id, display_name')
+        ]);
 
         document.getElementById('stat-bars-count').innerText = barCount || 0;
         document.getElementById('stat-articles-count').innerText = articleCount || 0;
         document.getElementById('stat-users-count').innerText = userCount || 0;
 
-        // 2. Latest 5
-        // Bars
-        const { data: latestBars } = await supabase.from('bars').select('*').order('created_at', { ascending: false }).limit(5);
-        if (latestBars) {
-            // Async Geocoding
-            const barsWithCity = await Promise.all(latestBars.map(async b => {
-                let city = 'Unknown City';
-                if (b.lat && b.lng) {
-                    city = await fetchCityFromCoords(b.lat, b.lng) || getCityDisplay(b.location) || 'Unknown City';
-                } else {
-                    city = getCityDisplay(b.location);
-                }
-                if (!city || city === 'Unknown City') city = b.location || 'Unknown';
-                return { ...b, cityDisplay: city };
-            }));
+        // Icons
+        const iconStyle = "width: 14px; height: 14px; stroke: #666; stroke-width: 2px;";
+        const viewIcon = `<svg xmlns="http://www.w3.org/2000/svg" style="${iconStyle}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+        const editIcon = `<svg xmlns="http://www.w3.org/2000/svg" style="${iconStyle}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
+        const talentIcon = `<svg xmlns="http://www.w3.org/2000/svg" style="${iconStyle}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`;
 
-            document.getElementById('latest-bars-list').innerHTML = barsWithCity.map(b => {
+
+        // 2. Latest 5 Rendering
+        // Bars
+        if (latestBars) {
+            // Render immediately with static data
+            document.getElementById('latest-bars-list').innerHTML = latestBars.map(b => {
                 const scoreVal = b.editorial_rating !== null && b.editorial_rating !== undefined ? b.editorial_rating : (b.liquid_arts_score || null);
                 const score = scoreVal !== null ? `<span style="color:var(--bg-red); font-weight:700;">★ ${scoreVal}</span>` : '<span style="color:#999; font-size:0.8rem;">Unrated</span>';
+                const initialCity = getCityDisplay(b.location) || 'Unknown City'; // fallback
 
                 return `
-                <div style="display: flex; gap: 10px; background: #fafafa; padding: 10px; border-radius: 6px; border: 1px solid #eee; align-items: center;">
+                <div id="dash-bar-${b.id}" style="display: flex; gap: 10px; background: #fafafa; padding: 10px; border-radius: 6px; border: 1px solid #eee; align-items: center;">
                     <img src="${b.image || ''}" style="width: 50px; height: 50px; object-fit: contain; background: #eee; border-radius: 4px; flex-shrink: 0;" alt="${b.title}">
                     <div style="flex: 1;">
                         <div style="font-weight: 500; line-height: 1.3;">${b.title}</div>
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
-                            <span style="font-size: 0.8rem; color: #666;">${b.cityDisplay}</span>
+                            <span class="city-display" style="font-size: 0.8rem; color: #666;">${initialCity}</span>
                             ${score}
                         </div>
                     </div>
                     <!-- Mini Actions -->
-                    <div style="display: flex; gap: 4px;">
-                        <button onclick="window.open('bar.html?id=${b.id}', '_blank')" style="border:none; background:none; cursor:pointer; color:#666;" title="View">👁️</button>
-                        <button onclick="editBar('${b.id}')" style="border:none; background:none; cursor:pointer;" title="Edit">✏️</button>
+                    <div style="display: flex; gap: 8px;">
+                        <button onclick="window.open('bar.html?id=${b.id}', '_blank')" style="border:none; background:none; cursor:pointer;" title="View">${viewIcon}</button>
+                        <button onclick="editBar('${b.id}')" style="border:none; background:none; cursor:pointer;" title="Edit">${editIcon}</button>
                     </div>
                 </div>`;
             }).join('');
+
+            // Non-blocking Geocoding Update
+            (async () => {
+                for (const b of latestBars) {
+                    if (b.lat && b.lng) {
+                        const city = await fetchCityFromCoords(b.lat, b.lng);
+                        if (city) {
+                            const el = document.querySelector(`#dash-bar-${b.id} .city-display`);
+                            if (el) el.innerText = city;
+                        }
+                        await new Promise(r => setTimeout(r, 200)); // lighter delay for dashboard
+                    }
+                }
+            })();
         }
 
         // Articles
-        const { data: latestArticles } = await supabase.from('articles').select('id, title, cover_image, author_name, created_at, category').order('created_at', { ascending: false }).limit(5);
         if (latestArticles) {
             document.getElementById('latest-articles-list').innerHTML = latestArticles.map(a => `
                 <div style="display: flex; gap: 10px; background: #fafafa; padding: 10px; border-radius: 6px; border: 1px solid #eee; align-items: center;">
@@ -181,19 +206,16 @@ document.addEventListener('DOMContentLoaded', () => {
                          <div style="font-weight: 500; line-height: 1.3;">${a.title}</div>
                          <div style="font-size: 0.8rem; color: #666; margin-top: 4px;">By ${a.author_name || 'Admin'}</div>
                     </div>
-                    <!-- Mini Actions -->
-                    <div style="display: flex; gap: 4px;">
-                        <button onclick="window.open('journal-details.html?id=${a.id}', '_blank')" style="border:none; background:none; cursor:pointer; color:#666;" title="View">👁️</button>
-                        <button onclick="editArticle('${a.id}')" style="border:none; background:none; cursor:pointer;" title="Edit">✏️</button>
+                     <!-- Mini Actions -->
+                    <div style="display: flex; gap: 8px;">
+                        <button onclick="window.open('journal-details.html?id=${a.id}', '_blank')" style="border:none; background:none; cursor:pointer;" title="View">${viewIcon}</button>
+                        <button onclick="editArticle('${a.id}')" style="border:none; background:none; cursor:pointer;" title="Edit">${editIcon}</button>
                     </div>
                 </div>
             `).join('');
         }
 
-        // Users - Needs Talent Data!
-        const { data: latestUsers } = await supabase.from('users').select('*').order('created_at', { ascending: false }).limit(5); // Changed select to * to catch roles
-        const { data: talData } = await supabase.from('talents').select('user_id, display_name'); // Simplify fetch for matching
-
+        // Users
         if (latestUsers) {
             document.getElementById('latest-users-list').innerHTML = latestUsers.map(u => {
                 const talentProfile = talData ? talData.find(t => t.user_id === u.id) : null;
@@ -213,9 +235,9 @@ document.addEventListener('DOMContentLoaded', () => {
                           <div style="font-size: 0.8rem; color: #999; word-break: break-all;">${u.email}</div>
                       </div>
                       <!-- Mini Actions -->
-                      <div style="display: flex; gap: 4px;">
-                            <button onclick="window.openTalentEditor('${u.id}')" style="border:none; background:none; cursor:pointer;" title="Talent Profile">🎭</button>
-                            <button onclick="editUser('${u.id}')" style="border:none; background:none; cursor:pointer;" title="Edit User">✏️</button>
+                      <div style="display: flex; gap: 8px;">
+                            ${isTalent ? `<button onclick="window.openTalentEditor('${u.id}')" style="border:none; background:none; cursor:pointer;" title="Talent Profile">${talentIcon}</button>` : ''}
+                            <button onclick="editUser('${u.id}')" style="border:none; background:none; cursor:pointer;" title="Edit User">${editIcon}</button>
                       </div>
                   </div>
              `}).join('');
@@ -275,9 +297,15 @@ document.addEventListener('DOMContentLoaded', () => {
                         </label>
 
                         <div style="margin-left: auto; display: flex; gap: 8px;">
-                            <button onclick="window.open('bar.html?id=${bar.id}', '_blank')" class="btn btn-secondary" title="View Frontend">👁️</button>
-                            <button onclick="editBar('${bar.id}')" class="btn" title="Edit Backend">✏️</button>
-                            <button onclick="deleteBar('${bar.id}')" class="btn btn-secondary" style="color:red;" title="Delete">🗑️</button>
+                            <button onclick="window.open('bar.html?id=${bar.id}', '_blank')" class="btn btn-secondary" title="View Frontend">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            </button>
+                            <button onclick="editBar('${bar.id}')" class="btn" title="Edit Backend">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                            </button>
+                            <button onclick="deleteBar('${bar.id}')" class="btn btn-secondary" style="color:red;" title="Delete">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -360,10 +388,16 @@ document.addEventListener('DOMContentLoaded', () => {
                         </label>
 
                          <div style="margin-left: auto; display: flex; gap: 8px;">
-                            <button onclick="window.open('journal-details.html?id=${art.id}', '_blank')" class="btn btn-secondary" title="View">👁️</button>
-                            <button onclick="editArticle('${art.id}')" class="btn" title="Edit">✏️</button>
-                            <button onclick="deleteArticle('${art.id}')" class="btn btn-secondary" title="Delete">🗑️</button>
-                        </div>
+                    <button onclick="window.open('journal-details.html?id=${art.id}', '_blank')" class="btn btn-secondary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    </button>
+                    <button onclick="editArticle('${art.id}')" class="btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    </button>
+                    <button onclick="deleteArticle('${art.id}')" class="btn btn-secondary" style="color:red;">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                    </button>
+                </div>        </div>
                     </div>
                 </div>
             </div>
