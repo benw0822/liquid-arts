@@ -5,10 +5,14 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // --- DOM Elements ---
 const lngInput = document.getElementById('bar-lng');
+const latInput = document.getElementById('bar-lat'); // Restored
+const addressInput = document.getElementById('bar-address'); // Restored
 const cityInput = document.getElementById('bar-city'); // NEW
 const mapPreview = document.getElementById('map-preview');
 
 const titleInput = document.getElementById('bar-title');
+const vibeInput = document.getElementById('bar-vibe'); // Restored
+const descriptionInput = document.getElementById('bar-description'); // Restored
 const slugInput = document.getElementById('bar-slug'); // NEW
 const checkSlugBtn = document.getElementById('btn-check-slug'); // NEW
 const slugFeedback = document.getElementById('slug-feedback'); // NEW
