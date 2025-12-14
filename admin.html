@@ -433,30 +433,35 @@
 </head>
 
 <body>
-    <nav class="navbar">
-        <div class="container nav-content" style="display: flex; align-items: center; justify-content: space-between;">
-            <a href="index.html" class="logo">
-                <img src="assets/logo_horizontal.png" alt="Liquid Arts" class="logo-img">
-            </a>
-
-            <!-- Desktop Nav Links -->
-            <div class="nav-links" style="margin-left: 2rem;">
-                <a href="bars.html" class="nav-link">Bars</a>
-                <a href="map.html" class="nav-link">Map</a>
-                <a href="journal.html" class="nav-link">Journal</a>
-                <a href="events.html" class="nav-link">Event</a>
-                <a href="about.html" class="nav-link">About</a>
+    <nav class="navbar" style="background-color: var(--bg-red); border-bottom: none;">
+        <div class="container nav-content"
+            style="display: flex; align-items: center; justify-content: space-between; height: 70px;">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <a href="index.html" class="logo">
+                    <img src="assets/logo_horizontal.png" alt="Liquid Arts" class="logo-img"
+                        style="filter: brightness(0) invert(1);">
+                </a>
+                <span
+                    style="color: rgba(255,255,255,0.8); font-size: 1.2rem; font-weight: 300; border-left: 1px solid rgba(255,255,255,0.3); padding-left: 1rem;">Dashboard</span>
             </div>
 
-            <!-- Global Auth Button (Mobile & Desktop) -->
-            <a href="profile.html" id="global-auth-btn" class="nav-link" aria-label="Profile"
-                style="margin-left: auto; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; color: var(--text-accent);">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                </svg>
-            </a>
+            <!-- Dashboard Navigation Tabs -->
+            <div class="nav-links" style="margin-left: auto; display: flex; gap: 5px;">
+                <button onclick="switchView('dashboard')" id="nav-dashboard" class="nav-tab active-tab"
+                    style="background: white; color: var(--bg-red); border: none; padding: 8px 16px; border-radius: 4px; font-weight: 600; cursor: pointer;">DASHBOARD</button>
+                <button onclick="switchView('bars')" id="nav-bars" class="nav-tab"
+                    style="background: transparent; color: white; border: none; padding: 8px 16px; border-radius: 4px; font-weight: 500; cursor: pointer;">BARS</button>
+                <button onclick="switchView('articles')" id="nav-articles" class="nav-tab"
+                    style="background: transparent; color: white; border: none; padding: 8px 16px; border-radius: 4px; font-weight: 500; cursor: pointer;">ARTICLES</button>
+                <button onclick="switchView('users')" id="nav-users" class="nav-tab"
+                    style="background: transparent; color: white; border: none; padding: 8px 16px; border-radius: 4px; font-weight: 500; cursor: pointer;">USERS</button>
+            </div>
+
+            <!-- Global Auth Button -->
+            <button id="logout-btn" class="nav-link" aria-label="Logout"
+                style="margin-left: 2rem; background: transparent; border: 1px solid rgba(255,255,255,0.3); border-radius: 4px; color: white; padding: 6px 12px; cursor: pointer; font-size: 0.85rem;">
+                LOGOUT
+            </button>
         </div>
     </nav>
 
@@ -499,77 +504,121 @@
         </div>
     </section>
 
-    <!-- Dashboard Section -->
-    <section id="dashboard-section" class="container" style="padding-top: 3rem; max-width: 1200px;">
-        <div class="dash-header"
-            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
-            <h1 class="display-font" style="font-size: 2.5rem; color: #1d1d1f;">Dashboard</h1>
-            <div style="display: flex; gap: 10px;">
-                <button id="add-bar-btn" class="btn btn-primary" style="background-color: #000; color: #fff;">+ New
-                    Bar</button>
-                <button id="add-journal-btn" class="btn btn-primary" style="background-color: #000; color: #fff;">+ New
-                    Journal</button>
-                <button id="logout-btn" class="btn btn-secondary">Logout</button>
-            </div>
-        </div>
+    <!-- Main Dashboard Container -->
+    <section id="dashboard-section" class="container" style="padding-top: 2rem; max-width: 1400px;">
 
-        <div class="dash-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem;">
-            <!-- Bars Column -->
-            <div class="dash-col">
-                <h2
-                    style="font-size: 1.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid #000; padding-bottom: 0.5rem;">
-                    Bars</h2>
-                <div id="bar-list" class="article-list">
-                    <!-- Bars injected here -->
-                    <p style="color: #666;">Loading bars...</p>
+        <!-- View 1: Overview Dashboard -->
+        <div id="view-dashboard">
+            <!-- Stats Row -->
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; margin-bottom: 3rem;">
+                <div
+                    style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); text-align: center;">
+                    <div style="font-size: 3rem; font-weight: 700; color: var(--bg-red);" id="stat-bars-count">0</div>
+                    <div
+                        style="color: #666; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 0.5rem;">
+                        Total Bars</div>
                 </div>
-            </div>
-
-            <!-- Journals Column -->
-            <div class="dash-col">
-                <h2
-                    style="font-size: 1.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid #000; padding-bottom: 0.5rem;">
-                    Journal Articles</h2>
-                <div id="article-list" class="article-list">
-                    <!-- Articles injected here -->
-                    <p style="color: #666;">Loading articles...</p>
+                <div
+                    style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); text-align: center;">
+                    <div style="font-size: 3rem; font-weight: 700; color: var(--bg-red);" id="stat-articles-count">0
+                    </div>
+                    <div
+                        style="color: #666; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 0.5rem;">
+                        Total Stories</div>
                 </div>
+                <div
+                    style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); text-align: center;">
+                    <div style="font-size: 3rem; font-weight: 700; color: var(--bg-red);" id="stat-users-count">0</div>
+                    <div
+                        style="color: #666; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 0.5rem;">
+                        Total Users</div>
+                </div>
+                <!-- TODO: Add Hops Count? Maybe later -->
+            </div>
+
+            <!-- Latest 5 Grid -->
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem;">
+
+                <!-- Latest Bars -->
+                <div>
+                    <h3
+                        style="margin-bottom: 1rem; font-size: 1.2rem; border-bottom: 2px solid #eee; padding-bottom: 0.5rem;">
+                        Latest Bars</h3>
+                    <div id="latest-bars-list" style="display: flex; flex-direction: column; gap: 1rem;">
+                        <!-- Mini List Items -->
+                        <p style="color: #999;">Loading...</p>
+                    </div>
+                </div>
+
+                <!-- Latest Articles -->
+                <div>
+                    <h3
+                        style="margin-bottom: 1rem; font-size: 1.2rem; border-bottom: 2px solid #eee; padding-bottom: 0.5rem;">
+                        Latest Stories</h3>
+                    <div id="latest-articles-list" style="display: flex; flex-direction: column; gap: 1rem;">
+                        <p style="color: #999;">Loading...</p>
+                    </div>
+                </div>
+
+                <!-- Latest Users -->
+                <div>
+                    <h3
+                        style="margin-bottom: 1rem; font-size: 1.2rem; border-bottom: 2px solid #eee; padding-bottom: 0.5rem;">
+                        New Users</h3>
+                    <div id="latest-users-list" style="display: flex; flex-direction: column; gap: 1rem;">
+                        <p style="color: #999;">Loading...</p>
+                    </div>
+                </div>
+
             </div>
         </div>
-    </section>
 
-    <!-- Articles Section (Hidden by default) -->
-    <section id="articles-section" class="container" style="display: none; margin-top: 2rem;">
-        <div class="section-header">
-            <h2>Manage Stories</h2>
-            <button id="add-article-btn" class="btn">+ Add Story</button>
+        <!-- View 2: Bars Management -->
+        <div id="view-bars" style="display: none;">
+            <div class="section-header">
+                <h2>Manage Bars</h2>
+                <button id="add-bar-btn" class="btn" style="background-color: var(--bg-red);">+ New Bar</button>
+            </div>
+            <div id="bar-list-full" class="article-list">
+                <p>Loading...</p>
+            </div>
         </div>
-        <div id="article-list" class="bar-list">
-            <!-- Injected by JS -->
-        </div>
-    </section>
 
-    <!-- Users Section (Hidden by default) -->
-    <section id="users-section" class="container" style="display: none; margin-top: 2rem;">
-        <div class="section-header">
-            <h2>Manage Users</h2>
-            <button id="add-user-btn" class="btn">+ Add User</button>
+        <!-- View 3: Articles Management -->
+        <div id="view-articles" style="display: none;">
+            <div class="section-header">
+                <h2>Manage Stories</h2>
+                <button id="add-journal-btn" class="btn" style="background-color: var(--bg-red);">+ New Story</button>
+            </div>
+            <div id="article-list-full" class="article-list">
+                <p>Loading...</p>
+            </div>
         </div>
-        <div style="background: var(--bg-secondary); border-radius: 8px; overflow: hidden;">
-            <table style="width: 100%; border-collapse: collapse; color: var(--text-primary);">
-                <thead>
-                    <tr style="background: #111; text-align: left;">
-                        <th style="padding: 1rem;">Email</th>
-                        <th style="padding: 1rem;">Role</th>
-                        <th style="padding: 1rem;">Linked Bar</th>
-                        <th style="padding: 1rem; text-align: right;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="user-list">
-                    <!-- Injected by JS -->
-                </tbody>
-            </table>
+
+        <!-- View 4: Users Management -->
+        <div id="view-users" style="display: none;">
+            <div class="section-header">
+                <h2>Manage Users</h2>
+                <button id="add-user-btn" class="btn" style="background-color: var(--bg-red);">+ Add User</button>
+            </div>
+            <div
+                style="background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                <table style="width: 100%; border-collapse: collapse; color: var(--text-primary);">
+                    <thead>
+                        <tr style="background: #f5f5f7; text-align: left;">
+                            <th style="padding: 1rem; color: #666;">Email</th>
+                            <th style="padding: 1rem; color: #666;">Role</th>
+                            <th style="padding: 1rem; color: #666;">Linked Bar</th>
+                            <th style="padding: 1rem; text-align: right; color: #666;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="user-list-full">
+                        <!-- Injected by JS -->
+                    </tbody>
+                </table>
+            </div>
         </div>
+
     </section>
 
     <!-- Settings Modal -->

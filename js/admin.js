@@ -13,8 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const logoutBtn = document.getElementById('logout-btn');
 
     // Dashboard Elements
-    const barList = document.getElementById('bar-list');
-    const articleList = document.getElementById('article-list');
+    const barListFull = document.getElementById('bar-list-full');
+    const articleListFull = document.getElementById('article-list-full');
     const addBarBtn = document.getElementById('add-bar-btn');
     const addJournalBtn = document.getElementById('add-journal-btn');
 
@@ -82,14 +82,93 @@ document.addEventListener('DOMContentLoaded', () => {
         loginSection.style.display = 'none';
         dashboardSection.style.display = 'block';
 
-        loadBars();
-        loadArticles(user, roles);
+        // Initial Load: Dashboard Stats
+        switchView('dashboard');
+        loadDashboardStats();
+    }
+
+    // --- View Navigation ---
+    window.switchView = (viewName) => {
+        // Toggle Tabs
+        document.querySelectorAll('.nav-tab').forEach(btn => {
+            btn.style.background = 'transparent';
+            btn.style.color = '#fff';
+            btn.classList.remove('active-tab');
+        });
+        const activeBtn = document.getElementById(`nav-${viewName}`);
+        if (activeBtn) {
+            activeBtn.style.background = '#fff';
+            activeBtn.style.color = 'var(--bg-red)';
+            activeBtn.classList.add('active-tab');
+        }
+
+        // Toggle Views
+        ['dashboard', 'bars', 'articles', 'users'].forEach(v => {
+            const el = document.getElementById(`view-${v}`);
+            if (el) el.style.display = (v === viewName) ? 'block' : 'none';
+        });
+
+        // Load Data on Demand
+        if (viewName === 'bars') loadBars();
+        if (viewName === 'articles') loadArticles();
+        if (viewName === 'users') loadUsers();
+        if (viewName === 'dashboard') loadDashboardStats();
+    };
+
+    // --- Dashboard Stats & latest 5 ---
+    async function loadDashboardStats() {
+        // 1. Counts
+        const { count: barCount } = await supabase.from('bars').select('*', { count: 'exact', head: true });
+        const { count: articleCount } = await supabase.from('articles').select('*', { count: 'exact', head: true });
+        const { count: userCount } = await supabase.from('users').select('*', { count: 'exact', head: true });
+
+        document.getElementById('stat-bars-count').innerText = barCount || 0;
+        document.getElementById('stat-articles-count').innerText = articleCount || 0;
+        document.getElementById('stat-users-count').innerText = userCount || 0;
+
+        // 2. Latest 5
+        // Bars
+        const { data: latestBars } = await supabase.from('bars').select('id, title, created_at').order('created_at', { ascending: false }).limit(5);
+        if (latestBars) {
+            document.getElementById('latest-bars-list').innerHTML = latestBars.map(b => `
+                <div style="padding: 10px; background: #fafafa; border-radius: 6px; border: 1px solid #eee; display: flex; justify-content: space-between;">
+                    <span style="font-weight: 500;">${b.title}</span>
+                    <span style="color: #999; font-size: 0.8rem;">${new Date(b.created_at).toLocaleDateString()}</span>
+                </div>
+            `).join('');
+        }
+
+        // Articles
+        const { data: latestArts } = await supabase.from('articles').select('id, title, created_at, category').order('created_at', { ascending: false }).limit(5);
+        if (latestArts) {
+            document.getElementById('latest-articles-list').innerHTML = latestArts.map(a => `
+                <div style="padding: 10px; background: #fafafa; border-radius: 6px; border: 1px solid #eee;">
+                    <div style="font-weight: 500; font-size: 0.95rem;">${a.title}</div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 4px;">
+                        <span style="font-size: 0.75rem; background: #e0e0e0; padding: 2px 6px; border-radius: 4px;">${a.category}</span>
+                        <span style="color: #999; font-size: 0.8rem;">${new Date(a.created_at).toLocaleDateString()}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Users
+        const { data: latestUsers } = await supabase.from('users').select('id, email, created_at').order('created_at', { ascending: false }).limit(5);
+        if (latestUsers) {
+            document.getElementById('latest-users-list').innerHTML = latestUsers.map(u => `
+                 <div style="padding: 10px; background: #fafafa; border-radius: 6px; border: 1px solid #eee; display: flex; justify-content: space-between;">
+                     <span style="font-weight: 500; overflow: hidden; text-overflow: ellipsis; max-width: 60%;">${u.email}</span>
+                     <span style="color: #999; font-size: 0.8rem;">${new Date(u.created_at).toLocaleDateString()}</span>
+                 </div>
+             `).join('');
+        }
     }
 
     // --- Data Loading ---
 
     async function loadBars() {
-        barList.innerHTML = '<p style="color:#888">Loading bars...</p>';
+        const barListFull = document.getElementById('bar-list-full');
+        barListFull.innerHTML = '<p style="color:#888">Loading bars...</p>';
 
         const { data: bars, error } = await supabase
             .from('bars')
@@ -97,16 +176,16 @@ document.addEventListener('DOMContentLoaded', () => {
             .order('created_at', { ascending: false });
 
         if (error) {
-            barList.innerHTML = `<p style="color:red">Error: ${error.message}</p>`;
+            barListFull.innerHTML = `<p style="color:red">Error: ${error.message}</p>`;
             return;
         }
 
         if (!bars || bars.length === 0) {
-            barList.innerHTML = '<p>No bars found.</p>';
+            barListFull.innerHTML = '<p>No bars found.</p>';
             return;
         }
 
-        barList.innerHTML = bars.map(bar => {
+        barListFull.innerHTML = bars.map(bar => {
             const isPublished = bar.is_published !== false; // Default true
             const statusText = isPublished ? 'Published' : 'Hidden';
 
@@ -139,24 +218,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function loadArticles(user, roles) {
-        articleList.innerHTML = '<p style="color:#888">Loading articles...</p>';
+        const articleListFull = document.getElementById('article-list-full');
+        articleListFull.innerHTML = '<p style="color:#888">Loading articles...</p>';
 
         let query = supabase.from('articles').select('*').order('published_at', { ascending: false });
-        // Assume Admin sees all
 
         const { data: articles, error } = await query;
 
         if (error) {
-            articleList.innerHTML = `<p style="color:red">Error: ${error.message}</p>`;
+            articleListFull.innerHTML = `<p style="color:red">Error: ${error.message}</p>`;
             return;
         }
 
         if (!articles || articles.length === 0) {
-            articleList.innerHTML = '<p>No stories found.</p>';
+            articleListFull.innerHTML = '<p>No stories found.</p>';
             return;
         }
 
-        articleList.innerHTML = articles.map(art => {
+        articleListFull.innerHTML = articles.map(art => {
             const isPublished = art.status === 'published';
             const statusText = isPublished ? 'Published' : 'Draft';
 
@@ -262,8 +341,8 @@ document.addEventListener('DOMContentLoaded', () => {
     addJournalBtn.addEventListener('click', () => { window.location.href = 'cms.html'; });
 
     // --- User Management Logic ---
-    const usersSection = document.getElementById('users-section');
-    const userList = document.getElementById('user-list');
+    // const usersSection = document.getElementById('users-section'); // Legacy
+    // const userList = document.getElementById('user-list'); // Legacy
     const userModal = document.getElementById('user-modal');
     const addUserBtn = document.getElementById('add-user-btn');
     const saveUserBtn = document.getElementById('save-user-btn');
@@ -298,7 +377,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const originalShowDashboard = showDashboard;
     showDashboard = function (user, roles) {
         originalShowDashboard(user, roles);
-        initUserManagement(roles);
+        // initUserManagement(roles); // Removed legacy logic
     };
 
     addUserBtn.addEventListener('click', () => {
@@ -310,7 +389,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     async function loadUsers() {
-        userList.innerHTML = '<tr><td colspan="4" style="padding:1rem;">Loading...</td></tr>';
+        const userListFull = document.getElementById('user-list-full');
+        userListFull.innerHTML = '<tr><td colspan="4" style="padding:1rem;">Loading...</td></tr>';
 
         // Fetch Users and their Linked Bars (if any)
         // Note: 'users' table doesn't strictly have a foreign key to bars in the schema shown, 
@@ -321,11 +401,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const { data: bars } = await supabase.from('bars').select('id, title, owner_user_id');
 
         if (error) {
-            userList.innerHTML = `<tr><td colspan="4" style="color:red;">Error: ${error.message}</td></tr>`;
+            userListFull.innerHTML = `<tr><td colspan="4" style="color:red;">Error: ${error.message}</td></tr>`;
             return;
         }
 
-        userList.innerHTML = users.map(u => {
+        userListFull.innerHTML = users.map(u => {
             const linkedBar = bars ? bars.find(b => b.owner_user_id === u.id) : null;
             const roleBadges = (u.roles || []).map(r =>
                 `<span class="tag-badge" style="background:${getRoleColor(r)}; color:white;">${r}</span>`
@@ -341,6 +421,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </td>
                     <td style="padding: 1rem;">${roleBadges}</td>
                     <td style="padding: 1rem;">${linkedBar ? linkedBar.title : '-'}</td>
+                    <td style="padding: 1rem; text-align: right;">
                         ${isTalent ? `<button onclick="window.openTalentEditor('${u.id}')" class="btn btn-secondary" style="padding:4px 8px; font-size:0.8rem; margin-right: 5px;">Talent</button>` : ''}
                         <button onclick="window.openHopperModal('${u.id}')" class="btn btn-secondary" style="padding:4px 8px; font-size:0.8rem; margin-right: 5px;">Hopper</button>
                         <button onclick="editUser('${u.id}')" class="btn btn-secondary" style="padding:4px 8px; font-size:0.8rem; margin-right: 5px;">Edit</button>
