@@ -999,9 +999,23 @@ window.deleteHopping = async (hopId) => {
     if (error) {
         alert('Delete Failed: ' + error.message);
     } else {
-        alert('Hop deleted.');
-        document.getElementById('hopping-details-modal').style.display = 'none';
-        window.location.reload();
+        // alert('Hop deleted.'); // Removed to be less intrusive/instant
+
+        // Remove from DOM immediately
+        const card = document.getElementById(`hop-card-${hopId}`);
+        if (card) {
+            card.style.transition = 'opacity 0.3s, transform 0.3s';
+            card.style.opacity = '0';
+            card.style.transform = 'scale(0.9)';
+            setTimeout(() => card.remove(), 300);
+        }
+
+        // Close details modal if open
+        const modal = document.getElementById('hopping-details-modal');
+        if (modal) modal.style.display = 'none';
+        document.body.style.overflow = ''; // Unlock Scroll
+
+        // window.location.reload(); // Removed reload for instant feel
     }
 };
 
@@ -1210,7 +1224,7 @@ window.getHopCardHTML = function (hop, user, comments = [], barInfo, cheersInfo 
     const activeClass = isCheered ? 'active' : '';
 
     return `
-    <div class="hop-detail-card grid-item" style="margin: 0 auto; margin-bottom: 2rem;">
+    <div id="hop-card-${hopId}" class="hop-detail-card grid-item" style="margin: 0 auto; margin-bottom: 2rem;">
         <div class="hop-detail-image-wrapper">
              <img src="${hop.image_url}" class="hop-detail-image" onclick="window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', ${hop.rating}, '${hop.description?.replace(/'/g, "\\'") || ""}', '${hopId}', '${hop.user_id}', true, '${barInfo?.title?.replace(/'/g, "\\'") || ''}', '${barInfo?.id || ''}', true)">
              
