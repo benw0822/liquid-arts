@@ -4,7 +4,7 @@ create table if not exists private_messages (
   sender_id uuid references auth.users(id) not null,
   receiver_id uuid references auth.users(id) not null,
   content text not null,
-  related_hop_id bigint references hoppings(id),
+  related_hop_id bigint references hoppings(id) on delete set null,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
