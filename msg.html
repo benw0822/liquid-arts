@@ -296,7 +296,18 @@
                     const isActive = t.partnerId === activeThreadId;
                     const bg = isActive ? '#f9fafb' : 'white';
                     const lastMsg = t.messages[t.messages.length - 1];
-                    const preview = lastMsg ? lastMsg.content : 'No messages';
+                    let preview = lastMsg ? lastMsg.content : 'No messages';
+
+                    // JSON Preview fix for Bar Cards
+                    if (preview.startsWith('{') && preview.includes('"type":"bar_card"')) {
+                        try {
+                            const parsed = JSON.parse(preview);
+                            if (parsed.type === 'bar_card') {
+                                preview = '@' + parsed.data.title;
+                            }
+                        } catch (e) { /* ignore parse error */ }
+                    }
+
                     const time = lastMsg ? formatTime(lastMsg.created_at) : '';
 
                     return `
