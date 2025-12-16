@@ -40,7 +40,8 @@
         </div>
     </nav>
 
-    <main class="container" style="margin-top: 6rem; min-height: 80vh;">
+    <!-- Main Container: Adjusted margin-top for desktop to fit flush below navbar (assuming 60-80px) -->
+    <main class="container" style="margin-top: 0; padding-top: 60px; min-height: 80vh;">
         <!-- Auth Wall -->
         <div id="auth-wall" style="text-align: center; display: none; padding-top: 4rem;">
             <h2>Please Log In</h2>
@@ -108,7 +109,10 @@
                             grid-template-areas: "sidebar chat";
                             max-width: 1400px;
                             margin: 0 auto;
-                            height: calc(100vh - 80px) !important;
+                            /* 60px header offset */
+                            height: calc(100vh - 60px) !important;
+                            margin-top: 20px;
+                            /* Small breathing room if needed, or 0 for flush */
                         }
 
                         /* Sidebar overrides */
@@ -161,11 +165,11 @@
 
                         /* Hide Back Button on Desktop */
                         .user-header button {
-                            display: none !important;
+                            /* Force bubbles container to take remaining space */
                         }
 
                         .bubbles-container {
-                            padding-top: 80px !important;
+                            padding-top: 60px !important;
                             padding-bottom: 80px !important;
                             height: 100% !important;
                             overflow-y: auto !important;
