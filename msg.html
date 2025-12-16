@@ -224,6 +224,9 @@
 
             // Auth Check
             const supabase = window.supabaseClient || window.supabase.createClient('https://cbmtgmcgpzguospmgntg.supabase.co', 'YOUR_KEY_IF_NEEDED');
+            // Ensure global access for helper functions
+            window.supabaseClient = supabase;
+
             const { data: { session } } = await supabase.auth.getSession();
             const user = session?.user;
 
@@ -439,7 +442,7 @@
                      <div class="chat-input-bar" style="position: fixed; bottom: 50px; right: 0; left: 0; background: transparent; padding: 10px 16px; border-top: none; display: flex; align-items: center; gap: 10px; z-index: 1100; max-width: 1000px; margin: 0 auto; pointer-events: none;">
                          <!-- Suggestion Box (Absolute relative to this fixed container) -->
                          <div id="bar-suggestions-${activeThread.partnerId}" 
-                              style="display: none; position: absolute; bottom: 70px; left: 16px; right: 16px; background: white; border-radius: 12px; box-shadow: 0 -4px 20px rgba(0,0,0,0.15); max-height: 200px; overflow-y: auto; z-index: 1200; pointer-events: auto; border: 1px solid #eee;">
+                              style="display: none; position: absolute; bottom: 100%; left: 16px; right: 16px; margin-bottom: 8px; background: white; border-radius: 12px; box-shadow: 0 -4px 20px rgba(0,0,0,0.15); max-height: 200px; overflow-y: auto; z-index: 1200; pointer-events: auto; border: 1px solid #eee;">
                          </div>
 
                          <input type="text" id="reply-input-${activeThread.partnerId}" 
