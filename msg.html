@@ -120,6 +120,8 @@
                             border-right: 1px solid #eee;
                             z-index: 10 !important;
                             animation: none !important;
+                            grid-column: 1 !important;
+                            /* Explicitly place in Left Column */
                         }
 
                         #thread-list-modal>div {
@@ -146,6 +148,8 @@
                             display: flex !important;
                             flex-direction: column;
                             overflow: hidden;
+                            grid-column: 2 !important;
+                            /* Explicitly place in Right Column */
                         }
 
                         .user-header {
@@ -154,6 +158,11 @@
                             top: 0 !important;
                             left: 0 !important;
                             border-bottom: 1px solid #eee;
+                        }
+
+                        /* Hide Back Button on Desktop */
+                        .user-header button {
+                            display: none !important;
                         }
 
                         .bubbles-container {
