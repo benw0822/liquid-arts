@@ -76,9 +76,8 @@
                         style="background: white; width: 80%; max-width: 320px; height: 100%; padding: 20px; overflow-y: auto; box-shadow: 2px 0 10px rgba(0,0,0,0.1); animation: slideRight 0.3s ease;">
                         <div
                             style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                            <h3 style="margin: 0; font-size: 1.2rem;">Messages</h3>
                             <button onclick="document.getElementById('thread-list-modal').style.display='none'"
-                                style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+                                style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: red;">&times;</button>
                         </div>
                         <div id="thread-list-content">
                             <!-- List injected here -->
@@ -99,28 +98,86 @@
                     /* Responsive Layout Overrides */
                     @media (min-width: 769px) {
 
-                        /* Desktop: No Bottom Nav */
-                        .chat-input-bar {
-                            bottom: 0 !important;
+                        /* 2-Column Desktop Layout */
+                        body {
+                            overflow: hidden;
+                            /* Prevent body scroll, use container scroll */
                         }
 
-                        .user-header {
-                            /* On desktop, navbar is still 60px? Yes. */
-                            top: 60px !important;
-                            width: 100%;
-                            max-width: 1000px;
+                        #messages-container {
+                            display: flex !important;
+                            flex-direction: row;
+                            max-width: 1200px;
                             margin: 0 auto;
-                            /* Center if needed, but fixed left/right */
-                            left: 50% !important;
-                            transform: translateX(-50%);
+                            height: calc(100vh - 80px) !important;
+                            /* Adjust for header/footer */
                         }
 
+                        /* Sidebar overrides */
+                        #thread-list-modal {
+                            display: block !important;
+                            /* Always show sidebar */
+                            position: static !important;
+                            /* Not fixed modal */
+                            width: 300px !important;
+                            height: 100% !important;
+                            background: white !important;
+                            border-right: 1px solid #eee;
+                            z-index: 0 !important;
+                        }
+
+                        #thread-list-modal>div {
+                            width: 100% !important;
+                            max-width: none !important;
+                            box-shadow: none !important;
+                            padding: 0 !important;
+                            animation: none !important;
+                        }
+
+                        /* Hide Close Button on Desktop if desired, but user didn't ask explicitly. 
+                           Actually, the user asked to change color to red, probably for mobile. 
+                           On Desktop, we probably don't want the close button header at all?
+                           Let's hide the header div on desktop. */
+                        #thread-list-modal>div>div:first-child {
+                            display: none !important;
+                        }
+
+                        /* Chat Area overrides */
+                        #active-thread-container {
+                            flex: 1;
+                            height: 100% !important;
+                            border-left: 1px solid #eee;
+                        }
+
+                        /* Header Adjustments for Desktop */
+                        .user-header {
+                            position: absolute !important;
+                            width: 100% !important;
+                            max-width: none !important;
+                            top: 0 !important;
+                            left: 0 !important;
+                            transform: none !important;
+                            border-bottom: 1px solid #eee;
+                        }
+
+                        .bubbles-container {
+                            padding-top: 80px !important;
+                            /* Space for header */
+                            padding-bottom: 80px !important;
+                            /* Space for input */
+                            height: 100%;
+                            overflow-y: auto;
+                        }
+
+                        /* Input Bar Adjustments */
                         .chat-input-bar {
-                            width: 100%;
-                            max-width: 1000px;
-                            left: 50% !important;
-                            right: auto !important;
-                            transform: translateX(-50%);
+                            position: absolute !important;
+                            bottom: 0 !important;
+                            width: 100% !important;
+                            max-width: none !important;
+                            left: 0 !important;
+                            transform: none !important;
+                            padding-bottom: 20px !important;
                         }
                     }
 
