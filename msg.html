@@ -105,14 +105,13 @@
                         #messages-container {
                             display: grid !important;
                             grid-template-columns: 320px 1fr;
-                            grid-template-rows: 100%;
                             grid-template-areas: "sidebar chat";
                             max-width: 1400px;
                             margin: 0 auto;
                             /* 60px header offset */
                             height: calc(100vh - 60px) !important;
-                            margin-top: 20px;
-                            /* Small breathing room if needed, or 0 for flush */
+                            margin-top: 0 !important;
+                            /* Force flush */
                         }
 
                         /* Sidebar overrides */
