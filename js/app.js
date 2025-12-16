@@ -433,11 +433,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (locationSelect) {
                 locationSelect.innerHTML = '<option value="">All Cities</option>' +
-                    cities.map(c => `< option value = "${c}" > ${c}</option > `).join('');
+                    cities.map(c => `<option value="${c}">${c}</option>`).join('');
             }
             if (vibeSelect) {
                 vibeSelect.innerHTML = '<option value="">All Vibes</option>' +
-                    vibes.map(v => `< option value = "${v}" > ${v}</option > `).join('');
+                    vibes.map(v => `<option value="${v}">${v}</option>`).join('');
             }
         }
 
@@ -494,10 +494,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (window.savedBarIds.size === 0) {
             grid.innerHTML = `
-                < div style = "grid-column: 1/-1; text-align: center; padding: 3rem 1rem;" >
+                <div style="grid-column: 1/-1; text-align: center; padding: 3rem 1rem;">
                     <h3 style="font-family: var(--font-display); color: #ccc;">No saved bars yet.</h3>
                     <a href="bars.html" class="btn" style="margin-top: 1rem; display: inline-block; background: var(--bg-red); color: white; padding: 10px 20px; border-radius: 30px; text-decoration: none;">Explore Bars</a>
-                </div >
+                </div>
                 `;
             return;
         }
@@ -587,9 +587,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 container.onmouseout = () => container.style.backgroundColor = 'white';
 
                 container.innerHTML = `
-                < svg xmlns = "http://www.w3.org/2000/svg" width = "18" height = "18" fill = "#333" viewBox = "0 0 16 16" >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="#333" viewBox="0 0 16 16">
                     <path d="M8 16a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm0-1A7 7 0 1 1 8 2a7 7 0 0 1 0 14zm0-7a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
-                    </svg >
+                </svg>
                 `;
 
                 container.onclick = function (e) {
@@ -606,7 +606,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             } else {
                                 const userIcon = L.divIcon({
                                     className: 'user-marker-a',
-                                    html: `< div style = "color: #D4AF37; font-family: 'Playfair Display', serif; font-size: 32px; font-weight: bold; line-height: 1; text-shadow: 0 2px 10px rgba(0,0,0,0.6); transform: translate(-50%, -50%);" > A</div > `,
+                                    html: `<div style="color: #D4AF37; font-family: 'Playfair Display', serif; font-size: 32px; font-weight: bold; line-height: 1; text-shadow: 0 2px 10px rgba(0,0,0,0.6); transform: translate(-50%, -50%);">A</div>`,
                                     iconSize: [40, 40],
                                     iconAnchor: [20, 20]
                                 });
@@ -650,9 +650,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const savedCount = window.savedBarIds ? window.savedBarIds.size : 0;
 
                 container.innerHTML = `
-                < svg id = "saved-filter-icon" xmlns = "http://www.w3.org/2000/svg" width = "20" height = "20" fill = "none" stroke = "#333" stroke - width="2" viewBox = "0 0 24 24" stroke - linecap="round" stroke - linejoin="round" >
+                <svg id="saved-filter-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#333" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                    </svg >
+                </svg>
                 <div id="saved-filter-badge" style="position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; font-size: 10px; font-weight: bold; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.3); ${savedCount > 0 ? '' : 'display: none;'}">
                     ${savedCount}
                 </div>
