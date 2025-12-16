@@ -379,7 +379,7 @@
                                 isBarCard = true;
                                 const bar = parsed.data;
                                 messageContentHtml = `
-                                    <div style="display: flex; flex-direction: column; width: 220px; overflow: hidden; cursor: pointer;" onclick="window.showBarCardModal && window.showBarCardModal(${bar.id})">
+                                    <div style="display: flex; flex-direction: column; width: 220px; overflow: hidden; cursor: pointer;" onclick="window.location.href='bar-details.html?id=${bar.id}'">
                                         <div style="width: 100%; height: 140px; background: #eee;">
                                             <img src="${bar.image || 'assets/default_bar.jpg'}" style="width: 100%; height: 100%; object-fit: cover; display: block;">
                                         </div>
@@ -840,20 +840,6 @@
             };
         });
     </script>
-    <!-- Bar Card Modal (Re-used from App/Map context logic) -->
-    <div id="map-bar-modal"
-        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
-        <!-- Click background to close -->
-        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"
-            onclick="document.getElementById('map-bar-modal').style.display='none'"></div>
-
-        <!-- Modal Content Container -->
-        <div id="map-bar-card-container"
-            style="position: relative; width: 90%; max-width: 400px; max-height: 85vh; overflow-y: auto; background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); scrollbar-width: none;">
-            <!-- Content injected by window.showBarCardModal -->
-        </div>
-    </div>
-    <script src="js/app.js?v=force"></script>
 </body>
 
 </html>
