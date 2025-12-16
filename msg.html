@@ -205,7 +205,8 @@
                     // 1. Messages with Context Headers
                     let lastHopId = null;
                     const bubblesHtml = thread.messages.map(m => {
-                        const isMe = m.user_id === user.id;
+                        // Robust ID comparison
+                        const isMe = String(m.user_id) === String(user.id);
                         const align = isMe ? 'flex-end' : 'flex-start';
                         const bg = isMe ? (m.is_private ? '#d1e9ff' : '#e3f2fd') : '#f5f5f5';
                         const radius = isMe ? '12px 0 12px 12px' : '0 12px 12px 12px';
