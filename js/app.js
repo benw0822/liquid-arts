@@ -318,8 +318,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const newBtns = document.createElement('div');
             newBtns.style.cssText = 'display: flex; gap: 10px; margin-top: 10px; margin-bottom: 0px;'; // Ensure no bottom margin
 
+            // Custom Slug Logic for Modal Button
+            const barUrl = bar.slug ? `/${bar.slug}` : `bar.html?id=${bar.id}`;
+
             newBtns.innerHTML = `
-                <a href="bar.html?id=${bar.id}" class="btn" style="flex:1; text-align:center; background-color: var(--bg-red); color: white; border: none; padding: 10px; text-decoration: none; border-radius: 4px; font-weight: bold; display: flex; align-items: center; justify-content: center;">
+                <a href="${barUrl}" class="btn" style="flex:1; text-align:center; background-color: var(--bg-red); color: white; border: none; padding: 10px; text-decoration: none; border-radius: 4px; font-weight: bold; display: flex; align-items: center; justify-content: center;">
                     <!-- Telescope Icon -->
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M6 13L17 4"></path>
