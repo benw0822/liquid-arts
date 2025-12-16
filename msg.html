@@ -399,15 +399,15 @@
                      </div>
 
                      <!-- Fixed Bottom Input -->
-                     <!-- Sits on top of ~50px bottom nav. Using 50px. -->
-                     <div class="chat-input-bar" style="position: fixed; bottom: 50px; right: 0; left: 0; background: white; padding: 10px 16px; border-top: 1px solid #eee; display: flex; align-items: center; gap: 10px; z-index: 1100; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); max-width: 1000px; margin: 0 auto;">
+                     <!-- Sits on top of ~50px bottom nav. Container is transparent to hide layout gaps. -->
+                     <div class="chat-input-bar" style="position: fixed; bottom: 50px; right: 0; left: 0; background: transparent; padding: 10px 16px; border-top: none; display: flex; align-items: center; gap: 10px; z-index: 1100; max-width: 1000px; margin: 0 auto; pointer-events: none;">
                          <input type="text" id="reply-input-${activeThread.partnerId}" 
                                 class="reply-input"
                                 placeholder="Type a message..." 
                                 onkeydown="if(event.key === 'Enter') window.sendInlineReply('${activeThread.partnerId}')"
-                                style="flex: 1; border: 1px solid #ddd; border-radius: 24px; padding: 12px 16px; font-size: 16px; outline: none; background: #f9fafb; color: #333; transition: border 0.2s;">
+                                style="flex: 1; border: 1px solid #ddd; border-radius: 24px; padding: 12px 16px; font-size: 16px; outline: none; background: white; color: #333; transition: border 0.2s; pointer-events: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
                          <button onclick="window.sendInlineReply('${activeThread.partnerId}')" 
-                                 style="background: var(--bg-red); color: white; border: none; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 6px rgba(239, 68, 68, 0.25);">
+                                 style="background: var(--bg-red); color: white; border: none; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 6px rgba(239, 68, 68, 0.3); pointer-events: auto;">
                              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                          </button>
                      </div>
