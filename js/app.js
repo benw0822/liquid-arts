@@ -1,5 +1,5 @@
 // --- Supabase Configuration (Global) ---
-const SUPABASE_URL = 'https://wgnskednopbfngvjmviq.supabase.co';
+const SUPABASE_URL = 'https://auth.liquidarts.bar';
 const SUPABASE_KEY = 'sb_publishable_gcmYleFIGmwsLSKofS__Qg_62EXoP6P';
 // Attach to window so other scripts (like profile.html) can use it
 window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
