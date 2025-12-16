@@ -217,14 +217,18 @@
                         if (m.hopId && m.hopId !== lastHopId) {
                             const hop = thread.hops[m.hopId];
                             if (hop) {
+                                // Style match: isMe?
+                                const headerAlign = isMe ? 'flex-end' : 'flex-start';
+                                const headerBg = isMe ? '#e3f2fd' : '#f5f5f5'; // Match bubble bg (using public text color standard)
+                                const headerColor = '#666';
+
                                 contextHeader = `
-                                    <div style="width: 100%; display: flex; align-items: center; justify-content: center; margin: 15px 0 10px 0;">
-                                        <div style="background: #f9fafb; border: 1px solid #eee; border-radius: 20px; padding: 4px 12px; display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: #666; cursor: pointer; transition: background 0.2s;" 
-                                             onclick="window.viewHop('${hop.id}')"
-                                             onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background='#f9fafb'">
-                                            <img src="${hop.image_url}" style="width: 16px; height: 16px; border-radius: 4px; object-fit: cover;">
+                                    <div style="width: 100%; display: flex; flex-direction: column; align-items: ${headerAlign}; margin: 20px 0 4px 0;">
+                                        <div style="background: ${headerBg}; opacity: 0.9; border: 1px solid rgba(0,0,0,0.05); border-radius: 12px; padding: 4px 10px; display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: ${headerColor}; cursor: pointer; max-width: 85%; width: fit-content; box-shadow: 0 1px 2px rgba(0,0,0,0.03);" 
+                                             onclick="window.viewHop('${hop.id}')">
+                                            <img src="${hop.image_url}" style="width: 14px; height: 14px; border-radius: 3px; object-fit: cover;">
                                             <span>Topic: <strong>${hop.bars?.title || 'Unknown Bar'}</strong></span>
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 2px;"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 2px;"><polyline points="9 18 15 12 9 6"></polyline></svg>
                                         </div>
                                     </div>
                                 `;
@@ -237,7 +241,7 @@
 
                         return `
                              ${contextHeader}
-                             <div style="display: flex; flex-direction: column; align-items: ${align}; width: 100%; margin-bottom: 10px;">
+                             <div style="display: flex; flex-direction: column; align-items: ${align}; width: 100%; margin-bottom: 4px;">
                                  <div style="background: ${bg}; border: ${border}; padding: 8px 12px; border-radius: ${radius}; font-size: 0.95rem; color: #333; max-width: 85%; box-shadow: 0 1px 2px rgba(0,0,0,0.05); position: relative;">
                                      ${m.content}
                                  </div>
