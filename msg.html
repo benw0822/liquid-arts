@@ -365,11 +365,47 @@
                         lastHopId = m.hopId;
                     }
 
+                    // Bar Card Parsing
+                    let messageContentHtml = m.content;
+                    let isBarCard = false;
+                    try {
+                        // Optimistic check: starts with json-ish
+                        if (m.content.trim().startsWith('{')) {
+                            const parsed = JSON.parse(m.content);
+                            if (parsed.type === 'bar_card' && parsed.data) {
+                                isBarCard = true;
+                                const bar = parsed.data;
+                                messageContentHtml = `
+                                    <div style="display: flex; flex-direction: column; width: 220px; overflow: hidden; cursor: pointer;" onclick="window.location.href='bar-details.html?id=${bar.id}'">
+                                        <div style="width: 100%; height: 140px; background: #eee;">
+                                            <img src="${bar.image || 'assets/default_bar.jpg'}" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+                                        </div>
+                                        <div style="padding: 12px; background: white; border-top: 1px solid #f0f0f0;">
+                                            <div style="font-weight: 700; font-size: 1rem; color: #1b1b1b; margin-bottom: 4px;">${bar.title}</div>
+                                            <div style="font-size: 0.8rem; color: #bg-red; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 4px;">
+                                                <span>View Bar</span>
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            }
+                        }
+                    } catch (e) {
+                        // Not JSON, ignore
+                    }
+
+                    // Card Styling overrides
+                    const bubbleBg = isBarCard ? 'white' : bg;
+                    const bubblePad = isBarCard ? '0' : '8px 12px';
+                    // Remove radius for card images if desired, or keep rounded bubble
+                    const bubbleOverflow = isBarCard ? 'hidden' : 'visible';
+
                     return `
                          ${contextHeader}
                          <div style="display: flex; flex-direction: column; align-items: ${align}; width: 100%; margin-bottom: 4px;">
-                             <div style="background: ${bg}; border: ${border}; padding: 8px 12px; border-radius: ${radius}; font-size: 0.95rem; color: #333; max-width: 85%; box-shadow: 0 1px 2px rgba(0,0,0,0.05); position: relative; word-break: break-word;">
-                                 ${m.content}
+                             <div style="background: ${bubbleBg}; border: ${border}; padding: ${bubblePad}; border-radius: ${radius}; font-size: 0.95rem; color: #333; max-width: 85%; box-shadow: 0 1px 2px rgba(0,0,0,0.05); position: relative; word-break: break-word; overflow: ${bubbleOverflow};">
+                                 ${messageContentHtml}
                              </div>
                              <div style="font-size: 0.65rem; color: #999; margin-top: 2px; margin-right: 4px; margin-left: 4px;">${time}</div>
                          </div>
@@ -401,9 +437,15 @@
                      <!-- Fixed Bottom Input -->
                      <!-- Sits on top of ~50px bottom nav. Container is transparent to hide layout gaps. -->
                      <div class="chat-input-bar" style="position: fixed; bottom: 50px; right: 0; left: 0; background: transparent; padding: 10px 16px; border-top: none; display: flex; align-items: center; gap: 10px; z-index: 1100; max-width: 1000px; margin: 0 auto; pointer-events: none;">
+                         <!-- Suggestion Box (Absolute relative to this fixed container) -->
+                         <div id="bar-suggestions-${activeThread.partnerId}" 
+                              style="display: none; position: absolute; bottom: 70px; left: 16px; right: 16px; background: white; border-radius: 12px; box-shadow: 0 -4px 20px rgba(0,0,0,0.15); max-height: 200px; overflow-y: auto; z-index: 1200; pointer-events: auto; border: 1px solid #eee;">
+                         </div>
+
                          <input type="text" id="reply-input-${activeThread.partnerId}" 
                                 class="reply-input"
-                                placeholder="Type a message..." 
+                                placeholder="Type @ to search bars..." 
+                                oninput="window.handleChatInput(event, '${activeThread.partnerId}')"
                                 onkeydown="if(event.key === 'Enter') window.sendInlineReply('${activeThread.partnerId}')"
                                 style="flex: 1; border: 1px solid #ddd; border-radius: 24px; padding: 12px 16px; font-size: 16px; outline: none; background: white; color: #333; transition: border 0.2s; pointer-events: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
                          <button onclick="window.sendInlineReply('${activeThread.partnerId}')" 
@@ -412,6 +454,61 @@
                          </button>
                      </div>
                 `;
+
+                // Add Bar Search Logic if not exists - DO NOT REDECLARE if simple re-render
+                if (!window.handleChatInput) {
+                    window.handleChatInput = async (e, partnerId) => {
+                        const val = e.target.value;
+                        const suggestBox = document.getElementById(`bar-suggestions-${partnerId}`);
+
+                        // Check for @ trigger (at end or space+@)
+                        const match = val.match(/@(\w*)$/);
+                        if (match) {
+                            const query = match[1];
+                            suggestBox.innerHTML = '<div style="padding:12px; text-align:center; color:#888;">Searching...</div>';
+                            suggestBox.style.display = 'block';
+
+                            const { data: bars } = await window.supabaseClient
+                                .from('bars')
+                                .select('id, title, hero_image')
+                                .ilike('title', `%${query}%`)
+                                .limit(5);
+
+                            if (bars && bars.length > 0) {
+                                suggestBox.innerHTML = bars.map(bar => `
+                                    <div onclick='window.selectBarForChat("${partnerId}", ${JSON.stringify(bar).replace(/'/g, "&#39;")})' 
+                                         style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-bottom: 1px solid #f5f5f5; cursor: pointer; transition: background 0.2s;"
+                                         onmouseover="this.style.background='#f9f9f9'" onmouseout="this.style.background='white'">
+                                        <img src="${bar.hero_image || 'assets/default_bar.jpg'}" style="width: 32px; height: 32px; border-radius: 6px; object-fit: cover;">
+                                        <span style="font-weight: 600; color: #333; font-size: 0.9rem;">${bar.title}</span>
+                                    </div>
+                                `).join('');
+                            } else {
+                                suggestBox.innerHTML = '<div style="padding:12px; text-align:center; color:#888; font-size:0.8rem;">No bars found</div>';
+                            }
+                        } else {
+                            suggestBox.style.display = 'none';
+                        }
+                    };
+
+                    window.selectBarForChat = (partnerId, bar) => {
+                        const payload = JSON.stringify({
+                            type: 'bar_card',
+                            data: {
+                                id: bar.id,
+                                title: bar.title,
+                                image: bar.hero_image
+                            }
+                        });
+                        // Send immediately
+                        window.sendInlineReply(partnerId, null, payload);
+
+                        // Clear input
+                        const input = document.getElementById(`reply-input-${partnerId}`);
+                        if (input) input.value = '';
+                        document.getElementById(`bar-suggestions-${partnerId}`).style.display = 'none';
+                    };
+                }
 
                 if (!currentContentEl) {
                     activeContainer.innerHTML = `<div id="${threadContentId}" style="height: 100%; display: flex; flex-direction: column;">${innerHTML}</div>`;
@@ -641,9 +738,10 @@
 
 
             // --- Send Logic ---
-            window.sendInlineReply = async (partnerId) => {
+            window.sendInlineReply = async (partnerId, _, overrideContent) => {
                 const inputEl = document.getElementById(`reply-input-${partnerId}`);
-                const content = inputEl.value.trim();
+                let content = overrideContent ? overrideContent : (inputEl ? inputEl.value.trim() : '');
+
                 if (!content) return;
 
                 // Determine context: Use last message's hopId?
@@ -680,7 +778,7 @@
                     renderThreads(true);
                 }
 
-                inputEl.value = '';
+                if (inputEl) inputEl.value = '';
 
                 // API
                 const payload = {
@@ -697,7 +795,6 @@
                     fetchThreads(); // Revert
                 }
             };
-
             // Realtime
             const channel = window.supabaseClient.channel('msg-page-realtime')
                 .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'private_messages' }, () => fetchThreads())
