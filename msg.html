@@ -379,13 +379,16 @@
                                 isBarCard = true;
                                 const bar = parsed.data;
                                 messageContentHtml = `
-                                    <div style="display: flex; flex-direction: column; width: 220px; overflow: hidden; cursor: pointer;" onclick="window.location.href='bar-details.html?id=${bar.id}'">
+                                    <div style="display: flex; flex-direction: column; width: 220px; overflow: hidden; cursor: pointer;" onclick="window.showBarCardModal && window.showBarCardModal(${bar.id})">
                                         <div style="width: 100%; height: 140px; background: #eee;">
                                             <img src="${bar.image || 'assets/default_bar.jpg'}" style="width: 100%; height: 100%; object-fit: cover; display: block;">
                                         </div>
                                         <div style="padding: 12px; background: white; border-top: 1px solid #f0f0f0;">
-                                            <div style="font-weight: 700; font-size: 1rem; color: #1b1b1b; margin-bottom: 4px;">${bar.title}</div>
-                                            <div style="font-size: 0.8rem; color: #bg-red; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 4px;">
+                                            <div style="font-weight: 700; font-size: 1rem; color: #1b1b1b; margin-bottom: 2px;">${bar.title}</div>
+                                            <!-- Additional Info -->
+                                            ${bar.address ? `<div style="font-size: 0.75rem; color: #666; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${bar.address}</div>` : ''}
+                                            
+                                            <div style="font-size: 0.8rem; color: #bg-red; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 4px; margin-top: 4px;">
                                                 <span>View Bar</span>
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                                             </div>
@@ -481,7 +484,7 @@
                             // Construct Query
                             let rpc = window.supabaseClient
                                 .from('bars')
-                                .select('id, title, image')
+                                .select('id, title, image, location, address_en')
                                 .limit(5);
 
                             // If query exists, filter. If empty, show latest.
@@ -522,7 +525,9 @@
                             data: {
                                 id: bar.id,
                                 title: bar.title,
-                                image: bar.image
+                                image: bar.image,
+                                location: bar.location,
+                                address: bar.address_en || bar.location
                             }
                         });
                         // Send immediately
@@ -835,6 +840,19 @@
             };
         });
     </script>
+    <!-- Bar Card Modal (Re-used from App/Map context logic) -->
+    <div id="map-bar-modal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+        <!-- Click background to close -->
+        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"
+            onclick="document.getElementById('map-bar-modal').style.display='none'"></div>
+
+        <!-- Modal Content Container -->
+        <div id="map-bar-card-container"
+            style="position: relative; width: 90%; max-width: 400px; max-height: 85vh; overflow-y: auto; background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); scrollbar-width: none;">
+            <!-- Content injected by window.showBarCardModal -->
+        </div>
+    </div>
 </body>
 
 </html>
