@@ -613,9 +613,6 @@
 
                 if (!currentContentEl) {
                     activeContainer.innerHTML = `<div id="${threadContentId}" style="height: 100%; display: flex; flex-direction: column;">${innerHTML}</div>`;
-
-                    const bubbles = document.querySelector('.bubbles-container');
-                    if (bubbles) setTimeout(() => bubbles.scrollTo({ top: bubbles.scrollHeight }), 50);
                 } else {
                     const activeEl = document.activeElement;
                     const isFocused = currentContentEl.contains(activeEl);
@@ -630,9 +627,25 @@
                             input.focus();
                         }
                     }
-                    const bubbles = currentContentEl.querySelector('.bubbles-container');
-                    if (bubbles) setTimeout(() => bubbles.scrollTo({ top: bubbles.scrollHeight }), 50);
                 }
+
+                // Robust Auto-Scroll
+                const scrollToBottom = () => {
+                    const bubbles = document.querySelector('.bubbles-container');
+                    if (bubbles && bubbles.lastElementChild) {
+                        bubbles.lastElementChild.scrollIntoView({ behavior: 'auto', block: 'end' });
+                    } else if (bubbles) {
+                        bubbles.scrollTop = bubbles.scrollHeight;
+                    }
+                    // Setup window scroll just in case layout falls back
+                    window.scrollTo(0, document.body.scrollHeight);
+                };
+
+                // Attempt scroll immediately and after delays to catch rendering/keyboard
+                // significantly increased delay for mobile painting
+                scrollToBottom();
+                setTimeout(scrollToBottom, 100);
+                setTimeout(scrollToBottom, 500);
 
                 loading.style.display = 'none';
             };
