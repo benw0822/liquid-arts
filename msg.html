@@ -480,6 +480,7 @@
                                     ...m,
                                     type: 'private',
                                     hopId: m.related_hop_id,
+                                    user_id: m.sender_id, // FIX: Map sender_id to user_id for rendering logic
                                     partnerId: partner,
                                     is_private: true
                                 });
