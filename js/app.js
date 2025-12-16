@@ -156,6 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 .from('bars')
                 .select(`
                     *,
+                    slug,
                     bar_images (image_url, caption, display_order),
                     signatures (*),
                     bar_awards (*),
@@ -378,6 +379,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // Init maps for featured bars
             featuredBars.forEach(bar => {
                 if (bar.lat && bar.lng) {
+                    // If we also have a slug, we might want the map popup to use it? 
+                    // Currently initCardMapGlobal uses window.createBarCard logic? No, it has its own bindPopup.
+                    // But let's leave map popups for now or update initCardMapGlobal too? 
+                    // User only mentioned "Bar Page" (List).
                     setTimeout(() => window.initCardMapGlobal(bar.id, bar.lat, bar.lng, bar.title, window.savedBarIds.has(bar.id)), 100);
                 }
                 // Hopping Badge
@@ -1900,8 +1905,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const isSaved = window.savedBarIds.has(bar.id);
 
         // Custom Slug Logic
-        // If bar.slug exists, use clean URL 'bar/slug', else 'bar.html?id=ID'
-        const barUrl = bar.slug ? `bar/${bar.slug}` : `bar.html?id=${bar.id}`;
+        // If bar.slug exists, use clean URL '/slug' (root relative), else 'bar.html?id=ID'
+        const barUrl = bar.slug ? `/${bar.slug}` : `bar.html?id=${bar.id}`;
 
         return `
         <div class="art-card grid-item" style="position: relative; display: flex; flex-direction: column; height: 100%; margin-bottom: 3rem; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 380px; margin-left: auto; margin-right: auto;">
