@@ -95,37 +95,31 @@
                         }
                     }
 
-                    /* Responsive Layout Overrides */
                     @media (min-width: 769px) {
 
-                        /* 2-Column Desktop Layout */
+                        /* Desktop Layout: GRID */
                         body {
                             overflow: hidden;
-                            /* Prevent body scroll, use container scroll */
                         }
 
                         #messages-container {
-                            display: flex !important;
-                            flex-direction: row;
-                            max-width: 1200px;
+                            display: grid !important;
+                            grid-template-columns: 320px 1fr;
+                            max-width: 1400px;
                             margin: 0 auto;
                             height: calc(100vh - 80px) !important;
-                            /* Adjust for header/footer */
                         }
 
-                        /* Sidebar overrides - Move to LEFT */
+                        /* Sidebar overrides */
                         #thread-list-modal {
                             display: block !important;
-                            /* Always show sidebar */
-                            position: static !important;
-                            /* Not fixed modal */
-                            width: 300px !important;
+                            position: relative !important;
+                            width: 100% !important;
                             height: 100% !important;
                             background: white !important;
                             border-right: 1px solid #eee;
                             z-index: 10 !important;
-                            order: -1 !important;
-                            /* Move to Visual Start (Left) */
+                            animation: none !important;
                         }
 
                         #thread-list-modal>div {
@@ -133,44 +127,35 @@
                             max-width: none !important;
                             box-shadow: none !important;
                             padding: 0 !important;
-                            animation: none !important;
                         }
 
-                        /* Hide Close Button Header on Desktop */
                         #thread-list-modal>div>div:first-child {
                             display: none !important;
                         }
 
-                        /* Fix Content Helper to ensure full height list */
                         #thread-list-content {
                             height: 100% !important;
                         }
 
                         /* Chat Area overrides */
                         #active-thread-container {
-                            flex: 1;
-                            height: 100% !important;
-                            border-left: 1px solid #eee;
                             position: relative !important;
-                            /* Ensure absolute children position correctly */
+                            width: 100% !important;
+                            height: 100% !important;
                             background: #fff;
-                            /* Ensure bg is white */
-                            order: 1 !important;
-                            /* Visual Reset */
+                            display: flex !important;
+                            flex-direction: column;
+                            overflow: hidden;
                         }
 
-                        /* Header Adjustments for Desktop */
                         .user-header {
                             position: absolute !important;
                             width: 100% !important;
-                            max-width: none !important;
                             top: 0 !important;
                             left: 0 !important;
-                            transform: none !important;
                             border-bottom: 1px solid #eee;
                         }
 
-                        /* Force bubbles container to take remaining space */
                         .bubbles-container {
                             padding-top: 80px !important;
                             padding-bottom: 80px !important;
@@ -178,14 +163,12 @@
                             overflow-y: auto !important;
                         }
 
-                        /* Input Bar Adjustments */
                         .chat-input-bar {
                             position: absolute !important;
                             bottom: 0 !important;
                             width: 100% !important;
                             max-width: none !important;
                             left: 0 !important;
-                            transform: none !important;
                             padding-bottom: 20px !important;
                         }
                     }
@@ -377,7 +360,7 @@
                     const time = lastMsg ? formatTime(lastMsg.created_at) : '';
 
                     return `
-                        <div onclick="window.switchThread('${t.partnerId}'); document.getElementById('thread-list-modal').style.display='none';" 
+                        <div onclick="window.switchThread('${t.partnerId}'); if(window.innerWidth < 769) document.getElementById('thread-list-modal').style.display='none';" 
                              style="display: flex; align-items: center; gap: 12px; padding: 12px; border-bottom: 1px solid #f0f0f0; cursor: pointer; background: ${bg}; transition: background 0.2s;">
                             <img src="${t.partnerAvatar}" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover;">
                             <div style="flex: 1; overflow: hidden;">
