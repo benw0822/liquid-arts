@@ -1966,7 +1966,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 <!-- Explore Button -->
                 <div style="display: flex; justify-content: center; margin-bottom: 1.2rem;">
-                    <a href="bar.html?id=${bar.id}" class="btn" style="padding: 6px 20px; font-size: 0.9rem; border-radius: 20px; border: none; color: white; background: var(--bg-red); transition: all 0.3s; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">Explore</a>
+                    <a href="${barUrl}" class="btn" style="padding: 6px 20px; font-size: 0.9rem; border-radius: 20px; border: none; color: white; background: var(--bg-red); transition: all 0.3s; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">Explore</a>
                 </div>
 
                  <!-- Rating & Price -->
