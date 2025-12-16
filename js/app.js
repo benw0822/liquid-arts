@@ -1887,8 +1887,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Expose for Profile Page reuse
     window.createBarCard = function (bar, city = null) {
-        const displayCity = city || bar.location || '';
-        const description = bar.description || `Experience the finest mixology at ${bar.title}. Known for its ${bar.vibe} atmosphere, this spot in ${bar.location} offers a curated selection of cocktails and spirits.`;
+        // PRIORITIZE DB Location, then fallback to calculated City
+        const displayCity = bar.location || city || '';
+
+        const description = bar.description || `Experience the finest mixology at ${bar.title}. Known for its ${bar.vibe} atmosphere, this spot in ${displayCity} offers a curated selection of cocktails and spirits.`;
         const rating = bar.google_rating || bar.rating || 'N/A';
         const reviewCount = bar.google_review_count || bar.rating_count || 0;
         const price = '$'.repeat(bar.price || bar.price_level || 2);
@@ -1896,6 +1898,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const mapUrl = bar.google_map_url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
 
         const isSaved = window.savedBarIds.has(bar.id);
+
+        // Custom Slug Logic
+        // If bar.slug exists, use clean URL 'bar/slug', else 'bar.html?id=ID'
+        const barUrl = bar.slug ? `bar/${bar.slug}` : `bar.html?id=${bar.id}`;
 
         return `
         <div class="art-card grid-item" style="position: relative; display: flex; flex-direction: column; height: 100%; margin-bottom: 3rem; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 380px; margin-left: auto; margin-right: auto;">
@@ -1916,7 +1922,7 @@ document.addEventListener('DOMContentLoaded', () => {
              </div>
 
              <!-- Main Link Wrapper -->
-            <a href="bar.html?id=${bar.id}" style="text-decoration: none; display: block; display: flex; flex-direction: column;">
+            <a href="${barUrl}" style="text-decoration: none; display: block; display: flex; flex-direction: column;">
                 <div style="width: 100%; border-bottom: 1px solid #f0f0f0; position: relative;">
                     <img src="${bar.image}" alt="${bar.title}" style="width: 100%; height: auto; display: block; transition: transform 0.5s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                 </div>
