@@ -539,6 +539,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     .from('hoppings')
                     .select('id, bar_id, image_url, hopped_at, rating, description, user_id, is_public')
                     .eq('user_id', window.currentUser.id)
+                    .eq('is_deleted', false) // Soft Delete Check
                     .order('hopped_at', { ascending: false });
 
                 if (myHops) {

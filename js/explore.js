@@ -33,6 +33,7 @@ async function initExplore() {
             .from('hoppings')
             .select('*, bars(id, title)')
             .eq('is_public', true)
+            .eq('is_deleted', false) // Soft Delete Check
             .order('hopped_at', { ascending: false })
             .limit(60);
 

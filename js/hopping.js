@@ -337,6 +337,7 @@ window.fetchRecentHoppings = async (barId, limit = 5) => {
         .select('*')
         .eq('bar_id', barId)
         .eq('is_public', true)
+        .eq('is_deleted', false) // Soft Delete Check
         .order('hopped_at', { ascending: false })
         .limit(limit);
     return data;
@@ -991,9 +992,10 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
 window.deleteHopping = async (hopId) => {
     if (!confirm('Are you sure you want to delete this Hop? / 確定要刪除這個打卡紀錄嗎？')) return;
 
+    // Soft Delete: Update is_deleted flag instead of hard delete
     const { error } = await window.supabaseClient
         .from('hoppings')
-        .delete()
+        .update({ is_deleted: true })
         .eq('id', hopId);
 
     if (error) {
