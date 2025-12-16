@@ -484,7 +484,7 @@
                             // Construct Query
                             let rpc = window.supabaseClient
                                 .from('bars')
-                                .select('id, title, image, location, address_en')
+                                .select('id, title, image, location')
                                 .limit(5);
 
                             // If query exists, filter. If empty, show latest.
@@ -527,7 +527,7 @@
                                 title: bar.title,
                                 image: bar.image,
                                 location: bar.location,
-                                address: bar.address_en || bar.location
+                                address: bar.location
                             }
                         });
                         // Send immediately
@@ -853,6 +853,7 @@
             <!-- Content injected by window.showBarCardModal -->
         </div>
     </div>
+    <script src="js/app.js?v=force"></script>
 </body>
 
 </html>
