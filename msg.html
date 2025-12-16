@@ -464,18 +464,40 @@
                         const val = e.target.value;
                         const suggestBox = document.getElementById(`bar-suggestions-${partnerId}`);
 
-                        // Check for @ trigger (at end or space+@)
-                        const match = val.match(/@(\w*)$/);
-                        if (match) {
-                            const query = match[1];
+                        // Check for @ trigger
+                        // We want to capture everything after the last @ to allow spaces/Chinese
+                        const lastAtIndex = val.lastIndexOf('@');
+
+                        if (lastAtIndex !== -1) {
+                            // Extract query string after @
+                            const query = val.slice(lastAtIndex + 1);
+
+                            // Optional: Only trigger if @ is at the start or preceded by space?
+                            // For now, let's allow it anywhere for flexibility.
+
                             suggestBox.innerHTML = '<div style="padding:12px; text-align:center; color:#888;">Searching...</div>';
                             suggestBox.style.display = 'block';
 
-                            const { data: bars } = await window.supabaseClient
+                            // Construct Query
+                            let rpc = window.supabaseClient
                                 .from('bars')
                                 .select('id, title, hero_image')
-                                .ilike('title', `%${query}%`)
                                 .limit(5);
+
+                            // If query exists, filter. If empty, show latest.
+                            if (query) {
+                                rpc = rpc.ilike('title', `%${query}%`);
+                            } else {
+                                rpc = rpc.order('created_at', { ascending: false });
+                            }
+
+                            const { data: bars, error } = await rpc;
+
+                            if (error) {
+                                console.error('Bar search error:', error);
+                                suggestBox.innerHTML = `<div style="padding:12px; text-align:center; color:red; font-size:0.8rem;">Error: ${error.message}</div>`;
+                                return;
+                            }
 
                             if (bars && bars.length > 0) {
                                 suggestBox.innerHTML = bars.map(bar => `
