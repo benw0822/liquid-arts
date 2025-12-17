@@ -21,6 +21,11 @@ const finalSlugUrl = document.getElementById('final-slug-url'); // NEW
 const btnCopyUrl = document.getElementById('btn-copy-url'); // NEW
 
 const ownerInput = document.getElementById('bar-owner');
+const userSearchInput = document.getElementById('user-search-input');
+const btnSearchUser = document.getElementById('btn-search-user');
+const userSearchResults = document.getElementById('user-search-results');
+const ownersList = document.getElementById('owners-list');
+// Removed single owner inputs
 const bartenderInput = document.getElementById('bar-bartender');
 const phoneInput = document.getElementById('bar-phone');
 const hoursContainer = document.getElementById('hours-editor-container');
@@ -614,6 +619,10 @@ async function loadBar(id) {
             }
 
             ownerInput.value = bar.owner_name || '';
+
+            // Link Owner Account Display
+            await loadOwners(id); // Use bar ID
+
             bartenderInput.value = bar.bartender_name || '';
             phoneInput.value = bar.phone || '';
 
@@ -708,6 +717,8 @@ saveBtn.addEventListener('click', async () => {
         lat: latInput.value ? parseFloat(latInput.value) : null,
         lng: lngInput.value ? parseFloat(lngInput.value) : null,
         owner_name: ownerInput.value,
+        // owner_user_id: null, // Legacy column ignored
+
         bartender_name: bartenderInput.value,
         opening_hours: hoursStr,
         phone: phoneInput.value,
@@ -1398,3 +1409,145 @@ window.deleteAward = async (id) => {
         renderAwards();
     }
 };
+
+
+// --- Multi-Owner Logic ---
+
+// 1. Load Owners
+async function loadOwners(barId) {
+    if (!barId) return;
+    ownersList.innerHTML = '<div style="color:#888;">Loading owners...</div>';
+
+    const { data: owners, error } = await supabase
+        .from('bar_owners')
+        .select('user_id, users (id, email, hopper_nickname, hopper_image_url)')
+        .eq('bar_id', barId);
+
+    if (error) {
+        console.error('Error loading owners:', error);
+        ownersList.innerHTML = '<div style="color:red;">Error loading owners</div>';
+        return;
+    }
+
+    if (!owners || owners.length === 0) {
+        ownersList.innerHTML = '<div style="color:#888; padding:5px;">No account linked yet.</div>';
+        return;
+    }
+
+    ownersList.innerHTML = owners.map(o => {
+        const u = o.users; // joined data
+        if (!u) return '';
+        const name = u.hopper_nickname || 'Unknown';
+        const avatar = u.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.email)}`;
+
+        return `
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px; background: white; border: 1px solid #eee; border-radius: 4px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 28px; height: 28px; border-radius: 50%; background: #ddd url('${avatar}') center/cover;"></div>
+                    <div>
+                        <div style="font-weight: 600; font-size: 0.85rem;">${name}</div>
+                        <div style="font-size: 0.75rem; color: #666;">${u.email}</div>
+                    </div>
+                </div>
+                <button onclick="removeOwner('${u.id}')" style="background: none; border: none; color: #ff4444; cursor: pointer; padding: 4px; font-size: 0.8rem;">Remove</button>
+            </div>
+        `;
+    }).join('');
+}
+
+// 2. Add Owner
+window.selectUserForOwner = async (user) => {
+    if (!currentBarId) {
+        alert('Please save the bar first before ensuring ownership relationship.');
+        return;
+    }
+
+    // Check if duplicate? DB constraint handles it, but nice to check UI.
+
+    const { error } = await supabase.from('bar_owners').insert([{
+        bar_id: currentBarId,
+        user_id: user.id
+    }]);
+
+    if (error) {
+        if (error.code === '23505') alert('User is already an owner.');
+        else alert('Error adding owner: ' + error.message);
+    } else {
+        // Clear search
+        userSearchInput.value = '';
+        userSearchResults.style.display = 'none';
+
+        // Refresh List
+        await loadOwners(currentBarId);
+    }
+};
+
+// 3. Remove Owner
+window.removeOwner = async (userId) => {
+    if (!confirm('Unlink this user from the bar ownership? Permissions will be revoked.')) return;
+
+    const { error } = await supabase.from('bar_owners')
+        .delete()
+        .eq('bar_id', currentBarId)
+        .eq('user_id', userId);
+
+    if (error) alert('Error removing owner: ' + error.message);
+    else await loadOwners(currentBarId);
+};
+
+// 4. Search Users (Reusing existing listener logic, just update UI target)
+if (btnSearchUser) {
+    btnSearchUser.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const query = userSearchInput.value.trim();
+        if (!query) return;
+
+        userSearchResults.style.display = 'block';
+        userSearchResults.innerHTML = '<div style="padding:10px; color:#888;">Searching...</div>';
+
+        // Search by Email OR Nickname
+        const { data: users, error } = await supabase
+            .from('users')
+            .select('id, email, hopper_nickname, hopper_image_url')
+            .or(`email.ilike.%${query}%,hopper_nickname.ilike.%${query}%`)
+            .limit(5);
+
+        if (error) {
+            userSearchResults.innerHTML = `<div style="padding:10px; color:red;">Error: ${error.message}</div>`;
+            return;
+        }
+
+        if (!users || users.length === 0) {
+            userSearchResults.innerHTML = `<div style="padding:10px; color:#888;">No users found for "${query}"</div>`;
+            return;
+        }
+
+        userSearchResults.innerHTML = users.map(u => {
+            const name = u.hopper_nickname || 'No Name';
+            const img = u.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.email)}`;
+            const userJson = JSON.stringify(u).replace(/'/g, "&#39;");
+
+            return `
+                <div onclick='selectUserForOwner(${userJson})' 
+                     style="display: flex; align-items: center; gap: 10px; padding: 10px; border-bottom: 1px solid #f5f5f5; cursor: pointer; transition: background 0.2s;"
+                     onmouseover="this.style.background='#f9f9f9'" onmouseout="this.style.background='white'">
+                    <img src="${img}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+                    <div style="overflow: hidden;">
+                        <div style="font-weight: 600; font-size: 0.9rem;">${name}</div>
+                        <div style="font-size: 0.75rem; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${u.email}</div>
+                    </div>
+                    <div style="margin-left:auto; font-size:0.8rem; color:#8a0000; font-weight:bold;">+ Add</div>
+                </div>
+            `;
+        }).join('');
+    });
+}
+
+// 5. Unlink (Legacy listener removal) 
+if (btnRemoveOwner) {
+    btnRemoveOwner.addEventListener('click', (e) => {
+        e.preventDefault();
+        // This functionality is replaced by multi-owner logic.
+        console.warn("Legacy btnRemoveOwner clicked.");
+    });
+}

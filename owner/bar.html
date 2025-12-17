@@ -10,6 +10,8 @@
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:wght@400;700&display=swap"
         rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 </head>
 
 <body>
@@ -50,6 +52,24 @@
             </div>
 
             <!-- Editable Fields -->
+            <!-- Cover Image (New) -->
+            <div style="margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
+                <h3 style="margin-bottom: 1rem; color: var(--text-primary);">Cover Image</h3>
+                <div style="width: 200px;">
+                    <label class="info-label">Cover Image (4:5)</label>
+                    <div class="cover-container"
+                        style="position: relative; width: 100%; aspect-ratio: 4/5; background: #333; border-radius: 4px; overflow: hidden;">
+                        <div id="cover-preview"
+                            style="width: 100%; height: 100%; background-size: cover; background-position: center; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #888; border: 2px dashed #555;">
+                            <span style="pointer-events: none;">Click to Upload</span>
+                        </div>
+                        <input type="file" id="cover-file" accept="image/*" style="display: none;">
+                    </div>
+                    <p style="font-size: 0.75rem; color: #888; margin-top: 5px;">Recommended: 1080x1350px</p>
+                </div>
+            </div>
+
+            <!-- Editable Fields -->
             <h3 style="margin-bottom: 1rem; color: var(--text-primary);">Contact & Location</h3>
 
             <div style="margin-bottom: 1rem;">
@@ -73,32 +93,96 @@
                 </div>
             </div>
 
-            <h3 style="margin: 2rem 0 1rem; color: var(--text-primary);">Social Media</h3>
+            <h3 style="margin: 2rem 0 1rem; color: var(--text-primary);">Links & Social</h3>
 
             <div style="margin-bottom: 1rem;">
-                <label class="info-label">Website URL</label>
-                <input type="url" id="website_url" class="search-input" style="width: 100%;">
+                <label class="info-label">Reservation Link</label>
+                <input type="url" id="reservation_url" class="search-input" style="width: 100%;"
+                    placeholder="OpenTable / Inline URL">
             </div>
-            <div style="margin-bottom: 1rem;">
-                <label class="info-label">Instagram URL</label>
-                <input type="url" id="instagram_url" class="search-input" style="width: 100%;">
-            </div>
-            <div style="margin-bottom: 1rem;">
-                <label class="info-label">Facebook URL</label>
-                <input type="url" id="facebook_url" class="search-input" style="width: 100%;">
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div>
+                    <label class="info-label">Website</label>
+                    <input type="url" id="website_url" class="search-input" style="width: 100%;">
+                </div>
+                <div>
+                    <label class="info-label">Instagram</label>
+                    <input type="url" id="instagram_url" class="search-input" style="width: 100%;">
+                </div>
+                <div>
+                    <label class="info-label">Facebook</label>
+                    <input type="url" id="facebook_url" class="search-input" style="width: 100%;">
+                </div>
             </div>
 
             <h3 style="margin: 2rem 0 1rem; color: var(--text-primary);">Opening Hours</h3>
             <div style="margin-bottom: 2rem;">
-                <label class="info-label">Hours (JSON Format for now)</label>
-                <textarea id="opening_hours" class="search-input"
-                    style="width: 100%; height: 100px; font-family: monospace;"></textarea>
-                <p style="font-size: 0.8rem; color: #666;">Example: {"mon": "18:00-02:00", "tue": "Closed"}</p>
+                <div id="hours-editor-container"
+                    style="border: 1px solid #444; padding: 10px; border-radius: 4px; background: #222; margin-bottom: 10px;">
+                    <!-- JS will populate slots here -->
+                </div>
+                <button type="button" id="btn-add-hours" class="btn btn-secondary"
+                    style="width: 100%; border: 1px dashed #666; color: #ccc;">+ Add Hours Slot</button>
+                <input type="hidden" id="opening_hours_json">
+            </div>
+
+            <!-- Gallery Section -->
+            <div style="margin-bottom: 2rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h3 style="margin: 0; color: var(--text-primary);">Gallery</h3>
+                    <button type="button" id="btn-add-gallery" class="btn btn-secondary"
+                        style="font-size: 0.8rem; padding: 4px 8px;">+ Add Image</button>
+                    <input type="file" id="gallery-input" accept="image/*" multiple style="display: none;">
+                </div>
+
+                <div id="gallery-grid"
+                    style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px;">
+                    <!-- Gallery Items -->
+                    <div
+                        style="grid-column: 1 / -1; text-align: center; color: #666; padding: 20px; background: #222; border-radius: 4px;">
+                        Loading Gallery...</div>
+                </div>
+            </div>
+
+            <!-- Management Section (Owners) -->
+            <div style="margin-bottom: 2rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                <h3 style="margin-bottom: 1rem; color: var(--text-primary);">Owner Management</h3>
+                <div style="background: #222; padding: 15px; border-radius: 4px; border: 1px solid #333;">
+                    <label class="info-label">Current Owners</label>
+                    <div id="owners-list" style="margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px;">
+                        <!-- JS Populated -->
+                    </div>
+
+                    <label class="info-label">Add Owner</label>
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <input type="text" id="owner-search-input" class="search-input"
+                            placeholder="Search Email / Nickname" style="margin-bottom: 0; flex: 1;">
+                        <button type="button" id="btn-owner-search" class="btn btn-secondary">Search</button>
+                    </div>
+                    <div id="owner-search-results"
+                        style="max-height: 150px; overflow-y: auto; background: #1a1a1a; border: 1px solid #333; display: none; border-radius: 4px;">
+                    </div>
+                </div>
             </div>
 
             <button type="submit" class="btn" style="width: 100%;">Save Changes</button>
         </form>
     </main>
+
+
+    <!-- Crop Modal -->
+    <div id="crop-modal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 3000; justify-content: center; align-items: center; flex-direction: column;">
+        <div style="width: 90%; height: 80%; background: #000;">
+            <img id="crop-image" style="max-width: 100%; max-height: 100%;">
+        </div>
+        <div style="margin-top: 20px; display: flex; gap: 15px;">
+            <button id="crop-cancel-btn" class="secondary-btn"
+                style="background: #333; color: white; border: 1px solid #555;">Cancel</button>
+            <button id="crop-save-btn" class="btn" style="background: #8a0000; color: white;">Crop & Upload</button>
+        </div>
+    </div>
 
     <script src="../js/owner.js"></script>
     <script>
