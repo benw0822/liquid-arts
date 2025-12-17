@@ -511,23 +511,29 @@
         <div id="view-dashboard">
             <!-- Stats Row -->
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; margin-bottom: 3rem;">
-                <div
-                    style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); text-align: center;">
+                <div onclick="switchView('bars')"
+                    style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); text-align: center; cursor: pointer; transition: transform 0.2s;"
+                    onmouseover="this.style.transform='translateY(-5px)'"
+                    onmouseout="this.style.transform='translateY(0)'">
                     <div style="font-size: 3rem; font-weight: 700; color: var(--bg-red);" id="stat-bars-count">0</div>
                     <div
                         style="color: #666; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 0.5rem;">
                         Bars</div>
                 </div>
-                <div
-                    style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); text-align: center;">
+                <div onclick="switchView('articles')"
+                    style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); text-align: center; cursor: pointer; transition: transform 0.2s;"
+                    onmouseover="this.style.transform='translateY(-5px)'"
+                    onmouseout="this.style.transform='translateY(0)'">
                     <div style="font-size: 3rem; font-weight: 700; color: var(--bg-red);" id="stat-articles-count">0
                     </div>
                     <div
                         style="color: #666; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 0.5rem;">
                         Stories</div>
                 </div>
-                <div
-                    style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); text-align: center;">
+                <div onclick="switchView('users')"
+                    style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); text-align: center; cursor: pointer; transition: transform 0.2s;"
+                    onmouseover="this.style.transform='translateY(-5px)'"
+                    onmouseout="this.style.transform='translateY(0)'">
                     <div style="font-size: 3rem; font-weight: 700; color: var(--bg-red);" id="stat-users-count">0</div>
                     <div
                         style="color: #666; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 0.5rem;">
