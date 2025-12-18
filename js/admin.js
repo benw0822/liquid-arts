@@ -596,6 +596,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    window._openUserModal = openUserModal; // Expose for global helpers
+
     async function openUserModal(userId = null) {
         // Reset Form
         document.getElementById('user-id').value = '';

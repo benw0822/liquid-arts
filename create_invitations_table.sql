@@ -53,6 +53,7 @@ declare
   user_roles text[];
   new_bar_id bigint;
   meta_name text;
+  meta_bar_name text;
 begin
   -- 1. Get Current User
   current_user_id := auth.uid();
@@ -108,36 +109,63 @@ begin
     end if;
     if meta_name is null then meta_name := 'New Talent'; end if;
 
-    -- Extract other fields
-    -- If passed as raw JSON in metadata, we can cast directly.
+    -- Prepare Bar Role logic
+    new_bar_id := (inv_record.metadata ->> 'bar_id')::bigint;
+    meta_bar_name := inv_record.metadata ->> 'bar_name';
     
+    -- Insert or Update Talent
     insert into public.talents (
         user_id, 
         display_name, 
         description, 
-        quote, 
+        quote,
+        image_url, 
         awards, 
-        experiences
+        experiences,
+        bar_roles
     )
     values (
         current_user_id, 
         meta_name,
         inv_record.metadata ->> 'description', -- Bio
         inv_record.metadata ->> 'quote',
+        inv_record.metadata ->> 'image_url', -- Added
         coalesce((inv_record.metadata -> 'awards'), '[]'::jsonb),
-        coalesce((inv_record.metadata -> 'experiences'), '[]'::jsonb)
+        coalesce((inv_record.metadata -> 'experiences'), '[]'::jsonb),
+        case 
+            when new_bar_id is not null then 
+                jsonb_build_array(jsonb_build_object(
+                    'bar_id', new_bar_id, 
+                    'bar_name', coalesce(meta_bar_name, 'Affiliated Bar'), 
+                    'role', 'talent'
+                ))
+            else '[]'::jsonb
+        end
     )
     on conflict (user_id) do update set
-        display_name = EXCLUDED.display_name,
-        description = EXCLUDED.description,
-        quote = EXCLUDED.quote,
-        awards = EXCLUDED.awards,
-        experiences = EXCLUDED.experiences;
+        display_name = coalesce(EXCLUDED.display_name, public.talents.display_name),
+        description = coalesce(EXCLUDED.description, public.talents.description),
+        quote = coalesce(EXCLUDED.quote, public.talents.quote),
+        image_url = coalesce(EXCLUDED.image_url, public.talents.image_url),
+        awards = CASE WHEN jsonb_array_length(EXCLUDED.awards) > 0 THEN EXCLUDED.awards ELSE public.talents.awards END,
+        experiences = CASE WHEN jsonb_array_length(EXCLUDED.experiences) > 0 THEN EXCLUDED.experiences ELSE public.talents.experiences END,
+        -- Append new bar role if not exists
+        bar_roles = CASE 
+            WHEN new_bar_id is not null AND NOT (public.talents.bar_roles @> jsonb_build_array(jsonb_build_object('bar_id', new_bar_id))) THEN
+                 public.talents.bar_roles || jsonb_build_object(
+                    'bar_id', new_bar_id, 
+                    'bar_name', coalesce(meta_bar_name, 'Affiliated Bar'), 
+                    'role', 'talent'
+                )
+            ELSE public.talents.bar_roles
+        END;
   end if;
 
   return jsonb_build_object('success', true, 'role', inv_record.role, 'bar_id', inv_record.metadata->>'bar_id');
 
 exception when others then
+  -- Rollback is implicit in Postgres function error, but client needs cleanly formatted error
+  raise notice 'Error in claim_invitation: %', SQLERRM;
   return jsonb_build_object('success', false, 'message', SQLERRM);
 end;
 $$;
