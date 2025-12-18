@@ -1,11 +1,17 @@
 // --- Supabase Configuration (Global) ---
 const SUPABASE_URL = 'https://wgnskednopbfngvjmviq.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_gcmYleFIGmwsLSKofS__Qg_62EXoP6P';
+
 // Attach to window so other scripts (like profile.html) can use it
-window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-// Also keep a local alias for app.js internal use
-const supabase = window.supabaseClient;
-console.log('Connected to Supabase');
+if (!window.supabaseClient) {
+    window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    console.log('Connected to Supabase');
+}
+
+// Local alias for app.js (block-scoped or just use window.supabaseClient)
+// We'll use window.supabaseClient in this file to avoid conflicts.
+// const supabase = window.supabaseClient; // REMOVED to prevent conflict
+
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -16,21 +22,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 1. Auth & Saved Init (Global)
     window.initAuthAndSaved = async () => {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session } } = await window.supabaseClient.auth.getSession();
         window.currentUser = session?.user || null;
         window.savedBarIds = new Set();
         window.savedArticleIds = new Set();
 
         if (window.currentUser) {
             // Fetch Saved Bars
-            const { data: bars } = await supabase.from('saved_bars').select('bar_id');
+            const { data: bars } = await window.supabaseClient.from('saved_bars').select('bar_id');
             if (bars) window.savedBarIds = new Set(bars.map(r => r.bar_id));
 
             // Fetch Saved Articles
-            const { data: articles } = await supabase.from('saved_articles').select('article_id');
+            const { data: articles } = await window.supabaseClient.from('saved_articles').select('article_id');
             if (articles) window.savedArticleIds = new Set(articles.map(r => r.article_id));
         }
     };
+
 
 
     window.toggleSaveBar = async (id, event) => {
@@ -56,11 +63,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // DB Update
         if (newStatus) {
-            await supabase.from('saved_bars').insert({ user_id: window.currentUser.id, bar_id: id });
+            await window.supabaseClient.from('saved_bars').insert({ user_id: window.currentUser.id, bar_id: id });
         } else {
-            await supabase.from('saved_bars').delete().match({ user_id: window.currentUser.id, bar_id: id });
+            await window.supabaseClient.from('saved_bars').delete().match({ user_id: window.currentUser.id, bar_id: id });
         }
     };
+
 
     // Toggle Saved Article
     window.toggleSaveArticle = async (id, event) => {
@@ -91,12 +99,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // DB Update
         let error;
         if (newStatus) {
-            const { error: err } = await supabase.from('saved_articles').insert({ user_id: window.currentUser.id, article_id: id });
+            const { error: err } = await window.supabaseClient.from('saved_articles').insert({ user_id: window.currentUser.id, article_id: id });
             error = err;
         } else {
-            const { error: err } = await supabase.from('saved_articles').delete().match({ user_id: window.currentUser.id, article_id: id });
+            const { error: err } = await window.supabaseClient.from('saved_articles').delete().match({ user_id: window.currentUser.id, article_id: id });
             error = err;
         }
+
 
         if (error) {
             console.error('Save Article Error:', error);
@@ -152,7 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             // Fetch bars with their related images and articles
             // Note: Supabase join syntax depends on foreign keys
-            const { data, error } = await supabase
+            const { data, error } = await window.supabaseClient
                 .from('bars')
                 .select(`
                     *,
@@ -181,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchArticles() {
         try {
-            const { data, error } = await supabase.from('articles').select('*');
+            const { data, error } = await window.supabaseClient.from('articles').select('*');
             if (error || !data || data.length === 0) return mockArticles;
             return data;
         } catch (err) {
@@ -229,7 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchArticles() {
         try {
-            const { data, error } = await supabase.from('articles').select('*');
+            const { data, error } = await window.supabaseClient.from('articles').select('*');
             if (error || !data || data.length === 0) return mockArticles;
             return data;
         } catch (err) {
@@ -2052,29 +2061,36 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Auth Logic (Member) ---
     const loginBtn = document.getElementById('login-btn');
     // const userMenu = document.getElementById('user-menu'); // Removed, replaced by global-auth-btn
-    // const userAvatar = document.getElementById('user-avatar'); // Removed, replaced by global-auth-btn
-
-    async function signInWithGoogle() {
-        const { data, error } = await supabase.auth.signInWithOAuth({
-            provider: 'google',
-            options: {
-                redirectTo: window.location.origin + '/profile.html'
-            }
+    const googleLoginBtn = document.getElementById('google-login-btn');
+    if (googleLoginBtn) {
+        googleLoginBtn.addEventListener('click', async () => {
+            const { data, error } = await window.supabaseClient.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: window.location.origin // Dynamic redirect
+                }
+            });
+            if (error) console.error('Login Error:', error);
         });
-        if (error) console.error('Error logging in:', error.message);
     }
 
-    // Login Button Listener Removed (Let <a> tag navigate to profile.html)
-    // if (loginBtn) {
-    //    loginBtn.addEventListener('click', signInWithGoogle);
-    // }
 
-    // Check Auth State
-    supabase.auth.onAuthStateChange((event, session) => {
+    // --- Auth State Listener ---
+    window.supabaseClient.auth.onAuthStateChange((event, session) => {
+        window.currentUser = session?.user || null;
+        if (event === 'SIGNED_IN') {
+            console.log('User signed in:', session.user.email);
+            // Refresh Saved Sync
+            window.initAuthAndSaved();
+        } else if (event === 'SIGNED_OUT') {
+            console.log('User signed out');
+            window.currentUser = null;
+            window.savedBarIds = new Set();
+        }
+
         // Global Auth Button Logic (Mobile & Desktop)
         const authBtn = document.getElementById('global-auth-btn');
         const navMyLink = document.getElementById('nav-my-link'); // Legacy check
-        const loginBtn = document.getElementById('login-btn'); // Legacy check
         const logoutBtn = document.getElementById('logout-btn');
 
         if (session) {
