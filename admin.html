@@ -796,21 +796,8 @@
                 <h2>Manage Users</h2>
                 <button id="add-user-btn" class="btn" style="background-color: var(--bg-red);">+ Add User</button>
             </div>
-            <div
-                style="background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-                <table style="width: 100%; border-collapse: collapse; color: var(--text-primary);">
-                    <thead>
-                        <tr style="background: #f5f5f7; text-align: left;">
-                            <th style="padding: 1rem; color: #666;">Email</th>
-                            <th style="padding: 1rem; color: #666;">Role</th>
-                            <th style="padding: 1rem; color: #666;">Linked Bar</th>
-                            <th style="padding: 1rem; text-align: right; color: #666;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="user-list-full">
-                        <!-- Injected by JS -->
-                    </tbody>
-                </table>
+            <div id="user-list-full" style="display: flex; flex-direction: column; gap: 1rem;">
+                <!-- Injected by JS (Card Layout) -->
             </div>
         </div>
 
