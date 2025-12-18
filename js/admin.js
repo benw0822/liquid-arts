@@ -1133,7 +1133,7 @@ document.addEventListener('DOMContentLoaded', () => {
 window.editBar = (id) => { window.location.href = `bms.html?id=${id}`; };
 window.deleteBar = async (id) => {
     if (!confirm('Delete this bar?')) return;
-    const { error } = await supabase.from('bars').delete().eq('id', id);
+    const { error } = await window.supabaseClient.from('bars').delete().eq('id', id);
     if (!error) loadBars();
     else alert(error.message);
 };
@@ -1151,7 +1151,7 @@ window.loadInvitations = async () => {
     tbody.innerHTML = '<tr><td colspan="5" style="padding: 20px; text-align: center;">Loading...</td></tr>';
 
     try {
-        const { data, error } = await supabase
+        const { data, error } = await window.supabaseClient
             .from('invitations')
             .select('*')
             .order('created_at', { ascending: false });
