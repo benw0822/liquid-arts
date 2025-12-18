@@ -1472,6 +1472,14 @@ figure.article-figure figcaption {
     margin-bottom: 30px;
 }
 
+/* Force Hop Feed Cards to be full width in masonry (Override Detail Card width) */
+.masonry-grid .hop-detail-card {
+    width: 100%;
+    max-width: 100% !important;
+    margin: 0 0 20px 0;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
 @media (max-width: 1024px) {
     .masonry-grid {
         column-count: 2;
