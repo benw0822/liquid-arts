@@ -518,15 +518,25 @@ document.addEventListener('DOMContentLoaded', () => {
         userModal.classList.remove('active');
     });
 
+    let allFetchedUsers = [];
+    let allFetchedBars = [];
+    let allFetchedTalents = [];
+
     async function loadUsers() {
         console.log('loadUsers called');
         const userListFull = document.getElementById('user-list-full');
-        // userListFull.innerHTML = '<p style="padding:1rem; color:#666;">Loading users...</p>';
+        userListFull.innerHTML = '<p style="padding:1rem; color:#666;">Loading users...</p>';
 
         const { data: users, error } = await supabase.from('users').select('*').order('created_at', { ascending: false });
-        console.log('Fetched users:', users);
-        const { data: bars } = await supabase.from('bars').select('id, title, owner_user_id');
-        const { data: talents } = await supabase.from('talents').select('user_id, display_name');
+        // Fetch relations once
+        if (!allFetchedBars.length) {
+            const { data: bars } = await supabase.from('bars').select('id, title, owner_user_id');
+            if (bars) allFetchedBars = bars;
+        }
+        if (!allFetchedTalents.length) {
+            const { data: talents } = await supabase.from('talents').select('user_id, display_name');
+            if (talents) allFetchedTalents = talents;
+        }
 
         if (error) {
             console.error('Fetch error:', error);
@@ -534,40 +544,48 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        if (users.length === 0) {
-            console.log('No users found in DB');
+        if (!users || users.length === 0) {
             userListFull.innerHTML = '<p style="padding:1rem; color:#666;">No users found.</p>';
             return;
         }
 
-        // --- DEBUG: VISIBILITY TEST ---
-        console.log('Container:', userListFull);
-        const rect = userListFull.getBoundingClientRect();
-        console.log('Container Rect:', rect);
+        allFetchedUsers = users;
+        renderUserList(allFetchedUsers);
 
-        const parent = document.getElementById('view-users');
-        console.log('Parent View:', parent);
-        console.log('Grandparent:', parent.parentElement);
-        console.log('Parent InnerHTML START:', parent.innerHTML.substring(0, 100));
-        console.log('Parent Display:', parent.style.display);
-        console.log('Parent Rect:', parent.getBoundingClientRect());
+        // Setup Search Listener
+        const searchInput = document.getElementById('user-search-input');
+        if (searchInput) {
+            searchInput.oninput = (e) => {
+                const term = e.target.value.toLowerCase();
+                const filtered = allFetchedUsers.filter(u => {
+                    const email = (u.email || '').toLowerCase();
+                    const hopName = (u.hopper_nickname || '').toLowerCase();
+                    // Also check Talent Name
+                    const talent = allFetchedTalents.find(t => t.user_id === u.id);
+                    const talentName = talent ? talent.display_name.toLowerCase() : '';
 
-        // Check computed style
-        console.log('Parent Computed Display:', window.getComputedStyle(parent).display);
-        console.log('Parent Computed Opacity:', window.getComputedStyle(parent).opacity);
-        console.log('Parent Computed Visibility:', window.getComputedStyle(parent).visibility);
+                    return email.includes(term) || hopName.includes(term) || talentName.includes(term);
+                });
+                renderUserList(filtered);
+            };
+        }
+    }
 
-        // Temporarily prepend a test element
-        const testEl = '<div style="background: red; color: white; padding: 20px; font-size: 24px; border: 5px solid black; min-height: 100px; z-index: 9999; position: relative;">VISIBILITY TEST - IF YOU SEE THIS, CONTAINER IS VISIBLE</div>';
+    function renderUserList(users) {
+        const userListFull = document.getElementById('user-list-full');
+        if (users.length === 0) {
+            userListFull.innerHTML = '<p style="padding:1rem; color:#666;">No matching users found.</p>';
+            return;
+        }
 
-        userListFull.innerHTML = testEl + users.map(u => {
-            const linkedBar = bars ? bars.find(b => b.owner_user_id === u.id) : null;
+        userListFull.innerHTML = users.map(u => {
+            const linkedBar = allFetchedBars ? allFetchedBars.find(b => b.owner_user_id === u.id) : null;
             const roleBadges = (u.roles || []).map(r =>
                 `<span class="tag-badge" style="background:${getRoleColor(r)}; color:white; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">${r}</span>`
             ).join(' ');
 
             // Talent Logic
-            const talentProfile = talents ? talents.find(t => t.user_id === u.id) : null;
+            const talentProfile = allFetchedTalents ? allFetchedTalents.find(t => t.user_id === u.id) : null;
             const isTalentRole = (u.roles || []).some(r => ['talent', 'kol'].includes(r)); // Role check
             const isTalent = isTalentRole || !!talentProfile; // Combine checks
 
