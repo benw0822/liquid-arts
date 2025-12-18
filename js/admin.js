@@ -118,6 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (viewName === 'articles') loadArticles();
         if (viewName === 'users') loadUsers();
         if (viewName === 'dashboard') loadDashboardStats();
+        if (viewName === 'invitations') initInvitationGenerator();
     };
 
     // --- Dashboard Stats & latest 5 ---

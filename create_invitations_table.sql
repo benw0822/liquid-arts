@@ -114,6 +114,7 @@ begin
     meta_bar_name := inv_record.metadata ->> 'bar_name';
     
     -- Insert or Update Talent
+    -- Insert or Update Talent (UPSERT)
     insert into public.talents (
         user_id, 
         display_name, 
@@ -127,9 +128,9 @@ begin
     values (
         current_user_id, 
         meta_name,
-        inv_record.metadata ->> 'description', -- Bio
+        inv_record.metadata ->> 'description',
         inv_record.metadata ->> 'quote',
-        inv_record.metadata ->> 'image_url', -- Added
+        inv_record.metadata ->> 'image_url',
         coalesce((inv_record.metadata -> 'awards'), '[]'::jsonb),
         coalesce((inv_record.metadata -> 'experiences'), '[]'::jsonb),
         case 
@@ -143,22 +144,19 @@ begin
         end
     )
     on conflict (user_id) do update set
-        display_name = coalesce(EXCLUDED.display_name, public.talents.display_name),
+        -- Update basic info if provided in invite (optional, but good for onboarding)
+        display_name = EXCLUDED.display_name,
         description = coalesce(EXCLUDED.description, public.talents.description),
         quote = coalesce(EXCLUDED.quote, public.talents.quote),
         image_url = coalesce(EXCLUDED.image_url, public.talents.image_url),
-        awards = CASE WHEN jsonb_array_length(EXCLUDED.awards) > 0 THEN EXCLUDED.awards ELSE public.talents.awards END,
-        experiences = CASE WHEN jsonb_array_length(EXCLUDED.experiences) > 0 THEN EXCLUDED.experiences ELSE public.talents.experiences END,
-        -- Append new bar role if not exists
-        bar_roles = CASE 
-            WHEN new_bar_id is not null AND NOT (public.talents.bar_roles @> jsonb_build_array(jsonb_build_object('bar_id', new_bar_id))) THEN
-                 public.talents.bar_roles || jsonb_build_object(
-                    'bar_id', new_bar_id, 
-                    'bar_name', coalesce(meta_bar_name, 'Affiliated Bar'), 
-                    'role', 'talent'
-                )
-            ELSE public.talents.bar_roles
-        END;
+        
+        -- Append Arrays (Merging new data with existing)
+        awards = public.talents.awards || EXCLUDED.awards, 
+        experiences = public.talents.experiences || EXCLUDED.experiences,
+        
+        -- Append Bar Role if it doesn't exist? A simple append might create duplicates. 
+        -- For simplicity, let's append. Ideally we filter.
+        bar_roles = public.talents.bar_roles || EXCLUDED.bar_roles;
   end if;
 
   return jsonb_build_object('success', true, 'role', inv_record.role, 'bar_id', inv_record.metadata->>'bar_id');

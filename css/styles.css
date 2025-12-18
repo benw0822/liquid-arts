@@ -1521,8 +1521,6 @@ figure.article-figure figcaption {
     margin: 0 auto 20px auto;
     /* Default width is 90% (max 380px) from base class, margin auto centers it */
 }
-}
-}
 
 @media (max-width: 768px) {
     .masonry-grid {
