@@ -898,21 +898,141 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // --- Global Helpers for Onclick ---
-    window.editBar = (id) => { window.location.href = `bms.html?id=${id}`; };
-    window.deleteBar = async (id) => {
-        if (!confirm('Delete this bar?')) return;
-        const { error } = await supabase.from('bars').delete().eq('id', id);
-        if (!error) loadBars();
-        else alert(error.message);
+    window.deleteArticle = async (id) => {
+        if (confirm('Delete this story?')) {
+            await supabase.from('articles').delete().eq('id', id);
+            loadArticles();
+        }
     };
 
-    window.editArticle = (id) => { window.location.href = `cms.html?id=${id}`; };
-    window.deleteArticle = async (id) => {
-        if (!confirm('Delete this article?')) return;
-        const { error } = await supabase.from('articles').delete().eq('id', id);
-        if (!error) loadArticles(); // We need to pass user/roles next time? No, assume state persistent or refetch. 
-        // Actually simplest is to just Reload the list. We don't use user/roles in loadArticles query logic for Adming/Editor anyway.
-        else alert(error.message);
+    // --- Invitation Generator Logic ---
+    let cachedBarsForInvite = [];
+
+    async function initInvitationGenerator() {
+        const roleSelect = document.getElementById('invite-role');
+        const barSelect = document.getElementById('invite-bar-select');
+        const ownerFields = document.getElementById('invite-owner-fields');
+        const talentFields = document.getElementById('invite-talent-fields');
+
+        // Toggle Fields
+        roleSelect.onchange = () => {
+            if (roleSelect.value === 'owner') {
+                ownerFields.style.display = 'block';
+                talentFields.style.display = 'none';
+            } else if (roleSelect.value === 'talent') {
+                ownerFields.style.display = 'none';
+                talentFields.style.display = 'block';
+            } else {
+                ownerFields.style.display = 'none';
+                talentFields.style.display = 'none';
+            }
+        };
+
+        // Load Bars if empty
+        if (cachedBarsForInvite.length === 0) {
+            const { data, error } = await supabase.from('bars').select('id, title, image');
+            if (data) {
+                cachedBarsForInvite = data;
+                barSelect.innerHTML = '<option value="">-- Select Bar --</option>' +
+                    data.map(b => `<option value="${b.id}">${b.title}</option>`).join('');
+            }
+        }
+    }
+
+    document.getElementById('generate-invite-btn').onclick = async () => {
+        const role = document.getElementById('invite-role').value;
+        const btn = document.getElementById('generate-invite-btn');
+
+        let metadata = {};
+        let barId = null;
+        let barData = null;
+
+        if (role === 'owner') {
+            barId = document.getElementById('invite-bar-select').value;
+            if (!barId) { alert('Please select a bar'); return; }
+            metadata.bar_id = barId;
+
+            // Find bar data for preview
+            barData = cachedBarsForInvite.find(b => b.id == barId);
+            if (barData) metadata.bar_name = barData.title;
+        }
+
+        if (role === 'talent') {
+            const name = document.getElementById('invite-talent-name').value;
+            if (name) metadata.display_name = name;
+        }
+
+        btn.textContent = 'Generating...';
+        btn.disabled = true;
+
+        try {
+            // Generate Random Code (e.g. BARNAME-RANDOM)
+            const randomSuffix = Math.random().toString(36).substring(2, 8).toUpperCase();
+            let code = `INV-${randomSuffix}`;
+            if (role === 'owner' && barData) {
+                // Sanitize bar name for code
+                const cleanName = barData.title.replace(/[^a-zA-Z0-9]/g, '').substring(0, 10).toUpperCase();
+                code = `${cleanName}-${randomSuffix}`;
+            }
+
+            // Insert to DB
+            const { error } = await supabase.from('invitations').insert([{
+                code: code,
+                role: role,
+                metadata: metadata,
+                created_by: (await supabase.auth.getUser()).data.user.id
+            }]);
+
+            if (error) throw error;
+
+            // Success: update UI
+            const link = `${window.location.origin}/invite.html?code=${code}`;
+            const linkText = document.getElementById('invite-link-text');
+            linkText.href = link;
+            linkText.textContent = link;
+
+            document.getElementById('invite-result').style.display = 'block';
+            document.getElementById('invite-empty-state').style.display = 'none';
+
+            // Update Preview Card
+            const previewBg = document.getElementById('card-preview-bg');
+            const previewName = document.getElementById('card-preview-barname');
+
+            if (role === 'owner' && barData) {
+                previewBg.src = barData.image || 'assets/default_bar.jpg';
+                previewName.textContent = barData.title;
+                previewName.style.display = 'block';
+            } else {
+                previewBg.src = 'assets/hero_bg.jpg'; // Default Generic
+                previewName.textContent = role === 'talent' ? 'Liquid Arts Talent' : 'Welcome';
+            }
+
+        } catch (err) {
+            console.error(err);
+            alert('Error generating invite: ' + err.message);
+        } finally {
+            btn.textContent = 'GENERATE LINK';
+            btn.disabled = false;
+        }
     };
 
 });
+window.editBar = (id) => { window.location.href = `bms.html?id=${id}`; };
+window.deleteBar = async (id) => {
+    if (!confirm('Delete this bar?')) return;
+    const { error } = await supabase.from('bars').delete().eq('id', id);
+    if (!error) loadBars();
+    else alert(error.message);
+};
+
+window.editArticle = (id) => { window.location.href = `cms.html?id=${id}`; };
+window.deleteArticle = async (id) => {
+    if (!confirm('Delete this article?')) return;
+    const { error } = await supabase.from('articles').delete().eq('id', id);
+    if (!error) loadArticles(); // We need to pass user/roles next time? No, assume state persistent or refetch. 
+    // Actually simplest is to just Reload the list. We don't use user/roles in loadArticles query logic for Adming/Editor anyway.
+    else alert(error.message);
+};
+
+    else alert(error.message);
+};

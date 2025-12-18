@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>You're Invited - Liquid Arts</title>
+    <!-- Fonts -->
+    <link
+        href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&f[]=general-sans@400,500,600&display=swap"
+        rel="stylesheet">
+    <!-- Supabase -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --bg-red: #ef4444;
+            --font-display: 'Clash Display', sans-serif;
+            --font-main: 'General Sans', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background: #111;
+            color: white;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Full Screen Background */
+        #bg-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.4;
+            z-index: -1;
+            filter: blur(10px);
+            transform: scale(1.1);
+            transition: opacity 1s ease;
+        }
+
+        #bg-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.9) 80%);
+            z-index: -1;
+        }
+
+        /* Card Container */
+        .invite-card {
+            width: 90%;
+            max-width: 400px;
+            background: rgba(255, 255, 255, 0.05);
+            /* Glassmorphism */
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 3rem 2rem;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            animation: floatUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Animated Border/Glow */
+        .invite-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(transparent, rgba(239, 68, 68, 0.4), transparent 30%);
+            animation: rotate 4s linear infinite;
+            z-index: -1;
+        }
+
+        @keyframes rotate {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .logo {
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 1.5rem;
+            letter-spacing: 0.1em;
+            margin-bottom: 2rem;
+            text-transform: uppercase;
+        }
+
+        .logo span {
+            color: var(--bg-red);
+        }
+
+        .title {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: #aaa;
+            margin-bottom: 1rem;
+        }
+
+        .role-name {
+            font-family: var(--font-display);
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            line-height: 1.2;
+        }
+
+        .bar-name {
+            font-size: 1.2rem;
+            color: var(--bg-red);
+            font-weight: 500;
+            margin-bottom: 3rem;
+        }
+
+        /* Main CTA Button */
+        .btn-accept {
+            background: white;
+            color: black;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 40px;
+            font-family: var(--font-display);
+            font-weight: 600;
+            font-size: 1rem;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-accept:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-accept svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .sub-text {
+            margin-top: 1.5rem;
+            font-size: 0.75rem;
+            color: #888;
+            line-height: 1.5;
+        }
+
+        /* Loader */
+        .loader {
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid var(--bg-red);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes floatUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <img id="bg-image" src="assets/hero_bg.jpg">
+    <div id="bg-overlay"></div>
+
+    <div class="invite-card" id="card-content">
+        <div class="logo">Liquid<span>Arts</span></div>
+
+        <div class="title" id="invite-title">INVITATION</div>
+
+        <div class="role-name" id="display-role">Bar Owner</div>
+        <div class="bar-name" id="display-barname">Loading...</div>
+
+        <button id="accept-btn" class="btn-accept">
+            <span class="btn-text">Accept & Join</span>
+            <div class="loader" id="btn-loader"></div>
+        </button>
+
+        <p class="sub-text">
+            Using Google Sign In.<br>
+            Existing members will be linked automatically.
+        </p>
+    </div>
+
+    <!-- Error State -->
+    <div id="error-card" class="invite-card" style="display: none; border-color: #ef4444;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">⚠️</div>
+        <h3 id="error-title" style="margin-bottom: 1rem;">Invalid Invitation</h3>
+        <p id="error-msg" style="color: #aaa; margin-bottom: 2rem;">This link may have expired or is incorrect.</p>
+        <a href="index.html" class="btn-accept" style="background: #333; color: white; box-shadow: none;">Go Home</a>
+    </div>
+
+    <script src="js/invite.js"></script>
+</body>
+
+</html>
