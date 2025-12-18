@@ -540,7 +540,15 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        userListFull.innerHTML = users.map(u => {
+        // --- DEBUG: VISIBILITY TEST ---
+        console.log('Container:', userListFull);
+        console.log('Parent View:', document.getElementById('view-users'));
+        console.log('Parent Display:', document.getElementById('view-users').style.display);
+
+        // Temporarily prepend a test element
+        const testEl = '<div style="background: red; color: white; padding: 20px; font-size: 24px; border: 5px solid black;">VISIBILITY TEST - IF YOU SEE THIS, CONTAINER IS VISIBLE</div>';
+
+        userListFull.innerHTML = testEl + users.map(u => {
             const linkedBar = bars ? bars.find(b => b.owner_user_id === u.id) : null;
             const roleBadges = (u.roles || []).map(r =>
                 `<span class="tag-badge" style="background:${getRoleColor(r)}; color:white; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">${r}</span>`
