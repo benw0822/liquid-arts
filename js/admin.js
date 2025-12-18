@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Toggle Views
-        ['dashboard', 'bars', 'articles', 'users'].forEach(v => {
+        ['dashboard', 'bars', 'articles', 'users', 'invitations'].forEach(v => {
             const el = document.getElementById(`view-${v}`);
             if (el) el.style.display = (v === viewName) ? 'block' : 'none';
         });
