@@ -69,6 +69,8 @@
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.2);
+            /* Standard Red Decoration: Top Border */
+            border-top: 4px solid var(--bg-red);
             border-radius: 20px;
             padding: 3rem 2rem;
             text-align: center;
@@ -86,7 +88,8 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: conic-gradient(transparent, rgba(239, 68, 68, 0.4), transparent 30%);
+            background: conic-gradient(transparent, rgba(239, 68, 68, 0.2), transparent 30%);
+            /* Reduced opacity */
             animation: rotate 4s linear infinite;
             z-index: -1;
         }
@@ -97,21 +100,14 @@
             }
         }
 
-        .logo {
-            font-family: var(--font-display);
-            font-weight: 700;
-            font-size: 1.5rem;
-            letter-spacing: 0.1em;
+        .logo-img {
+            max-width: 180px;
             margin-bottom: 2rem;
-            text-transform: uppercase;
-        }
-
-        .logo span {
-            color: var(--bg-red);
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
         }
 
         .title {
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             text-transform: uppercase;
             letter-spacing: 0.15em;
             color: #aaa;
@@ -212,7 +208,7 @@
     <div id="bg-overlay"></div>
 
     <div class="invite-card" id="card-content">
-        <div class="logo">Liquid<span>Arts</span></div>
+        <img src="assets/logo_vertical.png" alt="Liquid Arts" class="logo-img">
 
         <div class="title" id="invite-title">INVITATION</div>
 
