@@ -520,7 +520,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function loadUsers() {
         const userListFull = document.getElementById('user-list-full');
-        userListFull.innerHTML = '<tr><td colspan="4" style="padding:1rem;">Loading...</td></tr>';
+        userListFull.innerHTML = '<p style="padding:1rem; color:#666;">Loading users...</p>';
 
         const { data: users, error } = await supabase.from('users').select('*').order('created_at', { ascending: false });
         const { data: bars } = await supabase.from('bars').select('id, title, owner_user_id');
