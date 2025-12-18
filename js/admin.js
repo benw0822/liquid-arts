@@ -547,6 +547,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const parent = document.getElementById('view-users');
         console.log('Parent View:', parent);
+        console.log('Grandparent:', parent.parentElement);
+        console.log('Parent InnerHTML START:', parent.innerHTML.substring(0, 100));
         console.log('Parent Display:', parent.style.display);
         console.log('Parent Rect:', parent.getBoundingClientRect());
 
