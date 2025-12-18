@@ -13,8 +13,8 @@ create table if not exists public.invitations (
 -- Enable RLS
 alter table public.invitations enable row level security;
 
--- Policies
--- 1. Admins/Editors can view all invitations (for management)
+-- Policies (Drop first to avoid "already exists" error on re-run)
+drop policy if exists "Admins/Editors can view all invitations" on public.invitations;
 create policy "Admins/Editors can view all invitations"
   on public.invitations for select
   using (
@@ -25,7 +25,7 @@ create policy "Admins/Editors can view all invitations"
     )
   );
 
--- 2. Admins/Editors can insert invitations
+drop policy if exists "Admins/Editors can insert invitations" on public.invitations;
 create policy "Admins/Editors can insert invitations"
   on public.invitations for insert
   with check (
@@ -36,12 +36,10 @@ create policy "Admins/Editors can insert invitations"
     )
   );
 
--- 3. Public (Any Auth User) can view invitation BY CODE (needed for Invite Page lookup)
--- Actually, we might allow unauthenticated lookup if we want to show "Welcome to [Bar Name]" before login.
--- Let's allow public read if they know the code.
+drop policy if exists "Everyone can view invitation by code" on public.invitations;
 create policy "Everyone can view invitation by code"
   on public.invitations for select
-  using ( true ); -- We rely on the primary key lookup mostly, or simple select.
+  using ( true );
 
 -- RPC Function to Claim Invitation (Security Definer to bypass RLS/Privileges)
 create or replace function public.claim_invitation(code_input text)
@@ -110,9 +108,31 @@ begin
     end if;
     if meta_name is null then meta_name := 'New Talent'; end if;
 
-    insert into public.talents (user_id, display_name)
-    values (current_user_id, meta_name)
-    on conflict (user_id) do nothing;
+    -- Extract other fields
+    -- If passed as raw JSON in metadata, we can cast directly.
+    
+    insert into public.talents (
+        user_id, 
+        display_name, 
+        description, 
+        quote, 
+        awards, 
+        experiences
+    )
+    values (
+        current_user_id, 
+        meta_name,
+        inv_record.metadata ->> 'description', -- Bio
+        inv_record.metadata ->> 'quote',
+        coalesce((inv_record.metadata -> 'awards'), '[]'::jsonb),
+        coalesce((inv_record.metadata -> 'experiences'), '[]'::jsonb)
+    )
+    on conflict (user_id) do update set
+        display_name = EXCLUDED.display_name,
+        description = EXCLUDED.description,
+        quote = EXCLUDED.quote,
+        awards = EXCLUDED.awards,
+        experiences = EXCLUDED.experiences;
   end if;
 
   return jsonb_build_object('success', true, 'role', inv_record.role, 'bar_id', inv_record.metadata->>'bar_id');
