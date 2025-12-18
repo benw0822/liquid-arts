@@ -1461,8 +1461,10 @@ figure.article-figure figcaption {
 /* Masonry Grid for Detail Page (Review present) */
 .masonry-grid {
     column-count: 3;
-    column-gap: 30px;
+    column-gap: 20px;
     padding-bottom: 60px;
+    margin: 0 auto;
+    /* Ensure centering */
 }
 
 .masonry-grid .grid-item {
