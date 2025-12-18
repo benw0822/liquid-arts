@@ -557,10 +557,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Temporarily prepend a test element
         const testEl = '<div style="background: red; color: white; padding: 20px; font-size: 24px; border: 5px solid black; min-height: 100px; z-index: 9999; position: relative;">VISIBILITY TEST - IF YOU SEE THIS, CONTAINER IS VISIBLE</div>';
-        console.log('Parent Display:', document.getElementById('view-users').style.display);
-
-        // Temporarily prepend a test element
-        const testEl = '<div style="background: red; color: white; padding: 20px; font-size: 24px; border: 5px solid black;">VISIBILITY TEST - IF YOU SEE THIS, CONTAINER IS VISIBLE</div>';
 
         userListFull.innerHTML = testEl + users.map(u => {
             const linkedBar = bars ? bars.find(b => b.owner_user_id === u.id) : null;
