@@ -542,7 +542,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // --- DEBUG: VISIBILITY TEST ---
         console.log('Container:', userListFull);
-        console.log('Parent View:', document.getElementById('view-users'));
+        const rect = userListFull.getBoundingClientRect();
+        console.log('Container Rect:', rect);
+
+        const parent = document.getElementById('view-users');
+        console.log('Parent View:', parent);
+        console.log('Parent Display:', parent.style.display);
+        console.log('Parent Rect:', parent.getBoundingClientRect());
+
+        // Check computed style
+        console.log('Parent Computed Display:', window.getComputedStyle(parent).display);
+        console.log('Parent Computed Opacity:', window.getComputedStyle(parent).opacity);
+        console.log('Parent Computed Visibility:', window.getComputedStyle(parent).visibility);
+
+        // Temporarily prepend a test element
+        const testEl = '<div style="background: red; color: white; padding: 20px; font-size: 24px; border: 5px solid black; min-height: 100px; z-index: 9999; position: relative;">VISIBILITY TEST - IF YOU SEE THIS, CONTAINER IS VISIBLE</div>';
         console.log('Parent Display:', document.getElementById('view-users').style.display);
 
         // Temporarily prepend a test element
