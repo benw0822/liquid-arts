@@ -968,6 +968,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const ownerFields = document.getElementById('invite-owner-fields');
         const talentFields = document.getElementById('invite-talent-fields');
 
+        // Initial Load of History
+        loadInvitations();
+
         // Toggle Fields
         roleSelect.onchange = () => {
             if (roleSelect.value === 'owner') {
@@ -1084,26 +1087,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 metadata: metadata,
                 created_by: (await supabase.auth.getUser()).data.user.id
             }]);
-
             if (error) throw error;
 
             // Success: update UI
             const link = `${window.location.origin}/invite.html?code=${code}`;
-            const linkText = document.getElementById('invite-link-text');
-            linkText.href = link;
-            linkText.textContent = link;
+            const linkText = document.getElementById('invite-link-text'); // Keep this line
+            const inviteResult = document.getElementById('invite-result'); // Define inviteResult
+            const inviteUrl = link; // Define inviteUrl
 
-            document.getElementById('invite-result').style.display = 'block';
-            document.getElementById('invite-empty-state').style.display = 'none';
+            // Show Result
+            inviteResult.style.display = 'block';
+            linkText.href = inviteUrl;
+            linkText.textContent = inviteUrl;
 
-            // Update Preview Card
-            const previewBg = document.getElementById('card-preview-bg');
+            // Generate QR Code if library exists (Optional)
+            // new QRCode(document.getElementById("qrcode"), inviteUrl);
+
+            // Refresh List
+            loadInvitations();
+
+            // Render Preview
+            const previewBg = document.getElementById('card-preview-bg'); // Changed from 'invite-card-bg' to 'card-preview-bg' to match original
             const previewName = document.getElementById('card-preview-barname');
 
             if (role === 'owner' && barData) {
                 previewBg.src = barData.image || 'assets/default_bar.jpg';
                 previewName.textContent = barData.title;
-                previewName.style.display = 'block';
+                previewName.style.display = 'block'; // Keep this line
             } else {
                 previewBg.src = 'assets/hero_bg.jpg'; // Default Generic
                 previewName.textContent = role === 'talent' ? 'Liquid Arts Talent' : 'Welcome';
@@ -1119,6 +1129,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
 });
+
 window.editBar = (id) => { window.location.href = `bms.html?id=${id}`; };
 window.deleteBar = async (id) => {
     if (!confirm('Delete this bar?')) return;
@@ -1127,7 +1138,67 @@ window.deleteBar = async (id) => {
     else alert(error.message);
 };
 
-window.editArticle = (id) => { window.location.href = `cms.html?id=${id}`; };
+window.copyInviteLink = (code) => {
+    const url = `https://liquidarts.bar/invite.html?code=${code}`;
+    navigator.clipboard.writeText(url);
+    alert('Link copied to clipboard!');
+};
+
+window.loadInvitations = async () => {
+    const tbody = document.getElementById('invitation-history-list');
+    if (!tbody) return;
+
+    tbody.innerHTML = '<tr><td colspan="5" style="padding: 20px; text-align: center;">Loading...</td></tr>';
+
+    try {
+        const { data, error } = await supabase
+            .from('invitations')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        if (!data || data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="padding: 20px; text-align: center; color: #999;">No invitations generated yet.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = data.map(inv => {
+            const meta = inv.metadata || {};
+            let details = '-';
+
+            if (inv.role === 'owner') {
+                details = `<span style="font-weight: bold;">${meta.bar_title || 'Unknown Bar'}</span>` +
+                    (meta.target_name ? `<br><small>For: ${meta.target_name}</small>` : '');
+            } else if (inv.role === 'talent') {
+                details = `<span style="font-weight: bold;">${meta.display_name || 'Unknown Talent'}</span>` +
+                    (meta.title ? `<br><small>${meta.title}</small>` : '');
+            }
+
+            const statusBadge = inv.is_used
+                ? `<span style="background: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem;">Used</span>`
+                : `<span style="background: #ffedd5; color: #9a3412; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem;">Pending</span>`;
+
+            const date = new Date(inv.created_at).toLocaleDateString() + ' ' + new Date(inv.created_at).toLocaleTimeString();
+
+            return `
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 15px; text-transform: capitalize;">${inv.role}</td>
+                    <td style="padding: 15px;">${details}</td>
+                    <td style="padding: 15px;">${statusBadge}</td>
+                    <td style="padding: 15px; font-size: 0.9rem; color: #666;">${date}</td>
+                    <td style="padding: 15px;">
+                        <button onclick="copyInviteLink('${inv.code}')" class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.8rem;">Copy Link</button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+
+    } catch (err) {
+        console.error('Error loading invitations:', err);
+        tbody.innerHTML = `<tr><td colspan="5" style="padding: 20px; text-align: center; color: red;">Error: ${err.message}</td></tr>`;
+    }
+};
 window.deleteArticle = async (id) => {
     if (!confirm('Delete this article?')) return;
     const { error } = await supabase.from('articles').delete().eq('id', id);
