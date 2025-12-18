@@ -519,15 +519,24 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     async function loadUsers() {
+        console.log('loadUsers called');
         const userListFull = document.getElementById('user-list-full');
-        userListFull.innerHTML = '<p style="padding:1rem; color:#666;">Loading users...</p>';
+        // userListFull.innerHTML = '<p style="padding:1rem; color:#666;">Loading users...</p>';
 
         const { data: users, error } = await supabase.from('users').select('*').order('created_at', { ascending: false });
+        console.log('Fetched users:', users);
         const { data: bars } = await supabase.from('bars').select('id, title, owner_user_id');
         const { data: talents } = await supabase.from('talents').select('user_id, display_name');
 
         if (error) {
+            console.error('Fetch error:', error);
             userListFull.innerHTML = `<p style="color:red">Error: ${error.message}</p>`;
+            return;
+        }
+
+        if (users.length === 0) {
+            console.log('No users found in DB');
+            userListFull.innerHTML = '<p style="padding:1rem; color:#666;">No users found.</p>';
             return;
         }
 
