@@ -910,7 +910,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function initInvitationGenerator() {
         const roleSelect = document.getElementById('invite-role');
-        const barSelect = document.getElementById('invite-bar-select');
+        // const barSelect = document.getElementById('invite-bar-select'); // Removed
+        const barSearchInput = document.getElementById('invite-bar-search');
+        const barIdInput = document.getElementById('invite-bar-id');
+        const barResults = document.getElementById('invite-bar-results');
+
         const ownerFields = document.getElementById('invite-owner-fields');
         const talentFields = document.getElementById('invite-talent-fields');
 
@@ -928,15 +932,56 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
-        // Load Bars if empty
+        // Pre-Load Bars (for client side search)
         if (cachedBarsForInvite.length === 0) {
+            barSearchInput.placeholder = "Loading bars...";
             const { data, error } = await supabase.from('bars').select('id, title, image');
             if (data) {
                 cachedBarsForInvite = data;
-                barSelect.innerHTML = '<option value="">-- Select Bar --</option>' +
-                    data.map(b => `<option value="${b.id}">${b.title}</option>`).join('');
+                barSearchInput.placeholder = "Type to search bar...";
             }
         }
+
+        // Search Logic
+        barSearchInput.oninput = (e) => {
+            const query = e.target.value.toLowerCase();
+            if (!query) {
+                barResults.style.display = 'none';
+                return;
+            }
+
+            const matches = cachedBarsForInvite.filter(b => b.title.toLowerCase().includes(query));
+
+            if (matches.length > 0) {
+                barResults.innerHTML = matches.map(b => `
+                    <div class="bar-result-item" onclick="selectBarForInvite('${b.id}', '${b.title.replace(/'/g, "\\'")}')" 
+                        style="padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 10px;">
+                        <img src="${b.image || 'assets/default_bar.jpg'}" style="width: 30px; height: 30px; border-radius: 4px; object-fit: cover;">
+                        <span>${b.title}</span>
+                    </div>
+                `).join('');
+                barResults.style.display = 'block';
+            } else {
+                barResults.innerHTML = '<div style="padding: 10px; color: #999;">No bars found</div>';
+                barResults.style.display = 'block';
+            }
+        };
+
+        // Selection Handler (Global or Closure needed)
+        window.selectBarForInvite = (id, title) => {
+            barIdInput.value = id;
+            barSearchInput.value = title;
+            barResults.style.display = 'none';
+            // Trigger preview update if needed? 
+            // The generate button logic handles the preview based on ID.
+        };
+
+        // Close results on click outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('#invite-owner-fields')) {
+                barResults.style.display = 'none';
+            }
+        });
     }
 
     document.getElementById('generate-invite-btn').onclick = async () => {
@@ -948,9 +993,13 @@ document.addEventListener('DOMContentLoaded', () => {
         let barData = null;
 
         if (role === 'owner') {
-            barId = document.getElementById('invite-bar-select').value;
-            if (!barId) { alert('Please select a bar'); return; }
+            barId = document.getElementById('invite-bar-id').value;
+            if (!barId) { alert('Please select a bar using the search'); return; }
             metadata.bar_id = barId;
+
+            // Invitee Name
+            const ownerName = document.getElementById('invite-owner-name').value;
+            if (ownerName) metadata.invitee_name = ownerName;
 
             // Find bar data for preview
             barData = cachedBarsForInvite.find(b => b.id == barId);
@@ -960,6 +1009,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (role === 'talent') {
             const name = document.getElementById('invite-talent-name').value;
             if (name) metadata.display_name = name;
+
+            const title = document.getElementById('invite-talent-title').value;
+            if (title) metadata.title = title;
         }
 
         btn.textContent = 'Generating...';

@@ -55,6 +55,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function renderInvitation(data) {
         const metadata = data.metadata || {};
 
+        // Dynamic Title (Greeting)
+        if (metadata.invitee_name) {
+            document.getElementById('invite-title').textContent = `Hi, ${metadata.invitee_name}`;
+        } else if (metadata.display_name && data.role === 'talent') {
+            document.getElementById('invite-title').textContent = `Hi, ${metadata.display_name}`;
+        }
+
         // Bar Info (If available)
         if (metadata.bar_id) {
             // Fetch Bar Image for BG
@@ -76,8 +83,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (data.role === 'owner') {
             displayRole.textContent = 'Bar Owner';
         } else if (data.role === 'talent') {
-            displayRole.textContent = 'Talent';
-            displayBarName.textContent = metadata.display_name ? `Welcome, ${metadata.display_name}` : 'Join as Talent';
+            displayRole.textContent = metadata.title || 'Talent Member';
+            if (metadata.title) displayRole.style.fontSize = '1.5rem'; // Adjust if long title
+            displayBarName.textContent = 'Liquid Arts Family'; // Or keep it generic
         } else {
             displayRole.textContent = 'Member';
         }

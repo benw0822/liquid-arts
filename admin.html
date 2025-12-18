@@ -646,20 +646,40 @@
 
                     <!-- Dynamic Fields -->
                     <div id="invite-owner-fields">
+                        <!-- Select Bar -->
+                        <div class="form-group" style="margin-bottom: 1rem; position: relative;">
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Select Bar
+                                (Required)</label>
+                            <input type="text" id="invite-bar-search" class="form-control"
+                                placeholder="Search bar name..." autocomplete="off" style="width: 100%; padding: 10px;">
+                            <input type="hidden" id="invite-bar-id">
+                            <div id="invite-bar-results"
+                                style="display: none; position: absolute; width: 100%; max-height: 200px; overflow-y: auto; background: white; border: 1px solid #ddd; z-index: 10; border-radius: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                            </div>
+                        </div>
+
+                        <!-- Invitee Name -->
                         <div class="form-group" style="margin-bottom: 1.5rem;">
-                            <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Select Bar</label>
-                            <select id="invite-bar-select" class="form-control" style="width: 100%; padding: 10px;">
-                                <option value="">Loading bars...</option>
-                            </select>
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Invitee Name
+                                (Optional)</label>
+                            <input type="text" id="invite-owner-name" class="form-control" placeholder="e.g. John Doe"
+                                style="width: 100%; padding: 10px;">
+                            <small style="color: #888;">Shows "Hi, John Doe" on the card.</small>
                         </div>
                     </div>
 
                     <div id="invite-talent-fields" style="display: none;">
-                        <div class="form-group" style="margin-bottom: 1.5rem;">
-                            <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Display Name
-                                (Optional)</label>
-                            <input type="text" id="invite-talent-name" class="form-control" placeholder="e.g. Nickname"
+                        <div class="form-group" style="margin-bottom: 1rem;">
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Talent Name
+                                (Required)</label>
+                            <input type="text" id="invite-talent-name" class="form-control" placeholder="e.g. Alice"
                                 style="width: 100%; padding: 10px;">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 1.5rem;">
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Current
+                                Title/Role</label>
+                            <input type="text" id="invite-talent-title" class="form-control"
+                                placeholder="e.g. Head Bartender" style="width: 100%; padding: 10px;">
                         </div>
                     </div>
 
