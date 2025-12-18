@@ -293,15 +293,9 @@
             const grid = document.getElementById('hop-feed');
             if (!grid) return;
 
-            // Adjust Layout for Feed Style (3-Column Grid)
-            grid.classList.remove('masonry-grid');
-            grid.style.display = 'grid';
-            // Use responsive grid: 3 columns on desktop, fewer on smaller screens
-            grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(300px, 1fr))';
-            grid.style.gap = '40px'; // More whitespace
+            // Layout preserved as Masonry (CSS handled by .masonry-grid)
             grid.style.marginTop = '3rem';
             grid.style.width = '100%';
-            grid.style.justifyContent = 'center';
 
             grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #888;">Loading latest hops...</p>';
 
