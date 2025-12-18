@@ -1490,6 +1490,40 @@ figure.article-figure figcaption {
     }
 }
 
+/* Explore Feed Grid (Ported from explore.html) */
+.explore-feed-grid {
+    column-count: 3;
+    column-gap: 20px;
+    width: 100%;
+}
+
+.explore-feed-grid .grid-item {
+    break-inside: avoid;
+    margin-bottom: 20px;
+    display: block;
+    width: 100%;
+}
+
+@media (max-width: 900px) {
+    .explore-feed-grid {
+        column-count: 2;
+    }
+}
+
+@media (max-width: 600px) {
+    .explore-feed-grid {
+        column-count: 1;
+    }
+}
+
+/* Ensure Hop Detail Card centers itself in explore grid */
+.explore-feed-grid .hop-detail-card {
+    margin: 0 auto 20px auto;
+    /* Default width is 90% (max 380px) from base class, margin auto centers it */
+}
+}
+}
+
 @media (max-width: 768px) {
     .masonry-grid {
         column-count: 1;
