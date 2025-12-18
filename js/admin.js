@@ -1034,5 +1034,4 @@ window.deleteArticle = async (id) => {
     else alert(error.message);
 };
 
-    else alert(error.message);
-};
+
