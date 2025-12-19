@@ -1067,6 +1067,24 @@ document.addEventListener('DOMContentLoaded', () => {
             if (title) metadata.title = title;
         }
 
+        const expirationInput = document.getElementById('invite-expiration');
+        const expiresAt = expirationInput.value;
+
+        if (!expiresAt) {
+            alert('Please set an expiration date for this invitation.');
+            btn.disabled = false;
+            btn.textContent = 'GENERATE LINK';
+            return;
+        }
+
+        // Validate expiration is in future
+        if (new Date(expiresAt) <= new Date()) {
+            alert('Expiration date must be in the future.');
+            btn.disabled = false;
+            btn.textContent = 'GENERATE LINK';
+            return;
+        }
+
         btn.textContent = 'Generating...';
         btn.disabled = true;
 
@@ -1081,11 +1099,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // Insert to DB
-            const { error } = await supabase.from('invitations').insert([{
+            const { error } = await window.supabaseClient.from('invitations').insert([{
                 code: code,
                 role: role,
                 metadata: metadata,
-                created_by: (await supabase.auth.getUser()).data.user.id
+                expires_at: new Date(expiresAt).toISOString(),
+                created_by: (await window.supabaseClient.auth.getUser()).data.user.id
             }]);
             if (error) throw error;
 
@@ -1163,21 +1182,42 @@ window.loadInvitations = async () => {
             return;
         }
 
+        // Fetch User Details for 'used_by'
+        const usedUserIds = data.filter(i => i.used_by).map(i => i.used_by);
+        let userMap = {};
+
+        if (usedUserIds.length > 0) {
+            const { data: users } = await window.supabaseClient
+                .from('users')
+                .select('id, email, display_name')
+                .in('id', usedUserIds);
+
+            if (users) {
+                users.forEach(u => { userMap[u.id] = u; });
+            }
+        }
+
         tbody.innerHTML = data.map(inv => {
             const meta = inv.metadata || {};
             let details = '-';
 
             if (inv.role === 'owner') {
-                details = `<span style="font-weight: bold;">${meta.bar_title || 'Unknown Bar'}</span>` +
+                details = `<span style="font-weight: bold;">${meta.bar_title || meta.bar_name || 'Unknown Bar'}</span>` +
                     (meta.target_name ? `<br><small>For: ${meta.target_name}</small>` : '');
             } else if (inv.role === 'talent') {
                 details = `<span style="font-weight: bold;">${meta.display_name || 'Unknown Talent'}</span>` +
                     (meta.title ? `<br><small>${meta.title}</small>` : '');
             }
 
-            const statusBadge = inv.is_used
-                ? `<span style="background: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem;">Used</span>`
-                : `<span style="background: #ffedd5; color: #9a3412; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem;">Pending</span>`;
+            let statusBadge = `<span style="background: #ffedd5; color: #9a3412; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem;">Pending</span>`;
+
+            if (inv.is_used) {
+                const user = userMap[inv.used_by];
+                const userInfo = user ? `<br><small style="color: #666;">By: ${user.display_name || user.email}</small>` : '';
+                statusBadge = `<span style="background: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem;">Used</span>${userInfo}`;
+            } else if (new Date(inv.expires_at) < new Date()) {
+                statusBadge = `<span style="background: #f1f5f9; color: #64748b; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem;">Expired</span>`;
+            }
 
             const date = new Date(inv.created_at).toLocaleDateString() + ' ' + new Date(inv.created_at).toLocaleTimeString();
 
