@@ -1193,7 +1193,10 @@ window.loadInvitations = async () => {
                 .select('id, email, display_name')
                 .in('id', usedUserIds);
 
-            if (userError) console.error('Error fetching users:', userError);
+            if (userError) {
+                console.error('Error fetching users:', JSON.stringify(userError, null, 2));
+                alert('Error fetching user details (Check Console): ' + userError.message);
+            }
             if (users) {
                 console.log('Fetched users:', users);
                 users.forEach(u => { userMap[u.id] = u; });
