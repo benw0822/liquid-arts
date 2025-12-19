@@ -1190,7 +1190,7 @@ window.loadInvitations = async () => {
             console.log('Fetching users for IDs:', usedUserIds);
             const { data: users, error: userError } = await window.supabaseClient
                 .from('users')
-                .select('id, email, display_name')
+                .select('*')
                 .in('id', usedUserIds);
 
             if (userError) {
