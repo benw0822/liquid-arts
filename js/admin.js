@@ -1187,12 +1187,15 @@ window.loadInvitations = async () => {
         let userMap = {};
 
         if (usedUserIds.length > 0) {
-            const { data: users } = await window.supabaseClient
+            console.log('Fetching users for IDs:', usedUserIds);
+            const { data: users, error: userError } = await window.supabaseClient
                 .from('users')
                 .select('id, email, display_name')
                 .in('id', usedUserIds);
 
+            if (userError) console.error('Error fetching users:', userError);
             if (users) {
+                console.log('Fetched users:', users);
                 users.forEach(u => { userMap[u.id] = u; });
             }
         }
