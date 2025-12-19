@@ -1213,7 +1213,7 @@ window.loadInvitations = async () => {
 
             if (inv.is_used) {
                 const user = userMap[inv.used_by];
-                const userInfo = user ? `<br><small style="color: #666;">By: ${user.display_name || user.email}</small>` : '';
+                const userInfo = user ? `<br><small style="color: #666;">By: <b>${user.display_name}</b><br>${user.email}</small>` : '';
                 statusBadge = `<span style="background: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem;">Used</span>${userInfo}`;
             } else if (new Date(inv.expires_at) < new Date()) {
                 statusBadge = `<span style="background: #f1f5f9; color: #64748b; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem;">Expired</span>`;
