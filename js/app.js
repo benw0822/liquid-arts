@@ -920,6 +920,45 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        // --- SEO: Update Meta Tags ---
+        if (bar) {
+            // Title
+            document.title = `${bar.title} | Liquid Arts`;
+
+            // Description (Use description > vibe > location)
+            const desc = bar.description || `Experience ${bar.title}, a ${bar.vibe || 'unique'} cocktail bar in ${bar.location}.`;
+
+            // Image Selection Priority: Cover Image > Main Image > First Gallery Image > Default Logo
+            let seoImage = bar.cover_image || bar.image || 'https://liquid-arts.vercel.app/assets/logo_vertical.png';
+
+            // If no cover/main image, try to find from gallery
+            if (!bar.cover_image && !bar.image && bar.bar_images && bar.bar_images.length > 0) {
+                // Sort to find the true "Main Image" (display_order 0 or lowest)
+                const sortedSeoImages = [...bar.bar_images].sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+                seoImage = sortedSeoImages[0].image_url;
+            }
+
+            // Helper to set Content
+            const setMeta = (selector, content) => {
+                const element = document.querySelector(selector);
+                if (element) element.setAttribute('content', content);
+            };
+
+            // Standard Meta
+            setMeta('meta[name="description"]', desc);
+
+            // Open Graph
+            setMeta('meta[property="og:title"]', `${bar.title} - Best Cocktail Bar`);
+            setMeta('meta[property="og:description"]', desc);
+            setMeta('meta[property="og:image"]', seoImage);
+            setMeta('meta[property="og:url"]', window.location.href);
+
+            // Twitter
+            setMeta('meta[property="twitter:title"]', bar.title);
+            setMeta('meta[property="twitter:description"]', desc);
+            setMeta('meta[property="twitter:image"]', seoImage);
+        }
+
         // --- Social Links ---
         const socialLinks = bar.social_links || {};
         let socialHtml = '';

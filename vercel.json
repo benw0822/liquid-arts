@@ -14,7 +14,7 @@
         },
         {
             "source": "/:slug",
-            "destination": "/bar.html?slug=:slug"
+            "destination": "/api/slug_router?slug=:slug"
         }
     ],
     "headers": [
