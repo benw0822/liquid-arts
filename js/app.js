@@ -923,7 +923,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- SEO: Update Meta Tags ---
         if (bar) {
             // Title
-            document.title = `${bar.title} | Liquid Arts`;
+            document.title = `${bar.title} | 亞洲酒吧文化社群 - Liquid Arts`;
 
             // Description (Use description > vibe > location)
             const desc = bar.description || `Experience ${bar.title}, a ${bar.vibe || 'unique'} cocktail bar in ${bar.location}.`;
@@ -948,13 +948,13 @@ document.addEventListener('DOMContentLoaded', () => {
             setMeta('meta[name="description"]', desc);
 
             // Open Graph
-            setMeta('meta[property="og:title"]', `${bar.title} - Best Cocktail Bar`);
+            setMeta('meta[property="og:title"]', `${bar.title} | 亞洲酒吧文化社群 - Liquid Arts`);
             setMeta('meta[property="og:description"]', desc);
             setMeta('meta[property="og:image"]', seoImage);
             setMeta('meta[property="og:url"]', window.location.href);
 
             // Twitter
-            setMeta('meta[property="twitter:title"]', bar.title);
+            setMeta('meta[property="twitter:title"]', `${bar.title} | 亞洲酒吧文化社群 - Liquid Arts`);
             setMeta('meta[property="twitter:description"]', desc);
             setMeta('meta[property="twitter:image"]', seoImage);
         }

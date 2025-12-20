@@ -53,7 +53,7 @@ export default async function handler(request) {
             }
 
             const description = bar.description || `Experience ${bar.title}, a ${bar.vibe || 'unique'} cocktail bar in ${bar.location}.`;
-            const title = `${bar.title} | Liquid Arts`;
+            const title = `${bar.title} | 亞洲酒吧文化社群 - Liquid Arts`;
 
             // 3. SEO HTML Response
             const html = `
