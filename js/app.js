@@ -168,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     slug,
                     bar_images (image_url, caption, display_order),
                     signatures (*),
-                    bar_awards (*),
+                    bar_awards (*, awards (name, year, type)),
                     article_bars (
                         article:articles (id, title, excerpt, cover_image, published_at, category, start_date, end_date)
                     )
@@ -1317,20 +1317,29 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
 
-                    <!-- 4. Awards (Optional) -->
+                    <!-- 4. Awards -->
                     ${bar.bar_awards && bar.bar_awards.length > 0 ? `
                         <div class="grid-item content-card" style="margin-bottom: 30px;">
                             <h3 class="section-title" style="border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 15px;">Awards</h3>
                             <div style="display: flex; flex-direction: column; gap: 12px;">
-                                ${bar.bar_awards.sort((a, b) => (b.year || 0) - (a.year || 0)).map(award => `
-                                    <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; font-weight: 700; color: #333;">
-                                        <div style="display: flex; align-items: center;">
-                                            <span style="margin-right: 10px;">${award.year || ''}</span>
-                                            <span>${award.name}</span>
+                                ${bar.bar_awards
+                        .sort((a, b) => ((b.awards?.year || 0) - (a.awards?.year || 0)))
+                        .map(item => {
+                            const awardInfo = item.awards || {};
+                            const name = awardInfo.name || 'Unknown Award';
+                            const year = awardInfo.year || '';
+                            const isRanking = awardInfo.type === 'ranking';
+                            const rankText = isRanking ? `No. ${item.rank}` : item.rank;
+
+                            return `
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; font-weight: 700; color: #333;">
+                                            <div style="display: flex; align-items: center;">
+                                                <span style="margin-right: 10px; color: #666; font-weight: 400;">${year}</span>
+                                                <span>${name}</span>
+                                            </div>
+                                            <span style="color: var(--bg-red);">${rankText}</span>
                                         </div>
-                                        <span>${award.rank ? `<span style="color: var(--bg-red);">${award.rank}</span>` : ''}</span>
-                                    </div>
-                                `).join('')}
+                                    `}).join('')}
                             </div>
                         </div>
                     ` : ''}
