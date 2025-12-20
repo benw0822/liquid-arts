@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Toggle Views
-        ['dashboard', 'bars', 'articles', 'users', 'invitations'].forEach(v => {
+        ['dashboard', 'bars', 'articles', 'users', 'invitations', 'awards'].forEach(v => {
             const el = document.getElementById(`view-${v}`);
             if (el) el.style.display = (v === viewName) ? 'block' : 'none';
         });
@@ -119,6 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (viewName === 'users') loadUsers();
         if (viewName === 'dashboard') loadDashboardStats();
         if (viewName === 'invitations') initInvitationGenerator();
+        if (viewName === 'awards' && window.initAwardsManager) window.initAwardsManager();
     };
 
     // --- Dashboard Stats & latest 5 ---
