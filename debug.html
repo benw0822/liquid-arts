@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Awards Debug</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #222;
+            color: #0f0;
+        }
+
+        .block {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #444;
+            padding-bottom: 20px;
+        }
+
+        h3 {
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Supabase Awards Debugger</h1>
+
+    <div class="block">
+        <h3>1. Fetch 'awards' Table Direct</h3>
+        <pre id="log1">Loading...</pre>
+    </div>
+
+    <div class="block">
+        <h3>2. Fetch 'bar_awards' join 'awards'</h3>
+        <pre id="log2">Loading...</pre>
+    </div>
+
+    <div class="block">
+        <h3>3. Fetch 'bars' nested (The App Query)</h3>
+        <pre id="log3">Loading...</pre>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://wgnskednopbfngvjmviq.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_gcmYleFIGmwsLSKofS__Qg_62EXoP6P'; // Extracted from app.js
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        async function runDebug() {
+            // 1. Fetch Awards Direct
+            const { data: d1, error: e1 } = await supabaseClient.from('awards').select('*').limit(5);
+            document.getElementById('log1').innerText = e1 ? 'Error: ' + JSON.stringify(e1, null, 2) : JSON.stringify(d1, null, 2);
+
+            // 2. Fetch Bar Awards Joined
+            const { data: d2, error: e2 } = await supabaseClient.from('bar_awards').select('*, awards(*)').limit(5);
+            document.getElementById('log2').innerText = e2 ? 'Error: ' + JSON.stringify(e2, null, 2) : JSON.stringify(d2, null, 2);
+
+            // 3. Fetch Bars Nested (Target Bar 19 which has awards)
+            const { data: d3, error: e3 } = await supabaseClient.from('bars').select(`
+                id, 
+                title, 
+                bar_awards (*, awards (*))
+            `).eq('id', 19).limit(1);
+
+            let output = '';
+            if (e3) {
+                output = 'Error: ' + JSON.stringify(e3, null, 2);
+            } else {
+                output = JSON.stringify(d3, null, 2);
+
+                // Simulate App Logic to verify structure
+                const bar = d3[0];
+                if (bar && bar.bar_awards) {
+                    console.log("Simulating Render:");
+                    bar.bar_awards.forEach(item => {
+                        const awardName = item.awards ? item.awards.name : 'Unknown';
+                        console.log(`- Award: ${awardName}, Rank: ${item.rank}`);
+                    });
+                }
+            }
+            document.getElementById('log3').innerText = output;
+        }
+
+        runDebug();
+    </script>
+</body>
+
+</html>
