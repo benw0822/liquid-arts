@@ -168,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     slug,
                     bar_images (image_url, caption, display_order),
                     signatures (*),
-                    bar_awards (*, awards (name, year, type)),
+                    bar_awards (*, awards (*)),
                     article_bars (
                         article:articles (id, title, excerpt, cover_image, published_at, category, start_date, end_date)
                     )
@@ -1318,6 +1318,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
 
                     <!-- 4. Awards -->
+                    ${(() => { console.log('Rendering Awards v3'); return ''; })()}
                     ${bar.bar_awards && bar.bar_awards.length > 0 ? `
                         <div class="grid-item content-card" style="margin-bottom: 30px;">
                             <h3 class="section-title" style="border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 15px;">Awards</h3>
