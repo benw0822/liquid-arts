@@ -1,33 +1,31 @@
 // --- Supabase Configuration ---
 const SUPABASE_URL = 'https://wgnskednopbfngvjmviq.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_gcmYleFIGmwsLSKofS__Qg_62EXoP6P';
-
-// Rename local instance to sbClient to avoid conflict with 'supabase' global from CDN
-const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // --- DOM Elements ---
 const lngInput = document.getElementById('bar-lng');
-const latInput = document.getElementById('bar-lat');
-const addressInput = document.getElementById('bar-address');
-const cityInput = document.getElementById('bar-city');
+const latInput = document.getElementById('bar-lat'); // Restored
+const addressInput = document.getElementById('bar-address'); // Restored
+const cityInput = document.getElementById('bar-city'); // NEW
 const mapPreview = document.getElementById('map-preview');
 
 const titleInput = document.getElementById('bar-title');
-const vibeInput = document.getElementById('bar-vibe');
-const descriptionInput = document.getElementById('bar-description');
-const slugInput = document.getElementById('bar-slug');
-const checkSlugBtn = document.getElementById('btn-check-slug');
-const slugFeedback = document.getElementById('slug-feedback');
-const slugUrlContainer = document.getElementById('slug-url-container');
-const finalSlugUrl = document.getElementById('final-slug-url');
-const btnCopyUrl = document.getElementById('btn-copy-url');
+const vibeInput = document.getElementById('bar-vibe'); // Restored
+const descriptionInput = document.getElementById('bar-description'); // Restored
+const slugInput = document.getElementById('bar-slug'); // NEW
+const checkSlugBtn = document.getElementById('btn-check-slug'); // NEW
+const slugFeedback = document.getElementById('slug-feedback'); // NEW
+const slugUrlContainer = document.getElementById('slug-url-container'); // NEW
+const finalSlugUrl = document.getElementById('final-slug-url'); // NEW
+const btnCopyUrl = document.getElementById('btn-copy-url'); // NEW
 
 const ownerInput = document.getElementById('bar-owner');
 const userSearchInput = document.getElementById('user-search-input');
 const btnSearchUser = document.getElementById('btn-search-user');
 const userSearchResults = document.getElementById('user-search-results');
 const ownersList = document.getElementById('owners-list');
-
+// Removed single owner inputs
 const bartenderInput = document.getElementById('bar-bartender');
 const phoneInput = document.getElementById('bar-phone');
 const hoursContainer = document.getElementById('hours-editor-container');
@@ -62,10 +60,6 @@ const btnAddGallery = document.getElementById('btn-add-gallery');
 const awardsList = document.getElementById('awards-list');
 const btnAddAward = document.getElementById('btn-add-award');
 
-const newsUrlInput = document.getElementById('news-url-input');
-const btnAddNews = document.getElementById('btn-add-news');
-const newsList = document.getElementById('news-list');
-
 const cropModal = document.getElementById('crop-modal');
 const cropImage = document.getElementById('crop-image');
 const cropSaveBtn = document.getElementById('crop-save-btn');
@@ -93,21 +87,22 @@ const LOCATIONS = {
     "Taiwan": ["Taipei", "New Taipei", "Taichung", "Tainan", "Kaohsiung"],
     "Hong Kong": ["Central", "Wan Chai", "Causeway Bay", "Tsim Sha Tsui", "Mong Kok"],
     "Japan": ["Tokyo", "Osaka", "Kyoto", "Fukuoka"],
-    "Singapore": ["Singapore"],
-    "Thailand": ["Bangkok", "Chiang Mai", "Phuket"],
+    "Singapore": ["Marina Bay", "Chinatown", "Orchard", "Clarke Quay"],
     "South Korea": ["Seoul", "Busan"],
-    "China": ["Shanghai", "Beijing", "Guangzhou", "Shenzhen"],
-    "Malaysia": ["Kuala Lumpur", "Penang"],
-    "Philippines": ["Manila"],
-    "Indonesia": ["Jakarta", "Bali"],
-    "Vietnam": ["Ho Chi Minh City", "Hanoi"]
+    "USA": ["New York", "San Francisco", "Los Angeles", "Chicago"],
+    "UK": ["London", "Manchester", "Edinburgh"]
 };
 
-// --- Initialization ---
+const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
+// --- Initialization ---
 document.addEventListener('DOMContentLoaded', async () => {
     await checkAuth();
+    initMap(); // Initialize Leaflet Map
+    initHoursEditor();
+    initSlugLogic(); // NEW
 
+    // Check URL params
     const urlParams = new URLSearchParams(window.location.search);
     const paramId = urlParams.get('id');
 
@@ -118,41 +113,57 @@ document.addEventListener('DOMContentLoaded', async () => {
         // New Bar: Add one empty hours slot
         addHoursSlot();
     }
-
-    // Init Modules
-    initSlugLogic();
-
-    // Init Vibe Select (Optional: if we wanted to make it dynamic)
 });
 
 // --- Slug Logic ---
 function initSlugLogic() {
-    // Auto-generate if empty
-    titleInput.addEventListener('input', () => {
-        if (!currentBarId && !slugInput.value) { // Only auto-gen for new bars if empty
-            const generated = titleInput.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-            // We don't auto-fill visual input to avoid annoyance, 
-            // but maybe we should? Let's verify manually.
+    // Helper to update URL display
+    const updateUrlDisplay = () => {
+        const slug = slugInput.value.trim();
+        if (slug) {
+            slugUrlContainer.style.display = 'flex';
+            // Use current origin + / + slug
+            const fullUrl = `${window.location.origin}/${slug}`;
+            finalSlugUrl.textContent = fullUrl;
+        } else {
+            slugUrlContainer.style.display = 'none';
         }
-    });
+    };
 
-    checkSlugBtn.addEventListener('click', async () => {
+    checkSlugBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
         const slug = slugInput.value.trim();
         if (!slug) return;
         await checkSlugAvailability(slug);
+        updateUrlDisplay();
     });
 
-    // Copy URL
-    if (btnCopyUrl) {
-        btnCopyUrl.addEventListener('click', () => {
-            const url = finalSlugUrl.textContent;
-            navigator.clipboard.writeText(url).then(() => {
-                const original = btnCopyUrl.innerHTML;
-                btnCopyUrl.innerHTML = '<span style="color:green; font-size:12px;">Copied</span>';
-                setTimeout(() => btnCopyUrl.innerHTML = original, 2000);
+    slugInput.addEventListener('input', updateUrlDisplay);
+    slugInput.addEventListener('blur', () => {
+        if (slugInput.value.trim()) checkSlugAvailability(slugInput.value.trim());
+        updateUrlDisplay();
+    });
+
+    // Initial check if value exists (e.g. edit mode)
+    updateUrlDisplay();
+
+    // Copy Button Logic
+    btnCopyUrl.addEventListener('click', (e) => {
+        e.preventDefault();
+        const text = finalSlugUrl.textContent;
+        if (text) {
+            navigator.clipboard.writeText(text).then(() => {
+                const originalIcon = btnCopyUrl.innerHTML;
+                // Check mark icon
+                btnCopyUrl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="green" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+                setTimeout(() => {
+                    btnCopyUrl.innerHTML = originalIcon;
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
             });
-        });
-    }
+        }
+    });
 }
 
 async function checkSlugAvailability(slug) {
@@ -160,38 +171,31 @@ async function checkSlugAvailability(slug) {
     slugFeedback.textContent = 'Checking...';
     slugFeedback.style.color = '#888';
 
-    // Regex Check
-    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
-        slugFeedback.textContent = 'Invalid format: lowercase, numbers, hyphens only.';
+    // Simple regex check: lowercase, numbers, hyphens only
+    const validSlug = /^[a-z0-9-]+$/.test(slug);
+    if (!validSlug) {
+        slugFeedback.textContent = 'Invalid format. Use lowercase letters, numbers, and hyphens only.';
         slugFeedback.style.color = 'red';
-        slugUrlContainer.style.display = 'none';
         return false;
     }
 
     // DB Check
-    let query = sbClient.from('bars').select('id').eq('slug', slug);
+    let query = supabase.from('bars').select('id').eq('slug', slug);
     if (currentBarId) query = query.neq('id', currentBarId); // Exclude self if editing
 
     const { data, error } = await query;
-
     if (error) {
         slugFeedback.textContent = 'Error checking availability.';
-        slugFeedback.style.color = 'red';
         return false;
     }
 
-    if (data.length > 0) {
+    if (data && data.length > 0) {
         slugFeedback.textContent = 'Slug is already taken.';
         slugFeedback.style.color = 'red';
-        slugUrlContainer.style.display = 'none';
         return false;
     } else {
         slugFeedback.textContent = 'Slug is available!';
         slugFeedback.style.color = 'green';
-
-        // Show Preview
-        slugUrlContainer.style.display = 'flex';
-        finalSlugUrl.textContent = `https://liquidarts.bar/bar/${slug}`;
         return true;
     }
 }
@@ -214,30 +218,75 @@ async function fetchCityFromCoords(lat, lng) {
 
 // --- Auth Check ---
 async function checkAuth() {
-    const { data: { session } } = await sbClient.auth.getSession();
+    const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
         window.location.href = 'admin.html';
         return;
     }
-    userEmailSpan.textContent = session.user.email;
+    const user = session.user;
+    userEmailSpan.textContent = user.email;
 
-    // Optional: Check if user is admin or editor or owner
-    // For now we assume verify at RLS level
+    // Fetch User Roles from 'users' table
+    const { data: profile } = await supabase
+        .from('users')
+        .select('roles')
+        .eq('id', user.id)
+        .single();
+
+    const roles = profile ? (profile.roles || []) : [];
+    const isEditor = roles.includes('admin') || roles.includes('editor');
+
+    // Apply Permissions
+    const restrictedFields = [
+        editorialReviewInput,
+        googleRatingInput,
+        googleReviewsInput
+    ];
+
+    if (isEditor) {
+        // Enable Fields
+        restrictedFields.forEach(field => {
+            field.disabled = false;
+            field.style.backgroundColor = '#fff';
+        });
+        editorialReviewInput.placeholder = "Write your professional review here...";
+
+        // Enable Stars
+        editorialStars.style.pointerEvents = 'auto';
+        editorialStars.style.opacity = '1';
+    } else {
+        // Disable Fields
+        restrictedFields.forEach(field => {
+            field.disabled = true;
+            field.style.backgroundColor = '#f5f5f5';
+        });
+        editorialReviewInput.placeholder = "Only Editors can modify this field.";
+
+        // Disable Stars
+        editorialStars.style.pointerEvents = 'none';
+        editorialStars.style.opacity = '0.6';
+    }
 }
 
 // --- Helper: Infer Location ---
 function inferLocation(address) {
-    // Simple key-word matching
+    if (!address) return '';
+
+    // Simple string matching against LOCATIONS
     for (const [country, cities] of Object.entries(LOCATIONS)) {
+        // Check cities first (more specific)
         for (const city of cities) {
-            if (address.includes(city)) return city;
+            if (address.includes(city)) {
+                return `${city}, ${country}`;
+            }
+        }
+        // Check country
+        if (address.includes(country)) {
+            // If only country found, try to find a city again or just return Country
+            return country;
         }
     }
-    // Fallback: Check country
-    for (const country of Object.keys(LOCATIONS)) {
-        if (address.includes(country)) return country;
-    }
-    return '';
+    return ''; // Could not detect
 }
 
 // --- Map Logic ---
@@ -247,61 +296,128 @@ let map;
 let marker;
 
 function initMap() {
-    // No op - we init on preview update
+    // Default to Taipei
+    if (map) return;
+    map = L.map('map-preview').setView([25.033964, 121.564472], 13);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; OpenStreetMap &copy; CARTO',
+        maxZoom: 20
+    }).addTo(map);
 }
 
 function updateMapPreview(lat, lng) {
     if (!lat || !lng) return;
 
+    // Use CartoDB Voyager
+    const tileUrl = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+
     if (!map) {
         map = L.map('map-preview').setView([lat, lng], 15);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; OpenStreetMap &copy; CARTO'
+        L.tileLayer(tileUrl, {
+            attribution: '&copy; OpenStreetMap &copy; CARTO',
+            maxZoom: 20
         }).addTo(map);
     } else {
         map.setView([lat, lng], 15);
     }
 
     if (marker) map.removeLayer(marker);
-    marker = L.marker([lat, lng]).addTo(map);
 
-    // Update City
-    fetchCityFromCoords(lat, lng).then(city => {
-        if (city) cityInput.value = city;
+    // Custom Red Circle Icon with Label
+    const barTitle = document.getElementById('bar-title').value || 'Bar Location';
+    const customIcon = L.divIcon({
+        className: 'custom-map-marker',
+        html: `
+            <div style="display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%);">
+                <div style="background: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 12px; color: #333; box-shadow: 0 2px 4px rgba(0,0,0,0.2); margin-bottom: 4px; white-space: nowrap;">
+                    ${barTitle}
+                </div>
+                <div style="width: 14px; height: 14px; background: #ef4444; border: 2px solid white; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>
+            </div>
+        `,
+        iconSize: [0, 0],
+        iconAnchor: [0, 0]
     });
+
+    marker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
+
+    // Force map resize
+    setTimeout(() => { map.invalidateSize(); }, 200);
 }
 
-btnLoadMap.addEventListener('click', async (e) => {
-    e.preventDefault(); // Prevent accidental form submit
+btnLoadMap.addEventListener('click', (e) => {
+    e.preventDefault();
     const url = mapInput.value;
-    if (!url) return;
+    console.log('Loading Map URL:', url);
 
-    // Parse URL
-    // Format 1: https://www.google.com/maps/place/Bar+Name/@25.033,121.565,17z/...
-    // Format 2: https://maps.app.goo.gl/... (Shortlink - hard to parse client side without expanding)
-
-    // We try to extract coords
-    const coordsRegex = /@(-?\d+\.\d+),(-?\d+\.\d+)/;
-    const match = url.match(coordsRegex);
-
-    if (match) {
-        const lat = parseFloat(match[1]);
-        const lng = parseFloat(match[2]);
-        latInput.value = lat;
-        lngInput.value = lng;
-        updateMapPreview(lat, lng);
-    } else {
-        alert('Could not extract coordinates. Please enter Lat/Lng manually.');
+    if (!url) {
+        alert('Please paste a Google Maps URL first.');
+        return;
     }
 
-    // Try to extract name (simple)
-    // ...
+    // Check for short links
+    if (url.includes('goo.gl') || url.includes('maps.app.goo.gl')) {
+        alert('Please copy the full URL from the browser address bar (containing /place/ and @coordinates), not the "Share" short link.');
+        return;
+    }
+
+    // Parse Address & Name
+    // Example: .../place/Bar+Name,+Address...
+    let parsed = false;
+    const placeMatch = url.match(/\/place\/([^/]+)\//);
+
+    if (placeMatch && placeMatch[1]) {
+        parsed = true;
+        let fullQuery = decodeURIComponent(placeMatch[1]).replace(/\+/g, ' ');
+        console.log('Found Query:', fullQuery);
+
+        // Heuristic: Split by first comma
+        const firstComma = fullQuery.indexOf(',');
+
+        if (firstComma > -1) {
+            titleInput.value = fullQuery.substring(0, firstComma).trim();
+            addressInput.value = fullQuery.substring(firstComma + 1).trim();
+        } else {
+            // No comma found. Assume it's the Place Name.
+            titleInput.value = fullQuery;
+            // Do NOT set addressInput to the name to avoid "Name in Address" bug.
+            alert(`Found Place Name: "${fullQuery}".\nNote: This URL does not contain the full address. Please enter the Address manually.`);
+        }
+        // Removed: updateMapPreview(fullQuery); // This was an old call that passed a string, not lat/lng
+    }
+
+    // Parse Coords
+    const coordsMatch = url.match(/@([\d.-]+),([\d.-]+)/);
+    if (coordsMatch) {
+        const lat = parseFloat(coordsMatch[1]);
+        const lng = parseFloat(coordsMatch[2]);
+        console.log('Found Coords:', lat, lng);
+        latInput.value = lat;
+        lngInput.value = lng;
+        updateMapPreview(lat, lng); // Call with parsed numbers
+
+        // If we didn't find a place name, at least show the map at these coords
+        if (!parsed) {
+            parsed = true;
+            alert('Could not find Place Name in URL, but updated Map coordinates.');
+        }
+
+        // Auto-fetch City
+        fetchCityFromCoords(lat, lng).then(city => {
+            if (city) cityInput.value = city;
+        });
+    }
+
+    if (!parsed) {
+        alert('Could not parse URL. Please ensure it is a valid Google Maps full URL (containing /place/ or @coordinates).');
+    }
 });
 
+// --- Hours Logic ---
+let hoursSlots = [];
 
-// --- Hours Editor ---
 function initHoursEditor() {
-    // Cleared by loadBar or default
+    btnAddHours.addEventListener('click', () => addHoursSlot());
 }
 
 function addHoursSlot(data = { days: [], start: "20:00", end: "02:00" }) {
@@ -309,193 +425,246 @@ function addHoursSlot(data = { days: [], start: "20:00", end: "02:00" }) {
     div.className = 'hours-slot';
     div.style.marginBottom = '10px';
     div.style.padding = '10px';
-    div.style.background = '#fff';
+    div.style.background = 'white';
     div.style.border = '1px solid #eee';
     div.style.borderRadius = '4px';
 
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    // Days Checkboxes
+    const daysDiv = document.createElement('div');
+    daysDiv.style.display = 'flex';
+    daysDiv.style.gap = '5px';
+    daysDiv.style.flexWrap = 'wrap';
+    daysDiv.style.marginBottom = '5px';
 
-    let daysHtml = '<div style="display:flex; gap:5px; flex-wrap:wrap; margin-bottom:5px;">';
-    days.forEach(day => {
-        const isChecked = data.days.includes(day) ? 'checked' : '';
-        const bg = isChecked ? '#8a0000' : '#f0f0f0';
-        const color = isChecked ? '#fff' : '#333';
-        daysHtml += `<div class="day-toggle" data-day="${day}" style="cursor:pointer; padding:4px 8px; font-size:0.8rem; border-radius:4px; background:${bg}; color:${color}; user-select:none;">${day}</div>`;
-    });
-    daysHtml += '</div>';
+    DAYS.forEach(day => {
+        const label = document.createElement('label');
+        label.style.display = 'flex';
+        label.style.alignItems = 'center';
+        label.style.fontSize = '0.8rem';
+        label.style.cursor = 'pointer';
 
-    div.innerHTML = `
-        ${daysHtml}
-        <div style="display:flex; gap:10px; align-items:center;">
-            <input type="time" class="time-start form-input" style="margin:0; width:100px;" value="${data.start}">
-            <span>to</span>
-            <input type="time" class="time-end form-input" style="margin:0; width:100px;" value="${data.end}">
-            <button class="remove-slot secondary-btn" style="margin-left:auto; color:red; border-color:red; padding:4px 8px;">×</button>
-        </div>
-    `;
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.value = day;
+        cb.checked = data.days.includes(day);
+        cb.style.marginRight = '3px';
 
-    // Events
-    div.querySelectorAll('.day-toggle').forEach(el => {
-        el.addEventListener('click', () => {
-            const isSelected = el.dataset.selected === 'true';
-            if (!isSelected) { // Was unselected
-                el.style.background = '#8a0000';
-                el.style.color = '#fff';
-                el.dataset.selected = 'true';
-            } else { // Was selected
-                el.style.background = '#f0f0f0';
-                el.style.color = '#333';
-                delete el.dataset.selected;
-            }
-        });
-        // Init state check for logic consistency
-        if (data.days.includes(el.dataset.day)) {
-            el.dataset.selected = 'true';
-        }
+        label.appendChild(cb);
+        label.appendChild(document.createTextNode(day));
+        daysDiv.appendChild(label);
     });
 
-    div.querySelector('.remove-slot').onclick = () => div.remove();
+    // Time Inputs
+    const timeDiv = document.createElement('div');
+    timeDiv.style.display = 'flex';
+    timeDiv.style.alignItems = 'center';
+    timeDiv.style.gap = '10px';
+
+    const startInput = document.createElement('input');
+    startInput.type = 'time';
+    startInput.className = 'form-input';
+    startInput.style.marginBottom = '0';
+    startInput.style.width = 'auto';
+    startInput.value = data.start;
+
+    const toSpan = document.createElement('span');
+    toSpan.textContent = 'to';
+
+    const endInput = document.createElement('input');
+    endInput.type = 'time';
+    endInput.className = 'form-input';
+    endInput.style.marginBottom = '0';
+    endInput.style.width = 'auto';
+    endInput.value = data.end;
+
+    const delBtn = document.createElement('button');
+    delBtn.textContent = 'Remove';
+    delBtn.className = 'secondary-btn';
+    delBtn.style.padding = '5px 10px';
+    delBtn.style.fontSize = '0.8rem';
+    delBtn.style.marginLeft = 'auto';
+    delBtn.style.color = 'red';
+    delBtn.onclick = () => div.remove();
+
+    timeDiv.appendChild(startInput);
+    timeDiv.appendChild(toSpan);
+    timeDiv.appendChild(endInput);
+    timeDiv.appendChild(delBtn);
+
+    div.appendChild(daysDiv);
+    div.appendChild(timeDiv);
     hoursContainer.appendChild(div);
 }
 
-btnAddHours.addEventListener('click', () => addHoursSlot());
-
 function serializeHours() {
     const slots = [];
-    hoursContainer.querySelectorAll('.hours-slot').forEach(div => {
+    hoursContainer.querySelectorAll('.hours-slot').forEach(slot => {
         const days = [];
-        div.querySelectorAll('.day-toggle').forEach(el => {
-            // Check color or dataset
-            if (el.dataset.selected) days.push(el.dataset.day);
-        });
+        slot.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => days.push(cb.value));
+        const start = slot.querySelector('input[type="time"]:nth-of-type(1)').value;
+        const end = slot.querySelector('input[type="time"]:nth-of-type(2)').value;
 
-        const start = div.querySelector('.time-start').value;
-        const end = div.querySelector('.time-end').value;
-
-        if (days.length > 0) {
-            slots.push({ days, start, end });
+        if (days.length > 0 && start && end) {
+            // User wants independent storage for each day
+            days.forEach(day => {
+                slots.push(`${day}: ${start} - ${end}`);
+            });
         }
     });
 
-    // Convert to readable string or JSON
-    // Format: "Mon-Wed: 20:00 - 02:00, Thu-Sat: 18:00 - 03:00"
-    // Since our DB uses text, let's keep it simple string for now, OR JSON if we migrate.
-    // The previous app used simple string. Let's try to format it nicely.
+    // Sort by day order
+    const dayOrder = { "Mon": 1, "Tue": 2, "Wed": 3, "Thu": 4, "Fri": 5, "Sat": 6, "Sun": 7 };
+    slots.sort((a, b) => {
+        const dayA = a.split(':')[0].trim();
+        const dayB = b.split(':')[0].trim();
+        return (dayOrder[dayA] || 0) - (dayOrder[dayB] || 0);
+    });
 
-    return slots.map(s => {
-        // Group consecutive days? Too complex for now.
-        return `${s.days.join(',')}: ${formatTime(s.start)} - ${formatTime(s.end)}`;
-    }).join('\n');
+    return slots.join('; ');
 }
 
 function parseHours(hoursStr) {
-    // "Mon-Wed: 20:00 - 02:00" -> hard to parse perfectly if free text.
-    // But if we generated it, we might be able to.
-    // For now, if we can't parse, we show one default slot with notes.
-
     if (!hoursStr) return;
 
-    hoursContainer.innerHTML = '';
-    const lines = hoursStr.split('\n');
-    let parsed = false;
+    // Normalize
+    const cleanStr = hoursStr.trim();
 
-    lines.forEach(line => {
-        // Try regex: (days): (time) - (time)
-        // Days usually comma separated in our generator
-        const parts = line.split(': ');
-        if (parts.length >= 2) {
-            const daysStr = parts[0];
-            const timeStr = parts.slice(1).join(': '); // 20:00 - 02:00
+    // Handle "Daily 18:00-02:00" format (no colon)
+    if (cleanStr.toLowerCase().startsWith('daily') && !cleanStr.includes(':')) {
+        const timePart = cleanStr.replace(/daily/i, '').trim();
+        const [start, end] = timePart.split('-').map(t => t.trim());
+        addHoursSlot({ days: [...DAYS], start: formatTime(start), end: formatTime(end) });
+        return;
+    }
 
-            const days = daysStr.split(',').map(d => d.trim());
-            const [start, end] = timeStr.split(' - ').map(t => t.trim());
+    const parts = cleanStr.split(';');
+    parts.forEach(part => {
+        // Check for "Day-Day: Time" or "Day,Day: Time" or "Day: Time"
+        const colonIndex = part.indexOf(':');
+        if (colonIndex !== -1) {
+            const daysPart = part.substring(0, colonIndex).trim();
+            const timePart = part.substring(colonIndex + 1).trim();
 
-            // convert 12h to 24h if needed? assuming 24h for now inputs
-            // We use input type=time so it expects HH:mm (24h)
+            let days = [];
 
-            addHoursSlot({ days, start: convertTo24h(start), end: convertTo24h(end) });
-            parsed = true;
+            // Handle Ranges "Mon-Sun", "Mon-Fri"
+            if (daysPart.includes('-')) {
+                const [startDay, endDay] = daysPart.split('-').map(d => d.trim());
+                const startIdx = DAYS.indexOf(startDay);
+                const endIdx = DAYS.indexOf(endDay);
+
+                if (startIdx !== -1 && endIdx !== -1) {
+                    if (startIdx <= endIdx) {
+                        days = DAYS.slice(startIdx, endIdx + 1);
+                    } else {
+                        days = [...DAYS.slice(startIdx), ...DAYS.slice(0, endIdx + 1)];
+                    }
+                }
+            } else if (daysPart.toLowerCase() === 'daily') {
+                days = [...DAYS];
+            } else {
+                // Comma separated or single day
+                days = daysPart.split(',').map(d => d.trim());
+            }
+
+            // Parse Time
+            let [start, end] = timePart.split('-').map(t => t.trim());
+            addHoursSlot({ days, start: formatTime(start), end: formatTime(end) });
+        } else {
+            // Fallback
+            if (part.match(/\d/)) {
+                let [start, end] = part.replace(/[a-zA-Z]/g, '').trim().split('-').map(t => t.trim());
+                addHoursSlot({ days: [...DAYS], start: formatTime(start), end: formatTime(end) });
+            }
         }
     });
-
-    if (!parsed) {
-        addHoursSlot(); // Default
-    }
 }
 
 function formatTime(t) {
-    // t is HH:mm
-    return t;
-}
-
-function convertTo24h(tStr) {
-    // Basic check, assume input is correct-ish
-    return tStr;
+    if (!t) return '';
+    // Ensure HH:MM format if possible
+    return t.trim();
 }
 
 // --- Load Bar Data ---
 async function loadBar(id) {
     showLoading(true);
     try {
-        const { data: bar, error } = await sbClient.from('bars').select('*').eq('id', id).single();
+        const { data: bar, error } = await supabase.from('bars').select('*').eq('id', id).single();
         if (error) throw error;
 
         if (bar) {
             titleInput.value = bar.title || '';
-            if (bar.slug) {
-                slugInput.value = bar.slug;
-                finalSlugUrl.textContent = `https://liquidarts.bar/bar/${bar.slug}`;
-                slugUrlContainer.style.display = 'flex';
-            }
-            cityInput.value = bar.city || '';
+            slugInput.value = bar.slug || ''; // NEW
+            slugInput.dispatchEvent(new Event('input')); // Trigger URL Preview
             vibeInput.value = bar.vibe || '';
             descriptionInput.value = bar.description || '';
 
+            // Location is now inferred from address on save, 
+            // but we might want to show it? No, user said "don't fill it".
+            // We just load the address.
             addressInput.value = bar.address || '';
             latInput.value = bar.lat || '';
             lngInput.value = bar.lng || '';
+            cityInput.value = bar.city || ''; // NEW
 
             if (bar.lat && bar.lng) {
                 updateMapPreview(bar.lat, bar.lng);
+                // If city is missing but we have coords, fetch it now
+                if (!bar.city) {
+                    fetchCityFromCoords(bar.lat, bar.lng).then(city => {
+                        if (city) cityInput.value = city;
+                    });
+                }
             }
 
             ownerInput.value = bar.owner_name || '';
+
+            // Link Owner Account Display
+            await loadOwners(id); // Use bar ID
+
             bartenderInput.value = bar.bartender_name || '';
             phoneInput.value = bar.phone || '';
 
+            // Hours Parsing
+            hoursContainer.innerHTML = ''; // Clear default
+            if (bar.opening_hours && bar.opening_hours.includes(':')) {
+                parseHours(bar.opening_hours);
+            } else {
+                addHoursSlot();
+            }
+
             menuInput.value = bar.menu_url || '';
-            instagramInput.value = bar.instagram_url || '';
-            facebookInput.value = bar.facebook_url || '';
-            websiteInput.value = bar.website_url || '';
-            priceInput.value = bar.price_level || 2;
+            mapInput.value = bar.google_map_url || '';
 
             googleRatingInput.value = bar.google_rating || '';
             googleReviewsInput.value = bar.google_review_count || '';
-
             editorialRatingInput.value = bar.editorial_rating || 0;
-            updateStars(bar.editorial_rating || 0);
             editorialReviewInput.value = bar.editorial_review || '';
+            updateStars(bar.editorial_rating || 0);
 
-            // Cover
+            priceInput.value = bar.price || 2;
+            instagramInput.value = bar.instagram_url || '';
+            facebookInput.value = bar.facebook_url || '';
+            websiteInput.value = bar.website_url || '';
+
             if (bar.image) {
                 currentCoverUrl = bar.image;
-                coverPreview.style.backgroundImage = `url('${bar.image}')`;
-                coverPreview.textContent = '';
+                updateCoverUI();
+            } else {
+                updateCoverUI();
             }
 
-            // Hours
-            parseHours(bar.opening_hours);
-
-            // Load Relations
-            await loadOwners(id);
+            // Load Gallery
             await loadGallery(id);
+            // Load Signatures
             await loadSignatures(id);
+            // Load Awards
             await loadAwards(id);
-            await loadNews(id); // --- New Feature ---
         }
     } catch (err) {
         console.error('Error loading bar:', err);
-        alert('Error loading bar data');
+        alert('Failed to load bar details.');
     } finally {
         showLoading(false);
     }
@@ -511,85 +680,77 @@ saveBtn.addEventListener('click', async () => {
     showLoading(true, 'Saving...');
 
     // Infer Location from Address
-    const locationStr = addressInput.value ? inferLocation(addressInput.value) : '';
-    const cityStr = cityInput.value || locationStr; // Fallback
+    const locationStr = inferLocation(addressInput.value);
 
-    // Slug Logic
-    let slugVal = slugInput.value.trim();
-    if (!slugVal && titleInput.value) {
-        slugVal = titleInput.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    // Auto-fetch City if coordinates present and city is empty (or force update?)
+    // User requested "update based on coordinates". Let's force update if coords changed or enforce check.
+    // Ideally await fetchCityFromCoords if lat/lng are set.
+    let cityStr = cityInput.value;
+    if (latInput.value && lngInput.value) {
+        // Always try to fetch fresh city on save to ensure accuracy
+        const fetchedCity = await fetchCityFromCoords(latInput.value, lngInput.value);
+        if (fetchedCity) cityStr = fetchedCity;
     }
 
-    // Check slug uniqueness if changed
-    // (Optimization: we can rely on DB constraint, but let's do soft check)
+    const hoursStr = serializeHours();
+
+    // Validate Slug if present
+    const slugVal = slugInput.value.trim() || null;
     if (slugVal) {
-        const available = await checkSlugAvailability(slugVal);
-        if (!available && slugVal !== (await getOriginalSlug(currentBarId))) { // Need helper to check original? 
-            // Simplified: verify again
-            // Assuming checkSlugAvailability excludes currentBarId, it returns true if clean.
-        }
-        if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slugVal)) {
+        // Quick regex check before sending
+        if (!/^[a-z0-9-]+$/.test(slugVal)) {
             alert("Invalid slug format. Lowercase, numbers, hyphen only.");
             showLoading(false);
             return;
         }
+        // Note: Uniqueness check will happen at DB level (constraint) or we rely on checkSlugAvailability
     }
 
     const barData = {
         title: titleInput.value,
-        slug: slugVal,
-        city: cityStr,
+        slug: slugVal, // NEW
+        city: cityStr, // NEW
         location: locationStr, // Inferred
         vibe: vibeInput.value,
         description: descriptionInput.value,
-
         address: addressInput.value,
-        lat: parseFloat(latInput.value) || null,
-        lng: parseFloat(lngInput.value) || null,
+        lat: latInput.value ? parseFloat(latInput.value) : null,
+        lng: lngInput.value ? parseFloat(lngInput.value) : null,
+        owner_name: ownerInput.value,
+        // owner_user_id: null, // Legacy column ignored
 
-        owner_name: ownerInput.value, // Display Name
-        // owner_user_id managed via separate table now
         bartender_name: bartenderInput.value,
+        opening_hours: hoursStr,
         phone: phoneInput.value,
-        opening_hours: serializeHours(),
-
         menu_url: menuInput.value,
-        price_level: parseInt(priceInput.value),
+        google_map_url: mapInput.value,
+        google_rating: googleRatingInput.value ? parseFloat(googleRatingInput.value) : null,
+        google_review_count: googleReviewsInput.value ? parseInt(googleReviewsInput.value) : null,
+        editorial_rating: parseInt(editorialRatingInput.value) || 0,
+        editorial_review: editorialReviewInput.value,
+        price: parseInt(priceInput.value),
         instagram_url: instagramInput.value,
         facebook_url: facebookInput.value,
         website_url: websiteInput.value,
-        image: currentCoverUrl,
-
-        google_rating: parseFloat(googleRatingInput.value) || null,
-        google_review_count: parseInt(googleReviewsInput.value) || null,
-        // Editorial read-only for now in this UI context? Or generally editable by admin.
-        // Assuming Editor can edit editorial stuff
-        editorial_rating: parseInt(editorialRatingInput.value) || 0,
-        editorial_review: editorialReviewInput.value
+        image: currentCoverUrl
     };
 
     try {
         let error;
         if (currentBarId) {
             // Update
-            const { error: updateError } = await sbClient
+            const { error: updateError } = await supabase
                 .from('bars')
                 .update(barData)
                 .eq('id', currentBarId);
             error = updateError;
         } else {
-            // Insert
-            const { data, error: insertError } = await sbClient
+            // Create New
+            const { data, error: insertError } = await supabase
                 .from('bars')
                 .insert([barData])
                 .select();
-            if (data && data.length > 0) {
-                currentBarId = data[0].id;
-                // Update URL without reload
-                const newUrl = new URL(window.location);
-                newUrl.searchParams.set('id', currentBarId);
-                window.history.pushState({}, '', newUrl);
-            }
+            if (data) currentBarId = data[0].id;
             error = insertError;
         }
 
@@ -611,101 +772,134 @@ cancelBtn.addEventListener('click', () => {
 });
 
 // --- Cover Image & Cropping ---
+
 function updateCoverUI() {
+    const placeholder = coverPreview.querySelector('span');
     if (currentCoverUrl) {
         coverPreview.style.backgroundImage = `url('${currentCoverUrl}')`;
-        coverPreview.textContent = '';
-        coverActions.style.display = 'flex';
+        if (placeholder) placeholder.style.display = 'none';
+        if (coverActions) coverActions.style.display = 'flex';
     } else {
-        coverPreview.style.backgroundImage = '';
-        coverPreview.textContent = 'Upload';
-        coverActions.style.display = 'none';
+        coverPreview.style.backgroundImage = 'none';
+        if (placeholder) placeholder.style.display = 'block';
+        if (coverActions) coverActions.style.display = 'none';
     }
 }
 
 function openCropper(src) {
     cropImage.src = src;
+    if (src.startsWith('http')) {
+        cropImage.crossOrigin = 'anonymous';
+    } else {
+        cropImage.removeAttribute('crossorigin');
+    }
+
     cropModal.style.display = 'flex';
 
     if (cropper) cropper.destroy();
     cropper = new Cropper(cropImage, {
-        aspectRatio: 4 / 5,
+        aspectRatio: 4 / 5, // Instagram Portrait
         viewMode: 1,
         autoCropArea: 1,
     });
 }
 
-btnUploadCover.addEventListener('click', () => coverInput.click());
-coverPreview.addEventListener('click', () => {
-    if (!currentCoverUrl) coverInput.click();
-});
+// Cover Listeners
+if (coverPreview) {
+    coverPreview.addEventListener('click', (e) => {
+        if (e.target.closest('.cover-actions-overlay')) return;
+        if (!currentCoverUrl) coverInput.click();
+    });
+}
+
+if (btnUploadCover) {
+    btnUploadCover.addEventListener('click', (e) => {
+        e.stopPropagation();
+        coverInput.click();
+    });
+}
+
+if (btnCropCover) {
+    btnCropCover.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (originalImageSrc) {
+            openCropper(originalImageSrc);
+        } else if (currentCoverUrl) {
+            openCropper(currentCoverUrl);
+        }
+    });
+}
 
 coverInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (file) {
+        currentFile = file;
         const reader = new FileReader();
-        reader.onload = (evt) => {
-            currentFile = file;
-            openCropper(evt.target.result);
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                let src = img.src;
+                // Auto-Upscale (Simple version)
+                if (img.width < 1080) {
+                    // Logic similar to CMS can be added here if needed
+                }
+                originalImageSrc = src;
+                openCropper(src);
+            };
+            img.src = e.target.result;
         };
         reader.readAsDataURL(file);
     }
-});
-
-btnCropCover.addEventListener('click', () => { // Re-crop existing if needed
-    if (currentCoverUrl) {
-        openCropper(currentCoverUrl); // Can we re-crop from URL? CORS might block.
-        // Better to only allow crop on new upload for now or if we handle CORS.
-        // Assuming Supabase URL might have CORS issues if not configured, but usually okay for display.
-        // For now, simple implementation:
-        alert("Re-cropping existing images from URL depends on CORS policies. Please re-upload to crop.");
-    }
-});
-
-cropSaveBtn.addEventListener('click', async () => {
-    if (!cropper) return;
-    showLoading(true, 'Uploading...');
-
-    cropper.getCroppedCanvas({
-        width: 1080,
-        height: 1350,
-        fillColor: '#fff'
-    }).toBlob(async (blob) => {
-        if (!blob) return;
-
-        // Upload to Supabase Storage 'bars' bucket
-        const fileName = `${Date.now()}_cover.jpg`;
-        const { data, error } = await sbClient.storage
-            .from('bars')
-            .upload(fileName, blob);
-
-        if (error) {
-            alert('Upload failed: ' + error.message);
-            showLoading(false);
-            return;
-        }
-
-        const { data: { publicUrl } } = sbClient.storage
-            .from('bars') // bucket name
-            .getPublicUrl(fileName);
-
-        currentCoverUrl = publicUrl;
-        updateCoverUI();
-        cropModal.style.display = 'none';
-        showLoading(false);
-    }, 'image/jpeg', 0.9);
+    coverInput.value = '';
 });
 
 cropCancelBtn.addEventListener('click', () => {
     cropModal.style.display = 'none';
     if (cropper) cropper.destroy();
-    coverInput.value = ''; // Reset
+    cropper = null;
 });
 
-// --- Gallery Management ---
-async function loadGallery(id) {
-    galleryGrid.innerHTML = '';
-    const { data, error } = await sbClient.from('bar_images').select('*').eq('bar_id', id).order('display_order', { ascending: true });
+cropSaveBtn.addEventListener('click', async () => {
+    if (!cropper) return;
+
+    const canvas = cropper.getCroppedCanvas({
+        width: 1080,
+        height: 1350,
+        minWidth: 1080,
+        imageSmoothingEnabled: true,
+        imageSmoothingQuality: 'high',
+    });
+
+    canvas.toBlob(async (blob) => {
+        if (!blob) { alert('Crop failed'); return; }
+
+        const fileName = currentFile ? currentFile.name : 'cover.jpg';
+        const croppedFile = new File([blob], fileName, { type: 'image/jpeg' });
+
+        try {
+            showLoading(true, 'Uploading Cover...');
+            cropModal.style.display = 'none';
+            currentCoverUrl = await uploadImage(croppedFile, 'covers');
+            updateCoverUI();
+            showLoading(false);
+        } catch (err) {
+            showLoading(false);
+            alert('Upload failed: ' + err.message);
+        } finally {
+            if (cropper) cropper.destroy();
+            cropper = null;
+        }
+    }, 'image/jpeg', 0.9);
+});
+
+// --- Gallery Logic ---
+
+async function loadGallery(barId) {
+    const { data, error } = await supabase
+        .from('bar_images')
+        .select('*')
+        .eq('bar_id', barId)
+        .order('display_order', { ascending: true });
 
     if (data) {
         galleryImages = data;
@@ -715,183 +909,416 @@ async function loadGallery(id) {
 
 function renderGallery() {
     galleryGrid.innerHTML = '';
+    if (galleryImages.length === 0) {
+        galleryGrid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: #999; font-size: 0.9rem; padding: 20px; background: #f9f9f9; border-radius: 4px;">No images yet</div>';
+        return;
+    }
+
     galleryImages.forEach(img => {
         const div = document.createElement('div');
         div.style.position = 'relative';
-        div.style.aspectRatio = '1/1';
-        div.style.background = `url('${img.image_url}') center/cover`;
+        div.style.aspectRatio = '1';
+        div.style.backgroundImage = `url('${img.image_url}')`;
+        div.style.backgroundSize = 'cover';
+        div.style.backgroundPosition = 'center';
         div.style.borderRadius = '4px';
         div.style.border = '1px solid #ddd';
 
-        const btnDel = document.createElement('button');
-        btnDel.innerHTML = '×';
-        btnDel.style.position = 'absolute';
-        btnDel.style.top = '-5px';
-        btnDel.style.right = '-5px';
-        btnDel.style.background = 'red';
-        btnDel.style.color = 'white';
-        btnDel.style.border = 'none';
-        btnDel.style.borderRadius = '50%';
-        btnDel.style.width = '20px';
-        btnDel.style.height = '20px';
-        btnDel.style.cursor = 'pointer';
-        btnDel.onclick = () => deleteGalleryImage(img.id);
+        const delBtn = document.createElement('button');
+        delBtn.innerHTML = '&times;';
+        delBtn.style.position = 'absolute';
+        delBtn.style.top = '5px';
+        delBtn.style.right = '5px';
+        delBtn.style.background = 'rgba(0,0,0,0.5)';
+        delBtn.style.color = 'white';
+        delBtn.style.border = 'none';
+        delBtn.style.borderRadius = '50%';
+        delBtn.style.width = '20px';
+        delBtn.style.height = '20px';
+        delBtn.style.cursor = 'pointer';
+        delBtn.style.display = 'flex';
+        delBtn.style.alignItems = 'center';
+        delBtn.style.justifyContent = 'center';
 
-        div.appendChild(btnDel);
+        delBtn.onclick = async (e) => {
+            e.stopPropagation();
+            if (confirm('Delete this image?')) {
+                await deleteGalleryImage(img.id);
+            }
+        };
+
+        div.appendChild(delBtn);
         galleryGrid.appendChild(div);
     });
 }
 
 async function deleteGalleryImage(imageId) {
-    if (!confirm('Delete this image?')) return;
+    showLoading(true, 'Deleting...');
 
-    // Ideally delete from storage too
+    // Find image to get URL
     const img = galleryImages.find(i => i.id === imageId);
-    if (img) {
+    if (img && img.image_url) {
         await deleteImageFromStorage(img.image_url, 'gallery');
     }
 
-    const { error } = await sbClient.from('bar_images').delete().eq('id', imageId);
+    const { error } = await supabase.from('bar_images').delete().eq('id', imageId);
     if (!error) {
         galleryImages = galleryImages.filter(img => img.id !== imageId);
         renderGallery();
+    } else {
+        alert('Failed to delete image');
     }
+    showLoading(false);
 }
 
-async function deleteImageFromStorage(url, bucket) {
+async function deleteImageFromStorage(publicUrl, bucket) {
     try {
-        if (!url) return;
-        // Parse "button/filename" from publicURL
-        // URL format: https://.../storage/v1/object/public/bucket/folder/file.jpg
-        const urlObj = new URL(url);
+        const urlObj = new URL(publicUrl);
         const pathParts = urlObj.pathname.split('/');
+        // Format: .../storage/v1/object/public/[bucket]/[path]
         const bucketIndex = pathParts.indexOf(bucket);
-        if (bucketIndex === -1) return;
+        if (bucketIndex === -1 || bucketIndex === pathParts.length - 1) return;
 
         const filePath = decodeURIComponent(pathParts.slice(bucketIndex + 1).join('/'));
         console.log('Deleting file from storage:', bucket, filePath);
 
-        const { error } = await sbClient.storage.from(bucket).remove([filePath]);
+        const { error } = await supabase.storage.from(bucket).remove([filePath]);
         if (error) console.error('Storage delete error:', error);
     } catch (e) {
         console.error('Error parsing URL for deletion:', e);
     }
 }
 
+// --- Star Rating Logic ---
+if (editorialStars) {
+    const stars = editorialStars.querySelectorAll('span');
+    stars.forEach(star => {
+        star.addEventListener('click', () => {
+            const val = parseInt(star.dataset.value);
+            editorialRatingInput.value = val;
+            updateStars(val);
+        });
+    });
+}
 
-btnAddGallery.addEventListener('click', () => galleryInput.click());
+function updateStars(value) {
+    const stars = editorialStars.querySelectorAll('span');
+    stars.forEach(s => {
+        const v = parseInt(s.dataset.value);
+        s.style.color = v <= value ? '#FFD700' : '#ccc'; // Gold vs Gray
+    });
+}
+
+// Add Gallery Image
+btnAddGallery.addEventListener('click', () => {
+    galleryInput.click();
+});
+
 galleryInput.addEventListener('change', async (e) => {
+    console.log('Gallery Input Change');
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
 
-    showLoading(true, 'Uploading Gallery...');
-    for (const file of files) {
-        await uploadGalleryImage(file);
+    if (!currentBarId) {
+        alert('Please save the bar first before adding gallery images.');
+        return;
     }
-    await loadGallery(currentBarId);
+
+    if (galleryImages.length + files.length > 50) {
+        alert('Gallery cannot exceed 50 images.');
+        return;
+    }
+
+    showLoading(true, `Uploading ${files.length} images...`);
+
+    for (const file of files) {
+        try {
+            console.log('Uploading file:', file.name);
+            const url = await uploadImage(file, 'gallery');
+            console.log('Uploaded URL:', url);
+
+            // Insert into DB
+            const { data, error } = await supabase.from('bar_images').insert([{
+                bar_id: currentBarId,
+                image_url: url,
+                display_order: galleryImages.length + 1
+            }]).select();
+
+            if (error) {
+                console.error('DB Insert Error:', error);
+                throw error;
+            }
+
+            if (data) {
+                console.log('DB Insert Success:', data);
+                galleryImages.push(data[0]);
+            }
+        } catch (err) {
+            console.error('Gallery upload error:', err);
+            alert('Error uploading image: ' + err.message);
+        }
+    }
+
+    renderGallery();
     showLoading(false);
     galleryInput.value = '';
 });
 
-async function uploadGalleryImage(file) {
-    const bucket = 'gallery'; // Assuming shared gallery bucket or specific
+async function uploadImage(file, bucket = 'covers') {
     const fileExt = file.name.split('.').pop();
     const fileName = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
     const filePath = `${fileName}`;
 
-    const { data, error } = await sbClient.storage
+    const { data, error } = await supabase.storage
         .from(bucket)
         .upload(filePath, file);
 
-    if (error) {
-        console.error('Upload error:', error);
-        return;
-    }
+    if (error) throw error;
 
-    const { data: { publicUrl } } = sbClient.storage
+    const { data: { publicUrl } } = supabase.storage
         .from(bucket)
         .getPublicUrl(filePath);
 
-    if (publicUrl) {
-        console.log('Uploaded URL:', url); // Wait, variable is 'url'? No, method returns.
-
-        // Insert into DB
-        const { data, error } = await sbClient.from('bar_images').insert([{
-            bar_id: currentBarId,
-            image_url: publicUrl,
-            display_order: galleryImages.length + 1
-        }]);
-    }
+    return publicUrl;
 }
 
-// --- Signatures Management ---
-const signatureModal = document.getElementById('signature-modal');
-const sigName = document.getElementById('sig-name');
-const sigPrice = document.getElementById('sig-price');
-const sigDesc = document.getElementById('sig-description');
-const sigReview = document.getElementById('sig-review');
-const sigImagePreview = document.getElementById('sig-image-preview');
-const btnUploadSig = document.getElementById('btn-upload-sig');
-const sigFileInput = document.getElementById('sig-file-input');
-const btnSaveSig = document.getElementById('btn-save-sig');
-const btnCancelSig = document.getElementById('btn-cancel-sig');
-const btnDeleteSig = document.getElementById('btn-delete-sig');
-const signaturesGrid = document.getElementById('signatures-grid');
+// --- Helpers ---
+function showLoading(show, text = 'Processing...') {
+    loadingOverlay.style.display = show ? 'flex' : 'none';
+    document.getElementById('loading-text').textContent = text;
+}
 
-let currentSigId = null;
+function updateStatus(text, type) {
+    statusText.textContent = text;
+    statusDot.style.backgroundColor = type === 'success' ? '#4cd964' : (type === 'error' ? '#ff3b30' : '#ccc');
+    setTimeout(() => {
+        statusText.textContent = 'Ready';
+        statusDot.style.backgroundColor = '#ccc';
+    }, 3000);
+}
 
-async function loadSignatures(id) {
-    const { data } = await sbClient.from('signatures').select('*').eq('bar_id', id);
+// --- Signatures Logic ---
+document.addEventListener('DOMContentLoaded', () => {
+    // Re-select elements to ensure they exist within this scope
+    const btnAddSignature = document.getElementById('btn-add-signature');
+    const sigModal = document.getElementById('signature-modal');
+    const btnCancelSig = document.getElementById('btn-cancel-sig');
+    const btnUploadSig = document.getElementById('btn-upload-sig');
+    const sigImagePreview = document.getElementById('sig-image-preview');
+    const sigFileInput = document.getElementById('sig-file-input');
+    const btnSaveSig = document.getElementById('btn-save-sig');
+    const btnDeleteSig = document.getElementById('btn-delete-sig');
+
+    if (btnAddSignature) {
+        btnAddSignature.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (signatures.length >= 5) {
+                alert('You can only add up to 5 signature cocktails.');
+                return;
+            }
+            openSigModal();
+        });
+    }
+
+    if (btnCancelSig) btnCancelSig.addEventListener('click', () => sigModal.style.display = 'none');
+
+    if (btnUploadSig) btnUploadSig.addEventListener('click', () => sigFileInput.click());
+    if (sigImagePreview) sigImagePreview.addEventListener('click', () => sigFileInput.click());
+
+    if (sigFileInput) {
+        sigFileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const cropImage = document.getElementById('crop-image');
+                const cropModal = document.getElementById('crop-modal');
+                const cropSaveBtn = document.getElementById('crop-save-btn');
+
+                cropImage.src = event.target.result;
+                cropModal.style.display = 'flex';
+
+                if (window.cropper) window.cropper.destroy();
+                window.cropper = new Cropper(cropImage, {
+                    aspectRatio: 4 / 5,
+                    viewMode: 1,
+                });
+
+                cropSaveBtn.onclick = async () => {
+                    cropSaveBtn.textContent = 'Uploading...';
+                    cropSaveBtn.disabled = true;
+
+                    const canvas = window.cropper.getCroppedCanvas({ width: 1080, height: 1350 });
+                    canvas.toBlob(async (blob) => {
+                        const fileName = `sig_${Date.now()}.jpg`;
+                        const { data, error } = await supabase.storage
+                            .from('gallery')
+                            .upload(fileName, blob);
+
+                        if (error) {
+                            alert('Upload failed: ' + error.message);
+                        } else {
+                            const { data: { publicUrl } } = supabase.storage.from('gallery').getPublicUrl(fileName);
+                            currentSigImageUrl = publicUrl;
+                            updateSigImagePreview();
+                            cropModal.style.display = 'none';
+                        }
+                        cropSaveBtn.textContent = 'Crop & Upload';
+                        cropSaveBtn.disabled = false;
+                    }, 'image/jpeg', 0.8);
+                };
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    if (btnSaveSig) {
+        btnSaveSig.addEventListener('click', async () => {
+            const id = document.getElementById('sig-id').value;
+            const name = document.getElementById('sig-name').value;
+            const price = document.getElementById('sig-price').value;
+            const desc = document.getElementById('sig-description').value;
+            const review = document.getElementById('sig-review').value;
+
+            if (!name) {
+                alert('Name is required');
+                return;
+            }
+
+            const sigData = {
+                bar_id: currentBarId,
+                name: name,
+                price: price,
+                description: desc,
+                review: review,
+                image_url: currentSigImageUrl
+            };
+
+            btnSaveSig.textContent = 'Saving...';
+            btnSaveSig.disabled = true;
+
+            let error;
+            if (id) {
+                const { error: err } = await supabase.from('signatures').update(sigData).eq('id', id);
+                error = err;
+            } else {
+                const { error: err } = await supabase.from('signatures').insert([sigData]);
+                error = err;
+            }
+
+            btnSaveSig.textContent = 'Save';
+            btnSaveSig.disabled = false;
+
+            if (error) {
+                alert('Error saving: ' + error.message);
+            } else {
+                sigModal.style.display = 'none';
+                loadSignatures(currentBarId);
+            }
+        });
+    }
+
+    if (btnDeleteSig) {
+        btnDeleteSig.addEventListener('click', async () => {
+            if (!confirm('Delete this signature?')) return;
+            const id = document.getElementById('sig-id').value;
+
+            // Delete Image from Storage
+            const sig = signatures.find(s => s.id == id);
+            if (sig && sig.image_url) {
+                await deleteImageFromStorage(sig.image_url, 'gallery');
+            }
+
+            const { error } = await supabase.from('signatures').delete().eq('id', id);
+            if (error) {
+                alert('Error deleting: ' + error.message);
+            } else {
+                sigModal.style.display = 'none';
+                loadSignatures(currentBarId);
+            }
+        });
+    }
+});
+
+// Global functions for access
+async function loadSignatures(barId) {
+    const { data, error } = await supabase
+        .from('signatures')
+        .select('*')
+        .eq('bar_id', barId)
+        .order('created_at', { ascending: true });
+
+    if (error) {
+        console.error('Error loading signatures:', error);
+        return;
+    }
     signatures = data || [];
     renderSignatures();
 }
 
 function renderSignatures() {
-    signaturesGrid.innerHTML = '';
-    signatures.forEach(sig => {
-        const div = document.createElement('div');
-        div.style.background = '#fff';
-        div.style.border = '1px solid #eee';
-        div.style.padding = '10px';
-        div.style.borderRadius = '6px';
-        div.style.cursor = 'pointer';
-        div.onclick = () => openSignatureModal(sig);
+    const signaturesGrid = document.getElementById('signatures-grid');
+    if (!signaturesGrid) return;
 
-        div.innerHTML = `
-            <div style="width:100%; aspect-ratio:4/5; background:#eee url('${sig.image_url || ''}') center/cover; border-radius:4px; margin-bottom:5px;"></div>
-            <div style="font-weight:bold; font-size:0.9rem;">${sig.name}</div>
-            <div style="font-size:0.8rem; color:#666;">${sig.price || ''}</div>
-        `;
-        signaturesGrid.appendChild(div);
-    });
+    if (signatures.length === 0) {
+        signaturesGrid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: #999; padding: 20px;">No signatures yet</div>';
+        return;
+    }
+
+    signaturesGrid.innerHTML = signatures.map(sig => `
+        <div class="sig-card" onclick="editSignature('${sig.id}')" style="cursor: pointer; border: 1px solid #eee; border-radius: 4px; overflow: hidden; transition: box-shadow 0.2s;">
+            <div style="height: 150px; background-image: url('${sig.image_url || 'assets/placeholder.jpg'}'); background-size: cover; background-position: center;"></div>
+            <div style="padding: 10px;">
+                <div style="font-weight: bold; margin-bottom: 5px;">${sig.name}</div>
+                <div style="font-size: 0.8rem; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${sig.description || ''}</div>
+            </div>
+        </div>
+    `).join('');
 }
 
-function openSignatureModal(sig = null) {
+window.editSignature = (id) => {
+    const sig = signatures.find(s => s.id == id);
+    if (!sig) return;
+    openSigModal(sig);
+};
+
+function openSigModal(sig = null) {
+    const sigModal = document.getElementById('signature-modal');
+    const sigModalTitle = document.getElementById('sig-modal-title');
+    const sigIdInput = document.getElementById('sig-id');
+    const sigNameInput = document.getElementById('sig-name');
+    const sigPriceInput = document.getElementById('sig-price');
+    const sigDescInput = document.getElementById('sig-description');
+    const sigReviewInput = document.getElementById('sig-review');
+    const btnDeleteSig = document.getElementById('btn-delete-sig');
+
     if (sig) {
-        currentSigId = sig.id;
-        sigName.value = sig.name;
-        sigPrice.value = sig.price || '';
-        sigDesc.value = sig.description || '';
-        sigReview.value = sig.review || '';
+        sigModalTitle.textContent = 'Edit Signature';
+        sigIdInput.value = sig.id;
+        sigNameInput.value = sig.name;
+        sigPriceInput.value = sig.price || '';
+        sigDescInput.value = sig.description || '';
+        sigReviewInput.value = sig.review || '';
         currentSigImageUrl = sig.image_url || '';
-        updateSigImagePreview();
         btnDeleteSig.style.display = 'block';
-        document.getElementById('sig-modal-title').textContent = 'Edit Signature';
     } else {
-        currentSigId = null;
-        sigName.value = '';
-        sigPrice.value = '';
-        sigDesc.value = '';
-        sigReview.value = '';
+        sigModalTitle.textContent = 'Add Signature';
+        sigIdInput.value = '';
+        sigNameInput.value = '';
+        sigPriceInput.value = '';
+        sigDescInput.value = '';
+        sigReviewInput.value = '';
         currentSigImageUrl = '';
-        updateSigImagePreview();
         btnDeleteSig.style.display = 'none';
-        document.getElementById('sig-modal-title').textContent = 'Add Signature';
     }
-    signatureModal.style.display = 'flex';
+
+    updateSigImagePreview();
+    sigModal.style.display = 'flex';
 }
 
 function updateSigImagePreview() {
+    const sigImagePreview = document.getElementById('sig-image-preview');
     if (currentSigImageUrl) {
         sigImagePreview.style.backgroundImage = `url('${currentSigImageUrl}')`;
         sigImagePreview.innerHTML = '';
@@ -901,277 +1328,165 @@ function updateSigImagePreview() {
     }
 }
 
-btnUploadSig.addEventListener('click', () => sigFileInput.click());
-sigFileInput.addEventListener('change', (e) => {
-    // Reuse Crop Modal or Simple Upload?
-    // Let's reuse crop modal for consistency 4:5
-    const file = e.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = (evt) => {
-            // Init cropper
-            cropImage.src = evt.target.result;
-            cropModal.style.display = 'flex';
-            if (cropper) cropper.destroy();
-            cropper = new Cropper(cropImage, { aspectRatio: 4 / 5, viewMode: 1 });
-
-            // Override save button behavior for signature context?
-            // Or separate handler? simpler to separate or use a context flag.
-            // Hack: Replace .onclick of save button temporarily? Messy.
-            // Better: Use a global context flag 'croppingContext' = 'cover' | 'signature'
-            window.croppingContext = 'signature';
-        };
-        reader.readAsDataURL(file);
-    }
-});
-
-// Update crop save to handle signature context
-cropSaveBtn.onclick = async () => {
-    if (!cropper) return;
-
-    showLoading(true);
-
-    if (window.croppingContext === 'signature') {
-        const canvas = window.cropper.getCroppedCanvas({ width: 1080, height: 1350 });
-        canvas.toBlob(async (blob) => {
-            const fileName = `sig_${Date.now()}.jpg`;
-            const { data, error } = await sbClient.storage
-                .from('gallery')
-                .upload(fileName, blob);
-
-            if (error) {
-                alert('Upload failed: ' + error.message);
-            } else {
-                const { data: { publicUrl } } = sbClient.storage.from('gallery').getPublicUrl(fileName);
-                currentSigImageUrl = publicUrl;
-                updateSigImagePreview();
-                cropModal.style.display = 'none';
-            }
-            showLoading(false);
-        });
-    } else {
-        // Default: Cover Image
-        // ... (Existing logic copied inside validation function or moved to named function)
-        // For simplicity, let's keep the original listener for Cover and make this conditional only if attached via property?
-        // Actually, 'addeventListener' adds *multiple*. We should redefine logic.
-        // Let's refactor cropSaveBtn to check context.
-    }
-};
-
-// Refactoring Crop Save
-// Remove old listener first if possible? or just use one listener.
-// We will replace the previous cropSaveBtn.addEventListener with this unified one:
-const unifiedCropSave = async () => {
-    if (!cropper) return;
-    showLoading(true, 'Uploading...');
-
-    const canvas = cropper.getCroppedCanvas({ width: 1080, height: 1350, fillColor: '#fff' });
-
-    canvas.toBlob(async (blob) => {
-        let bucket = 'bars';
-        let fileName = `${Date.now()}.jpg`;
-
-        if (window.croppingContext === 'signature') {
-            bucket = 'gallery';
-            fileName = `sig_${fileName}`;
-        } else {
-            // Cover
-            fileName = `cover_${fileName}`;
-        }
-
-        const { error } = await sbClient.storage.from(bucket).upload(fileName, blob);
-
-        if (error) {
-            alert('Upload failed: ' + error.message);
-            showLoading(false);
-            return;
-        }
-
-        const { data: { publicUrl } } = sbClient.storage.from(bucket).getPublicUrl(fileName);
-
-        if (window.croppingContext === 'signature') {
-            currentSigImageUrl = publicUrl;
-            updateSigImagePreview();
-        } else {
-            currentCoverUrl = publicUrl;
-            updateCoverUI();
-        }
-
-        cropModal.style.display = 'none';
-        showLoading(false);
-        // Reset context
-        window.croppingContext = 'cover';
-    });
-};
-
-// Clear old listeners by cloning node? Or just assume we are writing the file fresh, which we are.
-// So:
-cropSaveBtn.replaceWith(cropSaveBtn.cloneNode(true));
-document.getElementById('crop-save-btn').addEventListener('click', unifiedCropSave);
-
-
-btnSaveSig.addEventListener('click', async () => {
-    if (!sigName.value) return alert('Name required');
-
-    const sigData = {
-        bar_id: currentBarId,
-        name: sigName.value,
-        price: sigPrice.value,
-        description: sigDesc.value,
-        image_url: currentSigImageUrl,
-        // display_order...
-    };
-
-    showLoading(true);
-    try {
-        let error;
-        if (currentSigId) {
-            const { error: err } = await sbClient.from('signatures').update(sigData).eq('id', currentSigId);
-            error = err;
-        } else {
-            const { error: err } = await sbClient.from('signatures').insert([sigData]);
-            error = err;
-        }
-
-        if (error) throw error;
-
-        signatureModal.style.display = 'none';
-        await loadSignatures(currentBarId);
-    } catch (e) {
-        alert('Error saving signature: ' + e.message);
-    } finally {
-        showLoading(false);
-    }
-});
-
-btnCancelSig.addEventListener('click', () => signatureModal.style.display = 'none');
-btnDeleteSig.addEventListener('click', async () => {
-    if (confirm('Delete signature?')) {
-        showLoading(true);
-        if (currentSigImageUrl) {
-            await deleteImageFromStorage(currentSigImageUrl, 'gallery');
-        }
-
-        const { error } = await sbClient.from('signatures').delete().eq('id', currentSigId);
-        if (error) {
-            alert('Error deleting: ' + error.message);
-        } else {
-            signatureModal.style.display = 'none';
-            await loadSignatures(currentBarId);
-        }
-        showLoading(false);
-    }
-});
-
 // --- Awards Logic ---
-// ... (Simplified placeholder, assumes similar structure to signatures)
-async function loadAwards(id) {
-    awardsList.innerHTML = '';
-    const { data } = await sbClient.from('bar_awards')
-        .select(`
-            id,
-            year,
-            type,
-            rank,
-            awards ( name, region )
-        `)
-        .eq('bar_id', id)
+async function loadAwards(barId) {
+    const { data, error } = await supabase
+        .from('bar_awards')
+        .select('*')
+        .eq('bar_id', barId)
         .order('year', { ascending: false });
 
-    if (data) {
-        data.forEach(item => {
-            const div = document.createElement('div');
-            div.textContent = `${item.year} - ${item.awards.name} #${item.rank}`;
-            div.style.padding = '8px';
-            div.style.background = '#f9f9f9';
-            div.style.marginBottom = '5px';
-            awardsList.appendChild(div);
-        });
+    if (error) {
+        console.error('Error loading awards:', error);
+        return;
     }
+
+    awards = data || [];
+    renderAwards();
 }
-// Note: Editor for awards is complex, user didn't ask to fix it today, just display.
+
+function renderAwards() {
+    if (awards.length === 0) {
+        awardsList.innerHTML = '<div style="text-align: center; color: #999; padding: 20px;">No awards listed yet</div>';
+        return;
+    }
+
+    awardsList.innerHTML = awards.map(award => `
+        <div class="award-item" style="display: flex; justify-content: space-between; align-items: center; background: #f9f9f9; padding: 10px; border-radius: 4px; border: 1px solid #eee;">
+            <div>
+                <div style="font-weight: 600; color: #333;">${award.name}</div>
+                <div style="font-size: 0.85rem; color: #666;">
+                    ${award.rank ? `<span style="color: var(--bg-red); font-weight: bold;">${award.rank}</span>` : ''}
+                    ${award.year ? ` • ${award.year}` : ''}
+                </div>
+            </div>
+            <button onclick="deleteAward('${award.id}')" style="background: none; border: none; color: #ff4444; cursor: pointer; font-size: 1.2rem;">&times;</button>
+        </div>
+    `).join('');
+}
+
+btnAddAward.addEventListener('click', async () => {
+    if (!currentBarId) return alert('Please save the bar first.');
+
+    const name = prompt('Award Name (e.g. Asia\'s 50 Best Bars):');
+    if (!name) return;
+
+    const rank = prompt('Rank / Title (e.g. 12, Winner):');
+    const year = prompt('Year (e.g. 2024):');
+
+    const { data, error } = await supabase
+        .from('bar_awards')
+        .insert([{
+            bar_id: currentBarId,
+            name: name,
+            rank: rank,
+            year: year ? parseInt(year) : null
+        }])
+        .select();
+
+    if (error) {
+        console.error('Error adding award:', error);
+        alert('Failed to add award.');
+    } else {
+        awards.push(data[0]);
+        renderAwards();
+    }
+});
+
+window.deleteAward = async (id) => {
+    if (!confirm('Delete this award?')) return;
+
+    const { error } = await supabase
+        .from('bar_awards')
+        .delete()
+        .eq('id', id);
+
+    if (error) {
+        console.error('Error deleting award:', error);
+        alert('Failed to delete award.');
+    } else {
+        awards = awards.filter(a => a.id != id);
+        renderAwards();
+    }
+};
 
 
-// --- Owner Management (Admins) ---
+// --- Multi-Owner Logic ---
+
+// 1. Load Owners
 async function loadOwners(barId) {
-    ownersList.innerHTML = '';
-    // Join with Users table? RLS might block reading 'users' table directly for non-admins.
-    // Assuming we have a view or logic.
-    // For now, fetch bar_owners and maybe rpc?
+    if (!barId) return;
+    ownersList.innerHTML = '<div style="color:#888;">Loading owners...</div>';
 
-    // Using a View or just select if policy allows
-    const { data, error } = await sbClient.from('bar_owners_view').select('*').eq('bar_id', barId);
-    // Note: bar_owners_view typically joins users.
+    const { data: owners, error } = await supabase
+        .from('bar_owners')
+        .select('user_id, users (id, email, hopper_nickname, hopper_image_url)')
+        .eq('bar_id', barId);
 
-    if (data) {
-        data.forEach(o => {
-            const div = document.createElement('div');
-            div.style.display = 'flex';
-            div.style.justifyContent = 'space-between';
-            div.style.padding = '8px';
-            div.style.background = '#fff';
-            div.style.border = '1px solid #eee';
-            div.innerHTML = `
-                <span>${o.email} (${o.raw_user_meta_data?.display_name || 'User'})</span>
-                <button onclick="removeOwner('${o.user_id}')" class="secondary-btn" style="padding:2px 6px; font-size:12px; color:red;">Revoke</button>
-            `;
-            ownersList.appendChild(div);
-        });
+    if (error) {
+        console.error('Error loading owners:', error);
+        ownersList.innerHTML = '<div style="color:red;">Error loading owners</div>';
+        return;
     }
+
+    if (!owners || owners.length === 0) {
+        ownersList.innerHTML = '<div style="color:#888; padding:5px;">No account linked yet.</div>';
+        return;
+    }
+
+    ownersList.innerHTML = owners.map(o => {
+        const u = o.users; // joined data
+        if (!u) return '';
+        const name = u.hopper_nickname || 'Unknown';
+        const avatar = u.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.email)}`;
+
+        return `
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px; background: white; border: 1px solid #eee; border-radius: 4px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 28px; height: 28px; border-radius: 50%; background: #ddd url('${avatar}') center/cover;"></div>
+                    <div>
+                        <div style="font-weight: 600; font-size: 0.85rem;">${name}</div>
+                        <div style="font-size: 0.75rem; color: #666;">${u.email}</div>
+                    </div>
+                </div>
+                <button onclick="removeOwner('${u.id}')" style="background: none; border: none; color: #ff4444; cursor: pointer; padding: 4px; font-size: 0.8rem;">Remove</button>
+            </div>
+        `;
+    }).join('');
 }
 
-// Search Users
-const btnRemoveOwner = document.getElementById('btn-remove-owner'); // Wait, dynamic button needed global access?
-// window.removeOwner defined below
-
-if (btnSearchUser) {
-    btnSearchUser.addEventListener('click', async (e) => {
-        e.preventDefault();
-        const term = userSearchInput.value;
-        if (term.length < 3) return alert('Enter at least 3 chars');
-
-        // Call Edge Function or RPC to search users safely
-        // For simplicity:
-        const { data, error } = await sbClient.rpc('search_users_by_email', { email_query: term });
-
-        userSearchResults.style.display = 'block';
-        userSearchResults.innerHTML = '';
-
-        if (data) {
-            data.forEach(u => {
-                const div = document.createElement('div');
-                div.style.padding = '8px';
-                div.style.cursor = 'pointer';
-                div.style.borderBottom = '1px solid #eee';
-                div.textContent = u.email;
-                div.onmouseover = () => div.style.background = '#f0f0f0';
-                div.onmouseout = () => div.style.background = '#fff';
-                div.onclick = () => addOwner(u);
-                userSearchResults.appendChild(div);
-            });
-        }
-    });
-}
-
-async function addOwner(user) {
-    if (!confirm(`Add ${user.email} as owner?`)) return;
-    userSearchResults.style.display = 'none';
+// 2. Add Owner
+window.selectUserForOwner = async (user) => {
+    if (!currentBarId) {
+        alert('Please save the bar first before ensuring ownership relationship.');
+        return;
+    }
 
     // Check if duplicate? DB constraint handles it, but nice to check UI.
 
-    const { error } = await sbClient.from('bar_owners').insert([{
+    const { error } = await supabase.from('bar_owners').insert([{
         bar_id: currentBarId,
         user_id: user.id
     }]);
 
-    if (error) alert('Error adding owner: ' + error.message);
-    else await loadOwners(currentBarId);
-}
+    if (error) {
+        if (error.code === '23505') alert('User is already an owner.');
+        else alert('Error adding owner: ' + error.message);
+    } else {
+        // Clear search
+        userSearchInput.value = '';
+        userSearchResults.style.display = 'none';
 
+        // Refresh List
+        await loadOwners(currentBarId);
+    }
+};
+
+// 3. Remove Owner
 window.removeOwner = async (userId) => {
     if (!confirm('Unlink this user from the bar ownership? Permissions will be revoked.')) return;
 
-    const { error } = await sbClient.from('bar_owners')
+    const { error } = await supabase.from('bar_owners')
         .delete()
         .eq('bar_id', currentBarId)
         .eq('user_id', userId);
@@ -1180,127 +1495,59 @@ window.removeOwner = async (userId) => {
     else await loadOwners(currentBarId);
 };
 
-// --- News Logic ---
-async function loadNews(barId) {
-    newsList.innerHTML = '<p style="text-align:center; color:#999;">Loading news...</p>';
+// 4. Search Users (Reusing existing listener logic, just update UI target)
+if (btnSearchUser) {
+    btnSearchUser.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const query = userSearchInput.value.trim();
+        if (!query) return;
 
-    const { data: newsItems, error } = await sbClient
-        .from('bar_news')
-        .select('*')
-        .eq('bar_id', barId)
-        .order('created_at', { ascending: false });
+        userSearchResults.style.display = 'block';
+        userSearchResults.innerHTML = '<div style="padding:10px; color:#888;">Searching...</div>';
 
-    if (error) {
-        console.error('Error fetching news:', error);
-        newsList.innerHTML = '<p style="text-align:center; color:red;">Failed to load news.</p>';
-        return;
-    }
+        // Search by Email OR Nickname
+        const { data: users, error } = await supabase
+            .from('users')
+            .select('id, email, hopper_nickname, hopper_image_url')
+            .or(`email.ilike.%${query}%,hopper_nickname.ilike.%${query}%`)
+            .limit(5);
 
-    if (!newsItems || newsItems.length === 0) {
-        newsList.innerHTML = '<div style="text-align: center; color: #999; padding: 20px;">No news added yet</div>';
-        return;
-    }
+        if (error) {
+            userSearchResults.innerHTML = `<div style="padding:10px; color:red;">Error: ${error.message}</div>`;
+            return;
+        }
 
-    newsList.innerHTML = newsItems.map(item => `
-        <div style="display: flex; gap: 10px; padding: 10px; background: #fff; border: 1px solid #eee; border-radius: 6px; align-items: center;">
-            <div style="width: 60px; height: 60px; background: #eee url('${item.image_url || ''}') center/cover; border-radius: 4px; flex-shrink: 0;"></div>
-            <div style="flex: 1; overflow: hidden;">
-                <a href="${item.url}" target="_blank" style="font-weight: 600; color: #333; text-decoration: none; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.title || 'No Title'}</a>
-                <div style="font-size: 0.8rem; color: #888; margin-top: 4px;">${new Date(item.created_at).toLocaleDateString()}</div>
-            </div>
-            <button onclick="deleteNews('${item.id}')" style="background: none; border: none; color: #ff4444; cursor: pointer; padding: 5px;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-            </button>
-        </div>
-    `).join('');
-}
+        if (!users || users.length === 0) {
+            userSearchResults.innerHTML = `<div style="padding:10px; color:#888;">No users found for "${query}"</div>`;
+            return;
+        }
 
-btnAddNews.addEventListener('click', async () => {
-    const url = newsUrlInput.value.trim();
-    if (!url) return alert('Please enter a URL');
-    if (!currentBarId) return alert('Please save the bar first to generate an ID.');
+        userSearchResults.innerHTML = users.map(u => {
+            const name = u.hopper_nickname || 'No Name';
+            const img = u.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.email)}`;
+            const userJson = JSON.stringify(u).replace(/'/g, "&#39;");
 
-    const originalText = btnAddNews.textContent;
-    btnAddNews.textContent = 'Fetching...';
-    btnAddNews.disabled = true;
-
-    try {
-        // 1. Fetch Metadata via Microlink
-        const apiUrl = `https://api.microlink.io/?url=${encodeURIComponent(url)}`;
-        const response = await fetch(apiUrl);
-        const json = await response.json();
-
-        if (json.status !== 'success') throw new Error('Failed to fetch metadata');
-
-        const meta = json.data;
-        const title = meta.title || url;
-        const image = meta.image ? meta.image.url : null;
-        const source = meta.publisher || (new URL(url)).hostname;
-
-        // 2. Insert to DB
-        const { error } = await sbClient.from('bar_news').insert([{
-            bar_id: currentBarId,
-            url: url,
-            title: title,
-            image_url: image,
-            source: source
-        }]);
-
-        if (error) throw error;
-
-        newsUrlInput.value = '';
-        await loadNews(currentBarId);
-        alert('News added successfully!');
-
-    } catch (err) {
-        console.error(err);
-        alert('Error adding news: ' + err.message);
-    } finally {
-        btnAddNews.textContent = originalText;
-        btnAddNews.disabled = false;
-    }
-});
-
-window.deleteNews = async (id) => {
-    if (!confirm('Are you sure you want to remove this news item?')) return;
-
-    try {
-        const { error } = await sbClient.from('bar_news').delete().eq('id', id);
-        if (error) throw error;
-        await loadNews(currentBarId);
-    } catch (err) {
-        alert('Error deleting news: ' + err.message);
-    }
-};
-
-// --- UI Helpers ---
-function showLoading(show, text = 'Processing...') {
-    loadingOverlay.style.display = show ? 'flex' : 'none';
-    document.getElementById('loading-text').textContent = text;
-}
-
-function updateStatus(msg, type) {
-    statusText.textContent = msg;
-    statusDot.style.background = type === 'error' ? 'red' : (type === 'success' ? 'green' : '#ccc');
-    setTimeout(() => {
-        statusText.textContent = 'Ready';
-        statusDot.style.background = '#ccc';
-    }, 3000);
-}
-
-// Editor Rating Logic
-const stars = editorialStars.querySelectorAll('span');
-stars.forEach(s => {
-    s.addEventListener('click', () => {
-        const val = parseInt(s.dataset.value);
-        updateStars(val);
-        editorialRatingInput.value = val;
+            return `
+                <div onclick='selectUserForOwner(${userJson})' 
+                     style="display: flex; align-items: center; gap: 10px; padding: 10px; border-bottom: 1px solid #f5f5f5; cursor: pointer; transition: background 0.2s;"
+                     onmouseover="this.style.background='#f9f9f9'" onmouseout="this.style.background='white'">
+                    <img src="${img}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+                    <div style="overflow: hidden;">
+                        <div style="font-weight: 600; font-size: 0.9rem;">${name}</div>
+                        <div style="font-size: 0.75rem; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${u.email}</div>
+                    </div>
+                    <div style="margin-left:auto; font-size:0.8rem; color:#8a0000; font-weight:bold;">+ Add</div>
+                </div>
+            `;
+        }).join('');
     });
-});
+}
 
-function updateStars(val) {
-    stars.forEach(s => {
-        if (parseInt(s.dataset.value) <= val) s.style.color = '#FFD700'; // Gold
-        else s.style.color = '#ccc';
+// 5. Unlink (Legacy listener removal) 
+if (btnRemoveOwner) {
+    btnRemoveOwner.addEventListener('click', (e) => {
+        e.preventDefault();
+        // This functionality is replaced by multi-owner logic.
+        console.warn("Legacy btnRemoveOwner clicked.");
     });
 }
