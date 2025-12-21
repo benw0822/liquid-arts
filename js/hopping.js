@@ -292,10 +292,10 @@ function initHoppingLogic() {
 
                     modalContent.innerHTML = `
                          <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: 300px; animation: fadeIn 0.3s ease;">
-                            <div style="position: relative; width: 120px; height: 100px; margin-bottom: 20px; display: flex; justify-content: center;">
+                            <div style="position: relative; width: 180px; height: 140px; margin-bottom: 20px; display: flex; justify-content: center;">
                                 
                                 <!-- Left Glass -->
-                                <svg width="50" height="60" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                <svg width="80" height="96" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" 
                                      style="transform-origin: bottom right; animation: clink-left 1s ease-in-out forwards;">
                                     <path d="M8 22h8"></path>
                                     <path d="M12 11v11"></path>
@@ -304,8 +304,8 @@ function initHoppingLogic() {
                                 </svg>
 
                                 <!-- Right Glass -->
-                                <svg width="50" height="60" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
-                                     style="transform-origin: bottom left; animation: clink-right 1s ease-in-out forwards; margin-left: -10px;">
+                                <svg width="80" height="96" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" 
+                                     style="transform-origin: bottom left; animation: clink-right 1s ease-in-out forwards; margin-left: -15px;">
                                     <path d="M8 22h8"></path>
                                     <path d="M12 11v11"></path>
                                     <path d="M5 4h14l-7 7-7-7z"></path>
@@ -313,7 +313,7 @@ function initHoppingLogic() {
                                 </svg>
                                 
                                 <!-- Spark/Clink Effect Center -->
-                                <div style="position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 20px; height: 20px; background: radial-gradient(circle, #fff, transparent); opacity: 0; animation: pop-spark 0.5s ease-out 0.35s;"></div>
+                                <div style="position: absolute; top: 20px; left: 50%; transform: translateX(-50%); width: 30px; height: 30px; background: radial-gradient(circle, #fff, transparent); opacity: 0; animation: pop-spark 0.5s ease-out 0.35s;"></div>
                             </div>
 
                             <h2 style="font-family: var(--font-display); font-size: 2.5rem; color: #333; margin: 0 0 5px 0;">CHEERS!</h2>
