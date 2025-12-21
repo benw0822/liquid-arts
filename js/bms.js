@@ -9,7 +9,7 @@
 // IF we are using the one from window. 
 // BUT, the error implies a collision in THIS file or a double include.
 // Let's assume window.supabaseClient is the standard.
-const sbClient = window.supabaseClient || window.sbClient.removeChannelient('https://wgnskednopbfngvjmviq.supabase.co', 'sb_publishable_gcmYleFIGmwsLSKofS__Qg_62EXoP6P');
+const sbClient = window.supabaseClient || window.supabase.createClient('https://wgnskednopbfngvjmviq.supabase.co', 'sb_publishable_gcmYleFIGmwsLSKofS__Qg_62EXoP6P');
 
 // --- DOM Elements ---
 const lngInput = document.getElementById('bar-lng');
