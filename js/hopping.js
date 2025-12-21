@@ -230,19 +230,29 @@ function initHoppingLogic() {
 
                     if (insertError) throw insertError;
 
-                    alert('Hopping Check-In Successful! / 打卡成功！');
+                    // alert('Hopping Check-In Successful! / 打卡成功！'); // Removed for better UX
+
+                    // Show Success State in Modal
+                    const modalContent = modal.querySelector('.hopping-modal-card');
+                    modalContent.innerHTML = `
+                         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: 300px; animation: fadeIn 0.3s ease;">
+                            <div style="width: 80px; height: 80px; background: #22c55e; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4); margin-bottom: 20px;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </div>
+                            <h2 style="font-family: var(--font-display); font-size: 2rem; color: #333; margin: 0 0 10px 0;">HOPPED!</h2>
+                            <p style="color: #666; font-family: var(--font-main);">Check-in successful.</p>
+                        </div>
+                    `;
+
                     // Wait a moment for effect
                     setTimeout(() => {
                         modal.style.display = 'none';
-                        resetForm();
-                        // Reset Button
-                        submitBtn.style.backgroundColor = ''; // Revert to class default (Red)
-                        submitBtn.classList.remove('pouring');
-                        if (liquid) { liquid.style.opacity = '0'; liquid.style.transform = 'scaleY(0)'; }
-                        submitBtn.disabled = false;
-                        btnTextSpan.textContent = origText;
-                        location.reload(); // Reload after successful submission and animation
-                    }, 1000);
+                        // Reset Form is skipped because we reload anyway, but good for cleanup if SPA
+                        // resetForm(); 
+                        location.reload();
+                    }, 1500);
 
                 } catch (innerErr) {
                     console.error('Upload Process Error:', innerErr);
