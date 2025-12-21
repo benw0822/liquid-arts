@@ -82,6 +82,30 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
     document.body.insertAdjacentHTML('beforeend', modalHTML);
     initHoppingLogic();
+
+    // Auto-Open Logic (Post-Reload)
+    const latestHopId = localStorage.getItem('latest_hop_id');
+    if (latestHopId) {
+        localStorage.removeItem('latest_hop_id'); // Clear immediately
+        setTimeout(async () => {
+            // Fetch the hop details to ensure we have all data (image, etc)
+            const { data: hop, error } = await window.supabaseClient
+                .from('hoppings')
+                .select('*')
+                .eq('id', latestHopId)
+                .single();
+
+            if (hop && !error) {
+                // Open!
+                // Note: We might need bar title. For now pass basic data.
+                // Ideally we join bar but single fetch is fast.
+                const { data: bar } = await window.supabaseClient.from('bars').select('title').eq('id', hop.bar_id).single();
+                const barTitle = bar ? bar.title : '';
+
+                window.showHoppingDetails(null, hop.image_url, hop.hopped_at, hop.rating, hop.description, hop.id, hop.user_id, true, barTitle, hop.bar_id);
+            }
+        }, 500); // Small delay to let app init
+    }
 });
 
 let cropper = null;
@@ -224,35 +248,84 @@ function initHoppingLogic() {
                         hopped_at: `${document.getElementById('hopping-date').value}T${document.getElementById('hopping-time').value}:00`
                     };
 
-                    const { error: insertError } = await window.supabaseClient
+                    const { data: insertedData, error: insertError } = await window.supabaseClient
                         .from('hoppings')
-                        .insert([record]);
+                        .insert([record])
+                        .select();
 
                     if (insertError) throw insertError;
 
-                    // alert('Hopping Check-In Successful! / 打卡成功！'); // Removed for better UX
+                    const newHop = insertedData[0];
+                    if (newHop) {
+                        localStorage.setItem('latest_hop_id', newHop.id);
+                    }
 
-                    // Show Success State in Modal
+                    // Show Success State (Cheers Animation)
                     const modalContent = modal.querySelector('.hopping-modal-card');
+
+                    // Inject Styles for Animation
+                    const styleId = 'cheers-anim-style';
+                    if (!document.getElementById(styleId)) {
+                        const style = document.createElement('style');
+                        style.id = styleId;
+                        style.innerHTML = `
+                            @keyframes clink-left {
+                                0% { transform: rotate(0deg) translateX(0); }
+                                40% { transform: rotate(15deg) translateX(10px); }
+                                50% { transform: rotate(15deg) translateX(10px); }
+                                100% { transform: rotate(0deg) translateX(0); }
+                            }
+                            @keyframes clink-right {
+                                0% { transform: rotate(0deg) translateX(0); }
+                                40% { transform: rotate(-15deg) translateX(-10px); }
+                                50% { transform: rotate(-15deg) translateX(-10px); }
+                                100% { transform: rotate(0deg) translateX(0); }
+                            }
+                            @keyframes pop-spark {
+                                0% { opacity: 0; transform: scale(0.5); }
+                                50% { opacity: 1; transform: scale(1.2); }
+                                100% { opacity: 0; transform: scale(1.5); }
+                            }
+                        `;
+                        document.head.appendChild(style);
+                    }
+
                     modalContent.innerHTML = `
                          <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: 300px; animation: fadeIn 0.3s ease;">
-                            <div style="width: 80px; height: 80px; background: #22c55e; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4); margin-bottom: 20px;">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                                    <polyline points="20 6 9 17 4 12"></polyline>
+                            <div style="position: relative; width: 120px; height: 100px; margin-bottom: 20px; display: flex; justify-content: center;">
+                                
+                                <!-- Left Glass -->
+                                <svg width="50" height="60" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                     style="transform-origin: bottom right; animation: clink-left 1s ease-in-out forwards;">
+                                    <path d="M8 22h8"></path>
+                                    <path d="M12 11v11"></path>
+                                    <path d="M5 4h14l-7 7-7-7z"></path>
+                                    <path d="M6 5h12l-6 6-6-6z" fill="#eab308" stroke="none" style="opacity: 0.6;"></path>
                                 </svg>
+
+                                <!-- Right Glass -->
+                                <svg width="50" height="60" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                     style="transform-origin: bottom left; animation: clink-right 1s ease-in-out forwards; margin-left: -10px;">
+                                    <path d="M8 22h8"></path>
+                                    <path d="M12 11v11"></path>
+                                    <path d="M5 4h14l-7 7-7-7z"></path>
+                                    <path d="M6 5h12l-6 6-6-6z" fill="#eab308" stroke="none" style="opacity: 0.6;"></path>
+                                </svg>
+                                
+                                <!-- Spark/Clink Effect Center -->
+                                <div style="position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 20px; height: 20px; background: radial-gradient(circle, #fff, transparent); opacity: 0; animation: pop-spark 0.5s ease-out 0.35s;"></div>
                             </div>
-                            <h2 style="font-family: var(--font-display); font-size: 2rem; color: #333; margin: 0 0 10px 0;">HOPPED!</h2>
-                            <p style="color: #666; font-family: var(--font-main);">Check-in successful.</p>
+
+                            <h2 style="font-family: var(--font-display); font-size: 2.5rem; color: #333; margin: 0 0 5px 0;">CHEERS!</h2>
+                            <p style="color: #666; font-family: var(--font-main);">Hop published successfully.</p>
                         </div>
                     `;
 
-                    // Wait a moment for effect
+                    // Wait longer for animation (2s)
                     setTimeout(() => {
                         modal.style.display = 'none';
-                        // Reset Form is skipped because we reload anyway, but good for cleanup if SPA
-                        // resetForm(); 
                         location.reload();
-                    }, 1500);
+                    }, 2000);
 
                 } catch (innerErr) {
                     console.error('Upload Process Error:', innerErr);
