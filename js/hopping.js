@@ -1082,7 +1082,21 @@ window.showHoppingDetails = async (event, img, date, rating, desc, hopId = null,
 
 // Delete Hopping
 window.deleteHopping = async (hopId) => {
+    if (!hopId || hopId === 'undefined') {
+        alert('Error: Invalid Hop ID for deletion.');
+        console.error('deleteHopping called with invalid ID:', hopId);
+        return;
+    }
+
+    // Debug Check for Duplicates
+    const candidates = document.querySelectorAll(`[id="hop-card-${hopId}"]`);
+    if (candidates.length > 1) {
+        console.warn(`Found ${candidates.length} cards with ID hop-card-${hopId}. This implies duplicate IDs in the DOM!`);
+    }
+
     if (!confirm('Are you sure you want to delete this Hop? / 確定要刪除這個打卡紀錄嗎？')) return;
+
+    console.log('Attemping to delete hop:', hopId);
 
     // Soft Delete: Update is_deleted flag instead of hard delete
     const { error } = await window.supabaseClient
@@ -1092,8 +1106,9 @@ window.deleteHopping = async (hopId) => {
 
     if (error) {
         alert('Delete Failed: ' + error.message);
+        console.error('Delete Supabase Error:', error);
     } else {
-        // alert('Hop deleted.'); // Removed to be less intrusive/instant
+        console.log('Hop marked as deleted:', hopId);
 
         // Remove from DOM immediately
         const card = document.getElementById(`hop-card-${hopId}`);
@@ -1102,6 +1117,8 @@ window.deleteHopping = async (hopId) => {
             card.style.opacity = '0';
             card.style.transform = 'scale(0.9)';
             setTimeout(() => card.remove(), 300);
+        } else {
+            console.warn('Could not find DOM element to remove for ID:', `hop-card-${hopId}`);
         }
 
         // Close details modal if open
@@ -1109,7 +1126,8 @@ window.deleteHopping = async (hopId) => {
         if (modal) modal.style.display = 'none';
         document.body.style.overflow = ''; // Unlock Scroll
 
-        // window.location.reload(); // Removed reload for instant feel
+        // Check if we are in the Profile page list?
+        // Sometimes Profile Page uses different IDs or structural logic, but let's assume shared naming.
     }
 };
 
