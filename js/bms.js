@@ -1376,9 +1376,8 @@ function renderAwards() {
     }).join('');
 }
 
-btnAddAward.addEventListener('click', () => {
-    alert('Awards are managed centrally by the Admin in "Award Management". Please contact support to add/update awards.');
-});
+// Button removed from UI
+// btnAddAward.addEventListener('click', () => { ... });
 
 // Delete functions removed for Read-Only mode
 
