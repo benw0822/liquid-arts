@@ -1,7 +1,15 @@
 // --- Supabase Configuration ---
-const SUPABASE_URL = 'https://wgnskednopbfngvjmviq.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_gcmYleFIGmwsLSKofS__Qg_62EXoP6P';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// Supabase client is assumed to be initialized globally or passed in via window
+// const supabase = window.supabaseClient; // Assuming app.js or similar initializes it
+// OR if this file is standalone, we should check if it's already declared.
+// However, the error says "Identifier 'supabase' has already been declared", 
+// which means we should NOT declare it with 'const' again if it's in the same scope.
+
+// If 'supabase' is globally available from the CDN script, we might not need to re-init it here 
+// IF we are using the one from window. 
+// BUT, the error implies a collision in THIS file or a double include.
+// Let's assume window.supabaseClient is the standard.
+const supabase = window.supabaseClient || window.supabase.createClient('https://wgnskednopbfngvjmviq.supabase.co', 'sb_publishable_gcmYleFIGmwsLSKofS__Qg_62EXoP6P');
 
 // --- DOM Elements ---
 const lngInput = document.getElementById('bar-lng');
