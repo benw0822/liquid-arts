@@ -337,7 +337,8 @@ function addHoursSlot(data = { days: [], start: "20:00", end: "02:00" }) {
     // Events
     div.querySelectorAll('.day-toggle').forEach(el => {
         el.addEventListener('click', () => {
-            if (el.style.background === 'rgb(240, 240, 240)') { // Was unselected
+            const isSelected = el.dataset.selected === 'true';
+            if (!isSelected) { // Was unselected
                 el.style.background = '#8a0000';
                 el.style.color = '#fff';
                 el.dataset.selected = 'true';
