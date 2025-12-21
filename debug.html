@@ -3,7 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Awards Debug</title>
+    <title>BMS Debug</title>
+    <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body {
@@ -13,77 +14,107 @@
             color: #0f0;
         }
 
-        .block {
-            margin-bottom: 20px;
+        .log-entry {
+            margin-bottom: 10px;
             border-bottom: 1px solid #444;
-            padding-bottom: 20px;
+            padding-bottom: 5px;
         }
 
-        h3 {
-            color: white;
+        .error {
+            color: #f00;
+        }
+
+        .success {
+            color: #0f0;
+        }
+
+        .warn {
+            color: #fe0;
         }
     </style>
 </head>
 
 <body>
-    <h1>Supabase Awards Debugger</h1>
-
-    <div class="block">
-        <h3>1. Fetch 'awards' Table Direct</h3>
-        <pre id="log1">Loading...</pre>
-    </div>
-
-    <div class="block">
-        <h3>2. Fetch 'bar_awards' join 'awards'</h3>
-        <pre id="log2">Loading...</pre>
-    </div>
-
-    <div class="block">
-        <h3>3. Fetch 'bars' nested (The App Query)</h3>
-        <pre id="log3">Loading...</pre>
-    </div>
+    <h1>BMS Data Access Debugger</h1>
+    <div id="logs"></div>
 
     <script>
+        // Supabase Config (from app.js/bms.js)
         const SUPABASE_URL = 'https://wgnskednopbfngvjmviq.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_gcmYleFIGmwsLSKofS__Qg_62EXoP6P'; // Extracted from app.js
-        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const SUPABASE_KEY = 'sb_publishable_gcmYleFIGmwsLSKofS__Qg_62EXoP6P';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        async function runDebug() {
-            // 1. Fetch Awards Direct
-            const { data: d1, error: e1 } = await supabaseClient.from('awards').select('*').limit(5);
-            document.getElementById('log1').innerText = e1 ? 'Error: ' + JSON.stringify(e1, null, 2) : JSON.stringify(d1, null, 2);
-
-            // 2. Fetch Bar Awards Joined
-            const { data: d2, error: e2 } = await supabaseClient.from('bar_awards').select('*, awards(*)').limit(5);
-            document.getElementById('log2').innerText = e2 ? 'Error: ' + JSON.stringify(e2, null, 2) : JSON.stringify(d2, null, 2);
-
-            // 3. Fetch Bars Nested (Target Bar 19 which has awards)
-            const { data: d3, error: e3 } = await supabaseClient.from('bars').select(`
-                id, 
-                title, 
-                bar_awards (*, awards (*))
-            `).eq('id', 19).limit(1);
-
-            let output = '';
-            if (e3) {
-                output = 'Error: ' + JSON.stringify(e3, null, 2);
-            } else {
-                output = JSON.stringify(d3, null, 2);
-
-                // Simulate App Logic to verify structure
-                const bar = d3[0];
-                if (bar && bar.bar_awards) {
-                    console.log("Simulating Render:");
-                    bar.bar_awards.forEach(item => {
-                        const awardName = item.awards ? item.awards.name : 'Unknown';
-                        console.log(`- Award: ${awardName}, Rank: ${item.rank}`);
-                    });
-                }
-            }
-            document.getElementById('log3').innerText = output;
+        const logDiv = document.getElementById('logs');
+        function log(msg, type = 'normal') {
+            const el = document.createElement('div');
+            el.className = `log-entry ${type}`;
+            el.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            logDiv.appendChild(el);
+            console.log(msg);
         }
 
-        runDebug();
+        async function runChecks() {
+            log('Starting BMS Checks...');
+
+            // 1. Check Auth
+            const { data: { session }, error: authError } = await supabase.auth.getSession();
+            if (authError) {
+                log('Auth Error: ' + authError.message, 'error');
+                return;
+            }
+            if (!session) {
+                log('No Active Session. Please login first.', 'warn');
+                return;
+            }
+            log('User Logged In: ' + session.user.email, 'success');
+            log('User ID: ' + session.user.id);
+
+            // 2. Check Roles (users table)
+            log('Fetching User Roles...');
+            const { data: profile, error: profileError } = await supabase
+                .from('users')
+                .select('roles')
+                .eq('id', session.user.id)
+                .single();
+
+            if (profileError) {
+                log('Fetch Roles Failed: ' + profileError.message, 'error');
+                log('Code: ' + profileError.code + ', Details: ' + profileError.details, 'error');
+            } else {
+                log('Roles Found: ' + JSON.stringify(profile.roles), 'success');
+            }
+
+            // 3. Check Bars Access (Read)
+            log('Testing Bars Table Read Access...');
+            const { data: bars, error: barsError } = await supabase
+                .from('bars')
+                .select('id, title, slug')
+                .limit(5);
+
+            if (barsError) {
+                log('Fetch Bars Failed: ' + barsError.message, 'error');
+                log('Hint: Check RLS policies for "bars" table SELECT.', 'warn');
+            } else {
+                log(`Successfully fetched ${bars.length} bars.`, 'success');
+                if (bars.length > 0) log('Sample: ' + bars[0].title);
+            }
+
+            // 4. Check Bar News (if applicable, user mentioned creating news table)
+            log('Testing Bar News Table Read Access...');
+            const { data: news, error: newsError } = await supabase
+                .from('bar_news')
+                .select('*')
+                .limit(5);
+
+            if (newsError) {
+                log('Fetch Bar News Failed: ' + newsError.message, 'error'); // Likely 404 if table doesn't exist yet
+            } else {
+                log(`Successfully fetched ${news ? news.length : 0} news items.`, 'success');
+            }
+
+        }
+
+        runChecks();
     </script>
 </body>
 
