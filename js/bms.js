@@ -60,6 +60,10 @@ const btnAddGallery = document.getElementById('btn-add-gallery');
 const awardsList = document.getElementById('awards-list');
 const btnAddAward = document.getElementById('btn-add-award');
 
+const newsUrlInput = document.getElementById('news-url-input');
+const btnAddNews = document.getElementById('btn-add-news');
+const newsList = document.getElementById('news-list');
+
 const cropModal = document.getElementById('crop-modal');
 const cropImage = document.getElementById('crop-image');
 const cropSaveBtn = document.getElementById('crop-save-btn');
@@ -661,6 +665,8 @@ async function loadBar(id) {
             await loadSignatures(id);
             // Load Awards
             await loadAwards(id);
+            // Load News
+            await loadNews(id);
         }
     } catch (err) {
         console.error('Error loading bar:', err);
@@ -1494,7 +1500,98 @@ window.removeOwner = async (userId) => {
     if (error) alert('Error removing owner: ' + error.message);
     else await loadOwners(currentBarId);
 };
+// --- News Logic ---
+async function loadNews(barId) {
+    newsList.innerHTML = '<p style="text-align:center; color:#999;">Loading news...</p>';
 
+    const { data: newsItems, error } = await supabase
+        .from('bar_news')
+        .select('*')
+        .eq('bar_id', barId)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching news:', error);
+        newsList.innerHTML = '<p style="text-align:center; color:red;">Failed to load news.</p>';
+        return;
+    }
+
+    if (!newsItems || newsItems.length === 0) {
+        newsList.innerHTML = '<div style="text-align: center; color: #999; padding: 20px;">No news added yet</div>';
+        return;
+    }
+
+    newsList.innerHTML = newsItems.map(item => `
+        <div style="display: flex; gap: 10px; padding: 10px; background: #fff; border: 1px solid #eee; border-radius: 6px; align-items: center;">
+            <div style="width: 60px; height: 60px; background: #eee url('${item.image_url || ''}') center/cover; border-radius: 4px; flex-shrink: 0;"></div>
+            <div style="flex: 1; overflow: hidden;">
+                <a href="${item.url}" target="_blank" style="font-weight: 600; color: #333; text-decoration: none; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.title || 'No Title'}</a>
+                <div style="font-size: 0.8rem; color: #888; margin-top: 4px;">${new Date(item.created_at).toLocaleDateString()}</div>
+            </div>
+            <button onclick="deleteNews('${item.id}')" style="background: none; border: none; color: #ff4444; cursor: pointer; padding: 5px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            </button>
+        </div>
+    `).join('');
+}
+
+btnAddNews.addEventListener('click', async () => {
+    const url = newsUrlInput.value.trim();
+    if (!url) return alert('Please enter a URL');
+    if (!currentBarId) return alert('Please save the bar first to generate an ID.');
+
+    const originalText = btnAddNews.textContent;
+    btnAddNews.textContent = 'Fetching...';
+    btnAddNews.disabled = true;
+
+    try {
+        // 1. Fetch Metadata via Microlink
+        const apiUrl = `https://api.microlink.io/?url=${encodeURIComponent(url)}`;
+        const response = await fetch(apiUrl);
+        const json = await response.json();
+
+        if (json.status !== 'success') throw new Error('Failed to fetch metadata');
+
+        const meta = json.data;
+        const title = meta.title || url;
+        const image = meta.image ? meta.image.url : null;
+        const source = meta.publisher || (new URL(url)).hostname;
+
+        // 2. Insert to DB
+        const { error } = await supabase.from('bar_news').insert([{
+            bar_id: currentBarId,
+            url: url,
+            title: title,
+            image_url: image,
+            source: source
+        }]);
+
+        if (error) throw error;
+
+        newsUrlInput.value = '';
+        await loadNews(currentBarId);
+        alert('News added successfully!');
+
+    } catch (err) {
+        console.error(err);
+        alert('Error adding news: ' + err.message);
+    } finally {
+        btnAddNews.textContent = originalText;
+        btnAddNews.disabled = false;
+    }
+});
+
+window.deleteNews = async (id) => {
+    if (!confirm('Are you sure you want to remove this news item?')) return;
+
+    try {
+        const { error } = await supabase.from('bar_news').delete().eq('id', id);
+        if (error) throw error;
+        await loadNews(currentBarId);
+    } catch (err) {
+        alert('Error deleting news: ' + err.message);
+    }
+};
 // 4. Search Users (Reusing existing listener logic, just update UI target)
 if (btnSearchUser) {
     btnSearchUser.addEventListener('click', async (e) => {

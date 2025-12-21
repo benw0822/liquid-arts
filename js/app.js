@@ -1175,6 +1175,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // --- Editorial Review ---
 
+        // --- Related News (New) ---
+        let newsHtml = '';
+        if (bar.id) {
+            const { data: newsItems } = await window.supabaseClient
+                .from('bar_news')
+                .select('*')
+                .eq('bar_id', bar.id)
+                .order('created_at', { ascending: false });
+
+            if (newsItems && newsItems.length > 0) {
+                newsHtml = `
+                    <div class="content-card">
+                        <h3 class="section-title">In The News</h3>
+                        <div style="display: flex; flex-direction: column; gap: 1rem;">
+                            ${newsItems.map(item => `
+                                <a href="${item.url}" target="_blank" style="text-decoration: none; color: inherit; display: flex; gap: 15px; align-items: flex-start; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">
+                                    <div style="width: 80px; height: 80px; background: #eee url('${item.image_url || 'assets/placeholder_news.jpg'}') center/cover; border-radius: 6px; flex-shrink: 0; border: 1px solid rgba(0,0,0,0.1);"></div>
+                                    <div style="flex: 1;">
+                                        <h4 style="margin: 0 0 5px 0; font-size: 1rem; font-weight: 600; line-height: 1.3; color: #333;">${item.title || 'Untitled Article'}</h4>
+                                        <div style="font-size: 0.8rem; color: #888;">${item.source || 'External Source'} • ${new Date(item.created_at).toLocaleDateString()}</div>
+                                    </div>
+                                </a>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
         // --- Signatures ---
         let signaturesHtml = '';
         if (bar.signatures && bar.signatures.length > 0) {
@@ -1259,6 +1288,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     <!-- Talent Card (Red) -->
                     ${talentCardHtml}
+
+                    ${newsHtml ? `<div class="grid-item" style="margin-bottom: 30px;">${newsHtml}</div>` : ''}
 
                     <!-- 3. About/Info Card -->
                     <div class="grid-item content-card" style="display: flex; flex-direction: column; margin-bottom: 30px;">
@@ -1362,6 +1393,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <!-- 7. Opening Hours -->
                     <!-- Was 6. Hopping Card (New) -->
                     <!-- Was 6. Signatures (If any, wrap as grid item) -->
+                    ${newsHtml ? `<div class="grid-item" style="width:100%; margin-bottom:30px;">${newsHtml}</div>` : ''}
                     ${articlesHtml ? `<div class="grid-item" style="width:100%; margin-bottom:30px;">${articlesHtml}</div>` : ''}
 
                     <!-- 8. Gallery (If any) -->
