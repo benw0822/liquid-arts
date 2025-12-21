@@ -3,8 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>BMS Debug</title>
-    <!-- Supabase -->
+    <title>Hop Deletion Debug</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body {
@@ -15,9 +14,8 @@
         }
 
         .log-entry {
-            margin-bottom: 10px;
+            margin-bottom: 5px;
             border-bottom: 1px solid #444;
-            padding-bottom: 5px;
         }
 
         .error {
@@ -27,19 +25,14 @@
         .success {
             color: #0f0;
         }
-
-        .warn {
-            color: #fe0;
-        }
     </style>
 </head>
 
 <body>
-    <h1>BMS Data Access Debugger</h1>
+    <h1>Hop Soft Delete Debugger</h1>
     <div id="logs"></div>
 
     <script>
-        // Supabase Config (from app.js/bms.js)
         const SUPABASE_URL = 'https://wgnskednopbfngvjmviq.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_gcmYleFIGmwsLSKofS__Qg_62EXoP6P';
         const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -53,69 +46,83 @@
             console.log(msg);
         }
 
-        async function runChecks() {
-            log('Starting BMS Checks...');
+        async function runDebug() {
+            log('Starting Delete Check...');
 
-            // 1. Check Auth
+            // 1. Auth
             const { data: { session }, error: authError } = await sbClient.auth.getSession();
-            if (authError) {
-                log('Auth Error: ' + authError.message, 'error');
+            if (authError || !session) {
+                log('Auth Error or No Session', 'error');
                 return;
             }
-            if (!session) {
-                log('No Active Session. Please login first.', 'warn');
-                return;
-            }
-            log('User Logged In: ' + session.user.email, 'success');
-            log('User ID: ' + session.user.id);
+            log('Logged in as: ' + session.user.email);
+            const myId = session.user.id;
 
-            // 2. Check Roles (users table)
-            // 2. Check Roles (users table)
-            log('Fetching User Roles...');
-            const { data: profile, error: profileError } = await sbClient
-                .from('users')
-                .select('roles')
-                .eq('id', session.user.id)
-                .single();
-
-            if (profileError) {
-                log('Fetch Roles Failed: ' + profileError.message, 'error');
-                log('Code: ' + profileError.code + ', Details: ' + profileError.details, 'error');
-            } else {
-                log('Roles Found: ' + JSON.stringify(profile.roles), 'success');
-            }
-
-            // 3. Check Bars Access (Read)
-            log('Testing Bars Table Read Access...');
-            const { data: bars, error: barsError } = await sbClient
-                .from('bars')
-                .select('id, title, slug')
-                .limit(5);
-
-            if (barsError) {
-                log('Fetch Bars Failed: ' + barsError.message, 'error');
-                log('Hint: Check RLS policies for "bars" table SELECT.', 'warn');
-            } else {
-                log(`Successfully fetched ${bars.length} bars.`, 'success');
-                if (bars.length > 0) log('Sample: ' + bars[0].title);
-            }
-
-            // 4. Check Bar News (if applicable, user mentioned creating news table)
-            log('Testing Bar News Table Read Access...');
-            const { data: news, error: newsError } = await sbClient
-                .from('bar_news')
+            // 2. Fetch one of MY recent hops
+            const { data: hops, error: fetchError } = await sbClient
+                .from('hoppings')
                 .select('*')
-                .limit(5);
+                .eq('user_id', myId)
+                .is('is_deleted', false) // Use .is for null/boolean usually, but .eq works
+                .limit(1);
 
-            if (newsError) {
-                log('Fetch Bar News Failed: ' + newsError.message, 'error'); // Likely 404 if table doesn't exist yet
-            } else {
-                log(`Successfully fetched ${news ? news.length : 0} news items.`, 'success');
+            if (fetchError) {
+                log('Fetch Error: ' + fetchError.message, 'error');
+                return;
             }
 
+            if (!hops || hops.length === 0) {
+                log('No active hops found for this user to test delete on.', 'error');
+                // Attempt to create a dummy one?
+                log('Attempting to create a dummy hop for testing...');
+                const { data: newHop, error: createError } = await sbClient
+                    .from('hoppings')
+                    .insert([{
+                        user_id: myId,
+                        bar_id: 19, // Assuming bar 19 exists
+                        description: 'Debug Delete Test',
+                        rating: 5,
+                        image_url: 'https://placehold.co/100',
+                        is_public: true
+                    }])
+                    .select()
+                    .single();
+
+                if (createError) {
+                    log('Create Failed: ' + createError.message, 'error');
+                    return;
+                }
+                log('Dummy Hop Created: ' + newHop.id, 'success');
+                await testDelete(newHop.id);
+            } else {
+                const hop = hops[0];
+                log(`Found Hop: ${hop.id} (${hop.description})`, 'success');
+                // Wait for user confirmation? No, let's just try to update is_deleted
+                // Warning: This WILL delete the hop if successful.
+                await testDelete(hop.id);
+            }
         }
 
-        runChecks();
+        async function testDelete(hopId) {
+            const confirmDel = confirm(`Test Soft Delete on Hop ID: ${hopId}?`);
+            if (!confirmDel) return;
+
+            log(`Attempting Soft Delete (update is_deleted=true) on ${hopId}...`);
+
+            const { error } = await sbClient
+                .from('hoppings')
+                .update({ is_deleted: true })
+                .eq('id', hopId);
+
+            if (error) {
+                log('Soft Delete FAILED: ' + error.message, 'error');
+                log('Hint: Check RLS UPDATE policy for "hoppings".', 'error');
+            } else {
+                log('Soft Delete SUCCESS!', 'success');
+            }
+        }
+
+        runDebug();
     </script>
 </body>
 
