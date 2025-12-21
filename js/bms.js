@@ -1329,86 +1329,58 @@ function updateSigImagePreview() {
 }
 
 // --- Awards Logic ---
+// --- Awards Logic (Read-Only) ---
 async function loadAwards(barId) {
     const { data, error } = await sbClient
         .from('bar_awards')
-        .select('*')
-        .eq('bar_id', barId)
-        .order('year', { ascending: false });
+        .select('id, rank, awards (id, name, year, type)')
+        .eq('bar_id', barId);
 
     if (error) {
         console.error('Error loading awards:', error);
         return;
     }
 
-    awards = data || [];
+    // Sort by Year DESC (handled in JS since nested sort is complex)
+    awards = (data || []).sort((a, b) => {
+        const yA = a.awards?.year || 0;
+        const yB = b.awards?.year || 0;
+        return yB - yA;
+    });
     renderAwards();
 }
 
 function renderAwards() {
     if (awards.length === 0) {
-        awardsList.innerHTML = '<div style="text-align: center; color: #999; padding: 20px;">No awards listed yet</div>';
+        awardsList.innerHTML = '<div style="text-align: center; color: #999; padding: 20px;">No awards listed yet. (Managed by Admin)</div>';
         return;
     }
 
-    awardsList.innerHTML = awards.map(award => `
+    awardsList.innerHTML = awards.map(item => {
+        const awardInfo = item.awards || {};
+        const name = awardInfo.name || 'Unknown Award';
+        const year = awardInfo.year || '';
+        const rank = item.rank ? `<span style="color: var(--bg-red); font-weight: bold;">${item.rank}</span>` : '';
+
+        return `
         <div class="award-item" style="display: flex; justify-content: space-between; align-items: center; background: #f9f9f9; padding: 10px; border-radius: 4px; border: 1px solid #eee;">
             <div>
-                <div style="font-weight: 600; color: #333;">${award.name}</div>
+                <div style="font-weight: 600; color: #333;">${name}</div>
                 <div style="font-size: 0.85rem; color: #666;">
-                    ${award.rank ? `<span style="color: var(--bg-red); font-weight: bold;">${award.rank}</span>` : ''}
-                    ${award.year ? ` • ${award.year}` : ''}
+                    ${year} ${rank}
                 </div>
             </div>
-            <button onclick="deleteAward('${award.id}')" style="background: none; border: none; color: #ff4444; cursor: pointer; font-size: 1.2rem;">&times;</button>
+            <!-- Read-only: No delete button -->
         </div>
-    `).join('');
+    `;
+    }).join('');
 }
 
-btnAddAward.addEventListener('click', async () => {
-    if (!currentBarId) return alert('Please save the bar first.');
-
-    const name = prompt('Award Name (e.g. Asia\'s 50 Best Bars):');
-    if (!name) return;
-
-    const rank = prompt('Rank / Title (e.g. 12, Winner):');
-    const year = prompt('Year (e.g. 2024):');
-
-    const { data, error } = await sbClient
-        .from('bar_awards')
-        .insert([{
-            bar_id: currentBarId,
-            name: name,
-            rank: rank,
-            year: year ? parseInt(year) : null
-        }])
-        .select();
-
-    if (error) {
-        console.error('Error adding award:', error);
-        alert('Failed to add award.');
-    } else {
-        awards.push(data[0]);
-        renderAwards();
-    }
+btnAddAward.addEventListener('click', () => {
+    alert('Awards are managed centrally by the Admin in "Award Management". Please contact support to add/update awards.');
 });
 
-window.deleteAward = async (id) => {
-    if (!confirm('Delete this award?')) return;
-
-    const { error } = await sbClient
-        .from('bar_awards')
-        .delete()
-        .eq('id', id);
-
-    if (error) {
-        console.error('Error deleting award:', error);
-        alert('Failed to delete award.');
-    } else {
-        awards = awards.filter(a => a.id != id);
-        renderAwards();
-    }
-};
+// Delete functions removed for Read-Only mode
 
 
 // --- Multi-Owner Logic ---
@@ -1544,10 +1516,4 @@ if (btnSearchUser) {
 }
 
 // 5. Unlink (Legacy listener removal) 
-if (btnRemoveOwner) {
-    btnRemoveOwner.addEventListener('click', (e) => {
-        e.preventDefault();
-        // This functionality is replaced by multi-owner logic.
-        console.warn("Legacy btnRemoveOwner clicked.");
-    });
-}
+// 5. Unlink (Legacy listener removed)
