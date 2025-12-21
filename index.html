@@ -305,6 +305,7 @@
                     .from('hoppings')
                     .select('*, bars(id, title)')
                     .eq('is_public', true)
+                    .eq('is_deleted', false) // Soft Delete Check
                     .order('hopped_at', { ascending: false })
                     .limit(9); // Limit 9 for nice 3x3 grid
 
