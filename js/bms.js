@@ -1,7 +1,7 @@
 // --- Supabase Configuration ---
 const SUPABASE_URL = 'https://wgnskednopbfngvjmviq.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_gcmYleFIGmwsLSKofS__Qg_62EXoP6P';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // --- DOM Elements ---
 const lngInput = document.getElementById('bar-lng');
@@ -180,7 +180,7 @@ async function checkSlugAvailability(slug) {
     }
 
     // DB Check
-    let query = supabase.from('bars').select('id').eq('slug', slug);
+    let query = sbClient.from('bars').select('id').eq('slug', slug);
     if (currentBarId) query = query.neq('id', currentBarId); // Exclude self if editing
 
     const { data, error } = await query;
@@ -218,7 +218,7 @@ async function fetchCityFromCoords(lat, lng) {
 
 // --- Auth Check ---
 async function checkAuth() {
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await sbClient.auth.getSession();
     if (!session) {
         window.location.href = 'admin.html';
         return;
@@ -227,7 +227,7 @@ async function checkAuth() {
     userEmailSpan.textContent = user.email;
 
     // Fetch User Roles from 'users' table
-    const { data: profile } = await supabase
+    const { data: profile } = await sbClient
         .from('users')
         .select('roles')
         .eq('id', user.id)
@@ -590,7 +590,7 @@ function formatTime(t) {
 async function loadBar(id) {
     showLoading(true);
     try {
-        const { data: bar, error } = await supabase.from('bars').select('*').eq('id', id).single();
+        const { data: bar, error } = await sbClient.from('bars').select('*').eq('id', id).single();
         if (error) throw error;
 
         if (bar) {
@@ -739,14 +739,14 @@ saveBtn.addEventListener('click', async () => {
         let error;
         if (currentBarId) {
             // Update
-            const { error: updateError } = await supabase
+            const { error: updateError } = await sbClient
                 .from('bars')
                 .update(barData)
                 .eq('id', currentBarId);
             error = updateError;
         } else {
             // Create New
-            const { data, error: insertError } = await supabase
+            const { data, error: insertError } = await sbClient
                 .from('bars')
                 .insert([barData])
                 .select();
@@ -895,7 +895,7 @@ cropSaveBtn.addEventListener('click', async () => {
 // --- Gallery Logic ---
 
 async function loadGallery(barId) {
-    const { data, error } = await supabase
+    const { data, error } = await sbClient
         .from('bar_images')
         .select('*')
         .eq('bar_id', barId)
@@ -961,7 +961,7 @@ async function deleteGalleryImage(imageId) {
         await deleteImageFromStorage(img.image_url, 'gallery');
     }
 
-    const { error } = await supabase.from('bar_images').delete().eq('id', imageId);
+    const { error } = await sbClient.from('bar_images').delete().eq('id', imageId);
     if (!error) {
         galleryImages = galleryImages.filter(img => img.id !== imageId);
         renderGallery();
@@ -982,7 +982,7 @@ async function deleteImageFromStorage(publicUrl, bucket) {
         const filePath = decodeURIComponent(pathParts.slice(bucketIndex + 1).join('/'));
         console.log('Deleting file from storage:', bucket, filePath);
 
-        const { error } = await supabase.storage.from(bucket).remove([filePath]);
+        const { error } = await sbClient.storage.from(bucket).remove([filePath]);
         if (error) console.error('Storage delete error:', error);
     } catch (e) {
         console.error('Error parsing URL for deletion:', e);
@@ -1038,7 +1038,7 @@ galleryInput.addEventListener('change', async (e) => {
             console.log('Uploaded URL:', url);
 
             // Insert into DB
-            const { data, error } = await supabase.from('bar_images').insert([{
+            const { data, error } = await sbClient.from('bar_images').insert([{
                 bar_id: currentBarId,
                 image_url: url,
                 display_order: galleryImages.length + 1
@@ -1069,13 +1069,13 @@ async function uploadImage(file, bucket = 'covers') {
     const fileName = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
     const filePath = `${fileName}`;
 
-    const { data, error } = await supabase.storage
+    const { data, error } = await sbClient.storage
         .from(bucket)
         .upload(filePath, file);
 
     if (error) throw error;
 
-    const { data: { publicUrl } } = supabase.storage
+    const { data: { publicUrl } } = sbClient.storage
         .from(bucket)
         .getPublicUrl(filePath);
 
@@ -1152,14 +1152,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     const canvas = window.cropper.getCroppedCanvas({ width: 1080, height: 1350 });
                     canvas.toBlob(async (blob) => {
                         const fileName = `sig_${Date.now()}.jpg`;
-                        const { data, error } = await supabase.storage
+                        const { data, error } = await sbClient.storage
                             .from('gallery')
                             .upload(fileName, blob);
 
                         if (error) {
                             alert('Upload failed: ' + error.message);
                         } else {
-                            const { data: { publicUrl } } = supabase.storage.from('gallery').getPublicUrl(fileName);
+                            const { data: { publicUrl } } = sbClient.storage.from('gallery').getPublicUrl(fileName);
                             currentSigImageUrl = publicUrl;
                             updateSigImagePreview();
                             cropModal.style.display = 'none';
@@ -1200,10 +1200,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let error;
             if (id) {
-                const { error: err } = await supabase.from('signatures').update(sigData).eq('id', id);
+                const { error: err } = await sbClient.from('signatures').update(sigData).eq('id', id);
                 error = err;
             } else {
-                const { error: err } = await supabase.from('signatures').insert([sigData]);
+                const { error: err } = await sbClient.from('signatures').insert([sigData]);
                 error = err;
             }
 
@@ -1230,7 +1230,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 await deleteImageFromStorage(sig.image_url, 'gallery');
             }
 
-            const { error } = await supabase.from('signatures').delete().eq('id', id);
+            const { error } = await sbClient.from('signatures').delete().eq('id', id);
             if (error) {
                 alert('Error deleting: ' + error.message);
             } else {
@@ -1243,7 +1243,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Global functions for access
 async function loadSignatures(barId) {
-    const { data, error } = await supabase
+    const { data, error } = await sbClient
         .from('signatures')
         .select('*')
         .eq('bar_id', barId)
@@ -1330,7 +1330,7 @@ function updateSigImagePreview() {
 
 // --- Awards Logic ---
 async function loadAwards(barId) {
-    const { data, error } = await supabase
+    const { data, error } = await sbClient
         .from('bar_awards')
         .select('*')
         .eq('bar_id', barId)
@@ -1374,7 +1374,7 @@ btnAddAward.addEventListener('click', async () => {
     const rank = prompt('Rank / Title (e.g. 12, Winner):');
     const year = prompt('Year (e.g. 2024):');
 
-    const { data, error } = await supabase
+    const { data, error } = await sbClient
         .from('bar_awards')
         .insert([{
             bar_id: currentBarId,
@@ -1396,7 +1396,7 @@ btnAddAward.addEventListener('click', async () => {
 window.deleteAward = async (id) => {
     if (!confirm('Delete this award?')) return;
 
-    const { error } = await supabase
+    const { error } = await sbClient
         .from('bar_awards')
         .delete()
         .eq('id', id);
@@ -1418,7 +1418,7 @@ async function loadOwners(barId) {
     if (!barId) return;
     ownersList.innerHTML = '<div style="color:#888;">Loading owners...</div>';
 
-    const { data: owners, error } = await supabase
+    const { data: owners, error } = await sbClient
         .from('bar_owners')
         .select('user_id, users (id, email, hopper_nickname, hopper_image_url)')
         .eq('bar_id', barId);
@@ -1464,7 +1464,7 @@ window.selectUserForOwner = async (user) => {
 
     // Check if duplicate? DB constraint handles it, but nice to check UI.
 
-    const { error } = await supabase.from('bar_owners').insert([{
+    const { error } = await sbClient.from('bar_owners').insert([{
         bar_id: currentBarId,
         user_id: user.id
     }]);
@@ -1486,7 +1486,7 @@ window.selectUserForOwner = async (user) => {
 window.removeOwner = async (userId) => {
     if (!confirm('Unlink this user from the bar ownership? Permissions will be revoked.')) return;
 
-    const { error } = await supabase.from('bar_owners')
+    const { error } = await sbClient.from('bar_owners')
         .delete()
         .eq('bar_id', currentBarId)
         .eq('user_id', userId);
@@ -1506,7 +1506,7 @@ if (btnSearchUser) {
         userSearchResults.innerHTML = '<div style="padding:10px; color:#888;">Searching...</div>';
 
         // Search by Email OR Nickname
-        const { data: users, error } = await supabase
+        const { data: users, error } = await sbClient
             .from('users')
             .select('id, email, hopper_nickname, hopper_image_url')
             .or(`email.ilike.%${query}%,hopper_nickname.ilike.%${query}%`)
