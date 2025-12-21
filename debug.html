@@ -42,7 +42,7 @@
         // Supabase Config (from app.js/bms.js)
         const SUPABASE_URL = 'https://wgnskednopbfngvjmviq.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_gcmYleFIGmwsLSKofS__Qg_62EXoP6P';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         const logDiv = document.getElementById('logs');
         function log(msg, type = 'normal') {
@@ -57,7 +57,7 @@
             log('Starting BMS Checks...');
 
             // 1. Check Auth
-            const { data: { session }, error: authError } = await supabase.auth.getSession();
+            const { data: { session }, error: authError } = await sbClient.auth.getSession();
             if (authError) {
                 log('Auth Error: ' + authError.message, 'error');
                 return;
@@ -70,8 +70,9 @@
             log('User ID: ' + session.user.id);
 
             // 2. Check Roles (users table)
+            // 2. Check Roles (users table)
             log('Fetching User Roles...');
-            const { data: profile, error: profileError } = await supabase
+            const { data: profile, error: profileError } = await sbClient
                 .from('users')
                 .select('roles')
                 .eq('id', session.user.id)
@@ -86,7 +87,7 @@
 
             // 3. Check Bars Access (Read)
             log('Testing Bars Table Read Access...');
-            const { data: bars, error: barsError } = await supabase
+            const { data: bars, error: barsError } = await sbClient
                 .from('bars')
                 .select('id, title, slug')
                 .limit(5);
@@ -101,7 +102,7 @@
 
             // 4. Check Bar News (if applicable, user mentioned creating news table)
             log('Testing Bar News Table Read Access...');
-            const { data: news, error: newsError } = await supabase
+            const { data: news, error: newsError } = await sbClient
                 .from('bar_news')
                 .select('*')
                 .limit(5);
