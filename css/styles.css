@@ -271,6 +271,9 @@ h6 {
 /* Ensure logo in navbar is black (original image) */
 .navbar .logo-img {
     filter: none !important;
+    /* Visual centering adjustment */
+    position: relative;
+    top: 5px;
 }
 
 /* Logo Images */
