@@ -263,6 +263,15 @@ function initHoppingLogic() {
                     // Show Success State (Cheers Animation)
                     const modalContent = modal.querySelector('.hopping-modal-card');
 
+                    // Enforce Square Shape & Styles
+                    modalContent.style.width = '100%';
+                    modalContent.style.maxWidth = '360px';
+                    modalContent.style.aspectRatio = '1/1';
+                    modalContent.style.display = 'flex';
+                    modalContent.style.flexDirection = 'column';
+                    modalContent.style.justifyContent = 'center';
+                    modalContent.style.alignItems = 'center';
+
                     // Inject Styles for Animation
                     const styleId = 'cheers-anim-style';
                     if (!document.getElementById(styleId)) {
@@ -291,11 +300,11 @@ function initHoppingLogic() {
                     }
 
                     modalContent.innerHTML = `
-                         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: 300px; animation: fadeIn 0.3s ease;">
-                            <div style="position: relative; width: 180px; height: 140px; margin-bottom: 20px; display: flex; justify-content: center;">
+                         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; animation: fadeIn 0.3s ease;">
+                            <div style="position: relative; width: 220px; height: 160px; margin-bottom: 20px; display: flex; justify-content: center;">
                                 
                                 <!-- Left Glass -->
-                                <svg width="80" height="96" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" 
+                                <svg width="100" height="120" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round" 
                                      style="transform-origin: bottom right; animation: clink-left 1s ease-in-out forwards;">
                                     <path d="M8 22h8"></path>
                                     <path d="M12 11v11"></path>
@@ -304,8 +313,8 @@ function initHoppingLogic() {
                                 </svg>
 
                                 <!-- Right Glass -->
-                                <svg width="80" height="96" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" 
-                                     style="transform-origin: bottom left; animation: clink-right 1s ease-in-out forwards; margin-left: -15px;">
+                                <svg width="100" height="120" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round" 
+                                     style="transform-origin: bottom left; animation: clink-right 1s ease-in-out forwards; margin-left: -20px;">
                                     <path d="M8 22h8"></path>
                                     <path d="M12 11v11"></path>
                                     <path d="M5 4h14l-7 7-7-7z"></path>
@@ -313,10 +322,10 @@ function initHoppingLogic() {
                                 </svg>
                                 
                                 <!-- Spark/Clink Effect Center -->
-                                <div style="position: absolute; top: 20px; left: 50%; transform: translateX(-50%); width: 30px; height: 30px; background: radial-gradient(circle, #fff, transparent); opacity: 0; animation: pop-spark 0.5s ease-out 0.35s;"></div>
+                                <div style="position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 40px; height: 40px; background: radial-gradient(circle, #fff, transparent); opacity: 0; animation: pop-spark 0.5s ease-out 0.35s;"></div>
                             </div>
 
-                            <h2 style="font-family: var(--font-display); font-size: 2.5rem; color: #333; margin: 0 0 5px 0;">CHEERS!</h2>
+                            <h2 style="font-family: var(--font-display); font-size: 2.8rem; color: #333; margin: 0 0 5px 0;">CHEERS!</h2>
                             <p style="color: #666; font-family: var(--font-main);">Hop published successfully.</p>
                         </div>
                     `;
