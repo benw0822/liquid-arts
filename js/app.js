@@ -1179,7 +1179,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (bar.media_mentions && bar.media_mentions.length > 0) {
             mediaHtml = `
                 <div class="grid-item content-card" style="margin-bottom: 30px;">
-                    <h3 class="section-title">Media Coverage</h3>
+                    <h3 class="section-title">Media</h3>
                     <div style="display: flex; flex-direction: column; gap: 12px;">
                         ${bar.media_mentions.map(m => `
                             <a href="${m.url}" target="_blank" style="display: block; padding: 12px; background: #f9f9f9; border-radius: 6px; text-decoration: none; color: #333; transition: background 0.2s; display: flex; justify-content: space-between; align-items: center;" onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background='#f9f9f9'">
@@ -1336,8 +1336,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
 
-                    <!-- Media Coverage -->
-                    ${mediaHtml}
+                    <!-- Media (Removed from here) -->
 
                     <!-- 4. Awards -->
                     ${(() => { console.log('Rendering Awards v3'); return ''; })()}
@@ -1389,6 +1388,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     <!-- 8. Gallery (If any) -->
                     ${galleryHtml ? `<div class="grid-item" style="width:100%; margin-bottom:30px;">${galleryHtml}</div>` : ''}
 
+                    <!-- Media (Moved to bottom) -->
+                    ${mediaHtml}
+
                 </div>
                 `;
         } else {
@@ -1419,8 +1421,7 @@ document.addEventListener('DOMContentLoaded', () => {
                          <!-- Talent Card (Red) -->
                         ${talentCardHtml}
 
-                        <!-- Media Coverage (Added here for standard layout) -->
-                        ${mediaHtml}
+                        <!-- Media Coverage (Removed from Left Column) -->
 
                         <div id="about-card" class="content-card" style="display: flex; flex-direction: column;">
                             <h2 class="section-title" style="flex-shrink: 0;">About</h2>
@@ -1560,6 +1561,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         
                         ${articlesHtml}
                         ${galleryHtml}
+
+                        <!-- Media (Moved to bottom of Right Column) -->
+                        ${mediaHtml}
                     </div>
                 </div >
                     `;
