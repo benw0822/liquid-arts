@@ -1419,6 +1419,9 @@ document.addEventListener('DOMContentLoaded', () => {
                          <!-- Talent Card (Red) -->
                         ${talentCardHtml}
 
+                        <!-- Media Coverage (Added here for standard layout) -->
+                        ${mediaHtml}
+
                         <div id="about-card" class="content-card" style="display: flex; flex-direction: column;">
                             <h2 class="section-title" style="flex-shrink: 0;">About</h2>
                             <p style="line-height: 1.6; margin-bottom: 1.5rem;">
