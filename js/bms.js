@@ -720,8 +720,9 @@ saveBtn.addEventListener('click', async () => {
         if (inputs.length >= 2) {
             const t = inputs[0].value.trim();
             const u = inputs[1].value.trim();
+            const img = inputs[2].value.trim(); // Hidden image input
             if (t && u) {
-                mediaMentions.push({ title: t, url: u });
+                mediaMentions.push({ title: t, url: u, image: img });
             }
         }
     });
@@ -1547,7 +1548,7 @@ function renderMediaList(mentions = []) {
     mentions.forEach(item => addMediaRow(item));
 }
 
-function addMediaRow(data = { title: '', url: '' }) {
+function addMediaRow(data = { title: '', url: '', image: '' }) {
     // Remove empty state if present
     const emptyState = mediaList.querySelector('.empty-media-state');
     if (emptyState) emptyState.remove();
@@ -1556,16 +1557,38 @@ function addMediaRow(data = { title: '', url: '' }) {
     row.className = 'media-row';
     row.style.display = 'flex';
     row.style.gap = '10px';
-    row.style.marginBottom = '10px';
-    row.style.alignItems = 'center';
+    row.style.marginBottom = '15px';
+    row.style.alignItems = 'flex-start';
+    row.style.borderBottom = '1px solid #eee';
+    row.style.paddingBottom = '10px';
+
+    // Left: Image Preview
+    const imgPreview = document.createElement('img');
+    imgPreview.style.width = '60px';
+    imgPreview.style.height = '60px';
+    imgPreview.style.objectFit = 'cover';
+    imgPreview.style.borderRadius = '4px';
+    imgPreview.style.backgroundColor = '#eee';
+    imgPreview.src = data.image || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0yNCAxMmMwIDYuNjI3LTUuMzczIDEyLTEyIDEyUy4wIDE4LjYyNy4wIDEyIDEyIDAgMjQgMTJ6IiBmaWxsPSIjZWVlIi8+PC9zdmc+'; // Placeholder
+    imgPreview.style.display = data.image ? 'block' : 'none';
+
+    // Center: Inputs
+    const inputGroup = document.createElement('div');
+    inputGroup.style.flex = '1';
+    inputGroup.style.display = 'flex';
+    inputGroup.style.flexDirection = 'column';
+    inputGroup.style.gap = '5px';
 
     const titleInput = document.createElement('input');
     titleInput.type = 'text';
     titleInput.className = 'form-input';
-    titleInput.placeholder = 'Article Title / Source';
+    titleInput.placeholder = 'Article Title';
     titleInput.value = data.title || '';
-    titleInput.style.flex = '1';
     titleInput.style.marginBottom = '0';
+
+    const urlContainer = document.createElement('div');
+    urlContainer.style.display = 'flex';
+    urlContainer.style.gap = '5px';
 
     const urlInput = document.createElement('input');
     urlInput.type = 'text';
@@ -1575,12 +1598,60 @@ function addMediaRow(data = { title: '', url: '' }) {
     urlInput.style.flex = '1';
     urlInput.style.marginBottom = '0';
 
+    const fetchBtn = document.createElement('button');
+    fetchBtn.textContent = 'Auto Fetch';
+    fetchBtn.className = 'secondary-btn';
+    fetchBtn.style.fontSize = '0.75rem';
+    fetchBtn.style.padding = '0 8px';
+    fetchBtn.type = 'button';
+
+    // Hidden Image Input
+    const imageInput = document.createElement('input');
+    imageInput.type = 'hidden';
+    imageInput.value = data.image || '';
+
+    // Fetch Logic
+    fetchBtn.onclick = async () => {
+        const url = urlInput.value.trim();
+        if (!url) {
+            alert('Please enter a URL first');
+            return;
+        }
+        fetchBtn.textContent = 'Fetching...';
+        fetchBtn.disabled = true;
+        try {
+            const res = await fetch(`/api/fetch_metadata?url=${encodeURIComponent(url)}`);
+            const meta = await res.json();
+            if (meta.title) titleInput.value = meta.title;
+            if (meta.image) {
+                imageInput.value = meta.image;
+                imgPreview.src = meta.image;
+                imgPreview.style.display = 'block';
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Failed to fetch metadata');
+        } finally {
+            fetchBtn.textContent = 'Auto Fetch';
+            fetchBtn.disabled = false;
+        }
+    };
+
+    urlContainer.appendChild(urlInput);
+    urlContainer.appendChild(fetchBtn);
+
+    inputGroup.appendChild(titleInput);
+    inputGroup.appendChild(urlContainer);
+    inputGroup.appendChild(imageInput); // [2] index
+
+    // Right: Delete
     const delBtn = document.createElement('button');
     delBtn.textContent = 'X';
     delBtn.className = 'secondary-btn';
     delBtn.style.color = 'red';
     delBtn.style.padding = '0 10px';
-    delBtn.type = 'button'; // Prevent form submit
+    delBtn.style.height = '100%';
+    delBtn.type = 'button';
     delBtn.onclick = () => {
         row.remove();
         if (mediaList.querySelectorAll('.media-row').length === 0) {
@@ -1588,8 +1659,8 @@ function addMediaRow(data = { title: '', url: '' }) {
         }
     };
 
-    row.appendChild(titleInput);
-    row.appendChild(urlInput);
+    row.appendChild(imgPreview);
+    row.appendChild(inputGroup);
     row.appendChild(delBtn);
     mediaList.appendChild(row);
 }

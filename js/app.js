@@ -1180,13 +1180,29 @@ document.addEventListener('DOMContentLoaded', () => {
             mediaHtml = `
                 <div class="grid-item content-card" style="margin-bottom: 30px;">
                     <h3 class="section-title">Media</h3>
-                    <div style="display: flex; flex-direction: column; gap: 12px;">
-                        ${bar.media_mentions.map(m => `
-                            <a href="${m.url}" target="_blank" style="display: block; padding: 12px; background: #f9f9f9; border-radius: 6px; text-decoration: none; color: #333; transition: background 0.2s; display: flex; justify-content: space-between; align-items: center;" onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background='#f9f9f9'">
-                                <span style="font-weight: 500;">${m.title}</span>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                    <div style="display: flex; flex-direction: column; gap: 15px;">
+                        ${bar.media_mentions.map(m => {
+                let hostname = '';
+                try { hostname = new URL(m.url).hostname.replace('www.', ''); } catch (e) { }
+
+                return `
+                            <a href="${m.url}" target="_blank" style="display: flex; gap: 15px; text-decoration: none; color: inherit; group;">
+                                ${m.image ? `
+                                    <div style="width: 80px; height: 80px; flex-shrink: 0; border-radius: 6px; overflow: hidden; background: #f0f0f0;">
+                                        <img src="${m.image}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                                    </div>
+                                ` : ''}
+                                <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
+                                    <h4 style="margin: 0 0 5px 0; font-size: 1rem; font-weight: 600; line-height: 1.3; color: var(--text-primary);">${m.title}</h4>
+                                    <span style="font-size: 0.85rem; color: #888; display: flex; align-items: center; gap: 5px;">
+                                        ${hostname}
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                                    </span>
+                                </div>
                             </a>
-                        `).join('')}
+                            <div style="height: 1px; background: #eee; width: 100%;"></div>
+                            `;
+            }).join('').slice(0, -64)} <!-- Remove last separator -->
                     </div>
                 </div>
             `;
