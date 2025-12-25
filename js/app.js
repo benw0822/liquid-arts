@@ -166,6 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 .select(`
                     *,
                     slug,
+                    media_mentions,
                     bar_images (image_url, caption, display_order),
                     signatures (*),
                     bar_awards (*, awards (*)),
