@@ -1173,6 +1173,24 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        // --- Media Coverage Card ---
+        let mediaHtml = '';
+        if (bar.media_mentions && bar.media_mentions.length > 0) {
+            mediaHtml = `
+                <div class="grid-item content-card" style="margin-bottom: 30px;">
+                    <h3 class="section-title">Media Coverage</h3>
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        ${bar.media_mentions.map(m => `
+                            <a href="${m.url}" target="_blank" style="display: block; padding: 12px; background: #f9f9f9; border-radius: 6px; text-decoration: none; color: #333; transition: background 0.2s; display: flex; justify-content: space-between; align-items: center;" onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background='#f9f9f9'">
+                                <span style="font-weight: 500;">${m.title}</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                            </a>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
         // --- Editorial Review ---
 
         // --- Signatures ---
@@ -1316,6 +1334,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             ${bar.google_map_url ? `<a href="${bar.google_map_url}" target="_blank" class="btn" style="width:100%; text-align:center; background-color: var(--bg-red); color: white; border: none;">Open in Google Maps</a>` : ''}
                         </div>
                     </div>
+
+                    <!-- Media Coverage -->
+                    ${mediaHtml}
 
                     <!-- 4. Awards -->
                     ${(() => { console.log('Rendering Awards v3'); return ''; })()}

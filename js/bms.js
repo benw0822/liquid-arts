@@ -60,6 +60,9 @@ const btnAddGallery = document.getElementById('btn-add-gallery');
 const awardsList = document.getElementById('awards-list');
 const btnAddAward = document.getElementById('btn-add-award');
 
+const mediaList = document.getElementById('media-list');
+const btnAddMedia = document.getElementById('btn-add-media');
+
 const cropModal = document.getElementById('crop-modal');
 const cropImage = document.getElementById('crop-image');
 const cropSaveBtn = document.getElementById('crop-save-btn');
@@ -648,6 +651,9 @@ async function loadBar(id) {
             facebookInput.value = bar.facebook_url || '';
             websiteInput.value = bar.website_url || '';
 
+            // Render Media Mentions
+            renderMediaList(bar.media_mentions || []);
+
             if (bar.image) {
                 currentCoverUrl = bar.image;
                 updateCoverUI();
@@ -706,6 +712,20 @@ saveBtn.addEventListener('click', async () => {
         // Note: Uniqueness check will happen at DB level (constraint) or we rely on checkSlugAvailability
     }
 
+    // Collect Media Mentions
+    const mediaMentions = [];
+    const mediaRows = document.querySelectorAll('#media-list .media-row');
+    mediaRows.forEach(row => {
+        const inputs = row.querySelectorAll('input');
+        if (inputs.length >= 2) {
+            const t = inputs[0].value.trim();
+            const u = inputs[1].value.trim();
+            if (t && u) {
+                mediaMentions.push({ title: t, url: u });
+            }
+        }
+    });
+
     const barData = {
         title: titleInput.value,
         slug: slugVal, // NEW
@@ -732,6 +752,7 @@ saveBtn.addEventListener('click', async () => {
         instagram_url: instagramInput.value,
         facebook_url: facebookInput.value,
         website_url: websiteInput.value,
+        media_mentions: mediaMentions,
         image: currentCoverUrl
     };
 
@@ -1516,3 +1537,66 @@ if (btnSearchUser) {
 
 // 5. Unlink (Legacy listener removal) 
 // 5. Unlink (Legacy listener removed)
+// --- Media Coverage Logic ---
+function renderMediaList(mentions = []) {
+    mediaList.innerHTML = '';
+    if (!mentions || mentions.length === 0) {
+        mediaList.innerHTML = '<div class="empty-media-state" style="text-align: center; color: #999; padding: 20px;">No media coverage listed yet</div>';
+        return;
+    }
+    mentions.forEach(item => addMediaRow(item));
+}
+
+function addMediaRow(data = { title: '', url: '' }) {
+    // Remove empty state if present
+    const emptyState = mediaList.querySelector('.empty-media-state');
+    if (emptyState) emptyState.remove();
+
+    const row = document.createElement('div');
+    row.className = 'media-row';
+    row.style.display = 'flex';
+    row.style.gap = '10px';
+    row.style.marginBottom = '10px';
+    row.style.alignItems = 'center';
+
+    const titleInput = document.createElement('input');
+    titleInput.type = 'text';
+    titleInput.className = 'form-input';
+    titleInput.placeholder = 'Article Title / Source';
+    titleInput.value = data.title || '';
+    titleInput.style.flex = '1';
+    titleInput.style.marginBottom = '0';
+
+    const urlInput = document.createElement('input');
+    urlInput.type = 'text';
+    urlInput.className = 'form-input';
+    urlInput.placeholder = 'URL';
+    urlInput.value = data.url || '';
+    urlInput.style.flex = '1';
+    urlInput.style.marginBottom = '0';
+
+    const delBtn = document.createElement('button');
+    delBtn.textContent = 'X';
+    delBtn.className = 'secondary-btn';
+    delBtn.style.color = 'red';
+    delBtn.style.padding = '0 10px';
+    delBtn.type = 'button'; // Prevent form submit
+    delBtn.onclick = () => {
+        row.remove();
+        if (mediaList.querySelectorAll('.media-row').length === 0) {
+            mediaList.innerHTML = '<div class="empty-media-state" style="text-align: center; color: #999; padding: 20px;">No media coverage listed yet</div>';
+        }
+    };
+
+    row.appendChild(titleInput);
+    row.appendChild(urlInput);
+    row.appendChild(delBtn);
+    mediaList.appendChild(row);
+}
+
+if (btnAddMedia) {
+    btnAddMedia.addEventListener('click', (e) => {
+        e.preventDefault();
+        addMediaRow();
+    });
+}
