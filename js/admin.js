@@ -996,9 +996,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     const name = ownerNameInput.value.trim();
                     if (name) {
-                        previewText.innerHTML = `Hi <span style="color:white; font-weight:bold;">${name}</span>,<br>You are invited to manage<br><span style="color: #9c100f;">Liquid Arts</span>`;
+                        previewText.innerHTML = `Hi <span style="color:white; font-weight:bold;">${name}</span>,<br>You are invited to manage`;
                     } else {
-                        previewText.innerHTML = `You are invited to join<br><span style="color: #9c100f;">Liquid Arts</span><br>as a Bar Owner`;
+                        previewText.innerHTML = `You are invited to become a<br>Bar Owner`;
                     }
 
                     // Bar Name Logic
@@ -1015,7 +1015,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const tName = talentNameInput.value.trim() || 'Talent Name';
                     const tTitle = talentTitleInput.value.trim() || 'Bartender';
 
-                    previewText.innerHTML = `You are invited to join<br><span style="color: #9c100f;">Liquid Arts</span>`;
+                    previewText.innerHTML = `You are invited to join`;
                     previewName.innerHTML = `${tName}<br><span style="font-size: 1rem; color: #ccc;">${tTitle}</span>`;
 
                     if (previewBg) previewBg.src = 'assets/hero_bg.jpg';
