@@ -961,7 +961,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function initInvitationGenerator() {
         const roleSelect = document.getElementById('invite-role');
-        // const barSelect = document.getElementById('invite-bar-select'); // Removed
         const barSearchInput = document.getElementById('invite-bar-search');
         const barIdInput = document.getElementById('invite-bar-id');
         const barResults = document.getElementById('invite-bar-results');
@@ -969,10 +968,65 @@ document.addEventListener('DOMContentLoaded', () => {
         const ownerFields = document.getElementById('invite-owner-fields');
         const talentFields = document.getElementById('invite-talent-fields');
 
+        const ownerNameInput = document.getElementById('invite-owner-name');
+        const talentNameInput = document.getElementById('invite-talent-name');
+        const talentTitleInput = document.getElementById('invite-talent-title');
+
+        // Preview Elements
+        const emptyState = document.getElementById('invite-empty-state');
+        const previewContainer = document.getElementById('invite-preview-container');
+        const previewBg = document.getElementById('card-preview-bg');
+        const previewText = document.getElementById('card-preview-text');
+        const previewName = document.getElementById('card-preview-barname');
+        const previewHeader = document.getElementById('card-preview-header');
+
         // Initial Load of History
         loadInvitations();
 
-        // Toggle Fields
+        // Helper: Update Preview Content
+        const updatePreview = () => {
+            const role = roleSelect.value;
+
+            if (role === 'owner' || role === 'talent') {
+                emptyState.style.display = 'none';
+                previewContainer.style.display = 'block';
+
+                if (role === 'owner') {
+                    if (previewHeader) previewHeader.textContent = 'INVITATION';
+
+                    const name = ownerNameInput.value.trim();
+                    if (name) {
+                        previewText.innerHTML = `Hi <span style="color:white; font-weight:bold;">${name}</span>,<br>You are invited to manage<br><span style="color: #9c100f;">Liquid Arts</span>`;
+                    } else {
+                        previewText.innerHTML = `You are invited to join<br><span style="color: #9c100f;">Liquid Arts</span><br>as a Bar Owner`;
+                    }
+
+                    // Bar Name Logic
+                    const bId = barIdInput.value;
+                    const bTitle = barSearchInput.value;
+                    if (bId && bTitle) {
+                        previewName.textContent = bTitle;
+                    } else {
+                        previewName.textContent = "Bar Name";
+                    }
+
+                } else if (role === 'talent') {
+                    if (previewHeader) previewHeader.textContent = 'TALENT INVITE';
+                    const tName = talentNameInput.value.trim() || 'Talent Name';
+                    const tTitle = talentTitleInput.value.trim() || 'Bartender';
+
+                    previewText.innerHTML = `You are invited to join<br><span style="color: #9c100f;">Liquid Arts</span>`;
+                    previewName.innerHTML = `${tName}<br><span style="font-size: 1rem; color: #ccc;">${tTitle}</span>`;
+
+                    if (previewBg) previewBg.src = 'assets/hero_bg.jpg';
+                }
+            } else {
+                emptyState.style.display = 'block';
+                previewContainer.style.display = 'none';
+            }
+        };
+
+        // Inputs Listeners
         roleSelect.onchange = () => {
             if (roleSelect.value === 'owner') {
                 ownerFields.style.display = 'block';
@@ -984,7 +1038,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 ownerFields.style.display = 'none';
                 talentFields.style.display = 'none';
             }
+            updatePreview();
         };
+
+        ownerNameInput.oninput = updatePreview;
+        talentNameInput.oninput = updatePreview;
+        talentTitleInput.oninput = updatePreview;
 
         // Pre-Load Bars (for client side search)
         if (cachedBarsForInvite.length === 0) {
@@ -1026,8 +1085,15 @@ document.addEventListener('DOMContentLoaded', () => {
             barIdInput.value = id;
             barSearchInput.value = title;
             barResults.style.display = 'none';
-            // Trigger preview update if needed? 
-            // The generate button logic handles the preview based on ID.
+
+            // Find bar image for preview
+            const bar = cachedBarsForInvite.find(b => b.id == id);
+            if (bar && bar.image) {
+                if (previewBg) previewBg.src = bar.image;
+            } else {
+                if (previewBg) previewBg.src = 'assets/default_bar.jpg';
+            }
+            updatePreview();
         };
 
         // Close results on click outside
@@ -1055,7 +1121,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const ownerName = document.getElementById('invite-owner-name').value;
             if (ownerName) metadata.invitee_name = ownerName;
 
-            // Find bar data for preview
+            // Find bar data for clean code generation
             barData = cachedBarsForInvite.find(b => b.id == barId);
             if (barData) metadata.bar_name = barData.title;
         }
@@ -1073,16 +1139,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!expiresAt) {
             alert('Please set an expiration date for this invitation.');
-            btn.disabled = false;
-            btn.textContent = 'GENERATE LINK';
             return;
         }
 
         // Validate expiration is in future
         if (new Date(expiresAt) <= new Date()) {
             alert('Expiration date must be in the future.');
-            btn.disabled = false;
-            btn.textContent = 'GENERATE LINK';
             return;
         }
 
@@ -1111,33 +1173,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Success: update UI
             const link = `${window.location.origin}/invite.html?code=${code}`;
-            const linkText = document.getElementById('invite-link-text'); // Keep this line
-            const inviteResult = document.getElementById('invite-result'); // Define inviteResult
-            const inviteUrl = link; // Define inviteUrl
+            const linkText = document.getElementById('invite-link-text');
+            const inviteResult = document.getElementById('invite-result');
 
-            // Show Result
+            // Show Result (Success Message Only)
             inviteResult.style.display = 'block';
-            linkText.href = inviteUrl;
-            linkText.textContent = inviteUrl;
-
-            // Generate QR Code if library exists (Optional)
-            // new QRCode(document.getElementById("qrcode"), inviteUrl);
+            linkText.href = link;
+            linkText.textContent = link;
 
             // Refresh List
             loadInvitations();
-
-            // Render Preview
-            const previewBg = document.getElementById('card-preview-bg'); // Changed from 'invite-card-bg' to 'card-preview-bg' to match original
-            const previewName = document.getElementById('card-preview-barname');
-
-            if (role === 'owner' && barData) {
-                previewBg.src = barData.image || 'assets/default_bar.jpg';
-                previewName.textContent = barData.title;
-                previewName.style.display = 'block'; // Keep this line
-            } else {
-                previewBg.src = 'assets/hero_bg.jpg'; // Default Generic
-                previewName.textContent = role === 'talent' ? 'Liquid Arts Talent' : 'Welcome';
-            }
 
         } catch (err) {
             console.error(err);

@@ -745,7 +745,8 @@
                 style="padding: 2rem; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fafafa; border: 2px dashed #ddd;">
 
                 <!-- Result State -->
-                <div id="invite-result" style="display: none; width: 100%; text-align: center;">
+                <!-- Result Message (Hidden by default) -->
+                <div id="invite-result" style="display: none; width: 100%; text-align: center; margin-bottom: 2rem;">
                     <h3 style="color: var(--bg-red); margin-bottom: 1rem;">Link Generated!</h3>
 
                     <div
@@ -756,35 +757,41 @@
 
                     <button
                         onclick="navigator.clipboard.writeText(document.getElementById('invite-link-text').href); alert('Copied!');"
-                        class="btn btn-secondary" style="margin-bottom: 2rem;">Copy Link</button>
+                        class="btn btn-secondary">Copy Link</button>
+                </div>
 
-                    <!-- Preview Card -->
+                <!-- Live Preview (Visible when editing) -->
+                <div id="invite-preview-container" style="display: none; width: 100%; text-align: center;">
                     <div style="margin-bottom: 1rem; font-weight: bold; color: #555;">Digital Card Preview</div>
                     <div id="invite-card-preview"
-                        style="width: 100%; max-width: 320px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); position: relative; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.5); margin: 0 auto; padding: 3rem 2rem; border: 1px solid rgba(255, 255, 255, 0.2); border-top: 4px solid #9c100f;">
+                        style="width: 100%; max-width: 320px; aspect-ratio: 4/5; background: #222; position: relative; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.5); margin: 0 auto; border: 1px solid rgba(255, 255, 255, 0.2); border-top: 4px solid #9c100f; display: flex; flex-direction: column; justify-content: center; padding: 2rem;">
+
+                        <!-- Background Image -->
+                        <img id="card-preview-bg" src="assets/hero_bg.jpg"
+                            style="position: absolute; top:0; left:0; width: 100%; height: 100%; object-fit: cover; z-index: 0; filter: brightness(0.4);">
 
                         <!-- Logo -->
-                        <div style="margin-bottom: 2rem;">
-                            <img src="assets/logo_vertical.png" alt="Liquid Arts" style="width: 120px; height: auto;">
+                        <div style="margin-bottom: 2rem; position: relative; z-index: 2;">
+                            <img src="assets/logo_vertical.png" alt="Liquid Arts" style="width: 100px; height: auto;">
                         </div>
 
                         <!-- Overlay Content -->
                         <div style="position: relative; z-index: 2; color: white;">
-                            <div
-                                style="font-family: var(--font-display); font-size: 1.5rem; letter-spacing: 0.1em; margin-bottom: 0.5rem;">
+                            <div id="card-preview-header"
+                                style="font-family: var(--font-display); font-size: 1.2rem; letter-spacing: 0.1em; margin-bottom: 0.5rem; text-transform: uppercase;">
                                 INVITATION</div>
                             <div style="width: 40px; height: 1px; background: #9c100f; margin: 0 auto 2rem auto;">
                             </div>
 
-                            <div style="font-size: 0.9rem; line-height: 1.6; margin-bottom: 2rem;">
-                                誠摯邀請您成為<br>
-                                <span style="color: #9c100f;">Liquid Arts 平台</span><br>
-                                的酒吧管理者
+                            <div id="card-preview-text"
+                                style="font-size: 0.9rem; line-height: 1.6; margin-bottom: 2rem;">
+                                You are invited to join<br>
+                                <span style="color: #9c100f;">Liquid Arts</span>
                             </div>
 
                             <div id="card-preview-barname"
-                                style="font-family: var(--font-display); font-size: 2rem; margin-bottom: 3rem; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">
-                                Draft Land</div>
+                                style="font-family: var(--font-display); font-size: 1.8rem; margin-bottom: 3rem; text-shadow: 0 2px 4px rgba(0,0,0,0.5); line-height: 1.2;">
+                            </div>
 
                             <div
                                 style="background: rgba(255,255,255,0.1); backdrop-filter: blur(5px); padding: 10px 20px; border-radius: 30px; font-size: 0.8rem; border: 1px solid rgba(255,255,255,0.2); display: inline-block;">
@@ -792,7 +799,6 @@
                             </div>
                         </div>
                     </div>
-
                 </div>
 
                 <!-- Empty State -->
