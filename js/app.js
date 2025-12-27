@@ -1406,7 +1406,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     <!-- Media (Moved to bottom) -->
                     <!-- Media (Moved to bottom) -->
-                    ${mediaHtml ? `<div class="grid-item" style="width:100%; max-width: 380px; margin-bottom:30px;">${mediaHtml}</div>` : ''}
+                    ${mediaHtml ? `<div class="grid-item" style="width:100%; margin-bottom:30px;">${mediaHtml}</div>` : ''}
 
                 </div>
                 `;
