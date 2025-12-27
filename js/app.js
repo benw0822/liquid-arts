@@ -57,8 +57,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.querySelectorAll(`.save-btn-${id}`).forEach(btn => {
             const icon = btn.querySelector('svg');
-            icon.setAttribute('fill', newStatus ? '#D4AF37' : 'none');
-            icon.setAttribute('stroke', '#D4AF37');
+            icon.setAttribute('fill', newStatus ? '#ef4444' : 'none');
+            icon.setAttribute('stroke', newStatus ? '#ef4444' : '#333');
         });
 
         // DB Update
@@ -533,7 +533,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return { ...bar, cityDisplay: city };
         }));
 
-        grid.innerHTML = savedBars.map(bar => window.createBarCard(bar, bar.cityDisplay)).join('');
+        grid.innerHTML = savedBars.map(bar => createBarCard(bar, bar.cityDisplay)).join('');
 
         savedBars.forEach(bar => {
             if (bar.lat && bar.lng) setTimeout(() => initCardMapGlobal(bar.id, bar.lat, bar.lng, bar.title, true), 100);
@@ -1273,8 +1273,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <!-- 1. Hero Image Card -->
                     <div class="grid-item content-card hero-card" style="padding: 0; border: none; overflow: hidden; background: transparent; position: relative; margin-bottom: 30px;">
                         <img id="hero-card-img" src="${bar.image}" alt="${bar.title}" style="width: 100%; height: auto; display: block;">
-                         <button class="save-btn-${bar.id}" onclick="toggleSaveBar(${bar.id}, event)" style="position: absolute; top: 20px; right: 20px; z-index: 20; background: transparent; border: 1px solid #D4AF37; border-radius: 50%; width: 44px; height: 44px; box-shadow: none; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0;">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="${window.savedBarIds.has(bar.id) ? '#D4AF37' : 'none'}" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                         <button class="save-btn-${bar.id}" onclick="toggleSaveBar(${bar.id}, event)" style="position: absolute; top: 20px; right: 20px; z-index: 20; background: white; border: none; border-radius: 50%; width: 44px; height: 44px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="${window.savedBarIds.has(bar.id) ? '#ef4444' : 'none'}" stroke="${window.savedBarIds.has(bar.id) ? '#ef4444' : '#333'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
                         </button>
                     </div>
 
@@ -1429,8 +1429,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="content-card hero-card" style="padding: 0; border: none; overflow: hidden; background: transparent; position: relative;">
                             <img id="hero-card-img" src="${bar.image}" alt="${bar.title}" style="width: 100%; height: auto; display: block;">
                             
-                            <button class="save-btn-${bar.id}" onclick="toggleSaveBar(${bar.id}, event)" style="position: absolute; top: 20px; right: 20px; z-index: 20; background: transparent; border: 1px solid #D4AF37; border-radius: 50%; width: 44px; height: 44px; box-shadow: none; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0;">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="${window.savedBarIds.has(bar.id) ? '#D4AF37' : 'none'}" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                            <button class="save-btn-${bar.id}" onclick="toggleSaveBar(${bar.id}, event)" style="position: absolute; top: 20px; right: 20px; z-index: 20; background: white; border: none; border-radius: 50%; width: 44px; height: 44px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="${window.savedBarIds.has(bar.id) ? '#ef4444' : 'none'}" stroke="${window.savedBarIds.has(bar.id) ? '#ef4444' : '#333'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
                             </button>
                         </div>
 
@@ -2007,13 +2007,13 @@ document.addEventListener('DOMContentLoaded', () => {
         return `
         <div class="art-card grid-item" style="position: relative; display: flex; flex-direction: column; height: 100%; margin-bottom: 3rem; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 380px; margin-left: auto; margin-right: auto;">
              <!-- Save Button -->
-             <button class="save-btn-${bar.id}" onclick="toggleSaveBar(${bar.id}, event)" style="position: absolute; top: 15px; right: 15px; z-index: 20; background: transparent; border: 1px solid #D4AF37; border-radius: 50%; width: 36px; height: 36px; box-shadow: none; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="${isSaved ? '#D4AF37' : 'none'}" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+             <button class="save-btn-${bar.id}" onclick="toggleSaveBar(${bar.id}, event)" style="position: absolute; top: 15px; right: 15px; z-index: 20; background: white; border: none; border-radius: 50%; width: 36px; height: 36px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="${isSaved ? '#ef4444' : 'none'}" stroke="${isSaved ? '#ef4444' : '#333'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
              </button>
 
              <!-- Share Button -->
-             <button onclick="window.shareBarItem('${barUrl}', '${bar.title.replace(/'/g, "\\'")}', event)" style="position: absolute; top: 61px; right: 15px; z-index: 20; background: transparent; border: 1px solid #D4AF37; border-radius: 50%; width: 36px; height: 36px; box-shadow: none; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+             <button onclick="window.shareBarItem('${barUrl}', '${bar.title.replace(/'/g, "\\'")}', event)" style="position: absolute; top: 61px; right: 15px; z-index: 20; background: white; border: none; border-radius: 50%; width: 36px; height: 36px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
              </button>
 
              <!-- Hopping Interaction Wrapper (Top Left) -->
