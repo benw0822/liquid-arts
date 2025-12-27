@@ -1178,7 +1178,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let mediaHtml = '';
         if (bar.media_mentions && bar.media_mentions.length > 0) {
             mediaHtml = `
-                <div class="grid-item content-card" style="margin-bottom: 30px;">
+                <div class="content-card">
                     <h3 class="section-title">Media</h3>
                     <div style="display: flex; flex-direction: column; gap: 15px;">
                         ${bar.media_mentions.map(m => {
@@ -1405,7 +1405,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${galleryHtml ? `<div class="grid-item" style="width:100%; margin-bottom:30px;">${galleryHtml}</div>` : ''}
 
                     <!-- Media (Moved to bottom) -->
-                    ${mediaHtml}
+                    <!-- Media (Moved to bottom) -->
+                    ${mediaHtml ? `<div class="grid-item" style="width:100%; max-width: 380px; margin-bottom:30px;">${mediaHtml}</div>` : ''}
 
                 </div>
                 `;
