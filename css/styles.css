@@ -1475,6 +1475,7 @@ figure.article-figure figcaption {
     width: 100%;
     break-inside: avoid;
     margin-bottom: 30px;
+    vertical-align: top;
 }
 
 /* Force Hop Feed Cards to be full width in masonry (Override Detail Card width) */
