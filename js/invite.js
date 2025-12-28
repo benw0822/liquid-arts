@@ -253,10 +253,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (data.role === 'owner') {
                     // Go to BMS or Profile? BMS seems appropriate if we know the bar ID
                     // data.bar_id might be returned string or number
-                    if (data.bar_id) window.location.href = `bms.html?id=${data.bar_id}`; // Redirect to Bar Management
-                    else window.location.href = 'profile.html';
+                    if (data.bar_id) window.location.href = `/bms.html?id=${data.bar_id}`; // Redirect to Bar Management
+                    else window.location.href = '/profile.html';
                 } else {
-                    window.location.href = 'profile.html';
+                    window.location.href = '/profile.html';
                 }
             }, 1000);
 
@@ -268,7 +268,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (err.message === 'Invitation already used') {
                 alert('You have already joined! Redirecting...');
-                window.location.href = 'profile.html';
+                window.location.href = '/profile.html';
             } else {
                 alert('Error processing invitation: ' + err.message);
                 resetBtn();
