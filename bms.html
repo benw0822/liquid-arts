@@ -242,20 +242,32 @@
     </div>
 
     <!-- Updated Header: Red Toolbar -->
-    <div class="cms-header">
-        <div style="display: flex; align-items: center; gap: 20px;">
-            <!-- Logo Home Link -->
+    <!-- Updated Header: Red Toolbar (Matched to Admin) -->
+    <div class="cms-header" style="height: 70px; padding: 0 20px;">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <!-- Logo Home Link (Horizontal) -->
             <a href="index.html" style="display: flex; align-items: center; text-decoration: none;">
-                <img src="/assets/logo_vertical.png" alt="Liquid Arts"
-                    style="height: 32px; filter: brightness(0) invert(1); opacity: 0.9; transition: opacity 0.2s;">
+                <img src="/assets/logo_horizontal.png" alt="Liquid Arts"
+                    style="height: 24px; filter: brightness(0) invert(1); opacity: 1;">
             </a>
 
+            <!-- Divider -->
+            <div style="height: 24px; border-left: 1px solid rgba(255,255,255,0.3);"></div>
+
+            <!-- Dashboard Link (Matched Admin Style: 1.2rem, 300 weight) -->
             <a href="admin.html"
-                style="text-decoration: none; color: rgba(255,255,255,0.9); font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; gap: 6px; transition: opacity 0.2s;">
+                style="text-decoration: none; color: rgba(255,255,255,0.8); font-size: 1.2rem; font-weight: 300; transition: color 0.2s;">
                 Dashboard
             </a>
+
+            <!-- Divider -->
             <span style="color: rgba(255,255,255,0.3); font-weight: 300;">|</span>
-            <h2>Bar Management</h2>
+
+            <!-- Current Page Title -->
+            <h2
+                style="font-size: 1.2rem; color: white; display: flex; align-items: center; margin: 0; font-weight: 600;">
+                Bar Management
+            </h2>
         </div>
         <div style="font-size: 0.85rem; color: rgba(255,255,255,0.8);">
             Logged in as: <span id="user-email" style="color: white; font-weight: 500;">Loading...</span>
