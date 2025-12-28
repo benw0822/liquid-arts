@@ -100,6 +100,38 @@ document.addEventListener('DOMContentLoaded', async () => {
             subtextEl.textContent = 'You are invited to join';
             displayBarName.textContent = 'Liquid Arts';
         }
+
+        // --- Dynamic Meta Tags Update (Client-Side) ---
+        // Best effort for link previews that support JS, and definitely works for Browser Tab Title
+        const invitee = metadata.invitee_name || metadata.display_name || 'You';
+        const barName = displayBarName.textContent;
+        const action = data.role === 'owner' ? 'manage' : 'join';
+
+        const pageTitle = `Invitation: ${barName}`;
+        const pageDesc = `Hi ${invitee}, you have been invited to ${action} ${barName} on Liquid Arts.`;
+
+        document.title = pageTitle;
+
+        // Helper to set meta
+        const setMeta = (selector, content) => {
+            let el = document.querySelector(selector);
+            if (!el) {
+                // Create if missing
+                el = document.createElement('meta');
+
+                if (selector.startsWith('meta[property')) {
+                    el.setAttribute('property', selector.match(/property="([^"]*)"/)[1]);
+                } else if (selector.startsWith('meta[name')) {
+                    el.setAttribute('name', selector.match(/name="([^"]*)"/)[1]);
+                }
+                document.head.appendChild(el);
+            }
+            el.setAttribute('content', content);
+        };
+
+        setMeta('meta[property="og:title"]', pageTitle);
+        setMeta('meta[property="og:description"]', pageDesc);
+        setMeta('meta[name="description"]', pageDesc);
     }
 
     function showError(msg) {

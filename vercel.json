@@ -13,6 +13,10 @@
             "destination": "/bar.html?id=:id"
         },
         {
+            "source": "/invite/:code",
+            "destination": "/api/share_invite?code=:code"
+        },
+        {
             "source": "/:slug",
             "destination": "/api/slug_router?slug=:slug"
         }
