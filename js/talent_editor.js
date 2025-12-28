@@ -178,6 +178,12 @@ function createListItem(data, index, templateFn) {
         setupBarSearch(searchContainer);
     }
 
+    // Initialize Year Range Logic if this item has a year range container
+    const yearContainer = div.querySelector('.year-range-container');
+    if (yearContainer) {
+        setupYearRange(yearContainer);
+    }
+
     return div;
 }
 
@@ -210,12 +216,35 @@ async function ensureBarsLoaded() {
 
 function getYearOptions(selectedYear) {
     const currentYear = new Date().getFullYear();
+    // If we passed a specific year, select it
     let options = '<option value="">Year</option>';
     for (let y = currentYear; y >= 1980; y--) {
         const sel = (selectedYear && parseInt(selectedYear) === y) ? 'selected' : '';
         options += `<option value="${y}" ${sel}>${y}</option>`;
     }
     return options;
+}
+
+// --- Year Range Logic ---
+function setupYearRange(container) {
+    const startSelect = container.querySelector('.year-select-start');
+    const endSelect = container.querySelector('.year-select-end');
+    const hiddenInput = container.querySelector('.list-input-year');
+
+    function updateCombined() {
+        const start = startSelect.value;
+        const end = endSelect.value;
+        if (start && end) {
+            hiddenInput.value = (start === end) ? start : `${start}-${end}`;
+        } else if (start) {
+            hiddenInput.value = start;
+        } else {
+            hiddenInput.value = '';
+        }
+    }
+
+    startSelect.addEventListener('change', updateCombined);
+    endSelect.addEventListener('change', updateCombined);
 }
 
 function getBarOptions(selectedBarId) {
@@ -330,15 +359,42 @@ const roleItemTemplate = (data) => {
     </div>
 `};
 
-const expItemTemplate = (data) => `
-    <div class="editor-list-grid" style="grid-template-columns: 90px 1fr 1fr;">
-        <select class="editor-input list-input-year" style="padding-right: 5px;">
-             ${getYearOptions(data.year)}
-        </select>
+const expItemTemplate = (data) => {
+    // Parse existing year string (e.g. "2018-2020" or "2019")
+    let startYear = '';
+    let endYear = '';
+    if (data.year) {
+        if (data.year.includes('-')) {
+            [startYear, endYear] = data.year.split('-').map(s => s.trim());
+        } else {
+            startYear = data.year;
+            endYear = data.year; // Default to same if single year? Or leave end blank? 
+            // If it's a single year, maybe just set start. 
+            // Often "2019" implies "2019". Range "2019-2019" is redundant.
+            // Let's set startYear = 2019, endYear = 2019 so it looks consistent?
+            // Actually, if it's a range UI, likely user wants to see both.
+            endYear = data.year;
+        }
+    }
+
+    return `
+    <div class="editor-list-grid" style="grid-template-columns: 140px 1fr 1fr;">
+        <div class="year-range-container" style="display: flex; gap: 2px; align-items: center;">
+            <select class="editor-input year-select-start" style="padding: 12px 5px; font-size: 0.85rem; min-width: 60px;">
+                 <option value="">Start</option>
+                 ${getYearOptions(startYear).replace('<option value="">Year</option>', '')}
+            </select>
+            <span style="color:#aaa;">-</span>
+            <select class="editor-input year-select-end" style="padding: 12px 5px; font-size: 0.85rem; min-width: 60px;">
+                 <option value="">End</option>
+                 ${getYearOptions(endYear).replace('<option value="">Year</option>', '')}
+            </select>
+            <input type="hidden" class="list-input-year" value="${data.year || ''}">
+        </div>
         <input type="text" class="editor-input list-input-unit" placeholder="Unit (Company)" value="${data.unit || ''}">
         <input type="text" class="editor-input list-input-title" placeholder="Title" value="${data.title || ''}">
     </div>
-`;
+`};
 
 const awardItemTemplate = (data) => `
     <div class="editor-list-grid" style="grid-template-columns: 90px 1fr 1fr;">
