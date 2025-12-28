@@ -103,7 +103,7 @@
         .logo-img {
             max-width: 180px;
             margin-top: 1rem;
-            margin-bottom: 2rem;
+            margin-bottom: 1rem;
             filter: brightness(0) invert(1) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
         }
 
@@ -112,7 +112,7 @@
             text-transform: uppercase;
             letter-spacing: 0.15em;
             color: #aaa;
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
         }
 
         .role-name {
@@ -127,15 +127,15 @@
             font-size: 1.1rem;
             color: var(--bg-red);
             font-weight: 500;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
         }
 
         /* Main CTA Button */
         .btn-accept {
-            background: white;
-            color: black;
+            background: var(--bg-red);
+            color: white;
             border: none;
-            padding: 16px 32px;
+            padding: 16px 40px;
             border-radius: 40px;
             font-family: var(--font-display);
             font-weight: 600;
@@ -145,14 +145,17 @@
             transition: all 0.3s;
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 10px;
             text-decoration: none;
-            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+            min-width: 160px;
         }
 
         .btn-accept:hover {
             transform: scale(1.05);
-            box-shadow: 0 6px 20px rgba(255, 255, 255, 0.3);
+            background: #dc2626;
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
         }
 
         .btn-accept svg {
@@ -210,10 +213,10 @@
 
     <div class="invite-card" id="card-content">
         <img src="assets/logo_vertical.png" alt="Liquid Arts" class="logo-img"
-            style="width: 120px; margin-bottom: 1.5rem;">
+            style="width: 120px; margin-bottom: 1rem;">
 
         <div class="title" id="invite-title"
-            style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.15em; color: #aaa; margin-bottom: 2rem;">
+            style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.15em; color: #aaa; margin-bottom: 1.5rem;">
             INVITATION</div>
 
         <div class="role-name" id="display-role">Bar Owner</div>
