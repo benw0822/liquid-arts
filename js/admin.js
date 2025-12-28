@@ -1267,7 +1267,7 @@ window.loadInvitations = async () => {
                     (meta.title ? `<br><small>${meta.title}</small>` : '');
             }
 
-            let statusBadge = `<span style="background: #ffedd5; color: #9a3412; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem;">Pending</span>`;
+            let statusBadge = `<span style="background: #e0f2fe; color: #0369a1; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem;">Active</span>`;
 
             if (inv.is_used) {
                 const user = userMap[inv.used_by];
@@ -1282,6 +1282,8 @@ window.loadInvitations = async () => {
             if (inv.role === 'owner') color = '#22c55e'; // Green for owner
             else if (inv.role === 'talent') color = '#f97316'; // Orange for talent
 
+            const fullLink = `${window.location.origin}/invite.html?code=${inv.code}`;
+
             return `
             <tr style="border-bottom: 1px solid #eee;">
                 <td style="padding: 15px;">
@@ -1290,9 +1292,11 @@ window.loadInvitations = async () => {
                 <td style="padding: 15px; font-size: 0.9rem;">
                    ${details}
                 </td>
+                <td style="padding: 15px; font-size: 0.85rem;">
+                    <a href="${fullLink}" target="_blank" style="color: #666; text-decoration: underline;">${fullLink}</a>
+                </td>
                 <td style="padding: 15px;">
                     ${statusBadge}
-                    ${inv.is_used && userMap[inv.used_by] ? `<br><small style="color:#666;">Used by: ${userMap[inv.used_by].email || 'Unknown'}</small>` : ''}
                 </td>
                 <td style="padding: 15px; font-size: 0.85rem; color: #666;">
                     ${new Date(inv.created_at).toLocaleDateString()}
