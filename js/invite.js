@@ -82,8 +82,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Bar Info (If available)
             if (metadata.bar_id) {
-                // Fetch Bar Image for BG
-                const { data: bar } = await supabase.from('bars').select('title, image').eq('id', metadata.bar_id).single();
+                // Fetch Bar Image for BG and Slug for Link
+                const { data: bar } = await supabase.from('bars').select('title, image, slug').eq('id', metadata.bar_id).single();
                 if (bar) {
                     if (bar.image) {
                         // Update Inner Card BG
@@ -98,7 +98,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 // Show "View Bar" Link
                 const viewBarBtn = document.getElementById('view-bar-btn');
-                viewBarBtn.href = `bar.html?id=${metadata.bar_id}`;
+                // Prefer Slug for Clean URL, otherwise ID based Clean URL
+                if (bar && bar.slug) {
+                    viewBarBtn.href = `/${bar.slug}`;
+                } else {
+                    viewBarBtn.href = `/bar/id/${metadata.bar_id}`;
+                }
+
                 viewBarBtn.textContent = `View ${bar ? bar.title : 'Bar'}`;
                 viewBarBtn.style.display = 'inline-block';
 
