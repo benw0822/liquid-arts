@@ -112,12 +112,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // --- Dynamic Meta Tags Update (Client-Side) ---
         // Best effort for link previews that support JS, and definitely works for Browser Tab Title
-        const invitee = metadata.invitee_name || metadata.display_name || 'You';
+        const invitee = metadata.invitee_name || metadata.display_name || '您';
         const barName = displayBarName.textContent;
-        const action = data.role === 'owner' ? 'manage' : 'join';
+        // const action = data.role === 'owner' ? 'manage' : 'join';
 
-        const pageTitle = `Invitation: ${barName}`;
-        const pageDesc = `Hi ${invitee}, you have been invited to ${action} ${barName} on Liquid Arts.`;
+        let pageTitle = '';
+        let pageDesc = '';
+
+        if (data.role === 'owner') {
+            pageTitle = `Liquid Arts 邀請函：${barName}`;
+            pageDesc = `${invitee}您好，敬請您共同管理 ${barName}的公開資訊`;
+        } else {
+            pageTitle = `Liquid Arts 邀請函`;
+            pageDesc = `${invitee}您好，誠摯邀請您以調酒師身份加入 Liquid Arts。`;
+        }
 
         document.title = pageTitle;
 
