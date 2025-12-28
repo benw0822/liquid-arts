@@ -99,16 +99,16 @@
         .invite-card::before {
             content: '';
             position: absolute;
-            top: -100%;
-            left: -100%;
-            width: 300%;
-            height: 300%;
+            top: -200%;
+            left: -200%;
+            width: 500%;
+            height: 500%;
             /* Precise smooth gradient to avoid hard edges */
-            background: conic-gradient(from 180deg,
+            background: conic-gradient(from 0deg,
                     transparent 0deg,
-                    transparent 80deg,
+                    transparent 140deg,
                     rgba(239, 68, 68, 0.4) 180deg,
-                    transparent 280deg,
+                    transparent 220deg,
                     transparent 360deg);
             animation: rotate 10s linear infinite;
             /* Very slow and elegant */
@@ -117,7 +117,7 @@
             mix-blend-mode: screen;
             border-radius: 50%;
             /* Ensure it's a perfect circle effectively */
-            filter: blur(60px);
+            filter: blur(80px);
             /* Heavy blur to destroy all edges */
         }
 
