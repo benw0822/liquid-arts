@@ -37,8 +37,10 @@ export default async function handler(request) {
             }
 
             const meta = invite.metadata || {};
-            let title = 'You\'re Invited - Liquid Arts';
-            let description = 'You have received an exclusive invitation to join Liquid Arts.';
+            const meta = invite.metadata || {};
+            // Default Fallback
+            let title = 'Liquid Arts 邀請函';
+            let description = '您收到了一份 Liquid Arts 的專屬邀請，點擊查看詳情。';
             let image = 'https://liquid-arts.vercel.app/assets/logo_vertical.png';
 
             // 2. Fetch Bar Info if Owner
@@ -50,13 +52,13 @@ export default async function handler(request) {
                 const bar = barData && barData.length > 0 ? barData[0] : null;
 
                 if (bar) {
-                    title = `Invitation to Manage ${bar.title}`;
-                    description = `Hi ${meta.invitee_name || 'there'}, you are invited to manage ${bar.title} on Liquid Arts.`;
+                    title = `Liquid Arts 邀請函：${bar.title}`;
+                    description = `${meta.invitee_name || '您好'}，敬請您共同管理 ${bar.title} 的公開資訊。`;
                     if (bar.image) image = bar.image;
                 }
             } else if (invite.role === 'talent') {
-                title = `Invitation to Join Liquid Arts`;
-                description = `Hi ${meta.display_name || 'there'}, you are invited to join Liquid Arts as a Talent.`;
+                title = `Liquid Arts 邀請函`;
+                description = `${meta.display_name || '您好'}，誠摯邀請您以調酒師身份加入 Liquid Arts。`;
             }
 
             // 3. Construct HTML
