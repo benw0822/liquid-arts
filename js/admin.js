@@ -1168,7 +1168,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // Insert to DB
-            const { error } = await window.supabaseClient.from('invitations').insert([{
+            // Insert to DB
+            const { data, error } = await window.supabaseClient.from('invitations').insert([{
                 code: code,
                 role: role,
                 metadata: metadata,
