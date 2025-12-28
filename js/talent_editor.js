@@ -144,14 +144,18 @@ function renderList(containerId, items, templateFn) {
 
 function createListItem(data, index, templateFn) {
     const div = document.createElement('div');
-    div.className = 'talent-list-item';
-    div.style.cssText = 'background: #f9f9f9; padding: 10px; border-radius: 6px; position: relative; border: 1px solid #eee;';
+    // Use .editor-list-item class we defined in profile.html
+    div.className = 'editor-list-item';
+    // Let CSS handle styles, remove inline styles mostly
+    // div.style.cssText = ''; 
     div.innerHTML = templateFn(data);
 
-    // Delete Button
+    // Delete Button (Refined)
     const delBtn = document.createElement('button');
     delBtn.innerHTML = '&times;';
-    delBtn.style.cssText = 'position: absolute; top: 5px; right: 5px; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #999;';
+    delBtn.style.cssText = 'position: absolute; top: 0px; right: 0px; padding: 5px 10px; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #aaa; transition: color 0.2s; line-height: 1;';
+    delBtn.onmouseover = () => delBtn.style.color = '#ff3b30';
+    delBtn.onmouseout = () => delBtn.style.color = '#aaa';
     delBtn.onclick = function () { div.remove(); };
     div.appendChild(delBtn);
 
@@ -198,18 +202,6 @@ function getYearOptions(selectedYear) {
 function getBarOptions(selectedBarId) {
     let options = '<option value="">Select Bar...</option>';
     cachedBars.forEach(b => {
-        // If saved data stores ID, match by ID. If stores Name, we might need logic change.
-        // For robustness, let's store ID if possible, or Name if that's what backend expects.
-        // Implementation Plan said: bar_roles: JSONB: [{ bar_id, role_name }]
-        // So we should verify if data used bar_name or bar_id previously. 
-        // Previous template used "bar_name". Let's migrate to using ID primarily, or Name if custom?
-        // User request: "Select from existing bars".
-        // Let's use ID as value, Title as text.
-
-        // However, existing scrape logic used 'bar_name' key. Let's switch to 'bar_id' or keep 'bar_name' but fill with title?
-        // Ideally we store { bar_id, bar_name, role }.
-        // Let's assume we store ID in value. 
-
         const sel = (selectedBarId == b.id) ? 'selected' : '';
         options += `<option value="${b.id}" ${sel}>${b.title}</option>`;
     });
@@ -241,7 +233,6 @@ const roleItemTemplate = (data) => {
 
     let options = getBarOptions(selectedId);
 
-    // If we have a name/id-string but no ID match in current list (rare), show placeholder
     if (fallbackName && !selectedId) {
         options = options.replace(
             '<option value="">Select Bar...</option>',
@@ -250,32 +241,31 @@ const roleItemTemplate = (data) => {
     }
 
     return `
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-        <select class="hopping-input-minimal list-input-bar-id" style="margin:0; font-size: 0.9rem;">
+    <div class="editor-list-grid" style="grid-template-columns: 1fr 1fr;">
+        <select class="editor-input list-input-bar-id">
             ${options}
         </select>
-        <input type="text" class="hopping-input-minimal list-input-role" placeholder="Role (e.g. Owner)" value="${data.role || ''}" style="margin:0; font-size: 0.9rem;">
-        <!-- Hidden input for bar Name if needed for display fallback, though ID is better -->
+        <input type="text" class="editor-input list-input-role" placeholder="Role (e.g. Owner)" value="${data.role || ''}">
     </div>
 `};
 
 const expItemTemplate = (data) => `
-    <div style="display: grid; grid-template-columns: 80px 1fr 1fr; gap: 8px;">
-        <select class="hopping-input-minimal list-input-year" style="margin:0; font-size: 0.9rem; padding-right:0;">
+    <div class="editor-list-grid" style="grid-template-columns: 90px 1fr 1fr;">
+        <select class="editor-input list-input-year" style="padding-right: 5px;">
              ${getYearOptions(data.year)}
         </select>
-        <input type="text" class="hopping-input-minimal list-input-unit" placeholder="Unit (Company)" value="${data.unit || ''}" style="margin:0; font-size: 0.9rem;">
-        <input type="text" class="hopping-input-minimal list-input-title" placeholder="Title" value="${data.title || ''}" style="margin:0; font-size: 0.9rem;">
+        <input type="text" class="editor-input list-input-unit" placeholder="Unit (Company)" value="${data.unit || ''}">
+        <input type="text" class="editor-input list-input-title" placeholder="Title" value="${data.title || ''}">
     </div>
 `;
 
 const awardItemTemplate = (data) => `
-    <div style="display: grid; grid-template-columns: 80px 1fr 1fr; gap: 8px;">
-        <select class="hopping-input-minimal list-input-year" style="margin:0; font-size: 0.9rem; padding-right:0;">
+    <div class="editor-list-grid" style="grid-template-columns: 90px 1fr 1fr;">
+        <select class="editor-input list-input-year" style="padding-right: 5px;">
              ${getYearOptions(data.year)}
         </select>
-        <input type="text" class="hopping-input-minimal list-input-name" placeholder="Award Name" value="${data.name || ''}" style="margin:0; font-size: 0.9rem;">
-        <input type="text" class="hopping-input-minimal list-input-rank" placeholder="Rank/Title" value="${data.rank || ''}" style="margin:0; font-size: 0.9rem;">
+        <input type="text" class="editor-input list-input-name" placeholder="Award Name" value="${data.name || ''}">
+        <input type="text" class="editor-input list-input-rank" placeholder="Rank/Title" value="${data.rank || ''}">
     </div>
 `;
 
