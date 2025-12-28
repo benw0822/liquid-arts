@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>You're Invited - Liquid Arts</title>
+    <!-- Fonts -->
+    <link
+        href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&f[]=general-sans@400,500,600&f[]=playfair-display@400,600,700&display=swap"
+        rel="stylesheet">
+    <!-- Supabase -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --bg-red: #ef4444;
+            --font-display: 'Clash Display', sans-serif;
+            --font-main: 'General Sans', sans-serif;
+            --font-serif: 'Playfair Display', serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background: #000;
+            color: white;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Full Screen Background */
+        #body-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 1;
+            z-index: -2;
+            filter: blur(20px);
+            transform: scale(1.1);
+        }
+
+        #bg-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(239, 68, 68, 0.20);
+            z-index: -1;
+            backdrop-filter: brightness(0.6);
+        }
+
+        /* Card Wrapper to hold Card + External Text */
+        .card-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+            /* Space between card and text */
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Card Container */
+        .invite-card {
+            width: 90vw;
+            max-width: 380px;
+            /* Height auto to fit content, but min-height for presence */
+            min-height: 500px;
+            background: rgba(20, 20, 20, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-top: 4px solid var(--bg-red);
+            border-radius: 20px;
+            padding: 3rem 2rem;
+            text-align: center;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Animated Border/Glow - Ultimate Smoothness */
+        .invite-card::before {
+            content: '';
+            position: absolute;
+            top: -100%;
+            left: -100%;
+            width: 300%;
+            height: 300%;
+            /* Precise smooth gradient to avoid hard edges */
+            background: conic-gradient(from 180deg,
+                    transparent 0deg,
+                    transparent 80deg,
+                    rgba(239, 68, 68, 0.4) 180deg,
+                    transparent 280deg,
+                    transparent 360deg);
+            animation: rotate 10s linear infinite;
+            /* Very slow and elegant */
+            z-index: 1;
+            pointer-events: none;
+            mix-blend-mode: screen;
+            border-radius: 50%;
+            /* Ensure it's a perfect circle effectively */
+            filter: blur(60px);
+            /* Heavy blur to destroy all edges */
+        }
+
+        @keyframes rotate {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .logo-img {
+            max-width: 130px;
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+            filter: brightness(0) invert(1) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
+
+        .title {
+            font-family: var(--font-display);
+            /* Fixed: Match Preview */
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: #ccc;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .greeting {
+            font-family: var(--font-serif);
+            font-size: 1.8rem;
+            /* Slightly larger for elegance */
+            margin-bottom: 0.5rem;
+            line-height: 1.2;
+            font-style: italic;
+        }
+
+        .sub-headline {
+            font-size: 0.9rem;
+            /* Reduced */
+            margin-bottom: 1rem;
+            line-height: 1.4;
+            color: #ddd;
+        }
+
+        .bar-name {
+            font-family: var(--font-serif);
+            font-size: 1.8rem;
+            color: white;
+            font-weight: 400;
+            margin-bottom: 3rem;
+            line-height: 1.2;
+            max-width: 100%;
+            padding: 0 1rem;
+        }
+
+        /* External Footer Text */
+        .footer-text {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.6);
+            text-align: center;
+            line-height: 1.5;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+        }
+
+        /* Main CTA Button */
+        .btn-accept {
+            background: var(--bg-red);
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            border-radius: 40px;
+            font-family: var(--font-display);
+            font-weight: 600;
+            font-size: 1rem;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+            min-width: 160px;
+            position: relative;
+            z-index: 10;
+            /* Ensure clickable */
+        }
+    </style>
+</head>
+
+<body>
+
+    <img id="body-bg" src="assets/hero_bg.jpg">
+    <div id="bg-overlay"></div>
+
+    <div class="card-wrapper">
+        <div class="invite-card" id="card-content">
+            <!-- Inner Card Background (The Bar Image) -->
+            <img id="card-bg" src="assets/hero_bg.jpg"
+                style="position: absolute; top:0; left:0; width: 100%; height: 100%; object-fit: cover; z-index: 0; filter: brightness(0.4);">
+
+            <div style="position: relative; z-index: 2; width: 100%;">
+                <img src="assets/logo_vertical.png" alt="Liquid Arts" class="logo-img">
+
+                <div class="title" id="invite-title">INVITATION</div>
+
+                <div class="greeting" id="invite-greeting">Hi There,</div>
+                <div class="sub-headline" id="invite-subtext">You are invited to manage</div>
+                <div class="bar-name" id="display-barname">Loading...</div>
+
+                <button id="accept-btn" class="btn-accept">
+                    <span class="btn-text">ACCEPT</span>
+                    <div class="loader" id="btn-loader"></div>
+                </button>
+            </div>
+        </div>
+
+        <!-- Text moved outside -->
+        <p class="footer-text">
+            Using Google Sign In.<br>
+            Existing members will be linked automatically.
+        </p>
+    </div>
+
+    <!-- Error State -->
+    <div id="error-card" class="invite-card"
+        style="display: none; border-color: #ef4444; width: auto; min-height: auto;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">⚠️</div>
+        <h3 id="error-title" style="margin-bottom: 1rem;">Invalid Invitation</h3>
+        <p id="error-msg" style="color: #aaa; margin-bottom: 2rem;">This link may have expired or is incorrect.</p>
+        <a href="index.html" class="btn-accept"
+            style="background: #333; color: white; box-shadow: none; min-width: auto;">Go Home</a>
+    </div>
+
+    <script src="js/invite.js"></script>
+</body>
+
+</html>
