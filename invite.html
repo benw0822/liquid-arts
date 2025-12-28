@@ -37,7 +37,6 @@
         }
 
         /* Full Screen Background */
-        /* Full Screen Background */
         #body-bg {
             position: absolute;
             top: 0;
@@ -62,24 +61,33 @@
             backdrop-filter: brightness(0.6);
         }
 
-        /* Card Container */
+        /* Card Wrapper to hold Card + External Text */
+        .card-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+            /* Space between card and text */
+            position: relative;
+            z-index: 10;
+        }
+
         /* Card Container */
         .invite-card {
-            width: 90%;
+            width: 90vw;
             max-width: 380px;
+            /* Height auto to fit content, but min-height for presence */
+            min-height: 500px;
             background: rgba(20, 20, 20, 0.6);
-            /* Glassmorphism */
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            /* Standard Red Decoration: Top Border */
             border-top: 4px solid var(--bg-red);
             border-radius: 20px;
-            padding: 2rem 1.5rem;
-            /* Reduced padding */
+            padding: 3rem 2rem;
+            /* Restore comfortable padding */
             text-align: center;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-            animation: floatUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
             position: relative;
             overflow: hidden;
             display: flex;
@@ -88,8 +96,7 @@
             justify-content: center;
         }
 
-        /* Animated Border/Glow */
-        /* Animated Border/Glow */
+        /* Animated Border/Glow - Ultimate Smoothness */
         .invite-card::before {
             content: '';
             position: absolute;
@@ -97,22 +104,20 @@
             left: -100%;
             width: 300%;
             height: 300%;
-            /* Precise smooth gradient to avoid hard edges */
-            background: conic-gradient(from 180deg,
+            background: conic-gradient(from 0deg,
                     transparent 0deg,
-                    transparent 80deg,
+                    transparent 100deg,
                     rgba(239, 68, 68, 0.4) 180deg,
-                    transparent 280deg,
+                    transparent 260deg,
                     transparent 360deg);
-            animation: rotate 8s linear infinite;
-            /* Slower and more majestic */
+            animation: rotate 10s linear infinite;
+            /* Very slow and elegant */
             z-index: 1;
             pointer-events: none;
             mix-blend-mode: screen;
             border-radius: 50%;
-            /* Ensure it's a perfect circle effectively */
-            filter: blur(20px);
-            /* Additional blur to soften any remaining edges */
+            filter: blur(60px);
+            /* Heavy blur to destroy all edges */
         }
 
         @keyframes rotate {
@@ -123,61 +128,54 @@
 
         .logo-img {
             max-width: 130px;
-            /* Smaller */
             margin-top: 0;
             margin-bottom: 0.5rem;
             filter: brightness(0) invert(1) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
         }
 
         .title {
+            font-family: var(--font-display);
             font-size: 0.7rem;
             text-transform: uppercase;
             letter-spacing: 0.2em;
             color: #ccc;
-            margin-bottom: 1.5rem;
-            /* Reduced from 2rem+ */
+            margin-bottom: 2rem;
+            position: relative;
         }
 
         .greeting {
             font-family: var(--font-serif);
-            font-size: 1.5rem;
-            /* Slightly smaller */
-            margin-bottom: 0.25rem;
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
             line-height: 1.2;
             font-style: italic;
         }
 
-        .role-text {
-            font-size: 0.9rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .role-name {
-            font-family: var(--font-display);
-            font-size: 0;
-            /* Hidden, migrated to role-text/greeting flow or kept as is? */
-            /* Retaining but repurposing if needed, or hiding */
-            display: none;
-        }
-
-        /* Re-using role-text actually, let's keep it simple and clean */
         .sub-headline {
             font-size: 0.9rem;
-            margin-bottom: 1rem;
-            /* Reduced */
+            margin-bottom: 2rem;
             line-height: 1.4;
             color: #ddd;
         }
 
         .bar-name {
             font-family: var(--font-serif);
-            font-size: 1.6rem;
-            /* Reduced from 2rem */
+            font-size: 1.8rem;
             color: white;
             font-weight: 400;
-            margin-bottom: 2rem;
+            margin-bottom: 3rem;
             line-height: 1.2;
             max-width: 100%;
+            padding: 0 1rem;
+        }
+
+        /* External Footer Text */
+        .footer-text {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.6);
+            text-align: center;
+            line-height: 1.5;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
         }
 
         /* Main CTA Button */
@@ -185,12 +183,11 @@
             background: var(--bg-red);
             color: white;
             border: none;
-            padding: 14px 36px;
-            /* Slightly smaller padding */
+            padding: 16px 40px;
             border-radius: 40px;
             font-family: var(--font-display);
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 1rem;
             text-transform: uppercase;
             cursor: pointer;
             transition: all 0.3s;
@@ -200,9 +197,9 @@
             gap: 8px;
             text-decoration: none;
             box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
-            min-width: 140px;
-            margin-bottom: 0.5rem;
-            /* Ensure space from bottom */
+            min-width: 160px;
+            position: relative;
+            z-index: 10;
         }
     </style>
 </head>
@@ -212,30 +209,33 @@
     <img id="body-bg" src="assets/hero_bg.jpg">
     <div id="bg-overlay"></div>
 
-    <div class="invite-card" id="card-content">
-        <!-- Inner Card Background (The Bar Image) -->
-        <img id="card-bg" src="assets/hero_bg.jpg"
-            style="position: absolute; top:0; left:0; width: 100%; height: 100%; object-fit: cover; z-index: 0; filter: brightness(0.4);">
+    <div class="card-wrapper">
+        <div class="invite-card" id="card-content">
+            <!-- Inner Card Background (The Bar Image) -->
+            <img id="card-bg" src="assets/hero_bg.jpg"
+                style="position: absolute; top:0; left:0; width: 100%; height: 100%; object-fit: cover; z-index: 0; filter: brightness(0.4);">
 
-        <div style="position: relative; z-index: 2;">
-            <img src="assets/logo_vertical.png" alt="Liquid Arts" class="logo-img">
+            <div style="position: relative; z-index: 2; width: 100%;">
+                <img src="assets/logo_vertical.png" alt="Liquid Arts" class="logo-img">
 
-            <div class="title" id="invite-title">INVITATION</div>
+                <div class="title" id="invite-title">INVITATION</div>
 
-            <div class="greeting" id="invite-greeting">Hi There,</div>
-            <div class="sub-headline" id="invite-subtext">You are invited to manage</div>
-            <div class="bar-name" id="display-barname">Loading...</div>
+                <div class="greeting" id="invite-greeting">Hi There,</div>
+                <div class="sub-headline" id="invite-subtext">You are invited to manage</div>
+                <div class="bar-name" id="display-barname">Loading...</div>
 
-            <button id="accept-btn" class="btn-accept">
-                <span class="btn-text">ACCEPT</span>
-                <div class="loader" id="btn-loader"></div>
-            </button>
-
-            <p class="sub-text" style="font-size: 0.65rem;">
-                Using Google Sign In.<br>
-                Existing members will be linked automatically.
-            </p>
+                <button id="accept-btn" class="btn-accept">
+                    <span class="btn-text">ACCEPT</span>
+                    <div class="loader" id="btn-loader"></div>
+                </button>
+            </div>
         </div>
+
+        <!-- Text moved outside -->
+        <p class="footer-text">
+            Using Google Sign In.<br>
+            Existing members will be linked automatically.
+        </p>
     </div>
 
     <!-- Error State -->
