@@ -958,7 +958,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Invitation Generator Logic ---
     // --- 4. Invitation Generator ---
-    if (document.getElementById('view-invite')) {
+    window.initInvitationGenerator = async function () {
+        if (!document.getElementById('view-invite')) return;
+
+        console.log('Initializing Invitation Generator...');
         const roleSelect = document.getElementById('invite-role');
         const ownerFields = document.getElementById('invite-owner-fields');
         const talentFields = document.getElementById('invite-talent-fields');
