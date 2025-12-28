@@ -21,9 +21,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 1. Get Code
     const params = new URLSearchParams(window.location.search);
-    const code = params.get('code');
+    let code = params.get('code');
 
+    // Support Clean URL (/invite/CODE)
     if (!code) {
+        const pathParts = window.location.pathname.split('/');
+        // Usually /invite/CODE, so last part
+        if (pathParts.length > 0) {
+            code = pathParts[pathParts.length - 1];
+        }
+    }
+
+    if (!code || code === 'invite.html') {
         showError('Missing Invitation Code');
         return;
     }
