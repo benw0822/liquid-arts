@@ -1174,11 +1174,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 metadata: metadata,
                 expires_at: expiresAt.toISOString(),
                 created_by: (await window.supabaseClient.auth.getUser()).data.user.id
-            }]);
+            }]).select('code'); // Select the code to use it for the link
             if (error) throw error;
 
             // Success: update UI
-            const link = `${window.location.origin}/invite.html?code=${code}`;
+            const link = `${window.location.origin}/invite/${data[0].code}`;
             const linkText = document.getElementById('invite-link-text');
             const inviteResult = document.getElementById('invite-result');
 
@@ -1210,9 +1210,13 @@ window.deleteBar = async (id) => {
 };
 
 window.copyInviteLink = (code) => {
-    const url = `https://liquidarts.bar/invite.html?code=${code}`;
-    navigator.clipboard.writeText(url);
-    alert('Link copied to clipboard!');
+    // Standardize sharing link
+    const link = `${window.location.origin}/invite/${code}`;
+    navigator.clipboard.writeText(link).then(() => {
+        alert('Link copied to clipboard!');
+    }).catch(err => {
+        alert('Failed to copy: ' + err);
+    });
 };
 
 window.loadInvitations = async () => {
@@ -1283,7 +1287,8 @@ window.loadInvitations = async () => {
             if (inv.role === 'owner') color = '#22c55e'; // Green for owner
             else if (inv.role === 'talent') color = '#f97316'; // Orange for talent
 
-            const fullLink = `${window.location.origin}/invite.html?code=${inv.code}`;
+            // Updated to Clean URL for Sharing support
+            const fullLink = `${window.location.origin}/invite/${inv.code}`;
 
             return `
             <tr style="border-bottom: 1px solid #eee;">
