@@ -214,12 +214,18 @@ async function ensureBarsLoaded() {
     if (data) cachedBars = data;
 }
 
-function getYearOptions(selectedYear) {
+// --- Year Range Logic ---
+function getYearOptions(selectedYear, includeNow = false) {
     const currentYear = new Date().getFullYear();
-    // If we passed a specific year, select it
     let options = '<option value="">Year</option>';
+
+    if (includeNow) {
+        const selNow = (selectedYear === 'Now') ? 'selected' : '';
+        options += `<option value="Now" ${selNow}>Now</option>`;
+    }
+
     for (let y = currentYear; y >= 1980; y--) {
-        const sel = (selectedYear && parseInt(selectedYear) === y) ? 'selected' : '';
+        const sel = (selectedYear && (selectedYear == y || selectedYear === String(y))) ? 'selected' : '';
         options += `<option value="${y}" ${sel}>${y}</option>`;
     }
     return options;
@@ -387,7 +393,7 @@ const expItemTemplate = (data) => {
             <span style="color:#aaa;">-</span>
             <select class="editor-input year-select-end" style="padding: 12px 5px; font-size: 0.85rem; min-width: 60px;">
                  <option value="">End</option>
-                 ${getYearOptions(endYear).replace('<option value="">Year</option>', '')}
+                 ${getYearOptions(endYear, true).replace('<option value="">Year</option>', '')}
             </select>
             <input type="hidden" class="list-input-year" value="${data.year || ''}">
         </div>
