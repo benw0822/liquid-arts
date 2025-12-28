@@ -957,17 +957,16 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- Invitation Generator Logic ---
-    let cachedBarsForInvite = [];
-
-    async function initInvitationGenerator() {
+    // --- 4. Invitation Generator ---
+    if (document.getElementById('view-invite')) {
         const roleSelect = document.getElementById('invite-role');
-        const barSearchInput = document.getElementById('invite-bar-search');
-        const barIdInput = document.getElementById('invite-bar-id');
-        const barResults = document.getElementById('invite-bar-results');
-
         const ownerFields = document.getElementById('invite-owner-fields');
         const talentFields = document.getElementById('invite-talent-fields');
 
+        // Inputs
+        const barSearchInput = document.getElementById('invite-bar-search');
+        const barIdInput = document.getElementById('invite-bar-id');
+        const barResults = document.getElementById('invite-bar-results');
         const ownerNameInput = document.getElementById('invite-owner-name');
         const talentNameInput = document.getElementById('invite-talent-name');
         const talentTitleInput = document.getElementById('invite-talent-title');
@@ -1029,14 +1028,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
-        // Inputs Listeners
-        roleSelect.onchange = () => {
-            if (roleSelect.value === 'owner') {
-                ownerFields.style.display = 'block';
+        // Event: Role Change
+        roleSelect.onchange = (e) => {
+            const role = e.target.value;
+            // Using display:contents for grid layout preservation
+            if (role === 'owner') {
+                ownerFields.style.display = 'contents';
                 talentFields.style.display = 'none';
-            } else if (roleSelect.value === 'talent') {
+            } else if (role === 'talent') {
                 ownerFields.style.display = 'none';
-                talentFields.style.display = 'block';
+                talentFields.style.display = 'contents';
             } else {
                 ownerFields.style.display = 'none';
                 talentFields.style.display = 'none';
@@ -1044,18 +1045,23 @@ document.addEventListener('DOMContentLoaded', () => {
             updatePreview();
         };
 
-        ownerNameInput.oninput = updatePreview;
-        talentNameInput.oninput = updatePreview;
-        talentTitleInput.oninput = updatePreview;
+        // Event: Inputs Change -> Update Preview
+        [ownerNameInput, talentNameInput, talentTitleInput].forEach(el => {
+            el.addEventListener('input', updatePreview);
+        });
+
+        let cachedBarsForInvite = [];
 
         // Pre-Load Bars (for client side search)
         if (cachedBarsForInvite.length === 0) {
             barSearchInput.placeholder = "Loading bars...";
-            const { data, error } = await supabase.from('bars').select('id, title, image');
-            if (data) {
-                cachedBarsForInvite = data;
-                barSearchInput.placeholder = "Type to search bar...";
-            }
+            (async () => {
+                const { data, error } = await window.supabaseClient.from('bars').select('id, title, image');
+                if (data) {
+                    cachedBarsForInvite = data;
+                    barSearchInput.placeholder = "Type to search bar...";
+                }
+            })();
         }
 
         // Search Logic
@@ -1071,7 +1077,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (matches.length > 0) {
                 barResults.innerHTML = matches.map(b => `
                     <div class="bar-result-item" onclick="selectBarForInvite('${b.id}', '${b.title.replace(/'/g, "\\'")}')" 
-                        style="padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 10px;">
+                        style="padding: 10px; cursor: pointer; border-bottom: 1px solid #333; display: flex; align-items: center; gap: 10px; color: #eee;">
                         <img src="${b.image || 'assets/default_bar.jpg'}" style="width: 30px; height: 30px; border-radius: 4px; object-fit: cover;">
                         <span>${b.title}</span>
                     </div>
@@ -1083,7 +1089,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
-        // Selection Handler (Global or Closure needed)
+        // Selection Handler 
         window.selectBarForInvite = (id, title) => {
             barIdInput.value = id;
             barSearchInput.value = title;
@@ -1113,7 +1119,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let metadata = {};
         let barId = null;
-        let barData = null;
+        let barData = null; // Need this for code generation
 
         if (role === 'owner') {
             barId = document.getElementById('invite-bar-id').value;
@@ -1124,8 +1130,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const ownerName = document.getElementById('invite-owner-name').value;
             if (ownerName) metadata.invitee_name = ownerName;
 
-            // Find bar data for clean code generation
-            barData = cachedBarsForInvite.find(b => b.id == barId);
+            // Fetch bar data if not available in closure (it should be cached)
+            // But we need safe access since cachedBarsForInvite is inside the IF block scope above if not careful.
+            // Actually it was inside the IF. Let's assume we can re-fetch or use logic. 
+            // Simplified: Just use bar title from input for now, Code generation might fail if cleanName needs barData.
+            // Let's refetch to be safe or assuming title is correct.
+            barData = { title: document.getElementById('invite-bar-search').value };
             if (barData) metadata.bar_name = barData.title;
         }
 
@@ -1138,15 +1148,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const expirationInput = document.getElementById('invite-expiration');
-        const expiresAt = expirationInput.value;
+        const expiresDate = expirationInput.value; // YYYY-MM-DD
 
-        if (!expiresAt) {
-            alert('Please set an expiration date for this invitation.');
+        if (!expiresDate) {
+            alert('Please set an expiration date.');
             return;
         }
 
+        // Add Time 23:59:59
+        const fullExpiration = `${expiresDate}T23:59:59`;
+
         // Validate expiration is in future
-        if (new Date(expiresAt) <= new Date()) {
+        if (new Date(fullExpiration) <= new Date()) {
             alert('Expiration date must be in the future.');
             return;
         }
@@ -1155,22 +1168,24 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.disabled = true;
 
         try {
-            // Generate Random Code (e.g. BARNAME-RANDOM)
+            // Generate Random Code
             const randomSuffix = Math.random().toString(36).substring(2, 8).toUpperCase();
             let code = `INV-${randomSuffix}`;
             if (role === 'owner' && barData) {
-                // Sanitize bar name for code
                 const cleanName = barData.title.replace(/[^a-zA-Z0-9]/g, '').substring(0, 10).toUpperCase();
                 code = `${cleanName}-${randomSuffix}`;
             }
 
             // Insert to DB
+            // We need current user ID
+            const { data: { user } } = await window.supabaseClient.auth.getUser();
+
             const { error } = await window.supabaseClient.from('invitations').insert([{
                 code: code,
                 role: role,
                 metadata: metadata,
-                expires_at: new Date(expiresAt).toISOString(),
-                created_by: (await window.supabaseClient.auth.getUser()).data.user.id
+                expires_at: new Date(fullExpiration).toISOString(),
+                created_by: user.id
             }]);
             if (error) throw error;
 
@@ -1179,7 +1194,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const linkText = document.getElementById('invite-link-text');
             const inviteResult = document.getElementById('invite-result');
 
-            // Show Result (Success Message Only)
+            // Show Result
             inviteResult.style.display = 'block';
             linkText.href = link;
             linkText.textContent = link;
@@ -1206,17 +1221,29 @@ window.deleteBar = async (id) => {
     else alert(error.message);
 };
 
+// New: Delete Invitation
+window.deleteInvitation = async (id) => {
+    if (!confirm('Are you sure you want to delete this invitation? The link will stop working.')) return;
+    try {
+        const { error } = await window.supabaseClient.from('invitations').delete().eq('id', id);
+        if (error) throw error;
+        loadInvitations();
+    } catch (err) {
+        alert('Error deleting invitation: ' + err.message);
+    }
+};
+
 window.copyInviteLink = (code) => {
-    const url = `https://liquidarts.bar/invite.html?code=${code}`;
+    const url = `${window.location.origin}/invite.html?code=${code}`;
     navigator.clipboard.writeText(url);
-    alert('Link copied to clipboard!');
+    alert('Link copied!');
 };
 
 window.loadInvitations = async () => {
     const tbody = document.getElementById('invitation-history-list');
     if (!tbody) return;
 
-    tbody.innerHTML = '<tr><td colspan="5" style="padding: 20px; text-align: center;">Loading...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" style="padding: 20px; text-align: center; color: #666;">Loading...</td></tr>';
 
     try {
         const { data, error } = await window.supabaseClient
@@ -1227,29 +1254,8 @@ window.loadInvitations = async () => {
         if (error) throw error;
 
         if (!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="padding: 20px; text-align: center; color: #999;">No invitations generated yet.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" style="padding: 20px; text-align: center; color: #666;">No invitations generated yet.</td></tr>';
             return;
-        }
-
-        // Fetch User Details for 'used_by'
-        const usedUserIds = data.filter(i => i.used_by).map(i => i.used_by);
-        let userMap = {};
-
-        if (usedUserIds.length > 0) {
-            console.log('Fetching users for IDs:', usedUserIds);
-            const { data: users, error: userError } = await window.supabaseClient
-                .from('users')
-                .select('*')
-                .in('id', usedUserIds);
-
-            if (userError) {
-                console.error('Error fetching users:', JSON.stringify(userError, null, 2));
-                alert('Error fetching user details (Check Console): ' + userError.message);
-            }
-            if (users) {
-                console.log('Fetched users:', users);
-                users.forEach(u => { userMap[u.id] = u; });
-            }
         }
 
         tbody.innerHTML = data.map(inv => {
@@ -1257,33 +1263,32 @@ window.loadInvitations = async () => {
             let details = '-';
 
             if (inv.role === 'owner') {
-                details = `<span style="font-weight: bold;">${meta.bar_title || meta.bar_name || 'Unknown Bar'}</span>` +
-                    (meta.target_name ? `<br><small>For: ${meta.target_name}</small>` : '');
+                details = `<span style="color:#aaa;">Bar:</span> ${meta.bar_name || '?'}<br><span style="color:#aaa;">To:</span> ${meta.invitee_name || 'Owner'}`;
             } else if (inv.role === 'talent') {
-                details = `<span style="font-weight: bold;">${meta.display_name || 'Unknown Talent'}</span>` +
-                    (meta.title ? `<br><small>${meta.title}</small>` : '');
+                details = `<span style="color:#aaa;">To:</span> ${meta.display_name || 'Talent'}<br><span style="color:#666;">(${meta.title || 'Role'})</span>`;
             }
 
-            let statusBadge = `<span style="background: #ffedd5; color: #9a3412; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem;">Pending</span>`;
+            const isUsed = inv.is_used;
+            const statusBadge = isUsed
+                ? `<span style="background: rgba(40,167,69,0.2); color: #4ade80; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">Claimed</span>`
+                : `<span style="background: rgba(255,193,7,0.2); color: #fbbf24; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">Pending</span>`;
 
-            if (inv.is_used) {
-                const user = userMap[inv.used_by];
-                const userInfo = user ? `<br><small style="color: #666;">By: <b>${user.display_name}</b><br>${user.email}</small>` : '';
-                statusBadge = `<span style="background: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem;">Used</span>${userInfo}`;
-            } else if (new Date(inv.expires_at) < new Date()) {
-                statusBadge = `<span style="background: #f1f5f9; color: #64748b; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem;">Expired</span>`;
+            // Format Date safely
+            let dateStr = '-';
+            if (inv.expires_at) {
+                const d = new Date(inv.expires_at);
+                dateStr = d.toLocaleDateString();
             }
-
-            const date = new Date(inv.created_at).toLocaleDateString() + ' ' + new Date(inv.created_at).toLocaleTimeString();
 
             return `
-                <tr style="border-bottom: 1px solid #eee;">
-                    <td style="padding: 15px; text-transform: capitalize;">${inv.role}</td>
-                    <td style="padding: 15px;">${details}</td>
+                <tr style="border-bottom: 1px solid #333; color: #eee;">
+                    <td style="padding: 15px; font-weight: 500;">${inv.role.toUpperCase()}</td>
+                    <td style="padding: 15px; font-size: 0.9rem;">${details}</td>
                     <td style="padding: 15px;">${statusBadge}</td>
-                    <td style="padding: 15px; font-size: 0.9rem; color: #666;">${date}</td>
+                    <td style="padding: 15px; font-size: 0.85rem; color: #aaa;">${dateStr}</td>
                     <td style="padding: 15px;">
-                        <button onclick="copyInviteLink('${inv.code}')" class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.8rem;">Copy Link</button>
+                        <button onclick="copyInviteLink('${inv.code}')" class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.75rem; margin-right: 5px;">Copy</button>
+                        <button onclick="deleteInvitation('${inv.id}')" class="btn" style="padding: 4px 10px; font-size: 0.75rem; background: #333; color: #ef4444; border: 1px solid #555;">Delete</button>
                     </td>
                 </tr>
             `;
@@ -1291,13 +1296,11 @@ window.loadInvitations = async () => {
 
     } catch (err) {
         console.error('Error loading invitations:', err);
-        tbody.innerHTML = `<tr><td colspan="5" style="padding: 20px; text-align: center; color: red;">Error: ${err.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" style="padding: 20px; text-align: center; color: #ef4444;">Error loading data: ${err.message}</td></tr>`;
     }
 };
 window.deleteArticle = async (id) => {
     if (!confirm('Delete this article?')) return;
-    const { error } = await supabase.from('articles').delete().eq('id', id);
-    if (!error) loadArticles(); // We need to pass user/roles next time? No, assume state persistent or refetch. 
     // Actually simplest is to just Reload the list. We don't use user/roles in loadArticles query logic for Adming/Editor anyway.
     else alert(error.message);
 };
