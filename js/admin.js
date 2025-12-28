@@ -976,7 +976,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const emptyState = document.getElementById('invite-empty-state');
         const previewContainer = document.getElementById('invite-preview-container');
         const previewBg = document.getElementById('card-preview-bg');
-        const previewText = document.getElementById('card-preview-text');
+        const previewGreeting = document.getElementById('card-preview-greeting');
+        const previewSubtext = document.getElementById('card-preview-subtext');
         const previewName = document.getElementById('card-preview-barname');
         const previewHeader = document.getElementById('card-preview-header');
 
@@ -996,10 +997,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     const name = ownerNameInput.value.trim();
                     if (name) {
-                        previewText.innerHTML = `Hi <span style="color:white; font-weight:bold;">${name}</span>,<br>You are invited to manage`;
+                        previewGreeting.textContent = `Hi ${name},`;
                     } else {
-                        previewText.innerHTML = `You are invited to become a<br>Bar Owner`;
+                        previewGreeting.textContent = `Hi There,`;
                     }
+                    previewSubtext.textContent = `You are invited to manage`;
 
                     // Bar Name Logic
                     const bId = barIdInput.value;
@@ -1012,11 +1014,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 } else if (role === 'talent') {
                     if (previewHeader) previewHeader.textContent = 'TALENT INVITE';
-                    const tName = talentNameInput.value.trim() || 'Talent Name';
+                    const tName = talentNameInput.value.trim() || 'Talent';
                     const tTitle = talentTitleInput.value.trim() || 'Bartender';
 
-                    previewText.innerHTML = `You are invited to join`;
-                    previewName.innerHTML = `${tName}<br><span style="font-size: 1rem; color: #ccc;">${tTitle}</span>`;
+                    previewGreeting.textContent = `Hi ${tName},`;
+                    previewSubtext.innerHTML = `You are invited to join as<br><span style="color: #ef4444;">${tTitle}</span>`;
+                    previewName.textContent = 'Liquid Arts Family';
 
                     if (previewBg) previewBg.src = 'assets/hero_bg.jpg';
                 }

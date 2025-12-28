@@ -56,38 +56,43 @@ document.addEventListener('DOMContentLoaded', async () => {
         const metadata = data.metadata || {};
 
         // Dynamic Title (Greeting)
+        const greetingEl = document.getElementById('invite-greeting');
+        const subtextEl = document.getElementById('invite-subtext');
+
         if (metadata.invitee_name) {
-            document.getElementById('invite-title').textContent = `Hi, ${metadata.invitee_name}`;
+            greetingEl.textContent = `Hi ${metadata.invitee_name},`;
         } else if (metadata.display_name && data.role === 'talent') {
-            document.getElementById('invite-title').textContent = `Hi, ${metadata.display_name}`;
+            greetingEl.textContent = `Hi ${metadata.display_name},`;
+        } else {
+            greetingEl.textContent = 'Welcome,';
         }
 
-        // Bar Info (If available)
-        if (metadata.bar_id) {
-            // Fetch Bar Image for BG
-            const { data: bar } = await supabase.from('bars').select('title, image').eq('id', metadata.bar_id).single();
-            if (bar) {
-                if (bar.image) {
-                    bgImage.src = bar.image;
-                    // Preload check? Let browser handle it
+        // Subtext & Bar Info
+        if (data.role === 'owner') {
+            subtextEl.textContent = 'You are invited to manage';
+
+            // Bar Info
+            if (metadata.bar_id) {
+                const { data: bar } = await supabase.from('bars').select('title, image').eq('id', metadata.bar_id).single();
+                if (bar) {
+                    if (bar.image) bgImage.src = bar.image;
+                    displayBarName.textContent = bar.title;
+                } else {
+                    displayBarName.textContent = metadata.bar_name || 'Liquid Arts';
                 }
-                displayBarName.textContent = bar.title;
             } else {
-                displayBarName.textContent = metadata.bar_name || 'Liquid Arts';
+                displayBarName.textContent = 'Liquid Arts Platform';
+            }
+
+        } else if (data.role === 'talent') {
+            subtextEl.textContent = 'You are invited to join';
+            displayBarName.textContent = 'Liquid Arts Family'; // or specific bar context if talent is linked to bar? 
+            if (metadata.title) {
+                subtextEl.innerHTML = `You are invited to join as<br><span style="color:#ef4444">${metadata.title}</span>`;
             }
         } else {
-            displayBarName.textContent = 'Liquid Arts Platform'; // Generic
-        }
-
-        // Role Text
-        if (data.role === 'owner') {
-            displayRole.textContent = 'Bar Owner';
-        } else if (data.role === 'talent') {
-            displayRole.textContent = metadata.title || 'Talent Member';
-            if (metadata.title) displayRole.style.fontSize = '1.5rem'; // Adjust if long title
-            displayBarName.textContent = 'Liquid Arts Family'; // Or keep it generic
-        } else {
-            displayRole.textContent = 'Member';
+            subtextEl.textContent = 'You are invited to join';
+            displayBarName.textContent = 'Liquid Arts';
         }
     }
 
