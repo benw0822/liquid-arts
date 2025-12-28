@@ -71,17 +71,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (data.role === 'owner') {
             subtextEl.textContent = 'You are invited to manage';
 
-            // Bar Info
+            // Bar Info (If available)
             if (metadata.bar_id) {
+                // Fetch Bar Image for BG
                 const { data: bar } = await supabase.from('bars').select('title, image').eq('id', metadata.bar_id).single();
                 if (bar) {
-                    if (bar.image) bgImage.src = bar.image;
+                    if (bar.image) {
+                        // Update Inner Card BG
+                        document.getElementById('card-bg').src = bar.image;
+                        // Optional: Update Body BG for ambience
+                        document.getElementById('body-bg').src = bar.image;
+                    }
                     displayBarName.textContent = bar.title;
                 } else {
                     displayBarName.textContent = metadata.bar_name || 'Liquid Arts';
                 }
             } else {
-                displayBarName.textContent = 'Liquid Arts Platform';
+                displayBarName.textContent = 'Liquid Arts Platform'; // Generic
             }
 
         } else if (data.role === 'talent') {

@@ -1260,8 +1260,9 @@ window.loadInvitations = async () => {
             let details = '-';
 
             if (inv.role === 'owner') {
+                const invitee = meta.invitee_name ? `<br><span style="color: #444;">Invitee: <b>${meta.invitee_name}</b></span>` : '';
                 details = `<span style="font-weight: bold;">${meta.bar_title || meta.bar_name || 'Unknown Bar'}</span>` +
-                    (meta.target_name ? `<br><small>For: ${meta.target_name}</small>` : '');
+                    invitee;
             } else if (inv.role === 'talent') {
                 details = `<span style="font-weight: bold;">${meta.display_name || 'Unknown Talent'}</span>` +
                     (meta.title ? `<br><small>${meta.title}</small>` : '');

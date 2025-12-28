@@ -194,27 +194,34 @@
 
 <body>
 
-    <img id="bg-image" src="assets/hero_bg.jpg">
+    <img id="body-bg" src="assets/hero_bg.jpg"
+        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.1; filter: blur(20px); z-index: -2;">
     <div id="bg-overlay"></div>
 
     <div class="invite-card" id="card-content">
-        <img src="assets/logo_vertical.png" alt="Liquid Arts" class="logo-img">
+        <!-- Inner Card Background (The Bar Image) -->
+        <img id="card-bg" src="assets/hero_bg.jpg"
+            style="position: absolute; top:0; left:0; width: 100%; height: 100%; object-fit: cover; z-index: 0; filter: brightness(0.4);">
 
-        <div class="title" id="invite-title">INVITATION</div>
+        <div style="position: relative; z-index: 2;">
+            <img src="assets/logo_vertical.png" alt="Liquid Arts" class="logo-img">
 
-        <div class="greeting" id="invite-greeting">Hi There,</div>
-        <div class="sub-headline" id="invite-subtext">You are invited to manage</div>
-        <div class="bar-name" id="display-barname">Loading...</div>
+            <div class="title" id="invite-title">INVITATION</div>
 
-        <button id="accept-btn" class="btn-accept">
-            <span class="btn-text">ACCEPT</span>
-            <div class="loader" id="btn-loader"></div>
-        </button>
+            <div class="greeting" id="invite-greeting">Hi There,</div>
+            <div class="sub-headline" id="invite-subtext">You are invited to manage</div>
+            <div class="bar-name" id="display-barname">Loading...</div>
 
-        <p class="sub-text">
-            Using Google Sign In.<br>
-            Existing members will be linked automatically.
-        </p>
+            <button id="accept-btn" class="btn-accept">
+                <span class="btn-text">ACCEPT</span>
+                <div class="loader" id="btn-loader"></div>
+            </button>
+
+            <p class="sub-text" style="font-size: 0.65rem;">
+                Using Google Sign In.<br>
+                Existing members will be linked automatically.
+            </p>
+        </div>
     </div>
 
     <!-- Error State -->
