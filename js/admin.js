@@ -1178,8 +1178,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (error) throw error;
 
             // Success: update UI
-            // Use Clean URL for Dynamic Previews
-            const link = `${window.location.origin}/invite?code=${code}`;
+            const link = `${window.location.origin}/invite.html?code=${code}`;
             const linkText = document.getElementById('invite-link-text');
             const inviteResult = document.getElementById('invite-result');
 
@@ -1211,8 +1210,7 @@ window.deleteBar = async (id) => {
 };
 
 window.copyInviteLink = (code) => {
-    // Ensure copy also uses clean URL
-    const url = `https://liquidarts.bar/invite?code=${code}`;
+    const url = `https://liquidarts.bar/invite.html?code=${code}`;
     navigator.clipboard.writeText(url);
     alert('Link copied to clipboard!');
 };
