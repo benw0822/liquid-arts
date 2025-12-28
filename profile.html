@@ -388,6 +388,47 @@
                         text-align: center;
                         color: #999;
                     }
+
+                    /* Searchable Dropdown Styling */
+                    .bar-search-container {
+                        position: relative;
+                        width: 100%;
+                    }
+
+                    .search-results-dropdown {
+                        position: absolute;
+                        top: 100%;
+                        left: 0;
+                        width: 100%;
+                        max-height: 200px;
+                        overflow-y: auto;
+                        background: white;
+                        border: 1px solid #ddd;
+                        border-radius: 6px;
+                        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                        z-index: 1000;
+                        margin-top: 5px;
+                        display: none;
+                    }
+
+                    .search-result-item {
+                        padding: 10px 15px;
+                        cursor: pointer;
+                        font-size: 0.95rem;
+                        color: #333;
+                        border-bottom: 1px solid #f5f5f5;
+                        transition: background 0.1s;
+                    }
+
+                    .search-result-item:last-child {
+                        border-bottom: none;
+                    }
+
+                    .search-result-item:hover,
+                    .search-result-item.highlight {
+                        background: #f0f0f0;
+                        color: #9c100f;
+                    }
                 </style>
 
                 <!-- Talent Editor Modal (Refined) -->

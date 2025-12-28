@@ -146,8 +146,6 @@ function createListItem(data, index, templateFn) {
     const div = document.createElement('div');
     // Use .editor-list-item class we defined in profile.html
     div.className = 'editor-list-item';
-    // Let CSS handle styles, remove inline styles mostly
-    // div.style.cssText = ''; 
     div.innerHTML = templateFn(data);
 
     // Delete Button (Refined)
@@ -158,6 +156,27 @@ function createListItem(data, index, templateFn) {
     delBtn.onmouseout = () => delBtn.style.color = '#aaa';
     delBtn.onclick = function () { div.remove(); };
     div.appendChild(delBtn);
+
+    // Initialize Search Logic if this item has a bar search container
+    const searchContainer = div.querySelector('.bar-search-container');
+    if (searchContainer) {
+        // Extract initial values if needed, but template usually provided basic HTML value attrs.
+        // We just need to attach listeners.
+        // We can pass data to setupBarSearch if needed, but easier to just attach.
+        // However, setupBarSearch expects initialId passed to set things up? 
+        // No, template already rendered value="" in inputs. 
+        // We just need to attach listeners. 
+        // Let's modify setupBarSearch to read current values if not passed args.
+        // OR better: pass the data object to createListItem? We have 'data'.
+
+        // Wait, setupBarSearch logic above: "if (initialId) { hiddenId.value = initialId; ... }"
+        // If template already set attributes, we just need to attach events.
+        // Check setupBarSearch I just wrote... it DOES expect initial params to populate input. 
+        // But template ALREADY populates `input value` and `hidden value`.
+        // So setupBarSearch just needs to attach events.
+        // Let's verify setupBarSearch again or re-write it to be safer.
+        setupBarSearch(searchContainer);
+    }
 
     return div;
 }
@@ -208,43 +227,105 @@ function getBarOptions(selectedBarId) {
     return options;
 }
 
+// --- Searchable Bar Logic ---
+function setupBarSearch(container, initialId, initialName) {
+    const input = container.querySelector('.list-input-bar-search');
+    const hiddenId = container.querySelector('.list-input-bar-id');
+    const results = container.querySelector('.search-results-dropdown');
+
+    // Set initial values
+    if (initialName) input.value = initialName; // If we have a fallback name
+    // Ideally we look up ID -> Title
+    if (initialId) {
+        hiddenId.value = initialId;
+        const match = cachedBars.find(b => b.id == initialId);
+        if (match) input.value = match.title;
+        else if (initialName) input.value = initialName; // fallback if ID not found but name exists
+        else input.value = ''; // ID exists but no match? Rare.
+    }
+
+    // Input Handler
+    input.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase().trim();
+        // Clear ID on modification to ensure we only save valid selections (or handle custom logic if needed)
+        // Check if current input matches the stored ID's title exactly? 
+        // For now, if user types, we reset ID unless they re-select. 
+        // OR: we allow custom text (no ID). 
+        // Let's assume strict selection for "Affiliation" is best, but if they want custom text?
+        // Let's clear ID if text changes.
+        hiddenId.value = '';
+
+        if (query.length < 1) {
+            results.style.display = 'none';
+            return;
+        }
+
+        const matches = cachedBars.filter(b => b.title.toLowerCase().includes(query));
+        if (matches.length > 0) {
+            results.innerHTML = matches.map(b =>
+                `<div class="search-result-item" data-id="${b.id}" data-title="${b.title}">${b.title}</div>`
+            ).join('');
+            results.style.display = 'block';
+
+            // Add Click Handlers
+            const items = results.querySelectorAll('.search-result-item');
+            items.forEach(item => {
+                item.addEventListener('click', () => {
+                    input.value = item.getAttribute('data-title');
+                    hiddenId.value = item.getAttribute('data-id');
+                    results.style.display = 'none';
+                });
+            });
+        } else {
+            results.style.display = 'none';
+        }
+    });
+
+    // Close on blur (delayed)
+    input.addEventListener('blur', () => {
+        setTimeout(() => results.style.display = 'none', 200);
+    });
+
+    // Show all on focus? Optional.
+    input.addEventListener('focus', () => {
+        if (input.value.trim() === '') {
+            // Show top 10?
+            // results.innerHTML = cachedBars.slice(0, 5).map(...)
+        }
+    });
+}
 
 const roleItemTemplate = (data) => {
-    // Legacy support: resolve bar_name to bar_id if id is missing
+    // Legacy support logic same as before to determine initial ID/Name
     let selectedId = data.bar_id;
-    let fallbackName = null;
+    let displayName = data.bar_name || '';
 
-    if (!selectedId && data.bar_name && cachedBars.length > 0) {
-        // Case 1: Previous logic saved ID into 'bar_name' field (most likely)
-        const matchById = cachedBars.find(b => b.id == data.bar_name);
+    if (!selectedId && displayName && cachedBars.length > 0) {
+        const matchById = cachedBars.find(b => b.id == displayName);
         if (matchById) {
             selectedId = matchById.id;
+            displayName = matchById.title;
         } else {
-            // Case 2: 'bar_name' is actually the name/title
-            const matchByTitle = cachedBars.find(b => b.title === data.bar_name);
+            const matchByTitle = cachedBars.find(b => b.title === displayName);
             if (matchByTitle) {
                 selectedId = matchByTitle.id;
-            } else {
-                // Case 3: No match found, use as label
-                fallbackName = data.bar_name;
+                displayName = matchByTitle.title;
             }
         }
     }
 
-    let options = getBarOptions(selectedId);
-
-    if (fallbackName && !selectedId) {
-        options = options.replace(
-            '<option value="">Select Bar...</option>',
-            `<option value="" selected disabled>Saved: ${fallbackName}</option>`
-        );
-    }
+    // We render markup then init JS after append.
+    // We attach data attributes to the container for the init function to read? 
+    // Or we just return HTML and rely on `createListItem` to not know about init, 
+    // and we handle init by selecting the LAST child appended.
 
     return `
     <div class="editor-list-grid" style="grid-template-columns: 1fr 1fr;">
-        <select class="editor-input list-input-bar-id">
-            ${options}
-        </select>
+        <div class="bar-search-container">
+            <input type="text" class="editor-input list-input-bar-search" placeholder="Search Bar..." value="${displayName.replace(/"/g, '&quot;')}" autocomplete="off">
+            <input type="hidden" class="list-input-bar-id" value="${selectedId || ''}">
+            <div class="search-results-dropdown"></div>
+        </div>
         <input type="text" class="editor-input list-input-role" placeholder="Role (e.g. Owner)" value="${data.role || ''}">
     </div>
 `};
