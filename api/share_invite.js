@@ -37,7 +37,6 @@ export default async function handler(request) {
             }
 
             const meta = invite.metadata || {};
-            const meta = invite.metadata || {};
             // Default Fallback
             let title = 'Liquid Arts 邀請函';
             let description = '您收到了一份 Liquid Arts 的專屬邀請，點擊查看詳情。';
