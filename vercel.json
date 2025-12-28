@@ -15,6 +15,10 @@
         {
             "source": "/:slug",
             "destination": "/api/slug_router?slug=:slug"
+        },
+        {
+            "source": "/invite",
+            "destination": "/api/serve_invite"
         }
     ],
     "headers": [
