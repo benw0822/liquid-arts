@@ -112,5 +112,17 @@ export default async function handler(request) {
     // Redirect is safer for consistency with existing JS logic.
 
     // Let's redirect humans to the classic URL format to ensure JS works.
-    return Response.redirect(`https://liquidarts.bar/invite.html?code=${code}`, 302);
+    // --- HUMAN LOGIC ---
+    // Rewrite (Proxy) to invite.html so functionality works but URL remains clean
+    try {
+        const appUrl = new URL('/invite.html', request.url);
+        const appRes = await fetch(appUrl);
+
+        return new Response(appRes.body, {
+            status: appRes.status,
+            headers: appRes.headers
+        });
+    } catch (err) {
+        return new Response('Error loading app: ' + err.message, { status: 500 });
+    }
 }

@@ -4,11 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>You're Invited - Liquid Arts</title>
+    <title>Liquid Arts 邀請函</title>
     <!-- Default Meta Tags (Fallback for LINE/FB Static Crawlers) -->
-    <meta property="og:title" content="You're Invited - Liquid Arts">
-    <meta property="og:description"
-        content="You have received an exclusive invitation to join Liquid Arts. Tap to view details.">
+    <meta property="og:title" content="Liquid Arts 邀請函">
+    <meta property="og:description" content="您收到了一份 Liquid Arts 的專屬邀請，點擊查看詳情。">
     <meta property="og:image" content="https://liquidarts.bar/assets/logo_vertical.png">
     <meta property="og:type" content="website">
 
@@ -215,22 +214,29 @@
             /* Ensure clickable */
         }
 
+        /* Updated Buttons: Red, Vertical, Full Width */
         .nav-link-sub {
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 0.8rem;
+            color: white;
+            font-size: 0.9rem;
             text-decoration: none;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            padding: 8px 16px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 40px;
             transition: all 0.2s;
+            background: var(--bg-red);
+            font-weight: 500;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+            width: 100%;
+            /* Full width in column */
+            max-width: 320px;
         }
 
         .nav-link-sub:hover {
-            color: white;
-            border-color: rgba(255, 255, 255, 0.5);
-            background: rgba(255, 255, 255, 0.05);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
         }
     </style>
 </head>
@@ -268,9 +274,10 @@
             Existing members will be linked automatically.
         </p>
 
-        <!-- New External Nav Buttons -->
-        <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
-            <a href="index.html" class="nav-link-sub">Liquid Arts</a>
+        <!-- New External Nav Buttons: Vertical Stack -->
+        <div
+            style="display: flex; flex-direction: column; gap: 1rem; margin-top: 0.5rem; width: 100%; align-items: center;">
+            <a href="index.html" class="nav-link-sub">Liquid Arts - 亞洲酒吧文化社群</a>
             <a href="#" id="view-bar-btn" class="nav-link-sub" style="display: none;">View Bar</a>
         </div>
     </div>
