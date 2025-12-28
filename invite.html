@@ -97,11 +97,22 @@
             left: -100%;
             width: 300%;
             height: 300%;
-            background: conic-gradient(transparent, transparent, rgba(239, 68, 68, 0.3), transparent, transparent);
-            animation: rotate 6s linear infinite;
+            /* Precise smooth gradient to avoid hard edges */
+            background: conic-gradient(from 180deg,
+                    transparent 0deg,
+                    transparent 80deg,
+                    rgba(239, 68, 68, 0.4) 180deg,
+                    transparent 280deg,
+                    transparent 360deg);
+            animation: rotate 8s linear infinite;
+            /* Slower and more majestic */
             z-index: 1;
             pointer-events: none;
             mix-blend-mode: screen;
+            border-radius: 50%;
+            /* Ensure it's a perfect circle effectively */
+            filter: blur(20px);
+            /* Additional blur to soften any remaining edges */
         }
 
         @keyframes rotate {
