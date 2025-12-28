@@ -95,6 +95,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 } else {
                     displayBarName.textContent = metadata.bar_name || 'Liquid Arts';
                 }
+
+                // Show "View Bar" Link
+                const viewBarBtn = document.getElementById('view-bar-btn');
+                viewBarBtn.href = `bar.html?id=${metadata.bar_id}`;
+                viewBarBtn.textContent = `View ${bar ? bar.title : 'Bar'}`;
+                viewBarBtn.style.display = 'inline-block';
+
             } else {
                 displayBarName.textContent = 'Liquid Arts Platform'; // Generic
             }
