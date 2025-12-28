@@ -1306,7 +1306,7 @@ window.loadInvitations = async () => {
                      <!-- Actions -->
                      <button onclick="copyInviteLink('${inv.code}')" class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.75rem;">Copy</button>
                      ${!inv.is_used ? `
-                     <button onclick="deleteInvitation('${inv.id}')" style="background: none; border: 1px solid #ef4444; color: #ef4444; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; margin-left: 5px;">Delete</button>
+                     <button onclick="deleteInvitation('${inv.code}')" style="background: none; border: 1px solid #ef4444; color: #ef4444; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; margin-left: 5px;">Delete</button>
                      ` : ''}
                 </td>
             </tr>
@@ -1319,14 +1319,14 @@ window.loadInvitations = async () => {
     }
 };
 
-window.deleteInvitation = async (id) => {
+window.deleteInvitation = async (code) => {
     if (!confirm('Are you sure you want to delete this invitation? The link will no longer work.')) return;
 
     try {
         const { error } = await window.supabaseClient
             .from('invitations')
             .delete()
-            .eq('id', id);
+            .eq('code', code);
 
         if (error) throw error;
 
