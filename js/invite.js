@@ -113,6 +113,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
         } else if (data.role === 'talent') {
+            document.getElementById('invite-title').textContent = 'TALENT INVITATION';
             subtextEl.innerHTML = '誠摯邀請您加入 Liquid Arts'; // Plain text or HTML
             displayBarName.textContent = '共同打造亞洲酒吧文化社群';
 
