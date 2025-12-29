@@ -969,8 +969,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const talentFields = document.getElementById('invite-talent-fields');
 
         const ownerNameInput = document.getElementById('invite-owner-name');
-        const talentNameInput = document.getElementById('invite-talent-name');
-        const talentTitleInput = document.getElementById('invite-talent-title');
+        const talentNameInput = document.getElementById('invite-talent-displayname'); // FIXED ID
+        const talentTitleInput = document.getElementById('invite-talent-role'); // FIXED ID
 
         // Preview Elements
         const emptyState = document.getElementById('invite-empty-state');
@@ -1015,11 +1015,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else if (role === 'talent') {
                     if (previewHeader) previewHeader.textContent = 'TALENT INVITE';
                     const tName = talentNameInput.value.trim() || 'Talent';
-                    const tTitle = talentTitleInput.value.trim() || 'Bartender';
+                    const tRole = talentTitleInput.value.trim() || 'Mixologist';
 
-                    previewGreeting.textContent = `Hi ${tName},`;
-                    previewSubtext.innerHTML = `You are invited to join as<br><span style="color: #ef4444;">${tTitle}</span>`;
-                    previewName.textContent = 'Liquid Arts Family';
+                    previewGreeting.textContent = `${tName} 您好，`;
+                    previewSubtext.innerHTML = `邀請您加入`;
+                    previewName.textContent = '亞洲酒吧文化社群';
 
                     if (previewBg) previewBg.src = 'assets/hero_bg.jpg';
                 }
@@ -1130,10 +1130,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (role === 'talent') {
-            const name = document.getElementById('invite-talent-name').value;
+            const name = document.getElementById('invite-talent-displayname').value;
             if (name) metadata.display_name = name;
 
-            const title = document.getElementById('invite-talent-title').value;
+            const title = document.getElementById('invite-talent-role').value;
             if (title) metadata.title = title;
         }
 

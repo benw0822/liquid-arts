@@ -113,11 +113,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
         } else if (data.role === 'talent') {
-            subtextEl.textContent = 'You are invited to join';
-            displayBarName.textContent = 'Liquid Arts Family'; // or specific bar context if talent is linked to bar? 
-            if (metadata.title) {
-                subtextEl.innerHTML = `You are invited to join as<br><span style="color:#ef4444">${metadata.title}</span>`;
-            }
+            subtextEl.innerHTML = '邀請您加入'; // Plain text or HTML
+            displayBarName.textContent = '亞洲酒吧文化社群';
         } else {
             subtextEl.textContent = 'You are invited to join';
             displayBarName.textContent = 'Liquid Arts';
@@ -137,7 +134,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             pageDesc = `${invitee}您好，敬請您共同管理 ${barName}的公開資訊`;
         } else {
             pageTitle = `Liquid Arts 邀請函`;
-            pageDesc = `${invitee}您好，誠摯邀請您以調酒師身份加入 Liquid Arts。`;
+            pageDesc = `${invitee}您好，誠摯邀請您以 Talent 身份加入 Liquid Arts 亞洲酒吧文化社群。`;
         }
 
         document.title = pageTitle;
