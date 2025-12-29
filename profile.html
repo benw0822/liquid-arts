@@ -85,7 +85,7 @@
 
                     <!-- Cover Image -->
                     <div class="profile-cover">
-                        <img id="profile-cover-img" src="assets/hero_bg.jpg" alt="Cover">
+                        <img id="profile-cover-img" src="assets/profile_cover_default.png" alt="Cover">
                     </div>
 
                     <!-- Identity (Overlapping) -->
@@ -1056,10 +1056,12 @@
             // --- Logout Logic ---
             const logoutBtn = document.getElementById('logout-btn');
             if (logoutBtn) {
-                // Force higher Z-index
-                logoutBtn.style.position = 'relative';
-                logoutBtn.style.zIndex = '100';
-                logoutBtn.style.cursor = 'pointer';
+                // Force styling to match Admin button
+                logoutBtn.className = 'btn';
+                logoutBtn.style.cssText = 'background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 4px 12px; font-size: 0.75rem; border-radius: 20px; backdrop-filter: blur(4px); text-decoration: none; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s; height: 26px; box-sizing: border-box; position: relative; z-index: 100;';
+
+                logoutBtn.onmouseover = () => { logoutBtn.style.background = 'rgba(255,255,255,0.3)'; };
+                logoutBtn.onmouseout = () => { logoutBtn.style.background = 'rgba(255,255,255,0.2)'; };
 
                 logoutBtn.addEventListener('click', async () => {
                     console.log('Logout Clicked');
@@ -1109,7 +1111,8 @@
 
                         btn.className = 'btn';
                         // Style for Top Overlay (Glassy/Minimal)
-                        btn.style.cssText = 'background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 4px 12px; font-size: 0.75rem; border-radius: 20px; backdrop-filter: blur(4px); text-decoration: none; display: inline-block; cursor: pointer; transition: background 0.2s;';
+                        // Style for Top Overlay (Glassy/Minimal)
+                        btn.style.cssText = 'background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 4px 12px; font-size: 0.75rem; border-radius: 20px; backdrop-filter: blur(4px); text-decoration: none; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s; height: 26px; box-sizing: border-box;';
 
                         btn.onmouseover = () => { btn.style.background = 'rgba(255,255,255,0.3)'; };
                         btn.onmouseout = () => { btn.style.background = 'rgba(255,255,255,0.2)'; };
