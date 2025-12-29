@@ -1022,13 +1022,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
                 } else if (role === 'talent') {
-                    if (previewHeader) previewHeader.textContent = 'TALENT INVITE';
+                    if (previewHeader) previewHeader.textContent = 'TALENT INVITATION';
                     const tName = talentNameInput.value.trim() || 'Talent';
                     const tRole = talentTitleInput.value.trim() || 'Mixologist';
 
                     previewGreeting.textContent = `${tName} 您好，`;
                     previewSubtext.innerHTML = `誠摯邀請您加入 Liquid Arts`;
-                    previewName.textContent = '亞洲酒吧文化社群';
+                    previewName.textContent = '共同打造亞洲酒吧文化社群';
 
                     if (previewBg) previewBg.src = '/assets/talent_invite_bg.png';
 
