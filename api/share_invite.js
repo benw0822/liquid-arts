@@ -58,6 +58,7 @@ export default async function handler(request) {
             } else if (invite.role === 'talent') {
                 title = `TALENT INVITATION`;
                 description = `${meta.display_name || '您好'}，誠摯邀請您加入 Liquid Arts，共同打造亞洲酒吧文化社群。`;
+                image = 'https://liquid-arts.vercel.app/assets/talent_invite_bg.png';
             }
 
             // 3. Construct HTML
