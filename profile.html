@@ -60,6 +60,29 @@
 
                 <!-- Profile Header (Magazine Style) -->
                 <div class="profile-header-wrapper">
+                    <!-- Top Overlay Controls (Account, Admin, Logout) -->
+                    <div class="profile-top-overlay"
+                        style="position: absolute; top: 0; left: 0; width: 100%; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 20; background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);">
+
+                        <!-- Left: Account Mini -->
+                        <div style="display: flex; align-items: center; gap: 10px; color: white;">
+                            <img id="account-avatar-mini" src="" alt="Avatar"
+                                style="width: 32px; height: 32px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.5);">
+                            <div style="font-size: 0.85rem; font-weight: 500; text-shadow: 0 1px 3px rgba(0,0,0,0.5);">
+                                <span id="account-name-mini">User</span>
+                            </div>
+                        </div>
+
+                        <!-- Right: Actions -->
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span id="admin-action-container"></span>
+                            <button id="logout-btn" class="btn"
+                                style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 4px 12px; font-size: 0.75rem; border-radius: 20px; backdrop-filter: blur(4px);">
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- Cover Image -->
                     <div class="profile-cover">
                         <img id="profile-cover-img" src="assets/hero_bg.jpg" alt="Cover">
@@ -541,38 +564,7 @@
                     </div>
                 </div>
 
-                <!-- Account / Settings Section -->
-                <div
-                    style="background: var(--bg-secondary); padding: 1rem 1.5rem; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 2rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
-                    <div style="display: flex; align-items: center; gap: 1rem;">
-                        <img id="account-avatar" src="" alt="Avatar"
-                            style="width: 40px; height: 40px; border-radius: 50%; opacity: 0.8;">
-                        <div>
-                            <div id="account-name"
-                                style="font-weight: 600; color: var(--text-primary); font-size: 0.95rem;">User Name
-                            </div>
-                            <div id="account-email" style="font-size: 0.85rem; color: var(--text-secondary);">
-                                user@example.com</div>
-                        </div>
-                    </div>
-
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <!-- Admin Button Container -->
-                        <span id="admin-action-container"></span>
-
-                        <button id="logout-btn" class="btn"
-                            style="background: transparent; border: 1px solid var(--border-color); color: var(--text-primary); padding: 6px 16px; font-size: 0.8rem;">Logout</button>
-                    </div>
-
-                    <!-- Talent Button (Injected by JS) -->
-                    <div id="talent-action-container"
-                        style="width: 100%; display: flex; justify-content: flex-end; display: none;">
-                        <button onclick="window.openTalentEditor()" class="btn"
-                            style="background: #1b1b1b; color: white; padding: 8px 20px; font-size: 0.9rem;">
-                            Edit Talent Profile
-                        </button>
-                    </div>
-                </div>
+                <!-- Account Settings Moved to Header Overlay -->
 
                 <!-- Messages Removed (Moved to msg.html) -->
 
@@ -706,10 +698,10 @@
                     talentBtn.style.display = 'inline-flex';
                 }
 
-                // Account Info (Bottom Section - Keep as fallback)
-                document.getElementById('account-email').textContent = user.email;
-                document.getElementById('account-name').textContent = user.user_metadata.full_name || 'User';
-                if (user.user_metadata.avatar_url) document.getElementById('account-avatar').src = user.user_metadata.avatar_url;
+                // Account Info (Top Overlay)
+                // document.getElementById('account-email').textContent = user.email; // Removed from UI
+                document.getElementById('account-name-mini').textContent = user.user_metadata.full_name || 'User';
+                if (user.user_metadata.avatar_url) document.getElementById('account-avatar-mini').src = user.user_metadata.avatar_url;
             };
 
             await renderProfileHeader();
@@ -1116,8 +1108,12 @@
                         }
 
                         btn.className = 'btn';
-                        // Style specifically to ensure visibility
-                        btn.style.cssText = 'background: #333; color: white; padding: 6px 16px; font-size: 0.8rem; text-decoration: none; display: inline-block; cursor: pointer; position: relative; z-index: 100;';
+                        // Style for Top Overlay (Glassy/Minimal)
+                        btn.style.cssText = 'background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 4px 12px; font-size: 0.75rem; border-radius: 20px; backdrop-filter: blur(4px); text-decoration: none; display: inline-block; cursor: pointer; transition: background 0.2s;';
+
+                        btn.onmouseover = () => { btn.style.background = 'rgba(255,255,255,0.3)'; };
+                        btn.onmouseout = () => { btn.style.background = 'rgba(255,255,255,0.2)'; };
+
                         container.appendChild(btn);
                     }
                 }
