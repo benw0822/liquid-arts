@@ -507,17 +507,20 @@ window.saveTalentProfile = async () => {
         const fileName = `talent_${targetUserId}_${Date.now()}.jpg`;
         const { data: uploadData, error: uploadError } = await window.supabaseClient
             .storage
-            .from('avatars') // Reusing avatars bucket
-            .upload(fileName, talentBlob);
+            .from('hopper_cards') // Switch to known working bucket
+            .upload(fileName, talentBlob, {
+                cacheControl: '3600',
+                upsert: true
+            });
 
         if (uploadError) {
             console.error('Upload error:', uploadError);
-            return alert('Image upload failed');
+            return alert('Image upload failed: ' + uploadError.message);
         }
 
         const { data: { publicUrl } } = window.supabaseClient
             .storage
-            .from('avatars')
+            .from('hopper_cards')
             .getPublicUrl(fileName);
         imageUrl = publicUrl;
     }
