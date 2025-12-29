@@ -538,6 +538,7 @@ window.saveTalentProfile = async () => {
 
     // 3. Upsert Talent Data
     // We rely on RLS to allow if Admin/Editor or Self
+    const query = window.supabaseClient.from('talents');
     const { error } = await query.upsert(payload, { onConflict: 'user_id' });
 
     if (error) {
