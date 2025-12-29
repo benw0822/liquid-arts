@@ -693,8 +693,16 @@
 
                 // Role Check for Button
                 const roles = userData?.roles || [];
-                // If admin, editor, or talent role, show button
-                if (roles.includes('admin') || roles.includes('editor') || roles.includes('talent')) {
+                // If talent role, show Talent button AND hide Hopper button
+                if (roles.includes('talent')) {
+                    talentBtn.style.display = 'inline-flex';
+                    // Hide generic Edit Profile button for Talents
+                    document.querySelector('.btn-profile-action[onclick="window.openHopperEditor()"]').style.display = 'none';
+                } else if (roles.includes('admin') || roles.includes('editor')) {
+                    // Admin/Editor who are NOT Talent can still see Talent button (to create one?)
+                    // Or usually they edit themselves. Let's keep it visible but they keep Hopper button too?
+                    // Original logic: "if (roles.includes('admin') || ...)" showed it.
+                    // Let's stick to: If Talent, hide Hopper button.
                     talentBtn.style.display = 'inline-flex';
                 }
 

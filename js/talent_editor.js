@@ -536,12 +536,7 @@ window.saveTalentProfile = async () => {
 
     console.log('Saving Talent Payload:', payload);
 
-    // 3. Upsert
-    // Note: If ID exists, we update. But since table is 1-to-1 with user_id, upsert on user_id conflict is also fine if we set constraint.
-    // However, our table PK is ID. Let's try upserting by match user_id logic or just use ID if we have it.
-
-    let query = window.supabaseClient.from('talents');
-
+    // 3. Upsert Talent Data
     // We rely on RLS to allow if Admin/Editor or Self
     const { error } = await query.upsert(payload, { onConflict: 'user_id' });
 
@@ -549,7 +544,31 @@ window.saveTalentProfile = async () => {
         console.error('Save error:', error);
         alert('Failed to save profile: ' + error.message);
     } else {
-        alert('Talent Profile Saved!');
+        // 4. SYNC IDENTITY to Users Table
+        // Sync display_name -> hopper_nickname
+        // Sync image_url -> hopper_image_url
+        try {
+            const userUpdates = {
+                hopper_nickname: payload.display_name,
+                hopper_image_url: payload.image_url
+            };
+            const { error: syncError } = await window.supabaseClient
+                .from('users')
+                .update(userUpdates)
+                .eq('id', targetUserId);
+
+            if (syncError) {
+                console.warn('Identity Sync Warning:', syncError);
+                // Non-blocking warning, talent data is saved
+            } else {
+                console.log('Identity Synced to Hopper Profile');
+            }
+        } catch (syncErr) {
+            console.warn('Identity Sync Failed:', syncErr);
+        }
+
+        alert('Talent Profile Saved & Identity Synced!');
         window.closeTalentEditor();
+        location.reload(); // Refresh to show unified changes
     }
 };
