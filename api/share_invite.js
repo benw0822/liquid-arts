@@ -56,8 +56,8 @@ export default async function handler(request) {
                     if (bar.image) image = bar.image;
                 }
             } else if (invite.role === 'talent') {
-                title = `Liquid Arts 邀請函`;
-                description = `${meta.display_name || '您好'}，誠摯邀請您以調酒師身份加入 Liquid Arts。`;
+                title = `TALENT INVITATION`;
+                description = `${meta.display_name || '您好'}，誠摯邀請您加入 Liquid Arts，共同打造亞洲酒吧文化社群。`;
             }
 
             // 3. Construct HTML

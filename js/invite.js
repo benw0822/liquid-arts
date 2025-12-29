@@ -148,8 +148,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             pageTitle = `Liquid Arts 邀請函：${barName}`;
             pageDesc = `${invitee}您好，敬請您共同管理 ${barName}的公開資訊`;
         } else {
-            pageTitle = `Liquid Arts 邀請函`;
-            pageDesc = `${invitee}您好，誠摯邀請您以 Talent 身份加入 Liquid Arts 亞洲酒吧文化社群。`;
+            pageTitle = `TALENT INVITATION`;
+            pageDesc = `${invitee}您好，誠摯邀請您加入 Liquid Arts，共同打造亞洲酒吧文化社群。`;
         }
 
         document.title = pageTitle;
