@@ -1018,10 +1018,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     const tRole = talentTitleInput.value.trim() || 'Mixologist';
 
                     previewGreeting.textContent = `${tName} 您好，`;
-                    previewSubtext.innerHTML = `邀請您加入`;
+                    previewSubtext.innerHTML = `誠摯邀請您加入 Liquid Arts`;
                     previewName.textContent = '亞洲酒吧文化社群';
 
-                    if (previewBg) previewBg.src = 'assets/hero_bg.jpg';
+                    if (previewBg) previewBg.src = '/assets/talent_invite_bg.png';
                 }
             } else {
                 emptyState.style.display = 'block';

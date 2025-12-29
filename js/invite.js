@@ -113,8 +113,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
         } else if (data.role === 'talent') {
-            subtextEl.innerHTML = '邀請您加入'; // Plain text or HTML
+            subtextEl.innerHTML = '誠摯邀請您加入 Liquid Arts'; // Plain text or HTML
             displayBarName.textContent = '亞洲酒吧文化社群';
+
+            // Set Talent Specific BG
+            const talentBg = '/assets/talent_invite_bg.png';
+            document.getElementById('card-bg').src = talentBg;
+            document.getElementById('body-bg').src = talentBg;
         } else {
             subtextEl.textContent = 'You are invited to join';
             displayBarName.textContent = 'Liquid Arts';
