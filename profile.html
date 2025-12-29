@@ -1143,14 +1143,26 @@
                         .single();
 
                     if (data) {
-                        // Display
-                        document.getElementById('hopper-nickname').textContent = data.hopper_nickname || user.user_metadata.full_name || 'Hopper';
-                        document.getElementById('hopper-bio').textContent = data.hopper_bio ? `"${data.hopper_bio}"` : '"Join the hop."';
-                        document.getElementById('hopper-level-display').textContent = data.hopper_level || 1;
-                        if (data.hopper_image_url) {
-                            document.getElementById('hopper-img').src = data.hopper_image_url;
-                        } else if (user.user_metadata.avatar_url) {
-                            document.getElementById('hopper-img').src = user.user_metadata.avatar_url;
+                        // Display - NEW IDs
+                        const nameEl = document.getElementById('profile-name-display');
+                        const quoteEl = document.getElementById('profile-quote-display');
+                        const avatarEl = document.getElementById('profile-avatar-display');
+                        const headerWrapper = document.querySelector('.profile-header-wrapper');
+
+                        // Update Text
+                        if (nameEl) nameEl.textContent = data.hopper_nickname || user.user_metadata.full_name || 'Hopper';
+                        if (quoteEl) quoteEl.textContent = data.hopper_bio || '"Join the hop."';
+
+                        // Store Level data in wrapper (hidden) for editor
+                        if (headerWrapper) headerWrapper.setAttribute('data-hopper-level', data.hopper_level || 1);
+
+                        // Update Avatar
+                        if (avatarEl) {
+                            if (data.hopper_image_url) {
+                                avatarEl.src = data.hopper_image_url;
+                            } else if (user.user_metadata.avatar_url) {
+                                avatarEl.src = user.user_metadata.avatar_url;
+                            }
                         }
                     }
                 } catch (e) {
@@ -1162,10 +1174,18 @@
             fetchHopperData();
 
             window.openHopperEditor = async () => {
-                const nick = document.getElementById('hopper-nickname').textContent;
-                const bio = document.getElementById('hopper-bio').textContent.replace(/"/g, ''); // content has quotes
-                const level = document.getElementById('hopper-level-display').textContent;
-                const img = document.getElementById('hopper-img').src;
+                const nameEl = document.getElementById('profile-name-display');
+                const quoteEl = document.getElementById('profile-quote-display');
+                const avatarEl = document.getElementById('profile-avatar-display');
+                const headerWrapper = document.querySelector('.profile-header-wrapper');
+
+                const nick = nameEl ? nameEl.textContent : '';
+                // Remove quotes for editing if present
+                let bio = quoteEl ? quoteEl.textContent : '';
+                bio = bio.replace(/^"|"$/g, '');
+
+                const level = headerWrapper ? (headerWrapper.getAttribute('data-hopper-level') || 1) : 1;
+                const img = avatarEl ? avatarEl.src : '';
 
                 // Set values
                 document.getElementById('edit-hopper-nickname').value = nick;
@@ -1175,16 +1195,16 @@
 
                 // Reset Preview (Stylish version)
                 const preview = document.getElementById('hopper-preview');
-                const placeholder = document.getElementById('hopper-placeholder');
 
-                preview.src = img;
-                // placeholder.style.display = 'none'; // Removed placeholder element logic
+                if (preview) preview.src = img;
 
                 // Hide Crop UI
-                document.getElementById('hopper-crop-container').style.display = 'none';
+                const cropContainer = document.getElementById('hopper-crop-container');
+                if (cropContainer) cropContainer.style.display = 'none';
                 hopperBlob = null;
 
-                document.getElementById('hopper-modal').style.display = 'flex'; // Flex for centering
+                const modal = document.getElementById('hopper-modal');
+                if (modal) modal.style.display = 'flex';
             };
 
             window.handleHopperFile = (input) => {

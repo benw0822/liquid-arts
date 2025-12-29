@@ -40,28 +40,57 @@ async function checkTalentEligibility() {
 
 // Modified to accept userId (optional). If null, defaults to current user.
 window.openTalentEditor = async (userId = null) => {
-    const modal = document.getElementById('talent-modal');
-    if (!modal) return console.error('Talent Modal not found');
+    console.log('openTalentEditor called', userId);
+    try {
+        const modal = document.getElementById('talent-modal');
+        if (!modal) {
+            alert('Error: Talent Modal not found in DOM');
+            return;
+        }
 
-    // Ensure Bars Loaded
-    await ensureBarsLoaded();
+        // Ensure Bars Loaded (Non-blocking or safe)
+        try {
+            await ensureBarsLoaded();
+        } catch (barErr) {
+            console.warn('Failed to load bars:', barErr);
+            // Continue anyway, dropdowns might be empty
+        }
 
-    modal.style.display = 'flex';
+        modal.style.display = 'flex';
 
-    if (userId) {
-        targetUserId = userId;
-    } else {
-        const user = window.currentUser || (await window.supabaseClient.auth.getUser()).data.user;
-        targetUserId = user ? user.id : null;
+        if (userId) {
+            targetUserId = userId;
+        } else {
+            // Safe User Fetch
+            const user = window.currentUser;
+            if (user) {
+                targetUserId = user.id;
+            } else {
+                const { data, error } = await window.supabaseClient.auth.getUser();
+                if (error || !data?.user) {
+                    console.error('Auth check failed:', error);
+                    alert('Please log in to edit profile.');
+                    window.closeTalentEditor();
+                    return;
+                }
+                targetUserId = data.user.id;
+                window.currentUser = data.user; // Cache it
+            }
+        }
+
+        if (!targetUserId) {
+            alert('User identification failed.');
+            window.closeTalentEditor();
+            return;
+        }
+
+        // Fetch existing data
+        await loadTalentData();
+
+    } catch (err) {
+        console.error('Fatal error in openTalentEditor:', err);
+        alert('System Error: ' + err.message);
     }
-
-    if (!targetUserId) {
-        alert('User not identified');
-        return window.closeTalentEditor();
-    }
-
-    // Fetch existing data
-    await loadTalentData();
 };
 
 window.closeTalentEditor = () => {
