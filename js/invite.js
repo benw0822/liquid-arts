@@ -116,10 +116,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             subtextEl.innerHTML = '誠摯邀請您加入 Liquid Arts'; // Plain text or HTML
             displayBarName.textContent = '亞洲酒吧文化社群';
 
-            // Set Talent Specific BG
+            // Set Talent Specific BG & Styles
             const talentBg = '/assets/talent_invite_bg.png';
-            document.getElementById('card-bg').src = talentBg;
+            const cardBgEl = document.getElementById('card-bg');
+            const cardContentEl = document.getElementById('card-content');
+
+            cardBgEl.src = talentBg;
             document.getElementById('body-bg').src = talentBg;
+
+            // Apply Red Theme for Talent
+            cardBgEl.style.opacity = '0.15';
+            cardBgEl.style.filter = 'none';
+            cardContentEl.style.background = '#9c100f'; // Solid Red
+            cardContentEl.style.borderTopColor = 'rgba(255,255,255,0.3)';
         } else {
             subtextEl.textContent = 'You are invited to join';
             displayBarName.textContent = 'Liquid Arts';

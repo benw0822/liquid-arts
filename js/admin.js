@@ -1012,6 +1012,15 @@ document.addEventListener('DOMContentLoaded', () => {
                         previewName.textContent = "Bar Name";
                     }
 
+                    // Style Reset for Owner
+                    const previewCard = document.getElementById('invite-card-preview');
+                    if (previewCard) previewCard.style.background = '#222';
+                    if (previewBg) {
+                        previewBg.style.opacity = '1';
+                        previewBg.style.filter = 'brightness(0.4)';
+                    }
+
+
                 } else if (role === 'talent') {
                     if (previewHeader) previewHeader.textContent = 'TALENT INVITE';
                     const tName = talentNameInput.value.trim() || 'Talent';
@@ -1022,6 +1031,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     previewName.textContent = '亞洲酒吧文化社群';
 
                     if (previewBg) previewBg.src = '/assets/talent_invite_bg.png';
+
+                    // Style adjustments for Talent (Red Card, Subtle BG)
+                    const previewCard = document.getElementById('invite-card-preview');
+                    if (previewCard) previewCard.style.background = '#9c100f';
+                    if (previewBg) {
+                        previewBg.style.opacity = '0.15'; // Subtle texture
+                        previewBg.style.filter = 'none'; // distinct lines
+                    }
                 }
             } else {
                 emptyState.style.display = 'block';
