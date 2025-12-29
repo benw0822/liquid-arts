@@ -1072,9 +1072,14 @@
                         // Style specifically to ensure visibility
                         btn.style.cssText = 'background: #333; color: white; padding: 6px 16px; font-size: 0.8rem; text-decoration: none; display: inline-block; cursor: pointer; position: relative; z-index: 100;';
                         container.appendChild(btn);
-                    } else {
-                        console.warn('Admin Container not found');
                     }
+                }
+
+                // Talent Check
+                const isTalent = roles.includes('talent');
+                if (isTalent) {
+                    const talentContainer = document.getElementById('talent-action-container');
+                    if (talentContainer) talentContainer.style.display = 'flex';
                 }
             };
             checkAdmin();
