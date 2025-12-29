@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         } else if (data.role === 'talent') {
             subtextEl.innerHTML = '誠摯邀請您加入 Liquid Arts'; // Plain text or HTML
-            displayBarName.textContent = '亞洲酒吧文化社群';
+            displayBarName.textContent = '共同打造亞洲酒吧文化社群';
 
             // Set Talent Specific BG & Styles
             const talentBg = '/assets/talent_invite_bg.png';
