@@ -554,7 +554,8 @@ window.saveTalentProfile = async () => {
         try {
             const userUpdates = {
                 hopper_nickname: payload.display_name,
-                hopper_image_url: payload.image_url
+                hopper_image_url: payload.image_url,
+                hopper_bio: payload.quote // Sync Quote to Bio
             };
             const { error: syncError } = await window.supabaseClient
                 .from('users')
