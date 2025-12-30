@@ -748,7 +748,11 @@
                                     expList.appendChild(div);
                                 });
                             } else {
-                                expList.innerHTML = '<p style="color:#999; font-style:italic;">No experience listed.</p>';
+                                expList.innerHTML = `
+                                    <div style="border: 1px dashed #ccc; border-radius: 8px; padding: 1.5rem; text-align: center; background: #f9f9f9; color: #888;">
+                                        <div style="font-size: 0.9rem;">No experience added yet.</div>
+                                    </div>
+                                `;
                             }
                         }
 
@@ -766,7 +770,11 @@
                                     awardList.appendChild(div);
                                 });
                             } else {
-                                awardList.innerHTML = '<p style="color:#999; font-style:italic;">No awards listed.</p>';
+                                awardList.innerHTML = `
+                                    <div style="border: 1px dashed #ccc; border-radius: 8px; padding: 1.5rem; text-align: center; background: #f9f9f9; color: #888;">
+                                        <div style="font-size: 0.9rem;">No awards added yet.</div>
+                                    </div>
+                                `;
                             }
                         }
                     }
