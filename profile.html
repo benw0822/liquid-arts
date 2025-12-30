@@ -575,10 +575,10 @@
                     <!-- Bio / Description -->
                     <div style="margin-bottom: 2rem; text-align: center;">
                         <h3
-                            style="font-family: 'Playfair Display', serif; font-size: 1.5rem; margin-bottom: 1rem; color: #1b1b1b;">
+                            style="font-family: 'Playfair Display', serif; font-size: 1.5rem; margin-bottom: 1rem; color: var(--text-primary);">
                             About</h3>
                         <p id="talent-bio-display"
-                            style="font-family: 'Inter', sans-serif; font-size: 1rem; line-height: 1.6; color: #555; white-space: pre-line;">
+                            style="font-family: 'Inter', sans-serif; font-size: 1rem; line-height: 1.6; color: var(--text-secondary); white-space: pre-line;">
                         </p>
                     </div>
 
@@ -588,7 +588,7 @@
                         <!-- Experience -->
                         <div id="talent-exp-section">
                             <h4
-                                style="font-family: 'Playfair Display', serif; font-size: 1.25rem; border-bottom: 2px solid #ef4444; padding-bottom: 0.5rem; margin-bottom: 1rem; color: #1b1b1b; display: inline-block;">
+                                style="font-family: 'Playfair Display', serif; font-size: 1.25rem; border-bottom: 2px solid #ef4444; padding-bottom: 0.5rem; margin-bottom: 1rem; color: var(--text-primary); display: inline-block;">
                                 Experience</h4>
                             <div id="talent-exp-list-display" style="display: flex; flex-direction: column; gap: 1rem;">
                                 <!-- Dynamic Items -->
@@ -598,7 +598,7 @@
                         <!-- Awards -->
                         <div id="talent-awards-section">
                             <h4
-                                style="font-family: 'Playfair Display', serif; font-size: 1.25rem; border-bottom: 2px solid #ef4444; padding-bottom: 0.5rem; margin-bottom: 1rem; color: #1b1b1b; display: inline-block;">
+                                style="font-family: 'Playfair Display', serif; font-size: 1.25rem; border-bottom: 2px solid #ef4444; padding-bottom: 0.5rem; margin-bottom: 1rem; color: var(--text-primary); display: inline-block;">
                                 Awards</h4>
                             <div id="talent-awards-list-display"
                                 style="display: flex; flex-direction: column; gap: 1rem;">
@@ -742,14 +742,14 @@
                                 talentData.experiences.forEach(exp => {
                                     const div = document.createElement('div');
                                     div.innerHTML = `
-                                        <div style="font-weight: 600; font-size: 1rem; color: #333;">${exp.title || 'Role'}</div>
-                                        <div style="font-size: 0.9rem; color: #666;">${exp.unit || 'Company'} <span style="color:#ccc;">|</span> <span style="color:#999;">${exp.year || ''}</span></div>
+                                        <div style="font-weight: 600; font-size: 1rem; color: var(--text-primary);">${exp.title || 'Role'}</div>
+                                        <div style="font-size: 0.9rem; color: var(--text-secondary);">${exp.unit || 'Company'} <span style="color:rgba(255,255,255,0.3);">|</span> <span style="color:rgba(255,255,255,0.5);">${exp.year || ''}</span></div>
                                     `;
                                     expList.appendChild(div);
                                 });
                             } else {
                                 expList.innerHTML = `
-                                    <div style="border: 1px dashed #ccc; border-radius: 8px; padding: 1.5rem; text-align: center; background: #f9f9f9; color: #888;">
+                                    <div style="border: 1px dashed var(--border-color); border-radius: 8px; padding: 1.5rem; text-align: center; background: rgba(255,255,255,0.05); color: var(--text-secondary);">
                                         <div style="font-size: 0.9rem;">No experience added yet.</div>
                                     </div>
                                 `;
@@ -764,14 +764,14 @@
                                 talentData.awards.forEach(aw => {
                                     const div = document.createElement('div');
                                     div.innerHTML = `
-                                        <div style="font-weight: 600; font-size: 1rem; color: #333;">${aw.rank || 'Winner'}</div>
-                                        <div style="font-size: 0.9rem; color: #666;">${aw.name || 'Award Name'} <span style="color:#ccc;">|</span> <span style="color:#999;">${aw.year || ''}</span></div>
+                                        <div style="font-weight: 600; font-size: 1rem; color: var(--text-primary);">${aw.rank || 'Winner'}</div>
+                                        <div style="font-size: 0.9rem; color: var(--text-secondary);">${aw.name || 'Award Name'} <span style="color:rgba(255,255,255,0.3);">|</span> <span style="color:rgba(255,255,255,0.5);">${aw.year || ''}</span></div>
                                     `;
                                     awardList.appendChild(div);
                                 });
                             } else {
                                 awardList.innerHTML = `
-                                    <div style="border: 1px dashed #ccc; border-radius: 8px; padding: 1.5rem; text-align: center; background: #f9f9f9; color: #888;">
+                                    <div style="border: 1px dashed var(--border-color); border-radius: 8px; padding: 1.5rem; text-align: center; background: rgba(255,255,255,0.05); color: var(--text-secondary);">
                                         <div style="font-size: 0.9rem;">No awards added yet.</div>
                                     </div>
                                 `;
