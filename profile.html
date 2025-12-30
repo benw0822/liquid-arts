@@ -568,6 +568,46 @@
 
                 <!-- Messages Removed (Moved to msg.html) -->
 
+                <!-- TALENT DETAILS SECTION (Hidden by default, shown for Talents) -->
+                <div id="talent-details-container"
+                    style="display: none; padding: 2rem 1rem; max-width: 800px; margin: 0 auto;">
+
+                    <!-- Bio / Description -->
+                    <div style="margin-bottom: 2rem; text-align: center;">
+                        <h3
+                            style="font-family: 'Playfair Display', serif; font-size: 1.5rem; margin-bottom: 1rem; color: #1b1b1b;">
+                            About</h3>
+                        <p id="talent-bio-display"
+                            style="font-family: 'Inter', sans-serif; font-size: 1rem; line-height: 1.6; color: #555; white-space: pre-line;">
+                        </p>
+                    </div>
+
+                    <!-- Grid for Experience & Awards -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+
+                        <!-- Experience -->
+                        <div id="talent-exp-section">
+                            <h4
+                                style="font-family: 'Playfair Display', serif; font-size: 1.25rem; border-bottom: 2px solid #ef4444; padding-bottom: 0.5rem; margin-bottom: 1rem; color: #1b1b1b; display: inline-block;">
+                                Experience</h4>
+                            <div id="talent-exp-list-display" style="display: flex; flex-direction: column; gap: 1rem;">
+                                <!-- Dynamic Items -->
+                            </div>
+                        </div>
+
+                        <!-- Awards -->
+                        <div id="talent-awards-section">
+                            <h4
+                                style="font-family: 'Playfair Display', serif; font-size: 1.25rem; border-bottom: 2px solid #ef4444; padding-bottom: 0.5rem; margin-bottom: 1rem; color: #1b1b1b; display: inline-block;">
+                                Awards</h4>
+                            <div id="talent-awards-list-display"
+                                style="display: flex; flex-direction: column; gap: 1rem;">
+                                <!-- Dynamic Items -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Filter Navigation -->
                 <div class="profile-filter-nav">
                     <button class="filter-tab active" data-filter="bar">BAR</button>
@@ -677,18 +717,70 @@
                 const talentBtn = document.getElementById('talent-edit-btn');
 
                 // Determine Identity
+                // Determine Identity
                 if (talentData) {
                     nameEl.textContent = talentData.display_name || userData.hopper_nickname || user.user_metadata.full_name;
                     quoteEl.textContent = talentData.quote || talentData.description || "Liquid Arts Talent";
                     if (talentData.image_url) avatarEl.src = talentData.image_url;
                     // Talent Badge or styling?
                     nameEl.innerHTML += ` <span style="font-size: 1rem; color: var(--bg-red); vertical-align: middle;">✦</span>`;
+
+                    // --- SHOW TALENT DETAILS SECTION ---
+                    const detailsContainer = document.getElementById('talent-details-container');
+                    if (detailsContainer) {
+                        detailsContainer.style.display = 'block';
+
+                        // 1. Bio
+                        const bioEl = document.getElementById('talent-bio-display');
+                        if (bioEl) bioEl.textContent = talentData.description || "No biography provided yet.";
+
+                        // 2. Experience
+                        const expList = document.getElementById('talent-exp-list-display');
+                        if (expList) {
+                            expList.innerHTML = '';
+                            if (talentData.experiences && talentData.experiences.length > 0) {
+                                talentData.experiences.forEach(exp => {
+                                    const div = document.createElement('div');
+                                    div.innerHTML = `
+                                        <div style="font-weight: 600; font-size: 1rem; color: #333;">${exp.title || 'Role'}</div>
+                                        <div style="font-size: 0.9rem; color: #666;">${exp.unit || 'Company'} <span style="color:#ccc;">|</span> <span style="color:#999;">${exp.year || ''}</span></div>
+                                    `;
+                                    expList.appendChild(div);
+                                });
+                            } else {
+                                expList.innerHTML = '<p style="color:#999; font-style:italic;">No experience listed.</p>';
+                            }
+                        }
+
+                        // 3. Awards
+                        const awardList = document.getElementById('talent-awards-list-display');
+                        if (awardList) {
+                            awardList.innerHTML = '';
+                            if (talentData.awards && talentData.awards.length > 0) {
+                                talentData.awards.forEach(aw => {
+                                    const div = document.createElement('div');
+                                    div.innerHTML = `
+                                        <div style="font-weight: 600; font-size: 1rem; color: #333;">${aw.rank || 'Winner'}</div>
+                                        <div style="font-size: 0.9rem; color: #666;">${aw.name || 'Award Name'} <span style="color:#ccc;">|</span> <span style="color:#999;">${aw.year || ''}</span></div>
+                                    `;
+                                    awardList.appendChild(div);
+                                });
+                            } else {
+                                awardList.innerHTML = '<p style="color:#999; font-style:italic;">No awards listed.</p>';
+                            }
+                        }
+                    }
+
                 } else {
                     // Standard Hopper
                     nameEl.textContent = userData?.hopper_nickname || user.user_metadata.full_name || 'Hopper';
                     quoteEl.textContent = userData?.hopper_bio || '"Join the hop."';
                     if (userData?.hopper_image_url) avatarEl.src = userData.hopper_image_url;
                     else if (user.user_metadata.avatar_url) avatarEl.src = user.user_metadata.avatar_url;
+
+                    // Hide Talent Details
+                    const detailsContainer = document.getElementById('talent-details-container');
+                    if (detailsContainer) detailsContainer.style.display = 'none';
                 }
 
                 // Role Check for Button
