@@ -157,6 +157,15 @@ async function loadTalentData() {
         renderList('talent-exp-list', [], expItemTemplate);
         renderList('talent-award-list', [], awardItemTemplate);
     }
+
+    // Fetch Username (Handle) from Users table
+    const { data: userData } = await window.supabaseClient
+        .from('users')
+        .select('username')
+        .eq('id', targetUserId)
+        .single();
+
+    document.getElementById('talent-username').value = (userData && userData.username) ? userData.username : '';
 }
 
 // --- Dynamic Lists Logic ---
@@ -537,6 +546,23 @@ window.saveTalentProfile = async () => {
         awards: scrapeList('talent-award-list', { year: 'list-input-year', name: 'list-input-name', rank: 'list-input-rank' })
     };
 
+    // Username Validation
+    const usernameVal = document.getElementById('talent-username').value.trim();
+    if (usernameVal) {
+        if (!/^[a-zA-Z0-9_\.]+$/.test(usernameVal)) {
+            return alert('Username can only contain letters, numbers, dots, and underscores.');
+        }
+        // Unique Check
+        const { data: existing } = await window.supabaseClient
+            .from('users')
+            .select('id')
+            .eq('username', usernameVal)
+            .neq('id', targetUserId)
+            .maybeSingle();
+
+        if (existing) return alert('Username is already taken. Please choose another.');
+    }
+
     console.log('Saving Talent Payload:', payload);
 
     // 3. Upsert Talent Data
@@ -557,6 +583,7 @@ window.saveTalentProfile = async () => {
                 hopper_image_url: payload.image_url,
                 hopper_bio: payload.quote // Sync Quote to Bio
             };
+            if (usernameVal) userUpdates.username = usernameVal;
             const { error: syncError } = await window.supabaseClient
                 .from('users')
                 .update(userUpdates)

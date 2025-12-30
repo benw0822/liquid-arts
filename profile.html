@@ -95,6 +95,9 @@
 
                         <!-- Name & Quote -->
                         <h2 id="profile-name-display" class="profile-name-large">Hopper</h2>
+                        <div id="profile-username-display"
+                            style="font-family: 'Inter', sans-serif; font-size: 0.9rem; color: #888; margin-bottom: 0.5rem; display: none;">
+                            @username</div>
                         <p id="profile-quote-display" class="profile-quote">"Join the hop."</p>
 
                         <!-- Actions -->
@@ -168,6 +171,20 @@
                         </div>
 
                         <!-- Fields -->
+
+                        <div style="margin-bottom: 1rem; text-align: left;">
+                            <label class="hopping-label" style="text-align: center; display: block;">Personal
+                                Link</label>
+                            <div
+                                style="display: flex; align-items: center; background: #f9f9f9; border: 1px solid #ddd; border-radius: 6px; overflow: hidden;">
+                                <span
+                                    style="font-size: 0.8rem; color: #666; padding: 8px 8px; background: #eee; border-right: 1px solid #ddd; height: 100%; display: flex; align-items: center;">liquidarts.bar/profile/</span>
+                                <input type="text" id="edit-hopper-username" class="hopping-input-minimal"
+                                    placeholder="your_id" pattern="[a-zA-Z0-9_\.]+"
+                                    style="border: none; background: transparent; flex: 1; text-align: left; padding: 8px; height: 100%;">
+                            </div>
+                        </div>
+
                         <div style="margin-bottom: 1rem; text-align: center;">
                             <label class="hopping-label" style="text-align: center;">Hopper Name</label>
                             <input type="text" id="edit-hopper-nickname" class="hopping-input-minimal"
@@ -499,6 +516,19 @@
                             </div>
 
                             <!-- Form Fields -->
+                            <div class="editor-section">
+                                <label class="editor-label">Personal Link</label>
+                                <div
+                                    style="display: flex; align-items: center; background: #f9f9f9; border: 1px solid #ddd; border-radius: 6px; overflow: hidden;">
+                                    <span
+                                        style="font-size: 0.85rem; color: #888; padding: 0 10px; background: #eee; border-right: 1px solid #ddd; display: flex; align-items: center; height: 100%;">liquidarts.bar/profile/</span>
+                                    <input type="text" id="talent-username" class="editor-input" placeholder="your_id"
+                                        pattern="[a-zA-Z0-9_\.]+"
+                                        style="border: none; background: transparent; padding: 12px 10px; flex: 1; margin: 0;">
+                                </div>
+                                <p style="font-size: 0.75rem; color: #888; margin-top: 4px;">Set your unique URL.</p>
+                            </div>
+
                             <div class="editor-section">
                                 <label class="editor-label">Professional Name (名號)</label>
                                 <input type="text" id="talent-name" class="editor-input"
@@ -1246,13 +1276,14 @@
                 try {
                     const { data, error } = await window.supabaseClient
                         .from('users')
-                        .select('hopper_nickname, hopper_bio, hopper_image_url, hopper_level')
+                        .select('hopper_nickname, hopper_bio, hopper_image_url, hopper_level, username')
                         .eq('id', user.id)
                         .single();
 
                     if (data) {
                         // Display - NEW IDs
                         const nameEl = document.getElementById('profile-name-display');
+                        const usernameEl = document.getElementById('profile-username-display');
                         const quoteEl = document.getElementById('profile-quote-display');
                         const avatarEl = document.getElementById('profile-avatar-display');
                         const headerWrapper = document.querySelector('.profile-header-wrapper');
@@ -1260,6 +1291,15 @@
                         // Update Text
                         if (nameEl) nameEl.textContent = data.hopper_nickname || user.user_metadata.full_name || 'Hopper';
                         if (quoteEl) quoteEl.textContent = data.hopper_bio || '"Join the hop."';
+
+                        // Username Display
+                        if (usernameEl && data.username) {
+                            usernameEl.textContent = '@' + data.username;
+                            usernameEl.style.display = 'block';
+                            usernameEl.dataset.value = data.username;
+                        } else if (usernameEl) {
+                            usernameEl.style.display = 'none';
+                        }
 
                         // Store Level data in wrapper (hidden) for editor
                         if (headerWrapper) headerWrapper.setAttribute('data-hopper-level', data.hopper_level || 1);
@@ -1288,6 +1328,7 @@
                 const headerWrapper = document.querySelector('.profile-header-wrapper');
 
                 const nick = nameEl ? nameEl.textContent : '';
+                const username = usernameEl && usernameEl.dataset.value ? usernameEl.dataset.value : '';
                 // Remove quotes for editing if present
                 let bio = quoteEl ? quoteEl.textContent : '';
                 bio = bio.replace(/^"|"$/g, '');
@@ -1297,6 +1338,7 @@
 
                 // Set values
                 document.getElementById('edit-hopper-nickname').value = nick;
+                document.getElementById('edit-hopper-username').value = username;
                 document.getElementById('edit-hopper-bio').value = bio === 'Join the hop.' ? '' : bio;
                 document.getElementById('edit-hopper-level').value = level;
                 document.getElementById('edit-level-val').textContent = level;
@@ -1393,6 +1435,28 @@
                         hopper_bio: document.getElementById('edit-hopper-bio').value,
                         hopper_level: parseInt(document.getElementById('edit-hopper-level').value)
                     };
+
+                    const usernameVal = document.getElementById('edit-hopper-username').value.trim();
+                    if (usernameVal) {
+                        // Regex Check
+                        if (!/^[a-zA-Z0-9_\.]+$/.test(usernameVal)) {
+                            throw new Error('Username can only contain letters, numbers, dots, and underscores.');
+                        }
+
+                        // Uniqueness Check
+                        const { data: existing, error: checkError } = await window.supabaseClient
+                            .from('users')
+                            .select('id')
+                            .eq('username', usernameVal)
+                            .neq('id', user.id)
+                            .maybeSingle();
+
+                        if (checkError) throw checkError;
+                        if (existing) throw new Error('Username is already taken. Please choose another.');
+
+                        updates.username = usernameVal;
+                    }
+
                     if (publicUrl) updates.hopper_image_url = publicUrl;
 
                     const { error: dbError } = await window.supabaseClient
