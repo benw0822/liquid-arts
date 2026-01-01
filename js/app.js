@@ -201,21 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Page Init Functions ---
 
-    // 1. Home Page
-    // (Duplicate initHome Removed)
-
-    // 2. Bar List Page (Explore)
-    // (Duplicate initBarList Removed)
-
-    // 3. Bar Details Page
-    window.initBarDetails = async () => {
-        // Code hidden, handled in previous tasks
-    };
-
-    // 4. Map Page
-    window.initMap = async () => {
-        // Code hidden
-    };
+    // 1. Home Page & 2. Bar List (Init functions are defined globally or inline where needed)
 
     // 5. Articles List
     window.initArticlesList = async () => {
@@ -226,16 +212,6 @@ document.addEventListener('DOMContentLoaded', () => {
             grid.innerHTML = articles.map(article => createArticleCard(article)).join('');
         }
     };
-
-    // 6. Article Details
-    window.initArticleDetails = async () => {
-        // Code hidden
-    };
-
-    // --- Helper Components ---
-
-    // --- Helper Components ---
-    // (createBarCard Removed: Replaced by global window.createBarCard)
 
     async function fetchArticles() {
         try {
@@ -1785,9 +1761,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // 6. Article Details
     window.initArticleDetails = async () => {
         const params = new URLSearchParams(window.location.search);
-        const slug = params.get('slug'); // [NEW] Check for slug
-        const id = params.get('id');
+        let slug = params.get('slug');
+        let id = params.get('id');
         const container = document.getElementById('article-content');
+
+        // Support Vercel Rewrite paths: /article/:slug
+        if (!id && !slug) {
+            const pathParts = window.location.pathname.split('/');
+            if (pathParts.length >= 3 && pathParts[1] === 'article') {
+                slug = decodeURIComponent(pathParts[2]);
+            }
+        }
 
         if (!id && !slug) {
             container.innerHTML = '<p>Article not found.</p>';
