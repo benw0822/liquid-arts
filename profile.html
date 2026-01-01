@@ -798,6 +798,14 @@
                     .eq('id', targetUserId)
                     .single();
 
+                // --- Auto-Update URL for Owner ---
+                // If I am the owner, viewing the default profile.html (no ?u=), and I have a username:
+                // Update the browser URL to the custom link without reloading.
+                if (isOwner && userData && userData.username && !targetUsername) {
+                    const newUrl = '/profile/' + userData.username;
+                    window.history.replaceState({ path: newUrl }, '', newUrl);
+                }
+
                 // DOM Elements
                 const nameEl = document.getElementById('profile-name-display');
                 const quoteEl = document.getElementById('profile-quote-display');
