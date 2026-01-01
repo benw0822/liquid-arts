@@ -1,7 +1,7 @@
 // --- Supabase Configuration ---
 const SUPABASE_URL = 'https://wgnskednopbfngvjmviq.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_gcmYleFIGmwsLSKofS__Qg_62EXoP6P';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // --- DOM Elements ---
 const titleInput = document.getElementById('article-title');
@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     currentArticleId = urlParams.get('id');
 
     // Load all bars for selection
-    const { data: bars } = await supabase.from('bars').select('id, title, name_en');
+    const { data: bars } = await supabaseClient.from('bars').select('id, title, name_en');
     allBars = bars || [];
     renderAvailableBars();
     renderSelectedBars();
@@ -71,10 +71,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         await loadArticle(currentArticleId);
     } else {
         // New Article Defaults
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session } } = await supabaseClient.auth.getSession();
         if (session) {
             // Fetch user name for author default
-            const { data: user } = await supabase.from('users').select('name').eq('id', session.user.id).single();
+            const { data: user } = await supabaseClient.from('users').select('name').eq('id', session.user.id).single();
             if (user && user.name) authorInput.value = user.name;
         }
     }
@@ -100,14 +100,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // --- Auth Check ---
 async function checkAuth() {
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) {
         window.location.href = 'admin.html';
         return;
     }
 
     // Verify Role
-    const { data: user } = await supabase.from('users').select('roles').eq('id', session.user.id).single();
+    const { data: user } = await supabaseClient.from('users').select('roles').eq('id', session.user.id).single();
     const roles = user ? (user.roles || []) : [];
     if (!roles.includes('admin') && !roles.includes('editor')) {
         alert('Access Denied');
@@ -408,13 +408,13 @@ async function uploadImage(file, folder = 'covers') {
     const fileExt = file.name.split('.').pop();
     const fileName = `${folder}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
 
-    const { data, error } = await supabase.storage
+    const { data, error } = await supabaseClient.storage
         .from('articles')
         .upload(fileName, file);
 
     if (error) throw error;
 
-    const { data: { publicUrl } } = supabase.storage
+    const { data: { publicUrl } } = supabaseClient.storage
         .from('articles')
         .getPublicUrl(fileName);
 
@@ -472,7 +472,7 @@ async function cleanupImages(pathsToDelete) {
     if (!pathsToDelete || pathsToDelete.length === 0) return;
 
     console.log('Cleaning up images:', pathsToDelete);
-    const { data, error } = await supabase.storage
+    const { data, error } = await supabaseClient.storage
         .from('articles')
         .remove(pathsToDelete);
 
@@ -711,7 +711,7 @@ barSearchInput.addEventListener('input', (e) => {
 
 async function loadArticle(id) {
     try {
-        const { data: article, error } = await supabase.from('articles').select('*').eq('id', id).single();
+        const { data: article, error } = await supabaseClient.from('articles').select('*').eq('id', id).single();
         if (error) {
             alert('Error loading article');
             return;
@@ -780,7 +780,7 @@ async function loadArticle(id) {
         }
 
         // Load Related Bars
-        const { data: related } = await supabase.from('article_bars').select('bar_id').eq('article_id', id);
+        const { data: related } = await supabaseClient.from('article_bars').select('bar_id').eq('article_id', id);
         if (related) {
             selectedBarIds = new Set(related.map(r => r.bar_id));
             renderSelectedBars();
