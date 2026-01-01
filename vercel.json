@@ -13,8 +13,8 @@
             "destination": "/profile.html?u=:username"
         },
         {
-            "source": "/article/:id",
-            "destination": "/article.html?id=:id"
+            "source": "/article/:slug",
+            "destination": "/journal-details.html?slug=:slug"
         },
         {
             "source": "/bar/id/:id",

@@ -1785,21 +1785,28 @@ document.addEventListener('DOMContentLoaded', () => {
     // 6. Article Details
     window.initArticleDetails = async () => {
         const params = new URLSearchParams(window.location.search);
+        const slug = params.get('slug'); // [NEW] Check for slug
         const id = params.get('id');
         const container = document.getElementById('article-content');
 
-        if (!id) {
+        if (!id && !slug) {
             container.innerHTML = '<p>Article not found.</p>';
             return;
         }
 
-        const { data: article, error } = await window.supabaseClient
-            .from('articles')
-            .select('*')
-            .eq('id', id)
-            .single();
+        let query = window.supabaseClient.from('articles').select('*');
+        if (slug) {
+            query = query.eq('slug', slug);
+        } else {
+            query = query.eq('id', id);
+        }
+
+        const { data: article, error } = await query.single();
 
         if (error || !article) {
+            // Fallback: If slug failed (maybe likely numeric?), try ID? 
+            // Or just show not found. 
+            // For now, simple error handling.
             container.innerHTML = '<p>Article not found.</p>';
             return;
         }
@@ -2126,6 +2133,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Check saved state
         const isSaved = window.savedArticleIds ? window.savedArticleIds.has(article.id) : false;
 
+        // [NEW] Custom URL for Cards
+        const articleUrl = article.slug ? `/article/${article.slug}` : `journal-details.html?id=${article.id}`;
+
         return `
         <div class="art-card grid-item" style="position: relative; display: flex; flex-direction: column; background: #fff; color: #333; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 2rem; max-width: 380px; margin-left: auto; margin-right: auto;">
              <!-- Save Button -->
@@ -2134,11 +2144,11 @@ document.addEventListener('DOMContentLoaded', () => {
              </button>
 
              <!-- Share Button -->
-             <button onclick="window.shareBarItem('/journal-details.html?id=${article.id}', '${article.title.replace(/'/g, "\\'")}', event)" style="position: absolute; top: 61px; right: 15px; z-index: 20; background: white; border: none; border-radius: 50%; width: 36px; height: 36px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0;">
+             <button onclick="window.shareBarItem('${articleUrl}', '${article.title.replace(/'/g, "\\'")}', event)" style="position: absolute; top: 61px; right: 15px; z-index: 20; background: white; border: none; border-radius: 50%; width: 36px; height: 36px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
              </button>
 
-            <a href="journal-details.html?id=${article.id}" style="text-decoration: none; color: inherit; display: block;">
+            <a href="${articleUrl}" style="text-decoration: none; color: inherit; display: block;">
                 <img src="${imgUrl}" alt="${article.title}" class="art-card-image" style="width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 0;">
                 <div style="padding: 1.5rem;">
                     <div style="display: flex; flex-direction: column; align-items: flex-start; margin-bottom: 0.5rem;">
