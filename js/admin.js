@@ -1220,6 +1220,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.editBar = (id) => { window.location.href = `bms.html?id=${id}`; };
+window.editArticle = (id) => { window.location.href = `cms.html?id=${id}`; };
 window.deleteBar = async (id) => {
     if (!confirm('Delete this bar?')) return;
     const { error } = await window.supabaseClient.from('bars').delete().eq('id', id);

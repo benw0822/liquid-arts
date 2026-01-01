@@ -1793,7 +1793,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const { data: article, error } = await supabase
+        const { data: article, error } = await window.supabaseClient
             .from('articles')
             .select('*')
             .eq('id', id)
