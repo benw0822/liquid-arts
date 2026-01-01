@@ -705,23 +705,82 @@
             const supabase = window.supabaseClient;
             const { data: { session } } = await supabase.auth.getSession();
 
-            if (!session) {
-                document.getElementById('guest-view').style.display = 'block';
-                document.getElementById('profile-login-btn').addEventListener('click', async () => {
-                    const { error } = await supabase.auth.signInWithOAuth({
-                        provider: 'google',
-                        options: { redirectTo: window.location.origin + '/profile.html' }
-                    });
-                    if (error) console.error('Error:', error.message);
-                });
-                return;
-            }
-
-            document.getElementById('user-view').style.display = 'block';
-            const user = session.user;
             // Legacy loading/content elements are removed
             // const profileContent = document.getElementById('profile-content');
             // const loading = document.getElementById('profile-loading');
+
+            // --- URL Routing Logic ---
+            const urlParams = new URLSearchParams(window.location.search);
+            const targetUsername = urlParams.get('u'); // from /profile/:username rewrite
+
+            let targetUserId = null;
+            let isOwner = false;
+
+            if (targetUsername) {
+                // Public View Mode
+                // 1. Resolve Username to ID
+                const { data: publicUser, error: resolveError } = await window.supabaseClient
+                    .from('users')
+                    .select('id')
+                    .eq('username', targetUsername)
+                    .maybeSingle();
+
+                if (resolveError || !publicUser) {
+                    // 404 Case
+                    document.getElementById('user-view').innerHTML = `
+                        <div style="text-align: center; padding: 4rem;">
+                            <h2 style="font-family: 'Playfair Display', serif; font-size: 2rem; margin-bottom: 1rem;">User Not Found</h2>
+                            <p style="color: #666;">The hopper @${targetUsername} does not exist.</p>
+                            <a href="index.html" class="btn" style="margin-top: 2rem; display: inline-block; background: var(--bg-red); color: white;">Return Home</a>
+                        </div>
+                    `;
+                    document.getElementById('user-view').style.display = 'block';
+                    return;
+                }
+                targetUserId = publicUser.id;
+                isOwner = session && session.user && session.user.id === targetUserId;
+
+                // If not owner, hide private things
+                if (!isOwner) {
+                     // Hide Top Overlay specific controls
+                     document.getElementById('logout-btn').style.display = 'none';
+                     
+                     // If guest, maybe show Login button instead of Logout?
+                     if (!session) {
+                         const loginBtn = document.createElement('button');
+                         loginBtn.textContent = 'Login';
+                         loginBtn.className = 'btn';
+                         loginBtn.style.cssText = 'background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 4px 12px; font-size: 0.75rem; border-radius: 20px; backdrop-filter: blur(4px); cursor: pointer;';
+                         loginBtn.onclick = () => window.location.href = 'index.html'; // Or trigger guest-view
+                         document.querySelector('.profile-top-overlay div:last-child').appendChild(loginBtn);
+                     }
+                }
+
+                // Show Views
+                document.getElementById('guest-view').style.display = 'none';
+                document.getElementById('user-view').style.display = 'block';
+
+            } else {
+                // Default: Private Profile (Original Logic)
+                if (!session) {
+                    document.getElementById('guest-view').style.display = 'block';
+                    document.getElementById('profile-login-btn').addEventListener('click', async () => {
+                        const { error } = await supabase.auth.signInWithOAuth({
+                            provider: 'google',
+                            options: { redirectTo: window.location.origin + '/profile.html' }
+                        });
+                        if (error) console.error('Error:', error.message);
+                    });
+                    return;
+                }
+                targetUserId = session.user.id;
+                isOwner = true;
+                document.getElementById('user-view').style.display = 'block';
+            }
+
+            // user variable for context (refers to logged in user if any, or null?)
+            // We need a specific 'pageUser' object or just use IDs.
+            // Original code used 'user' (session.user). Let's define context.
 
             // --- Render Profile Header (Talent vs Hopper) ---
             const renderProfileHeader = async () => {
@@ -729,14 +788,14 @@
                 const { data: talentData } = await window.supabaseClient
                     .from('talents')
                     .select('*')
-                    .eq('user_id', user.id)
+                    .eq('user_id', targetUserId)
                     .maybeSingle();
 
                 // 2. Fetch Hopper Data (User Table)
                 const { data: userData } = await window.supabaseClient
                     .from('users')
                     .select('*')
-                    .eq('id', user.id)
+                    .eq('id', targetUserId)
                     .single();
 
                 // DOM Elements
@@ -745,11 +804,27 @@
                 const avatarEl = document.getElementById('profile-avatar-display');
                 const coverEl = document.getElementById('profile-cover-img');
                 const talentBtn = document.getElementById('talent-edit-btn');
+                const editProfileBtn = document.querySelector('.btn-profile-action[onclick="window.openHopperEditor()"]');
+                const usernameEl = document.getElementById('profile-username-display'); // Ensure this is selected
+
+                // Setup Visibility based on Ownership
+                if (!isOwner) {
+                    if (talentBtn) talentBtn.style.display = 'none';
+                    if (editProfileBtn) editProfileBtn.style.display = 'none';
+                    // Hide any other edit controls if present
+                }
+
+                // Display Username URL-friendly way
+                if (userData && userData.username) {
+                     if (usernameEl) {
+                        usernameEl.textContent = `@${userData.username}`;
+                        usernameEl.style.display = 'block';
+                     }
+                }
 
                 // Determine Identity
-                // Determine Identity
                 if (talentData) {
-                    nameEl.textContent = talentData.display_name || userData.hopper_nickname || user.user_metadata.full_name;
+                    nameEl.textContent = talentData.display_name || userData.hopper_nickname || 'Talent';
                     quoteEl.textContent = talentData.quote || talentData.description || "Liquid Arts Talent";
                     if (talentData.image_url) avatarEl.src = talentData.image_url;
                     // Talent Badge or styling?
@@ -780,7 +855,7 @@
                             } else {
                                 expList.innerHTML = `
                                     <div style="border: 1px dashed var(--border-color); border-radius: 8px; padding: 1.5rem; text-align: center; background: rgba(255,255,255,0.05); color: var(--text-secondary);">
-                                        <div style="font-size: 0.9rem;">No experience added yet.</div>
+                                        <div style="font-size: 0.9rem;">No experience added.</div>
                                     </div>
                                 `;
                             }
@@ -802,7 +877,7 @@
                             } else {
                                 awardList.innerHTML = `
                                     <div style="border: 1px dashed var(--border-color); border-radius: 8px; padding: 1.5rem; text-align: center; background: rgba(255,255,255,0.05); color: var(--text-secondary);">
-                                        <div style="font-size: 0.9rem;">No awards added yet.</div>
+                                        <div style="font-size: 0.9rem;">No awards added.</div>
                                     </div>
                                 `;
                             }
@@ -811,36 +886,60 @@
 
                 } else {
                     // Standard Hopper
-                    nameEl.textContent = userData?.hopper_nickname || user.user_metadata.full_name || 'Hopper';
+                    nameEl.textContent = userData?.hopper_nickname || 'Hopper';
+                    if (!userData?.hopper_nickname && targetUserId && !isOwner) {
+                         // Fallback for public view if no nickname set
+                         nameEl.textContent = 'Hopper'; 
+                    } else if (isOwner && !userData?.hopper_nickname && session?.user?.user_metadata?.full_name) {
+                         nameEl.textContent = session.user.user_metadata.full_name;
+                    }
+
                     quoteEl.textContent = userData?.hopper_bio || '"Join the hop."';
                     if (userData?.hopper_image_url) avatarEl.src = userData.hopper_image_url;
-                    else if (user.user_metadata.avatar_url) avatarEl.src = user.user_metadata.avatar_url;
+                    // Note: session.user...avatar_url is ONLY available if isOwner or if we fetched it?
+                    // We only fetched DB 'users' row. 'users' table doesn't natively store google avatar url unless we sync it?
+                    // Usually we don't sync google avatar to DB until save. 
+                    // So public viewers might see default broken image if user never saved profile?
+                    // Let's rely on hopper_image_url or default.
 
                     // Hide Talent Details
                     const detailsContainer = document.getElementById('talent-details-container');
                     if (detailsContainer) detailsContainer.style.display = 'none';
                 }
 
-                // Role Check for Button
-                const roles = userData?.roles || [];
-                // If talent role, show Talent button AND hide Hopper button
-                if (roles.includes('talent')) {
-                    talentBtn.style.display = 'inline-flex';
-                    // Hide generic Edit Profile button for Talents
-                    document.querySelector('.btn-profile-action[onclick="window.openHopperEditor()"]').style.display = 'none';
-                } else if (roles.includes('admin') || roles.includes('editor')) {
-                    // Admin/Editor who are NOT Talent can still see Talent button (to create one?)
-                    // Or usually they edit themselves. Let's keep it visible but they keep Hopper button too?
-                    // Original logic: "if (roles.includes('admin') || ...)" showed it.
-                    // Let's stick to: If Talent, hide Hopper button.
-                    talentBtn.style.display = 'inline-flex';
+                // Header Action Buttons (Talent, Edit Profile)
+                // We handled hiding for !isOwner above.
+                // Now handle Owner Logic:
+                if (isOwner) {
+                     const roles = userData?.roles || [];
+                     if (roles.includes('talent')) {
+                         if (talentBtn) talentBtn.style.display = 'inline-flex';
+                         if (editProfileBtn) editProfileBtn.style.display = 'none';
+                     } else {
+                         // Hopper
+                         if (editProfileBtn) editProfileBtn.style.display = 'inline-flex';
+                         // Admin Action
+                         // Admin Check already exists separately below but relies on session 'user' object.
+                         // Ensure compatibility.
+                     }
                 }
 
-                // Account Info (Top Overlay)
-                // document.getElementById('account-email').textContent = user.email; // Removed from UI
-                document.getElementById('account-name-mini').textContent = user.user_metadata.full_name || 'User';
-                if (user.user_metadata.avatar_url) document.getElementById('account-avatar-mini').src = user.user_metadata.avatar_url;
+                // Account Info Mini (Top Left)
+                // If Visitor: Resolve user metadata for Mini? Or show nothing?
+                // Probably show nothing or "Guest".
+                // Current UI: "User" name and avatar.
+                if (isOwner && session) {
+                    document.getElementById('account-name-mini').textContent = session.user.user_metadata.full_name || 'User';
+                    if (session.user.user_metadata.avatar_url) document.getElementById('account-avatar-mini').src = session.user.user_metadata.avatar_url;
+                } else {
+                     // For Visitor, maybe hide or show generic
+                     document.getElementById('account-name-mini').textContent = 'Guest';
+                     document.getElementById('account-avatar-mini').style.display = 'none'; // Simplify
+                }
             };
+            
+            // ... (Continue to renderProfileHeader call) ...
+
 
             await renderProfileHeader();
 
@@ -871,7 +970,7 @@
                     if (hop.comments && hop.comments.length > 0) {
                         hop.comments.forEach(c => {
                             // Filter out my own comments
-                            if (c.user && c.user.name && c.user_id !== user.id) { // simplistic check, user_id is safer if available in comment
+                            if (c.user && c.user.name && targetUserId && c.user_id !== targetUserId) { // simplistic check
                                 // Actually c does not have user_id, need to check if we selected it.
                                 // We selected 'user:users(...)'. We need 'user_id' in select or check logic.
                                 // Let's assume passed user object is simple. 
@@ -914,7 +1013,7 @@
                     const { data, error } = await window.supabaseClient
                         .from('hoppings')
                         .select('*, bars (*)')
-                        .eq('user_id', user.id)
+                        .eq('user_id', targetUserId)
                         .eq('is_deleted', false) // Soft Delete Check
                         .order('hopped_at', { ascending: false });
 
@@ -930,10 +1029,10 @@
                     const { data: userData } = await window.supabaseClient
                         .from('users')
                         .select('id, name, hopper_nickname, hopper_image_url')
-                        .eq('id', user.id)
+                        .eq('id', targetUserId)
                         .single();
 
-                    const myUserObj = userData || { id: user.id, name: 'Me', hopper_nickname: 'Me' };
+                    const myUserObj = userData || { id: targetUserId, name: 'User', hopper_nickname: 'User' };
 
                     // Fetch Public Comments for these hops (for the overlay)
                     const hopIds = data.map(h => h.id);
@@ -1215,7 +1314,7 @@
                 const { data: userData, error } = await supabase
                     .from('users')
                     .select('roles')
-                    .eq('id', user.id)
+                    .eq('id', targetUserId)
                     .single();
 
                 if (error) {
@@ -1233,7 +1332,7 @@
 
                 console.log('Admin Check Result:', { roles, isAdmin, isEditor, isOwner });
 
-                if (isAdmin || isOwner || isEditor) {
+                if (isOwner && (isAdmin || isOwner || isEditor)) {
                     const container = document.getElementById('admin-action-container');
                     if (container) {
                         const btn = document.createElement('a');
@@ -1261,7 +1360,7 @@
 
                 // Talent Check
                 const isTalent = roles.includes('talent');
-                if (isTalent) {
+                if (isTalent && isOwner) {
                     const talentContainer = document.getElementById('talent-action-container');
                     if (talentContainer) talentContainer.style.display = 'flex';
                 }
@@ -1277,7 +1376,7 @@
                     const { data, error } = await window.supabaseClient
                         .from('users')
                         .select('hopper_nickname, hopper_bio, hopper_image_url, hopper_level, username')
-                        .eq('id', user.id)
+                        .eq('id', targetUserId)
                         .single();
 
                     if (data) {
@@ -1308,7 +1407,7 @@
                         if (avatarEl) {
                             if (data.hopper_image_url) {
                                 avatarEl.src = data.hopper_image_url;
-                            } else if (user.user_metadata.avatar_url) {
+                            } else if (isOwner && session && user.user_metadata.avatar_url) {
                                 avatarEl.src = user.user_metadata.avatar_url;
                             }
                         }

@@ -5,6 +5,14 @@
             "destination": "/talent.html?id=:id"
         },
         {
+            "source": "/profile/:username",
+            "destination": "/profile.html?u=:username"
+        },
+        {
+            "source": "/profile/:username",
+            "destination": "/profile.html?u=:username"
+        },
+        {
             "source": "/article/:id",
             "destination": "/article.html?id=:id"
         },
