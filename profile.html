@@ -1336,16 +1336,16 @@
 
                 const isAdmin = roles.includes('admin');
                 const isEditor = roles.includes('editor');
-                const isOwner = roles.includes('barOwner');
+                const isBarOwner = roles.includes('barOwner');
 
-                console.log('Admin Check Result:', { roles, isAdmin, isEditor, isOwner });
+                console.log('Admin Check Result:', { roles, isAdmin, isEditor, isBarOwner });
 
-                if (isOwner && (isAdmin || isOwner || isEditor)) {
+                if (isOwner && (isAdmin || isBarOwner || isEditor)) {
                     const container = document.getElementById('admin-action-container');
                     if (container) {
                         const btn = document.createElement('a');
                         // Determine Link & Text
-                        if (isOwner) {
+                        if (isBarOwner) {
                             btn.href = 'owner/dashboard.html';
                             btn.textContent = 'Manage Bar';
                         } else {
