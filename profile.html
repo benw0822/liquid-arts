@@ -1346,11 +1346,11 @@
                         const btn = document.createElement('a');
                         // Determine Link & Text
                         if (isBarOwner) {
-                            btn.href = '/owner/dashboard.html';
+                            btn.href = window.location.origin + '/owner/dashboard.html';
                             btn.textContent = 'Manage Bar';
                         } else {
                             // Admin or Editor
-                            btn.href = '/admin.html';
+                            btn.href = window.location.origin + '/admin.html';
                             btn.textContent = isAdmin ? 'Admin' : 'Manage Content';
                         }
 
