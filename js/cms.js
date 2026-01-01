@@ -820,7 +820,7 @@ saveBtn.addEventListener('click', async () => {
     saveBtn.disabled = true;
 
     try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session } } = await supabaseClient.auth.getSession();
 
         // Upload Cover if changed
         const coverFile = coverInput.files[0];
@@ -850,19 +850,19 @@ saveBtn.addEventListener('click', async () => {
 
         if (currentArticleId) {
             // Update
-            const { error } = await supabase.from('articles').update(articleData).eq('id', currentArticleId);
+            const { error } = await supabaseClient.from('articles').update(articleData).eq('id', currentArticleId);
             if (error) throw error;
         } else {
             // Insert
             articleData.author_id = session.user.id;
-            const { data, error } = await supabase.from('articles').insert([articleData]).select();
+            const { data, error } = await supabaseClient.from('articles').insert([articleData]).select();
             if (error) throw error;
             articleId = data[0].id;
         }
 
         // 3. Save Related Bars
         // First, delete existing
-        await supabase.from('article_bars').delete().eq('article_id', articleId);
+        await supabaseClient.from('article_bars').delete().eq('article_id', articleId);
 
         // Then insert new
         if (selectedBarIds.size > 0) {
@@ -870,7 +870,7 @@ saveBtn.addEventListener('click', async () => {
                 article_id: articleId,
                 bar_id: barId
             }));
-            const { error: barsError } = await supabase.from('article_bars').insert(barInserts);
+            const { error: barsError } = await supabaseClient.from('article_bars').insert(barInserts);
             if (barsError) console.error('Error saving related bars:', barsError);
         }
 
