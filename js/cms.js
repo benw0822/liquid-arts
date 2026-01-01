@@ -119,29 +119,6 @@ async function checkAuth() {
 const BlockEmbed = Quill.import('blots/block/embed');
 
 class ImageFigure extends BlockEmbed {
-    static create(value) {
-        const node = super.create();
-
-        const img = document.createElement('img');
-        img.setAttribute('src', value.url);
-        img.setAttribute('alt', value.caption || '');
-
-        const caption = document.createElement('figcaption');
-        caption.innerText = value.caption || '';
-        caption.style.cursor = 'pointer';
-        caption.title = 'Click to edit caption';
-
-        node.appendChild(img);
-        node.appendChild(caption);
-
-        // Apply alignment from value if present
-        if (value.align) {
-            node.classList.add(`ql-align-${value.align}`);
-        }
-
-        return node;
-    }
-
     static value(node) {
         const img = node.querySelector('img');
         const caption = node.querySelector('figcaption');
@@ -165,8 +142,36 @@ class ImageFigure extends BlockEmbed {
         return {
             url: img.getAttribute('src'),
             caption: caption ? caption.innerText : '',
-            align: align
+            align: align,
+            width: img.getAttribute('width'),
+            style: img.getAttribute('style')
         };
+    }
+
+    static create(value) {
+        const node = super.create();
+
+        const img = document.createElement('img');
+        img.setAttribute('src', value.url);
+        img.setAttribute('alt', value.caption || '');
+
+        if (value.width) img.setAttribute('width', value.width);
+        if (value.style) img.setAttribute('style', value.style);
+
+        const caption = document.createElement('figcaption');
+        caption.innerText = value.caption || '';
+        caption.style.cursor = 'pointer';
+        caption.title = 'Click to edit caption';
+
+        node.appendChild(img);
+        node.appendChild(caption);
+
+        // Apply alignment from value if present
+        if (value.align) {
+            node.classList.add(`ql-align-${value.align}`);
+        }
+
+        return node;
     }
 
     static formats(node) {
