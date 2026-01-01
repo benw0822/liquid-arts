@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Profile - Liquid Arts</title>
-    <link rel="stylesheet" href="css/styles.css?v=force">
+    <link rel="stylesheet" href="/css/styles.css?v=force">
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:wght@400;700&display=swap"
         rel="stylesheet">
@@ -17,21 +17,21 @@
 <body>
     <nav class="navbar">
         <div class="container nav-content" style="display: flex; align-items: center; justify-content: space-between;">
-            <a href="index.html" class="logo">
-                <img src="assets/logo_horizontal.png" alt="Liquid Arts" class="logo-img">
+            <a href="/index.html" class="logo">
+                <img src="/assets/logo_horizontal.png" alt="Liquid Arts" class="logo-img">
             </a>
 
             <!-- Desktop Nav Links -->
             <div class="nav-links" style="margin-left: 2rem;">
-                <a href="explore.html" class="nav-link">Explore</a>
-                <a href="bars.html" class="nav-link">Bars</a>
-                <a href="map.html" class="nav-link">Map</a>
-                <a href="msg.html" class="nav-link">Messages</a>
-                <a href="about.html" class="nav-link">About</a>
+                <a href="/explore.html" class="nav-link">Explore</a>
+                <a href="/bars.html" class="nav-link">Bars</a>
+                <a href="/map.html" class="nav-link">Map</a>
+                <a href="/msg.html" class="nav-link">Messages</a>
+                <a href="/about.html" class="nav-link">About</a>
             </div>
 
             <!-- Global Auth Button (Mobile & Desktop) -->
-            <a href="profile.html" id="global-auth-btn" class="nav-link" aria-label="Profile"
+            <a href="/profile.html" id="global-auth-btn" class="nav-link" aria-label="Profile"
                 style="margin-left: auto; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; color: var(--text-accent);">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
@@ -85,13 +85,13 @@
 
                     <!-- Cover Image -->
                     <div class="profile-cover">
-                        <img id="profile-cover-img" src="assets/profile_cover_default.png" alt="Cover">
+                        <img id="profile-cover-img" src="/assets/profile_cover_default.png" alt="Cover">
                     </div>
 
                     <!-- Identity (Overlapping) -->
                     <div class="profile-identity-container">
                         <!-- Avatar -->
-                        <img id="profile-avatar-display" src="assets/logo_vertical.png" class="profile-avatar-large">
+                        <img id="profile-avatar-display" src="/assets/logo_vertical.png" class="profile-avatar-large">
 
                         <!-- Name & Quote -->
                         <h2 id="profile-name-display" class="profile-name-large">Hopper</h2>
@@ -653,7 +653,7 @@
     </main>
 
     <nav class="bottom-nav">
-        <a href="explore.html" class="nav-item">
+        <a href="/explore.html" class="nav-item">
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
                 stroke-linejoin="round">
                 <path d="M6 13L17 4"></path>
@@ -665,7 +665,7 @@
             </svg>
             <span>EXPLORE</span>
         </a>
-        <a href="bars.html" class="nav-item">
+        <a href="/bars.html" class="nav-item">
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
                 stroke-linejoin="round">
                 <path d="M12 21v-8"></path>
@@ -674,7 +674,7 @@
             </svg>
             <span>BARS</span>
         </a>
-        <a href="map.html" class="nav-item">
+        <a href="/map.html" class="nav-item">
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
                 stroke-linejoin="round">
                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
@@ -682,14 +682,14 @@
             </svg>
             <span>MAP</span>
         </a>
-        <a href="msg.html" class="nav-item">
+        <a href="/msg.html" class="nav-item">
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
                 stroke-linejoin="round">
                 <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"></path>
             </svg>
             <span>MSG</span>
         </a>
-        <a href="profile.html" class="nav-item active">
+        <a href="/profile.html" class="nav-item active">
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
                 stroke-linejoin="round">
                 <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
@@ -697,9 +697,9 @@
             <span>POCKET</span>
         </a>
     </nav>
-    <script src="js/app.js?v=force"></script>
-    <script src="js/hopping.js"></script>
-    <script src="js/talent_editor.js"></script>
+    <script src="/js/app.js?v=force"></script>
+    <script src="/js/hopping.js"></script>
+    <script src="/js/talent_editor.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             const supabase = window.supabaseClient;
@@ -731,7 +731,7 @@
                         <div style="text-align: center; padding: 4rem;">
                             <h2 style="font-family: 'Playfair Display', serif; font-size: 2rem; margin-bottom: 1rem;">User Not Found</h2>
                             <p style="color: #666;">The hopper @${targetUsername} does not exist.</p>
-                            <a href="index.html" class="btn" style="margin-top: 2rem; display: inline-block; background: var(--bg-red); color: white;">Return Home</a>
+                            <a href="/index.html" class="btn" style="margin-top: 2rem; display: inline-block; background: var(--bg-red); color: white;">Return Home</a>
                         </div>
                     `;
                     document.getElementById('user-view').style.display = 'block';
@@ -742,18 +742,18 @@
 
                 // If not owner, hide private things
                 if (!isOwner) {
-                     // Hide Top Overlay specific controls
-                     document.getElementById('logout-btn').style.display = 'none';
-                     
-                     // If guest, maybe show Login button instead of Logout?
-                     if (!session) {
-                         const loginBtn = document.createElement('button');
-                         loginBtn.textContent = 'Login';
-                         loginBtn.className = 'btn';
-                         loginBtn.style.cssText = 'background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 4px 12px; font-size: 0.75rem; border-radius: 20px; backdrop-filter: blur(4px); cursor: pointer;';
-                         loginBtn.onclick = () => window.location.href = 'index.html'; // Or trigger guest-view
-                         document.querySelector('.profile-top-overlay div:last-child').appendChild(loginBtn);
-                     }
+                    // Hide Top Overlay specific controls
+                    document.getElementById('logout-btn').style.display = 'none';
+
+                    // If guest, maybe show Login button instead of Logout?
+                    if (!session) {
+                        const loginBtn = document.createElement('button');
+                        loginBtn.textContent = 'Login';
+                        loginBtn.className = 'btn';
+                        loginBtn.style.cssText = 'background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 4px 12px; font-size: 0.75rem; border-radius: 20px; backdrop-filter: blur(4px); cursor: pointer;';
+                        loginBtn.onclick = () => window.location.href = 'index.html'; // Or trigger guest-view
+                        document.querySelector('.profile-top-overlay div:last-child').appendChild(loginBtn);
+                    }
                 }
 
                 // Show Views
@@ -816,10 +816,10 @@
 
                 // Display Username URL-friendly way
                 if (userData && userData.username) {
-                     if (usernameEl) {
+                    if (usernameEl) {
                         usernameEl.textContent = `@${userData.username}`;
                         usernameEl.style.display = 'block';
-                     }
+                    }
                 }
 
                 // Determine Identity
@@ -888,10 +888,10 @@
                     // Standard Hopper
                     nameEl.textContent = userData?.hopper_nickname || 'Hopper';
                     if (!userData?.hopper_nickname && targetUserId && !isOwner) {
-                         // Fallback for public view if no nickname set
-                         nameEl.textContent = 'Hopper'; 
+                        // Fallback for public view if no nickname set
+                        nameEl.textContent = 'Hopper';
                     } else if (isOwner && !userData?.hopper_nickname && session?.user?.user_metadata?.full_name) {
-                         nameEl.textContent = session.user.user_metadata.full_name;
+                        nameEl.textContent = session.user.user_metadata.full_name;
                     }
 
                     quoteEl.textContent = userData?.hopper_bio || '"Join the hop."';
@@ -911,17 +911,17 @@
                 // We handled hiding for !isOwner above.
                 // Now handle Owner Logic:
                 if (isOwner) {
-                     const roles = userData?.roles || [];
-                     if (roles.includes('talent')) {
-                         if (talentBtn) talentBtn.style.display = 'inline-flex';
-                         if (editProfileBtn) editProfileBtn.style.display = 'none';
-                     } else {
-                         // Hopper
-                         if (editProfileBtn) editProfileBtn.style.display = 'inline-flex';
-                         // Admin Action
-                         // Admin Check already exists separately below but relies on session 'user' object.
-                         // Ensure compatibility.
-                     }
+                    const roles = userData?.roles || [];
+                    if (roles.includes('talent')) {
+                        if (talentBtn) talentBtn.style.display = 'inline-flex';
+                        if (editProfileBtn) editProfileBtn.style.display = 'none';
+                    } else {
+                        // Hopper
+                        if (editProfileBtn) editProfileBtn.style.display = 'inline-flex';
+                        // Admin Action
+                        // Admin Check already exists separately below but relies on session 'user' object.
+                        // Ensure compatibility.
+                    }
                 }
 
                 // Account Info Mini (Top Left)
@@ -932,12 +932,12 @@
                     document.getElementById('account-name-mini').textContent = session.user.user_metadata.full_name || 'User';
                     if (session.user.user_metadata.avatar_url) document.getElementById('account-avatar-mini').src = session.user.user_metadata.avatar_url;
                 } else {
-                     // For Visitor, maybe hide or show generic
-                     document.getElementById('account-name-mini').textContent = 'Guest';
-                     document.getElementById('account-avatar-mini').style.display = 'none'; // Simplify
+                    // For Visitor, maybe hide or show generic
+                    document.getElementById('account-name-mini').textContent = 'Guest';
+                    document.getElementById('account-avatar-mini').style.display = 'none'; // Simplify
                 }
             };
-            
+
             // ... (Continue to renderProfileHeader call) ...
 
 
