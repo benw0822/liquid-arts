@@ -1865,6 +1865,26 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
 
+        // [NEW] Fetch and Display Related Bars
+        const relatedSection = document.getElementById('related-bars-section');
+        const relatedGrid = document.getElementById('related-bars-grid');
+
+        if (relatedSection && relatedGrid) {
+            const { data: relatedData, error: relatedError } = await window.supabaseClient
+                .from('article_bars')
+                .select('bar_id, bars(*)') // Join to get full bar details
+                .eq('article_id', article.id);
+
+            if (relatedData && relatedData.length > 0) {
+                const bars = relatedData.map(r => r.bars).filter(b => b); // Extract bar objects
+
+                if (bars.length > 0) {
+                    relatedGrid.innerHTML = bars.map(bar => window.createBarCard(bar)).join('');
+                    relatedSection.style.display = 'block';
+                }
+            }
+        }
+
         // --- TOC Generation ---
         // Find the placeholder inserted by Quill (class: toc-embed-container)
         const tocPlaceholder = container.querySelector('.toc-embed-container');
