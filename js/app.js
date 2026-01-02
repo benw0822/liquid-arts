@@ -1881,6 +1881,65 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (bars.length > 0) {
                     relatedGrid.innerHTML = bars.map(bar => window.createBarCard(bar)).join('');
                     relatedSection.style.display = 'block';
+
+                    // Initialize Maps & Badges (Robust Inline)
+                    bars.forEach(bar => {
+                        // Hopping Badge
+                        setTimeout(() => { if (window.renderHoppingBadge) window.renderHoppingBadge(bar.id); }, 500);
+
+                        if (bar.lat && bar.lng) {
+                            setTimeout(() => {
+                                if (typeof L === 'undefined') {
+                                    console.error('Leaflet not loaded');
+                                    return;
+                                }
+
+                                const elId = `card-map-${bar.id}`;
+                                const el = document.getElementById(elId);
+                                if (!el || el.classList.contains('leaflet-container')) return;
+
+                                try {
+                                    // Parse coordinates safely
+                                    const lat = parseFloat(bar.lat);
+                                    const lng = parseFloat(bar.lng);
+
+                                    const map = L.map(elId, {
+                                        zoomControl: false,
+                                        scrollWheelZoom: false,
+                                        dragging: false,
+                                        doubleClickZoom: false,
+                                        touchZoom: false
+                                    }).setView([lat, lng], 15);
+
+                                    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                                        subdomains: 'abcd',
+                                        maxZoom: 19,
+                                        attribution: '&copy; OpenStreetMap &copy; CARTO'
+                                    }).addTo(map);
+
+                                    // Marker logic (Simplified for related bars)
+                                    const markerHtml = `
+                                        <div style="display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%);">
+                                            <div style="width: 14px; height: 14px; background: #ef4444; border: 2px solid white; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,0.2);"></div>
+                                        </div>
+                                    `;
+                                    const customIcon = L.divIcon({
+                                        className: 'custom-map-marker',
+                                        html: markerHtml,
+                                        iconSize: [0, 0],
+                                        iconAnchor: [0, 0]
+                                    });
+
+                                    L.marker([lat, lng], { icon: customIcon }).addTo(map);
+
+                                    // Force layout update
+                                    map.invalidateSize();
+                                } catch (e) {
+                                    console.error('Related bar map init error:', e);
+                                }
+                            }, 500);
+                        }
+                    });
                 }
             }
         }
