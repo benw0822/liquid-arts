@@ -766,11 +766,22 @@
                 if (!session) {
                     document.getElementById('guest-view').style.display = 'block';
                     document.getElementById('profile-login-btn').addEventListener('click', async () => {
-                        const { error } = await supabase.auth.signInWithOAuth({
+                        const params = new URLSearchParams(window.location.search);
+                        const ret = params.get('ret');
+                        // If ret exists, go there. Check if ret is just a path (starts with /) to be safe, or full URL.
+                        // Usually we pass encoded path. Safe to prefix with origin.
+                        const redirectTo = ret
+                            ? (ret.startsWith('http') ? ret : `${window.location.origin}${ret}`)
+                            : `${window.location.origin}/profile.html`;
+
+                        console.log('Login Redirect Target:', redirectTo);
+
+                        const { data, error } = await window.supabaseClient.auth.signInWithOAuth({
                             provider: 'google',
-                            options: { redirectTo: window.location.origin + '/profile.html' }
-                        });
-                        if (error) console.error('Error:', error.message);
+                            options: {
+                                redirectTo: redirectTo
+                            }
+                        }); if (error) console.error('Error:', error.message);
                     });
                     return;
                 }

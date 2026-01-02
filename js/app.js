@@ -2303,6 +2303,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // --- Global Auth Button Return Logic ---
+    const globalAuthBtn = document.getElementById('global-auth-btn');
+    if (globalAuthBtn) {
+        const currentPath = window.location.pathname + window.location.search;
+        // Don't append if already on profile or login related pages
+        if (currentPath !== '/profile.html' && !currentPath.includes('login.html')) {
+            globalAuthBtn.href = `/profile.html?ret=${encodeURIComponent(currentPath)}`;
+        }
+    }
+
     // --- Auto Init based on URL ---
     const path = window.location.pathname;
     if (path.endsWith('index.html') || path === '/') window.initHome();
