@@ -18,7 +18,8 @@ async function initExplore() {
     const grid = document.getElementById('explore-feed');
     if (!grid) return;
 
-    grid.innerHTML = '<p style="text-align: center; color: #888; font-family: var(--font-main); width: 100%;">Curating your experience...</p>';
+    // Loading State
+    grid.innerHTML = window.getLoaderHtml ? window.getLoaderHtml() : '<p style="text-align: center; color: #888; font-family: var(--font-main); width: 100%;">Curating your experience...</p>';
 
     try {
         // 1. Fetch Bars (Fetch 40 candidates)
