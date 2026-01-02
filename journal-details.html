@@ -11,6 +11,10 @@
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:wght@400;700&display=swap"
         rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 </head>
 
 <body class="light-mode">
@@ -49,11 +53,11 @@
 
         <!-- Related Bars Section -->
         <div id="related-bars-section" style="margin-top: 4rem; display: none;">
-            <div class="section-header">
-                <h3 class="display-text" style="font-size: 2.5rem;">Mentioned <span
-                        class="text-italic text-red">Spots</span></h3>
+            <div class="section-header" style="justify-content: center;">
+                <h3 class="display-text" style="font-size: 2.5rem; text-align: center;">Mentioned</h3>
             </div>
-            <div id="related-bars-grid" class="magazine-grid">
+            <div id="related-bars-grid" class="magazine-grid"
+                style="display: flex; justify-content: center; flex-wrap: wrap; gap: 2rem;">
                 <!-- Injected by JS -->
             </div>
         </div>
