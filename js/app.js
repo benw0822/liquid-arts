@@ -177,10 +177,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     address_en, 
                     lat, 
                     lng,
-                    description,
-                    is_active
-                `)
-                .eq('is_active', true); // Ensure we only get active bars if that flag exists (optional safely)
+                    description
+                `);
+            // .eq('is_active', true); // Removed: Column does not exist yet
 
             if (error) {
                 console.error('Error fetching bars list:', error);
