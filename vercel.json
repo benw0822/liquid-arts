@@ -14,7 +14,7 @@
         },
         {
             "source": "/article/:slug",
-            "destination": "/journal-details.html?slug=:slug"
+            "destination": "/api/article_router?slug=:slug"
         },
         {
             "source": "/bar/id/:id",

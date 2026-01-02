@@ -1795,6 +1795,9 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        // [NEW] SEO: Update Document Title
+        document.title = `${article.title} | Liquid Arts`;
+
         let dateDisplayHtml = `<span style="font-size: 0.9rem; letter-spacing: 0.05em; text-transform: uppercase;">${new Date(article.published_at || article.created_at).toLocaleDateString()}</span>`;
 
         // If Event, show duration with special styling
