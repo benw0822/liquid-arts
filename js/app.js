@@ -2346,6 +2346,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // --- Helper: Get Loader HTML ---
+    window.getLoaderHtml = () => {
+        return `
+            <div class="loader-container">
+                <div class="loader-pouring"></div>
+                <div class="loader-text">Pouring...</div>
+            </div>
+        `;
+    };
+
     // --- Global Auth Button Return Logic ---
     const globalAuthBtn = document.getElementById('global-auth-btn');
     if (globalAuthBtn) {
