@@ -2238,7 +2238,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const { data, error } = await window.supabaseClient.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: window.location.origin // Dynamic redirect
+                    redirectTo: `${window.location.origin}/profile.html`
                 }
             });
             if (error) console.error('Login Error:', error);
