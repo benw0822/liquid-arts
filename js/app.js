@@ -448,7 +448,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const searchInput = document.getElementById('search-input');
 
         // Loading state
-        if (grid) grid.innerHTML = window.getLoaderHtml ? window.getLoaderHtml() : '<p style="width:100%; text-align:center; color:#888;">Pouring...</p>';
+        if (grid) grid.innerHTML = '<p style="width:100%; text-align:center; color:#888;">Discovering locations...</p>';
 
         // 1. Pre-calculate Cities from Coords (for Filters & Display)
         bars = await Promise.all(bars.map(async (bar) => {
@@ -526,8 +526,6 @@ document.addEventListener('DOMContentLoaded', () => {
             grid.innerHTML = '<p style="text-align:center; padding: 2rem;">Please <a href="admin.html">log in</a> to view your saved bars.</p>';
             return;
         }
-
-        if (grid) grid.innerHTML = window.getLoaderHtml ? window.getLoaderHtml() : '';
 
         if (window.savedBarIds.size === 0) {
             grid.innerHTML = `
@@ -2345,16 +2343,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
-
-    // --- Helper: Get Loader HTML ---
-    window.getLoaderHtml = () => {
-        return `
-            <div class="loader-container">
-                <div class="loader-pouring"></div>
-                <div class="loader-text">Pouring...</div>
-            </div>
-        `;
-    };
 
     // --- Global Auth Button Return Logic ---
     const globalAuthBtn = document.getElementById('global-auth-btn');
