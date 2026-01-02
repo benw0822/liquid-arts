@@ -25,7 +25,7 @@
             "destination": "/api/share_invite?code=:code"
         },
         {
-            "source": "/:slug",
+            "source": "/:slug((?!robots\\.txt|sitemap\\.xml).*)",
             "destination": "/api/slug_router?slug=:slug"
         }
     ],
