@@ -12,7 +12,7 @@ export default async function handler(request) {
     }
 
     // Credentials (Ideally env vars, but using public ones for now matched with client)
-    const SUPABASE_URL = 'https://wgnskednopbfngvjmviq.supabase.co';
+    const SUPABASE_URL = 'https://auth.liquidarts.bar';
     const SUPABASE_KEY = 'sb_publishable_gcmYleFIGmwsLSKofS__Qg_62EXoP6P';
 
     try {

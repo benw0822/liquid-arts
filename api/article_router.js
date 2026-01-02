@@ -21,7 +21,7 @@ export default async function handler(request) {
     const isBot = /facebookexternalhit|line-poker|twitterbot|whatsapp|telegrambot|discordbot|googlebot|bingbot/i.test(userAgent);
 
     // Credentials
-    const SUPABASE_URL = 'https://wgnskednopbfngvjmviq.supabase.co';
+    const SUPABASE_URL = 'https://auth.liquidarts.bar';
     const SUPABASE_KEY = 'sb_publishable_gcmYleFIGmwsLSKofS__Qg_62EXoP6P';
 
     // --- BOT LOGIC (Server-Side SEO) ---

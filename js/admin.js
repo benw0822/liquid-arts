@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- Configuration ---
-    const SUPABASE_URL = 'https://wgnskednopbfngvjmviq.supabase.co';
+    const SUPABASE_URL = 'https://auth.liquidarts.bar';
     const SUPABASE_KEY = 'sb_publishable_gcmYleFIGmwsLSKofS__Qg_62EXoP6P';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     window.supabaseClient = supabase; // Expose for shared scripts like talent_editor.js
