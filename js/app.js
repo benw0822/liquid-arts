@@ -157,13 +157,45 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
 
     // --- Data Fetching ---
-    async function fetchBars() {
+    async function fetchBarsLight() {
         try {
-            // Fetch bars with their related images and articles
-            // Note: Supabase join syntax depends on foreign keys
+            // Optimization: Select ONLY what is needed for Card Display & Map
             const { data, error } = await window.supabaseClient
                 .from('bars')
                 .select(`
+                    id, 
+                    title, 
+                    slug,
+                    location, 
+                    vibe, 
+                    image, 
+                    price, 
+                    rating, 
+                    google_rating, 
+                    google_review_count,
+                    address, 
+                    address_en, 
+                    lat, 
+                    lng,
+                    description,
+                    is_active
+                `)
+                .eq('is_active', true); // Ensure we only get active bars if that flag exists (optional safely)
+
+            if (error) {
+                console.error('Error fetching bars list:', error);
+                return [];
+            }
+            return data || [];
+        } catch (err) {
+            console.error('Unexpected error fetching bars list:', err);
+            return [];
+        }
+    }
+
+    async function fetchBarDetails(idOrSlug) {
+        try {
+            let query = window.supabaseClient.from('bars').select(`
                     *,
                     slug,
                     media_mentions,
@@ -175,18 +207,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     )
                 `);
 
-            if (error) {
-                console.error('Error fetching bars:', error);
-                // Fallback to empty or simple select if relations fail?
-                // For now, return empty to avoid "Fake Data" confusion.
-                return [];
+            if (typeof idOrSlug === 'string' && isNaN(Number(idOrSlug))) {
+                query = query.eq('slug', idOrSlug);
+            } else {
+                query = query.eq('id', idOrSlug);
             }
 
-            return data || [];
+            const { data, error } = await query.single();
+            if (error) throw error;
+            return data;
         } catch (err) {
-            console.error('Unexpected error fetching bars:', err);
-            return [];
+            console.error('Error fetching bar details:', err);
+            return null;
         }
+    }
+
+    // Deprecated wrapper to catch old calls if any remain, but strictly mapped to Light for safety in lists
+    async function fetchBars() {
+        console.warn('fetchBars() is deprecated. Using fetchBarsLight().');
+        return await fetchBarsLight();
     }
 
     async function fetchArticles() {
@@ -229,8 +268,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const container = document.getElementById('map-bar-card-container');
         if (!modal || !container) return;
 
-        // Find bar data
-        const bars = await fetchBars();
+        let bars = window.cachedBars || await fetchBarsLight();
+        // Simple cache for this session to avoid re-fetching even light list if possible
+        window.cachedBars = bars;
+
         let bar = bars.find(b => b.id == barId);
 
         // If not found (rare), fallback
@@ -342,7 +383,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. Home Page
     window.initHome = async () => {
         await window.initAuthAndSaved();
-        const bars = await fetchBars();
+        await window.initAuthAndSaved();
+        const bars = await fetchBarsLight();
         const articles = await fetchArticles();
 
         const featuredGrid = document.getElementById('featured-grid');
@@ -399,7 +441,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. Bar List Page
     window.initBarList = async () => {
         await initAuthAndSaved(); // Wait for user & saved data
-        let bars = await fetchBars();
+        let bars = await fetchBarsLight();
         const grid = document.getElementById('bars-grid');
         const locationSelect = document.getElementById('filter-city');
         const vibeSelect = document.getElementById('filter-vibe');
@@ -496,7 +538,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const allBars = await fetchBars();
+        const allBars = await fetchBarsLight();
         let savedBars = allBars.filter(b => window.savedBarIds.has(b.id));
 
         // Pre-calculate cities for saved bars too
@@ -521,7 +563,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Ensure auth/saved state
         await window.initAuthAndSaved();
 
-        const allBars = await fetchBars();
+        const allBars = await fetchBarsLight();
 
         // --- Fetch User Hoppings for Map Thumbnails ---
         let userHoppingsMap = {}; // { bar_id: image_url }
