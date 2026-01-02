@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+
+# Explicitly allow social media bots
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+User-agent: Facebot
+Allow: /
+
+Sitemap: https://liquid-arts.vercel.app/sitemap.xml
