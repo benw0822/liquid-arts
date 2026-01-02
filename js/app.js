@@ -1906,6 +1906,94 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // [NEW] Helper: Fetch and Render Related Content
+    async function loadRelatedContent(articleId) {
+        const relatedSection = document.getElementById('related-bars-section');
+        const grid = document.getElementById('related-bars-grid');
+        if (!relatedSection || !grid) return;
+
+        // 1. Fetch Related Bars
+        const { data: relatedBarsData, error } = await window.supabaseClient
+            .from('article_bars')
+            .select('bar_id, bars(*)')
+            .eq('article_id', articleId);
+
+        if (error || !relatedBarsData || relatedBarsData.length === 0) {
+            relatedSection.style.display = 'none';
+            return;
+        }
+
+        const bars = relatedBarsData.map(r => r.bars).filter(b => b); // Extract bar objects
+        let allItems = [];
+
+        // 2. Prepare Bar Cards
+        bars.forEach(bar => {
+            // Use existing global creator if available, else manual
+            if (window.createBarCard) {
+                allItems.push({
+                    type: 'bar',
+                    html: window.createBarCard(bar),
+                    date: new Date(bar.created_at) // For sorting mix? Or just pinned
+                });
+            }
+        });
+
+        // 3. Fetch Hops for these bars (Limit 2 per bar per article to avoid crowding?)
+        // Or just fetch recent global hops for these bars.
+        const barIds = bars.map(b => b.id);
+        const { data: hops } = await window.supabaseClient
+            .from('hoppings')
+            .select('*, users(name, user_metadata)')
+            .in('bar_id', barIds)
+            .eq('is_public', true)
+            .eq('is_deleted', false)
+            .order('hopped_at', { ascending: false })
+            .limit(10); // Limit total hops shown
+
+        if (hops) {
+            hops.forEach(hop => {
+                // Find bar name
+                const bar = bars.find(b => b.id === hop.bar_id);
+                const barName = bar ? bar.title : 'Unknown Bar';
+
+                const userAvatar = hop.users?.user_metadata?.avatar_url || 'assets/logo_vertical.png';
+                const userName = hop.users?.name || 'User';
+
+                const hopHtml = `
+                    <div class="grid-item hop-card" onclick="window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', '${hop.rating}', '${(hop.description || '').replace(/'/g, "\\'")}', '${hop.id}', '${hop.user_id}', false, '${barName.replace(/'/g, "\\'")}', '${hop.bar_id}')" style="cursor: pointer; margin-bottom: 2rem; break-inside: avoid;">
+                        <div style="position: relative; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); background: white;">
+                            <img src="${hop.image_url}" style="width: 100%; display: block; aspect-ratio: 1/1; object-fit: cover;">
+                            <div style="padding: 12px;">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                    <img src="${userAvatar}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;">
+                                    <span style="font-size: 0.9rem; font-weight: 600; color: #333;">${userName}</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-size: 0.8rem; color: #888; display: flex; align-items: center; gap: 4px;">
+                                        📍 ${barName}
+                                    </span>
+                                    <span style="color: #ef4444; font-size: 0.9rem;">${'★'.repeat(hop.rating)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                allItems.push({
+                    type: 'hop',
+                    html: hopHtml,
+                    date: new Date(hop.hopped_at)
+                });
+            });
+        }
+
+        // 4. Mix and Render
+        // Layout: Masonry handled by CSS column-count on #related-bars-grid
+
+        grid.innerHTML = allItems.map(item => item.html).join('');
+        relatedSection.style.display = 'block';
+    }
+
     // Load Related Bars & Hops
     loadRelatedContent(article.id);
 };
