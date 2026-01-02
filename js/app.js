@@ -1904,27 +1904,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 tocPlaceholder.remove();
             }
         }
-    };
+    }
 
-    // --- Helper Functions ---
+    // Load Related Bars & Hops
+    loadRelatedContent(article.id);
+};
 
-    // Expose for Profile usage
-    window.initCardMapGlobal = function (id, lat, lng, title, isSaved = false) {
-        if (typeof L === 'undefined') return;
-        const elId = `card-map-${id}`;
-        const el = document.getElementById(elId);
-        if (!el) return;
-        if (el.classList.contains('leaflet-container')) return;
+// --- Helper Functions ---
 
-        try {
-            const map = L.map(elId, { zoomControl: false, scrollWheelZoom: false, dragging: false, doubleClickZoom: false, touchZoom: false }).setView([lat, lng], 15);
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 19 }).addTo(map);
+// Expose for Profile usage
+window.initCardMapGlobal = function (id, lat, lng, title, isSaved = false) {
+    if (typeof L === 'undefined') return;
+    const elId = `card-map-${id}`;
+    const el = document.getElementById(elId);
+    if (!el) return;
+    if (el.classList.contains('leaflet-container')) return;
 
-            // Custom Marker: Golden Heart (Saved) vs Red Dot (Default)
-            let markerHtml;
-            if (isSaved) {
-                // Golden Heart
-                markerHtml = `
+    try {
+        const map = L.map(elId, { zoomControl: false, scrollWheelZoom: false, dragging: false, doubleClickZoom: false, touchZoom: false }).setView([lat, lng], 15);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 19 }).addTo(map);
+
+        // Custom Marker: Golden Heart (Saved) vs Red Dot (Default)
+        let markerHtml;
+        if (isSaved) {
+            // Golden Heart
+            markerHtml = `
                     <div style="display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%);">
                         <div style="background: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; color: #333; box-shadow: 0 1px 2px rgba(0,0,0,0.15); margin-bottom: 3px; white-space: nowrap;">
                             ${title || ''}
@@ -1936,9 +1940,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
                 `;
-            } else {
-                // Red Dot
-                markerHtml = `
+        } else {
+            // Red Dot
+            markerHtml = `
                     <div style="display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%);">
                         <div style="background: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; color: #333; box-shadow: 0 1px 2px rgba(0,0,0,0.15); margin-bottom: 3px; white-space: nowrap;">
                             ${title || ''}
@@ -1946,60 +1950,60 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div style="width: 14px; height: 14px; background: #ef4444; border: 2px solid white; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,0.2);"></div>
                     </div>
                 `;
-            }
+        }
 
-            const customIcon = L.divIcon({
-                className: 'custom-map-marker',
-                html: markerHtml,
-                iconSize: [0, 0],
-                iconAnchor: [0, 0]
-            });
+        const customIcon = L.divIcon({
+            className: 'custom-map-marker',
+            html: markerHtml,
+            iconSize: [0, 0],
+            iconAnchor: [0, 0]
+        });
 
-            L.marker([lat, lng], { icon: customIcon }).addTo(map);
-        } catch (e) { console.warn('Map init error', e); }
-    };
+        L.marker([lat, lng], { icon: customIcon }).addTo(map);
+    } catch (e) { console.warn('Map init error', e); }
+};
 
-    // --- Helper: Reverse Geocoding (Global) ---
-    window.fetchCityFromCoordsGlobal = async function (lat, lng) {
-        if (!lat || !lng) return '';
-        try {
-            const key = `city_${lat}_${lng}`;
-            const cached = localStorage.getItem(key);
-            if (cached) return cached;
+// --- Helper: Reverse Geocoding (Global) ---
+window.fetchCityFromCoordsGlobal = async function (lat, lng) {
+    if (!lat || !lng) return '';
+    try {
+        const key = `city_${lat}_${lng}`;
+        const cached = localStorage.getItem(key);
+        if (cached) return cached;
 
-            // Rate limit mitigation: random delay 10-100ms
-            await new Promise(r => setTimeout(r, Math.random() * 100));
+        // Rate limit mitigation: random delay 10-100ms
+        await new Promise(r => setTimeout(r, Math.random() * 100));
 
-            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=en`);
-            const data = await response.json();
-            if (data.address) {
-                const city = data.address.city || data.address.town || data.address.village || data.address.county || '';
-                localStorage.setItem(key, city);
-                return city;
-            }
-        } catch (e) { console.error('City fetch error', e); }
-        return '';
-    };
+        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=en`);
+        const data = await response.json();
+        if (data.address) {
+            const city = data.address.city || data.address.town || data.address.village || data.address.county || '';
+            localStorage.setItem(key, city);
+            return city;
+        }
+    } catch (e) { console.error('City fetch error', e); }
+    return '';
+};
 
-    // Expose for Profile Page reuse
-    window.createBarCard = function (bar, city = null) {
-        // PRIORITIZE DB Location, then fallback to calculated City
-        const displayCity = bar.location || city || '';
+// Expose for Profile Page reuse
+window.createBarCard = function (bar, city = null) {
+    // PRIORITIZE DB Location, then fallback to calculated City
+    const displayCity = bar.location || city || '';
 
-        const description = bar.description || `Experience the finest mixology at ${bar.title}. Known for its ${bar.vibe} atmosphere, this spot in ${displayCity} offers a curated selection of cocktails and spirits.`;
-        const rating = bar.google_rating || bar.rating || 'N/A';
-        const reviewCount = bar.google_review_count || bar.rating_count || 0;
-        const price = '$'.repeat(bar.price || bar.price_level || 2);
-        const address = bar.address || bar.address_en || bar.location;
-        const mapUrl = bar.google_map_url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+    const description = bar.description || `Experience the finest mixology at ${bar.title}. Known for its ${bar.vibe} atmosphere, this spot in ${displayCity} offers a curated selection of cocktails and spirits.`;
+    const rating = bar.google_rating || bar.rating || 'N/A';
+    const reviewCount = bar.google_review_count || bar.rating_count || 0;
+    const price = '$'.repeat(bar.price || bar.price_level || 2);
+    const address = bar.address || bar.address_en || bar.location;
+    const mapUrl = bar.google_map_url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
 
-        const isSaved = window.savedBarIds.has(bar.id);
+    const isSaved = window.savedBarIds.has(bar.id);
 
-        // Custom Slug Logic
-        // If bar.slug exists, use clean URL '/slug' (root relative), else 'bar.html?id=ID'
-        const barUrl = bar.slug ? `/${bar.slug}` : `bar.html?id=${bar.id}`;
+    // Custom Slug Logic
+    // If bar.slug exists, use clean URL '/slug' (root relative), else 'bar.html?id=ID'
+    const barUrl = bar.slug ? `/${bar.slug}` : `bar.html?id=${bar.id}`;
 
-        return `
+    return `
         <div class="art-card grid-item" style="position: relative; display: flex; flex-direction: column; height: 100%; margin-bottom: 3rem; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 380px; margin-left: auto; margin-right: auto;">
              <!-- Save Button -->
              <button class="save-btn-${bar.id}" onclick="toggleSaveBar(${bar.id}, event)" style="position: absolute; top: 15px; right: 15px; z-index: 20; background: white; border: none; border-radius: 50%; width: 36px; height: 36px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0;">
@@ -2088,42 +2092,42 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         </div>
         `;
+};
+
+// Expose for Profile Page
+window.createArticleCard = function (article) {
+    // Handle both mock data (image, date) and real data (cover_image, published_at)
+    const imgUrl = article.cover_image || article.image || 'assets/placeholder.jpg';
+
+    // Date Logic
+    let dateDisplay;
+    if (article.category && (article.category.toLowerCase() === 'event' || article.category.toLowerCase() === 'activity')) {
+        // Event: Red Bold Date Range
+        const start = new Date(article.start_date).toLocaleDateString();
+        const end = article.end_date ? new Date(article.end_date).toLocaleDateString() : 'TBD';
+        dateDisplay = `<span style="color: var(--bg-red); font-weight: 700;">${start} - ${end}</span>`;
+    } else {
+        // Standard Date
+        const dateStr = new Date(article.published_at || article.created_at || article.date).toLocaleDateString();
+        dateDisplay = `<span style="color: #888;">${dateStr}</span>`;
+    }
+
+    // Category Label
+    const categoryMap = {
+        'Event': '活動情報', 'Review': '直擊體驗', 'Feature': '專題報導', 'Interview': '職人專訪',
+        '活動情報': 'Event', '直擊體驗': 'Review', '專題報導': 'Feature', '職人專訪': 'Interview'
     };
 
-    // Expose for Profile Page
-    window.createArticleCard = function (article) {
-        // Handle both mock data (image, date) and real data (cover_image, published_at)
-        const imgUrl = article.cover_image || article.image || 'assets/placeholder.jpg';
+    const displayCategory = categoryMap[article.category] || article.category;
+    const categoryLabel = displayCategory ? `<span style="display:inline-block; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--bg-red); border: 1px solid var(--bg-red); padding: 2px 8px; border-radius: 4px; margin-bottom: 6px;">${displayCategory}</span>` : '';
 
-        // Date Logic
-        let dateDisplay;
-        if (article.category && (article.category.toLowerCase() === 'event' || article.category.toLowerCase() === 'activity')) {
-            // Event: Red Bold Date Range
-            const start = new Date(article.start_date).toLocaleDateString();
-            const end = article.end_date ? new Date(article.end_date).toLocaleDateString() : 'TBD';
-            dateDisplay = `<span style="color: var(--bg-red); font-weight: 700;">${start} - ${end}</span>`;
-        } else {
-            // Standard Date
-            const dateStr = new Date(article.published_at || article.created_at || article.date).toLocaleDateString();
-            dateDisplay = `<span style="color: #888;">${dateStr}</span>`;
-        }
+    // Check saved state
+    const isSaved = window.savedArticleIds ? window.savedArticleIds.has(article.id) : false;
 
-        // Category Label
-        const categoryMap = {
-            'Event': '活動情報', 'Review': '直擊體驗', 'Feature': '專題報導', 'Interview': '職人專訪',
-            '活動情報': 'Event', '直擊體驗': 'Review', '專題報導': 'Feature', '職人專訪': 'Interview'
-        };
+    // [NEW] Custom URL for Cards
+    const articleUrl = article.slug ? `/article/${article.slug}` : `journal-details.html?id=${article.id}`;
 
-        const displayCategory = categoryMap[article.category] || article.category;
-        const categoryLabel = displayCategory ? `<span style="display:inline-block; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--bg-red); border: 1px solid var(--bg-red); padding: 2px 8px; border-radius: 4px; margin-bottom: 6px;">${displayCategory}</span>` : '';
-
-        // Check saved state
-        const isSaved = window.savedArticleIds ? window.savedArticleIds.has(article.id) : false;
-
-        // [NEW] Custom URL for Cards
-        const articleUrl = article.slug ? `/article/${article.slug}` : `journal-details.html?id=${article.id}`;
-
-        return `
+    return `
         <div class="art-card grid-item" style="position: relative; display: flex; flex-direction: column; background: #fff; color: #333; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 2rem; max-width: 380px; margin-left: auto; margin-right: auto;">
              <!-- Save Button -->
              <button class="save-article-btn-${article.id}" onclick="toggleSaveArticle(${article.id}, event)" style="position: absolute; top: 15px; right: 15px; z-index: 20; background: white; border: none; border-radius: 50%; width: 36px; height: 36px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0;">
@@ -2148,85 +2152,85 @@ document.addEventListener('DOMContentLoaded', () => {
             </a>
         </div>
     `;
-    }
+}
 
-    // --- Auth Logic (Member) ---
-    const loginBtn = document.getElementById('login-btn');
-    // const userMenu = document.getElementById('user-menu'); // Removed, replaced by global-auth-btn
-    const googleLoginBtn = document.getElementById('google-login-btn');
-    if (googleLoginBtn) {
-        googleLoginBtn.addEventListener('click', async () => {
-            const { data, error } = await window.supabaseClient.auth.signInWithOAuth({
-                provider: 'google',
-                options: {
-                    redirectTo: window.location.origin // Dynamic redirect
-                }
-            });
-            if (error) console.error('Login Error:', error);
-        });
-    }
-
-
-    // --- Auth State Listener ---
-    window.supabaseClient.auth.onAuthStateChange((event, session) => {
-        window.currentUser = session?.user || null;
-        if (event === 'SIGNED_IN') {
-            console.log('User signed in:', session.user.email);
-            // Refresh Saved Sync
-            window.initAuthAndSaved();
-        } else if (event === 'SIGNED_OUT') {
-            console.log('User signed out');
-            window.currentUser = null;
-            window.savedBarIds = new Set();
-        }
-
-        // Global Auth Button Logic (Mobile & Desktop)
-        const authBtn = document.getElementById('global-auth-btn');
-        const navMyLink = document.getElementById('nav-my-link'); // Legacy check
-        const logoutBtn = document.getElementById('logout-btn');
-
-        if (session) {
-            const avatar = session.user.user_metadata.avatar_url || 'assets/logo_vertical.png';
-
-            if (authBtn) {
-                authBtn.innerHTML = `<img src="${avatar}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-color);">`;
-            }
-
-            // Legacy Fallbacks (if navbar not updated yet)
-            if (loginBtn) loginBtn.style.display = 'none';
-            if (navMyLink) {
-                navMyLink.style.display = 'inline-flex'; // Or keep hidden if we rely on authBtn
-                // If navMyLink is visible, update it too
-                navMyLink.innerHTML = `<img src="${avatar}" style="width: 24px; height: 24px; border-radius: 50%; margin-right: 8px;"> <span>My</span>`;
-            }
-            if (logoutBtn) logoutBtn.style.display = 'inline-block';
-
-        } else {
-            // Logged Out
-            if (authBtn) {
-                // Reset to Icon
-                authBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>`;
-            }
-            if (loginBtn) loginBtn.style.display = 'inline-block'; // Or 'flex'
-            if (navMyLink) navMyLink.style.display = 'none';
-            if (logoutBtn) logoutBtn.style.display = 'none';
-        }
-
-        // Bottom Nav Highlight Logic
-        const currentPath = window.location.pathname.split('/').pop() || 'index.html';
-        const bottomNavItems = document.querySelectorAll('.bottom-nav .nav-item');
-        bottomNavItems.forEach(item => {
-            if (item.getAttribute('href') === currentPath) {
-                item.classList.add('active');
-            } else {
-                item.classList.remove('active');
+// --- Auth Logic (Member) ---
+const loginBtn = document.getElementById('login-btn');
+// const userMenu = document.getElementById('user-menu'); // Removed, replaced by global-auth-btn
+const googleLoginBtn = document.getElementById('google-login-btn');
+if (googleLoginBtn) {
+    googleLoginBtn.addEventListener('click', async () => {
+        const { data, error } = await window.supabaseClient.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: window.location.origin // Dynamic redirect
             }
         });
+        if (error) console.error('Login Error:', error);
     });
+}
 
-    // --- Auto Init based on URL ---
-    const path = window.location.pathname;
-    if (path.endsWith('index.html') || path === '/') window.initHome();
+
+// --- Auth State Listener ---
+window.supabaseClient.auth.onAuthStateChange((event, session) => {
+    window.currentUser = session?.user || null;
+    if (event === 'SIGNED_IN') {
+        console.log('User signed in:', session.user.email);
+        // Refresh Saved Sync
+        window.initAuthAndSaved();
+    } else if (event === 'SIGNED_OUT') {
+        console.log('User signed out');
+        window.currentUser = null;
+        window.savedBarIds = new Set();
+    }
+
+    // Global Auth Button Logic (Mobile & Desktop)
+    const authBtn = document.getElementById('global-auth-btn');
+    const navMyLink = document.getElementById('nav-my-link'); // Legacy check
+    const logoutBtn = document.getElementById('logout-btn');
+
+    if (session) {
+        const avatar = session.user.user_metadata.avatar_url || 'assets/logo_vertical.png';
+
+        if (authBtn) {
+            authBtn.innerHTML = `<img src="${avatar}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-color);">`;
+        }
+
+        // Legacy Fallbacks (if navbar not updated yet)
+        if (loginBtn) loginBtn.style.display = 'none';
+        if (navMyLink) {
+            navMyLink.style.display = 'inline-flex'; // Or keep hidden if we rely on authBtn
+            // If navMyLink is visible, update it too
+            navMyLink.innerHTML = `<img src="${avatar}" style="width: 24px; height: 24px; border-radius: 50%; margin-right: 8px;"> <span>My</span>`;
+        }
+        if (logoutBtn) logoutBtn.style.display = 'inline-block';
+
+    } else {
+        // Logged Out
+        if (authBtn) {
+            // Reset to Icon
+            authBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>`;
+        }
+        if (loginBtn) loginBtn.style.display = 'inline-block'; // Or 'flex'
+        if (navMyLink) navMyLink.style.display = 'none';
+        if (logoutBtn) logoutBtn.style.display = 'none';
+    }
+
+    // Bottom Nav Highlight Logic
+    const currentPath = window.location.pathname.split('/').pop() || 'index.html';
+    const bottomNavItems = document.querySelectorAll('.bottom-nav .nav-item');
+    bottomNavItems.forEach(item => {
+        if (item.getAttribute('href') === currentPath) {
+            item.classList.add('active');
+        } else {
+            item.classList.remove('active');
+        }
+    });
+});
+
+// --- Auto Init based on URL ---
+const path = window.location.pathname;
+if (path.endsWith('index.html') || path === '/') window.initHome();
 });
 
 // --- Signature Carousel Logic ---
