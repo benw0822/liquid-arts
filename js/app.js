@@ -1959,8 +1959,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const userAvatar = hop.users?.user_metadata?.avatar_url || 'assets/logo_vertical.png';
                 const userName = hop.users?.name || 'User';
 
+                const safeDesc = (hop.description || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, '\\n');
+                const safeBarName = barName.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+
                 const hopHtml = `
-                    <div class="grid-item hop-card" onclick="window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', '${hop.rating}', '${(hop.description || '').replace(/'/g, "\\'")}', '${hop.id}', '${hop.user_id}', false, '${barName.replace(/'/g, "\\'")}', '${hop.bar_id}')" style="cursor: pointer; margin-bottom: 2rem; break-inside: avoid;">
+                    <div class="grid-item hop-card" onclick="window.showHoppingDetails(event, '${hop.image_url}', '${hop.hopped_at}', '${hop.rating}', '${safeDesc}', '${hop.id}', '${hop.user_id}', false, '${safeBarName}', '${hop.bar_id}')" style="cursor: pointer; margin-bottom: 2rem; break-inside: avoid;">
                         <div style="position: relative; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); background: white;">
                             <img src="${hop.image_url}" style="width: 100%; display: block; aspect-ratio: 1/1; object-fit: cover;">
                             <div style="padding: 12px;">
