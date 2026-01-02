@@ -170,11 +170,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     vibe, 
                     image, 
                     price, 
-                    rating, 
                     google_rating, 
                     google_review_count,
+                    editorial_rating,
+                    editorial_review,
                     address, 
-                    address_en, 
                     lat, 
                     lng,
                     description
