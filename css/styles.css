@@ -304,7 +304,8 @@ h6 {
     display: flex;
     justify-content: space-between;
     /* Fallback */
-    padding: 4px 0;
+    padding: 4px 0 calc(4px + env(safe-area-inset-bottom)) 0;
+    /* Add Safe Area Padding */
     z-index: 1000;
     display: none;
     /* Hidden by default on desktop */
@@ -318,6 +319,10 @@ h6 {
     /* Ensure vertical centering */
     flex: 1;
     /* Force equal width */
+    min-width: 0;
+    /* Allow shrinking below content size if needed */
+    white-space: nowrap;
+    /* Prevent wrapping */
     text-decoration: none;
     color: black;
     /* Inactive: Black */
