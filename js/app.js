@@ -2397,6 +2397,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Auto Init based on URL ---
     const path = window.location.pathname;
     if (path.endsWith('index.html') || path === '/') window.initHome();
+    // Call Init Globally
+    window.initAuthAndSaved();
 });
 
 // --- Signature Carousel Logic ---
@@ -2529,6 +2531,4 @@ window.shareBarItem = async function (path, title, event) {
     }
 };
 
-// Call Init
-window.initAuthAndSaved();
-}); // End of DOMContentLoaded
+
