@@ -67,56 +67,54 @@
                         max-width: 420px;
                         width: 100%;
                         box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-                        color: #000; /* Black Text as requested */
+                        color: #fff; /* White Text */
                     ">
                         <img src="/assets/logo_vertical.png" alt="Liquid Arts" style="
-                            width: 80px; 
-                            margin-bottom: 1.5rem; 
-                            filter: brightness(0); /* Make logo black if possible, or leave as is if it has bg */
+                            width: 140px; /* Enlarged Logo */
+                            margin-bottom: 2rem; 
+                            filter: brightness(0) invert(1); /* Make logo white */
+                            drop-shadow: 0 4px 6px rgba(0,0,0,0.2);
                         ">
 
                         <h2 style="
                             font-family: 'Playfair Display', serif;
                             font-size: 2.5rem;
-                            color: #000;
+                            color: #fff;
                             margin-bottom: 0.5rem;
                             font-weight: 700;
                             text-transform: uppercase;
                             letter-spacing: 1px;
+                            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
                         ">Join US</h2>
 
                         <h3 style="
                             font-family: 'Inter', sans-serif;
                             font-size: 1.1rem;
-                            color: #1a1a1a;
-                            margin-bottom: 2rem;
+                            color: rgba(255,255,255,0.9);
+                            margin-bottom: 2.5rem;
                             font-weight: 600;
-                            opacity: 0.9;
+                            letter-spacing: 1px;
                         ">亞洲酒吧文化社群</h3>
 
-                        <div style="
+                        <p style="
                             font-family: 'Inter', sans-serif;
-                            color: #111;
-                            margin-bottom: 2.5rem;
+                            color: #fff;
+                            margin-bottom: 3rem;
                             line-height: 1.8;
-                            font-size: 0.95rem;
-                            font-weight: 500;
-                            text-align: left;
-                            background: rgba(255,255,255,0.1); /* Subtle highlight */
-                            padding: 1.5rem;
-                            border-radius: 8px;
-                            border: 1px solid rgba(0,0,0,0.1);
+                            font-size: 1rem;
+                            font-weight: 400;
+                            text-align: center;
+                            max-width: 320px;
+                            margin-left: auto;
+                            margin-right: auto;
                         ">
-                            <strong style="display:block; margin-bottom: 8px; font-size: 1.1rem;">Liquid Arts</strong>
-                            不只是找酒吧，而是走進亞洲的夜晚文化。<br>
-                            從地圖探索、深度故事到酒吧日常，<br>
-                            與懂喝的你，一起收藏每一個值得回味的夜晚。
-                        </div>
+                            不只是找酒吧，而是走進亞洲的夜晚文化。從地圖探索、深度故事到酒吧日常，與懂喝的你，一起收藏每一個值得回味的夜晚。
+                        </p>
 
                         <button id="profile-login-btn" class="btn" style="
                             width: 100%;
-                            background: #000; /* Black Button on Red Card */
-                            color: #fff; /* White text for contrast */
+                            background: #000;
+                            color: #fff;
                             font-weight: 600;
                             display: flex;
                             align-items: center;
@@ -125,11 +123,13 @@
                             padding: 16px;
                             border-radius: 4px;
                             transition: all 0.2s ease;
-                            border: 1px solid #333;
+                            border: 1px solid rgba(255,255,255,0.2);
                             font-family: 'Inter', sans-serif;
                             font-size: 1rem;
                             cursor: pointer;
-                        " onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                        " onmouseover="this.style.background='#1a1a1a'; this.style.transform='translateY(-1px)'"
+                            onmouseout="this.style.background='#000'; this.style.transform='translateY(0)'">
                             <!-- Google Icon -->
                             <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path
@@ -149,9 +149,9 @@
                         </button>
 
                         <div style="margin-top: 1.5rem;">
-                            <p style="color: rgba(0,0,0,0.6); font-size: 0.75rem; margin: 0;">
+                            <p style="color: rgba(255,255,255,0.6); font-size: 0.75rem; margin: 0;">
                                 By joining, you agree to our <a href="#"
-                                    style="color: #000; text-decoration: underline;">Terms & Privacy</a>.
+                                    style="color: #fff; text-decoration: underline;">Terms & Privacy</a>.
                             </p>
                         </div>
                     </div>
