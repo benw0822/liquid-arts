@@ -50,6 +50,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 link.style.display = 'none';
             }
         });
+
+        // Highlight Active Bottom Nav Item
+        const currentPath = window.location.pathname.replace('/', '') || 'index.html';
+        document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
+            const href = item.getAttribute('href');
+            if (href === currentPath || (currentPath === 'index.html' && href === 'explore.html')) {
+                item.classList.add('active');
+            }
+        });
     };
 
     // Global Escape HTML Helper
