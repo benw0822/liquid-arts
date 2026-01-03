@@ -1437,13 +1437,20 @@
                 // Define global logout handler for robustness (fixing desktop click issues)
                 window.handleLogout = async () => {
                     console.log('Logout Clicked (Global Handler)');
+
+                    // 1. Attempt Supabase SignOut
                     const { error } = await supabase.auth.signOut();
-                    if (error) {
-                        console.error('Logout Error:', error);
-                        window.location.href = '/index.html';
-                    } else {
-                        window.location.href = '/index.html';
-                    }
+                    if (error) console.error('Supabase SignOut Error:', error);
+
+                    // 2. FORCE CLEAR LocalStorage/SessionStorage to prevent zombie sessions
+                    localStorage.clear();
+                    sessionStorage.clear();
+
+                    // Also specifically target Supabase keys if we knew them, but clear() is safest for a strict logout.
+                    // If user wants to keep other non-auth data, we should be selective, but for now strict is better.
+
+                    // 3. Redirect
+                    window.location.href = '/index.html';
                 };
 
                 // Remove old listener if any to avoid double fires (though not critical)
