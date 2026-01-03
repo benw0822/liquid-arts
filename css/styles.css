@@ -302,7 +302,8 @@ h6 {
     /* Red background */
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;
-    justify-content: space-around;
+    justify-content: space-between;
+    /* Fallback */
     padding: 4px 0;
     z-index: 1000;
     display: none;
@@ -313,6 +314,10 @@ h6 {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
+    /* Ensure vertical centering */
+    flex: 1;
+    /* Force equal width */
     text-decoration: none;
     color: black;
     /* Inactive: Black */
