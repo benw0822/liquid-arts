@@ -1434,17 +1434,23 @@
                 logoutBtn.onmouseover = () => { logoutBtn.style.background = 'rgba(255,255,255,0.3)'; };
                 logoutBtn.onmouseout = () => { logoutBtn.style.background = 'rgba(255,255,255,0.2)'; };
 
-                logoutBtn.addEventListener('click', async () => {
-                    console.log('Logout Clicked');
+                // Define global logout handler for robustness (fixing desktop click issues)
+                window.handleLogout = async () => {
+                    console.log('Logout Clicked (Global Handler)');
                     const { error } = await supabase.auth.signOut();
                     if (error) {
                         console.error('Logout Error:', error);
-                        // Force redirect even on error (e.g. session missing)
                         window.location.href = '/index.html';
                     } else {
                         window.location.href = '/index.html';
                     }
-                });
+                };
+
+                // Remove old listener if any to avoid double fires (though not critical)
+                // Attach new listener
+                logoutBtn.addEventListener('click', window.handleLogout);
+                // Also add onclick directly for failsafe
+                logoutBtn.setAttribute('onclick', 'window.handleLogout()');
             }
 
             // --- Filter Event Listeners ---
