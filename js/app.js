@@ -201,6 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     title, 
                     slug,
                     location, 
+                    city,
                     vibe, 
                     image, 
                     price, 
@@ -484,14 +485,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // Loading state
         if (grid) grid.innerHTML = '<p style="width:100%; text-align:center; color:#888;">Discovering locations...</p>';
 
-        // 1. Pre-calculate Cities from Coords (for Filters & Display)
-        bars = await Promise.all(bars.map(async (bar) => {
-            let city = bar.location; // Fallback
-            if (bar.lat && bar.lng) {
-                const resolved = await fetchCityFromCoordsGlobal(bar.lat, bar.lng);
-                if (resolved) city = resolved;
-            }
-            return { ...bar, cityDisplay: city };
+        // 1. OPTIMIZATION: Removed blocking city fetch loop.
+        // Use existing 'location' field or split it if needed.
+        // Assuming 'location' field contains something useful like "Taipei, Taiwan"
+        bars = bars.map(bar => ({
+            ...bar,
+            cityDisplay: bar.city || (bar.location ? bar.location.split(',')[0].trim() : '') || 'Asia'
         }));
 
         // 2. Populate Filters (Dynamic)
@@ -2143,8 +2142,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Expose for Profile Page reuse
     window.createBarCard = function (bar, city = null) {
-        // PRIORITIZE DB Location, then fallback to calculated City
-        const displayCity = bar.location || city || '';
+        // PRIORITIZE Explicit City (from DB or arg), then Location, then empty
+        const displayCity = bar.city || city || bar.location || '';
 
         const description = bar.description || `Experience the finest mixology at ${bar.title}. Known for its ${bar.vibe} atmosphere, this spot in ${displayCity} offers a curated selection of cocktails and spirits.`;
         const rating = bar.google_rating || bar.rating || 'N/A';

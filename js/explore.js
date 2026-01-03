@@ -110,11 +110,10 @@ async function initExplore() {
             // For now, let's just mix them raw and fetch city inside createBarCard if needed?
             // But createBarCard is synchronous string builder.
             // We'll pre-fetch for ALL 40 bars? It's okay.
-            await Promise.all(barsData.map(async (bar) => {
-                if (bar.lat && bar.lng && window.fetchCityFromCoordsGlobal) {
-                    bar.cityDisplay = await window.fetchCityFromCoordsGlobal(bar.lat, bar.lng);
-                }
-            }));
+            // OPTIMIZATION: Removed blocking city fetch.
+            // barsData already has 'location' or 'city' column from DB if available.
+            // If we really need dynamic city, we must do it lazily or not at all for list views.
+            // For now, rely on DB data to speed up rendering.
             barsData.forEach(bar => window.exploreState.content.push({ type: 'bar', data: bar }));
         }
 
