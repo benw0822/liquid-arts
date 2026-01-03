@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const msgLinks = document.querySelectorAll('.nav-msg-link');
         msgLinks.forEach(link => {
             if (window.currentUser) {
-                link.style.display = ''; // Revert to CSS default (block/inline-block)
+                link.style.display = 'flex'; // Use flex to center icon
             } else {
                 link.style.display = 'none';
             }
