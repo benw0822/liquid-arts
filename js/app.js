@@ -36,6 +36,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const { data: articles } = await window.supabaseClient.from('saved_articles').select('article_id');
             if (articles) window.savedArticleIds = new Set(articles.map(r => r.article_id));
         }
+
+        // Update Nav Visibility (MESSAGE Link)
+        if (window.updateNavVisibility) window.updateNavVisibility();
+    };
+
+    window.updateNavVisibility = () => {
+        const msgLinks = document.querySelectorAll('.nav-msg-link');
+        msgLinks.forEach(link => {
+            if (window.currentUser) {
+                link.style.display = ''; // Revert to CSS default (block/inline-block)
+            } else {
+                link.style.display = 'none';
+            }
+        });
     };
 
 
