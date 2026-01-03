@@ -2528,3 +2528,7 @@ window.shareBarItem = async function (path, title, event) {
         }
     }
 };
+
+// Call Init
+window.initAuthAndSaved();
+}); // End of DOMContentLoaded
