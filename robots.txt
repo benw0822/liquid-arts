@@ -14,4 +14,4 @@ Allow: /
 User-agent: Facebot
 Allow: /
 
-Sitemap: https://liquid-arts.vercel.app/sitemap.xml
+Sitemap: https://www.liquidarts.bar/sitemap.xml
