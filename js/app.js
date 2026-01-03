@@ -995,10 +995,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 seoImage = sortedSeoImages[0].image_url;
             }
 
-            // Helper to set Content
+            // Helper to set Content (Robust: create if missing)
             const setMeta = (selector, content) => {
-                const element = document.querySelector(selector);
-                if (element) element.setAttribute('content', content);
+                let element = document.querySelector(selector);
+                if (!element) {
+                    // Determine if it's property or name based on selector
+                    element = document.createElement('meta');
+                    if (selector.includes('property=')) {
+                        const prop = selector.match(/property="([^"]+)"/)[1];
+                        element.setAttribute('property', prop);
+                    } else if (selector.includes('name=')) {
+                        const name = selector.match(/name="([^"]+)"/)[1];
+                        element.setAttribute('name', name);
+                    }
+                    document.getElementsByTagName('head')[0].appendChild(element);
+                }
+                element.setAttribute('content', content);
             };
 
             // Standard Meta
@@ -1875,8 +1887,40 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // [NEW] SEO: Update Document Title
+        // [NEW] SEO: Update Document Title & Meta Tags
         document.title = `${article.title} | Liquid Arts`;
+
+        // Helper to set Content (Robust: create if missing)
+        const setMeta = (selector, content) => {
+            let element = document.querySelector(selector);
+            if (!element) {
+                element = document.createElement('meta');
+                if (selector.includes('property=')) {
+                    const prop = selector.match(/property="([^"]+)"/)[1];
+                    element.setAttribute('property', prop);
+                } else if (selector.includes('name=')) {
+                    const name = selector.match(/name="([^"]+)"/)[1];
+                    element.setAttribute('name', name);
+                }
+                document.getElementsByTagName('head')[0].appendChild(element);
+            }
+            element.setAttribute('content', content);
+        };
+
+        const desc = article.excerpt || article.content.substring(0, 150).replace(/<[^>]*>/g, '') + '...';
+        const seoImage = article.image || 'https://www.liquidarts.bar/assets/logo_vertical.png';
+
+        // Open Graph
+        setMeta('meta[property="og:title"]', `${article.title} | Liquid Arts`);
+        setMeta('meta[property="og:description"]', desc);
+        setMeta('meta[property="og:image"]', seoImage);
+        setMeta('meta[property="og:url"]', window.location.href);
+
+        // Twitter
+        setMeta('meta[name="twitter:title"]', `${article.title} | Liquid Arts`);
+        setMeta('meta[name="twitter:description"]', desc);
+        setMeta('meta[name="twitter:image"]', seoImage);
+
 
         let dateDisplayHtml = `<span style="font-size: 0.9rem; letter-spacing: 0.05em; text-transform: uppercase;">${new Date(article.published_at || article.created_at).toLocaleDateString()}</span>`;
 
