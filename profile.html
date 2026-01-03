@@ -797,11 +797,12 @@
             <span>MAP</span>
         </a>
         <a href="journal.html" class="nav-item">
-             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                 <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                 <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-             </svg>
-             <span>JOURNAL</span>
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+            <span>JOURNAL</span>
         </a>
         <a href="profile.html" class="nav-item">
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
@@ -1436,8 +1437,13 @@
                 logoutBtn.addEventListener('click', async () => {
                     console.log('Logout Clicked');
                     const { error } = await supabase.auth.signOut();
-                    if (error) console.error('Logout Error:', error);
-                    else window.location.reload();
+                    if (error) {
+                        console.error('Logout Error:', error);
+                        // Force redirect even on error (e.g. session missing)
+                        window.location.href = '/index.html';
+                    } else {
+                        window.location.href = '/index.html';
+                    }
                 });
             }
 
