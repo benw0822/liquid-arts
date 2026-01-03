@@ -78,7 +78,7 @@ function renderTalentShowcase(talent) {
 
         if (talent.bar_roles && talent.bar_roles.length > 0) {
             talent.bar_roles.forEach(role => {
-                let roleText = role.role || 'Bartender';
+                let roleText = role.role || 'Liquid Arts 好朋友';
                 let barText = role.bar_name || 'Liquid Arts';
 
                 const link = document.createElement('a');
@@ -97,7 +97,7 @@ function renderTalentShowcase(talent) {
             });
         } else {
             // Default or guest
-            roleEl.textContent = 'Guest Bartender';
+            roleEl.textContent = 'Liquid Arts 好朋友';
             roleEl.style.cssText = "font-family: var(--font-main); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 2px; color: white; margin-bottom: 1rem;";
         }
     }
