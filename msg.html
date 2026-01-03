@@ -396,6 +396,9 @@
                         } catch (e) { /* ignore parse error */ }
                     }
 
+                    // XSS Protection for Preview
+                    preview = window.escapeHtml(preview);
+
                     const time = lastMsg ? formatTime(lastMsg.created_at) : '';
 
                     return `
@@ -405,7 +408,7 @@
                             <img src="${t.partnerAvatar}" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover;">
                             <div style="flex: 1; overflow: hidden;">
                                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <span style="font-weight: 600; color: inherit;">${t.partnerName}</span>
+                                    <span style="font-weight: 600; color: inherit;">${window.escapeHtml(t.partnerName)}</span>
                                     <span style="font-size: 0.75rem; opacity: 0.7;">${time}</span>
                                 </div>
                                 <div style="font-size: 0.85rem; opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${preview}</div>
@@ -469,7 +472,7 @@
                     }
 
                     // Bar Card Parsing
-                    let messageContentHtml = m.content;
+                    let messageContentHtml = window.escapeHtml(m.content);
                     let isBarCard = false;
                     try {
                         // Optimistic check: starts with json-ish
@@ -479,14 +482,14 @@
                                 isBarCard = true;
                                 const bar = parsed.data;
                                 messageContentHtml = `
-                                    <div style="display: flex; flex-direction: column; width: 220px; overflow: hidden; cursor: pointer;" onclick="window.location.href='${bar.slug ? '/' + bar.slug : 'bar-details.html?id=' + bar.id}'">
+                                    <div style="display: flex; flex-direction: column; width: 220px; overflow: hidden; cursor: pointer;" onclick="window.location.href='${bar.slug ? '/' + window.escapeHtml(bar.slug) : 'bar-details.html?id=' + window.escapeHtml(String(bar.id))}'">
                                         <div style="width: 100%; height: 140px; background: #eee;">
-                                            <img src="${bar.image || 'assets/default_bar.jpg'}" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+                                            <img src="${window.escapeHtml(bar.image) || 'assets/default_bar.jpg'}" style="width: 100%; height: 100%; object-fit: cover; display: block;">
                                         </div>
                                         <div style="padding: 12px; background: white; border-top: 1px solid #f0f0f0;">
-                                            <div style="font-weight: 700; font-size: 1rem; color: #1b1b1b; margin-bottom: 2px;">${bar.title}</div>
+                                            <div style="font-weight: 700; font-size: 1rem; color: #1b1b1b; margin-bottom: 2px;">${window.escapeHtml(bar.title)}</div>
                                             <!-- Additional Info -->
-                                            ${bar.address ? `<div style="font-size: 0.75rem; color: #666; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${bar.address}</div>` : ''}
+                                            ${bar.address ? `<div style="font-size: 0.75rem; color: #666; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${window.escapeHtml(bar.address)}</div>` : ''}
                                             
                                             <div style="font-size: 0.8rem; color: #bg-red; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 4px; margin-top: 4px;">
                                                 <span>View Bar</span>

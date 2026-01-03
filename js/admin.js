@@ -5,6 +5,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     window.supabaseClient = supabase; // Expose for shared scripts like talent_editor.js
 
+    // --- Helpers ---
+    window.escapeHtml = function (unsafe) {
+        if (unsafe === null || unsafe === undefined) return "";
+        return String(unsafe)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    };
+
     // --- Elements ---
     const loginSection = document.getElementById('login-section');
     const dashboardSection = document.getElementById('dashboard-section');
@@ -171,11 +182,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 return `
                 <div id="dash-bar-${b.id}" style="display: flex; gap: 10px; background: #fafafa; padding: 10px; border-radius: 6px; border: 1px solid #eee; align-items: center;">
-                    <img src="${b.image || ''}" style="width: 50px; height: 50px; object-fit: contain; background: #eee; border-radius: 4px; flex-shrink: 0;" alt="${b.title}">
+                    <img src="${b.image || ''}" style="width: 50px; height: 50px; object-fit: contain; background: #eee; border-radius: 4px; flex-shrink: 0;" alt="${window.escapeHtml(b.title)}">
                     <div style="flex: 1;">
-                        <div style="font-weight: 500; line-height: 1.3;">${b.title}</div>
+                        <div style="font-weight: 500; line-height: 1.3;">${window.escapeHtml(b.title)}</div>
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
-                            <span class="city-display" style="font-size: 0.8rem; color: #666;">${initialCity}</span>
+                            <span class="city-display" style="font-size: 0.8rem; color: #666;">${window.escapeHtml(initialCity)}</span>
                             ${score}
                         </div>
                     </div>
@@ -212,8 +223,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div style="display: flex; gap: 10px; background: #fafafa; padding: 10px; border-radius: 6px; border: 1px solid #eee; align-items: center;">
                     <img src="${a.cover_image || ''}" style="width: 50px; height: 50px; object-fit: contain; background: #eee; border-radius: 4px; flex-shrink: 0;" alt="${a.title}">
                     <div style="flex: 1;">
-                         <div style="font-weight: 500; line-height: 1.3;">${a.title}</div>
-                         <div style="font-size: 0.8rem; color: #666; margin-top: 4px;">By ${a.author_name || 'Admin'}</div>
+                         <div style="font-weight: 500; line-height: 1.3;">${window.escapeHtml(a.title)}</div>
+                         <div style="font-size: 0.8rem; color: #666; margin-top: 4px;">By ${window.escapeHtml(a.author_name || 'Admin')}</div>
                     </div>
                      <!-- Mini Actions -->
                     <div style="display: flex; gap: 8px;">
@@ -232,16 +243,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 const isTalent = isTalentRole || !!talentProfile;
 
                 const bgStyle = isTalent ? 'background: #fff9c4;' : 'background: #fafafa;';
+                const displayVal = talentProfile ? talentProfile.display_name : (u.hopper_nickname || u.email.split('@')[0]);
+                const safeName = window.escapeHtml(displayVal);
+
                 const nameDisplay = talentProfile
-                    ? `<span style="color:#d97706; font-weight:700;">${talentProfile.display_name}</span>`
-                    : (u.hopper_nickname || u.email.split('@')[0]);
+                    ? `<span style="color:#d97706; font-weight:700;">${safeName}</span>`
+                    : safeName;
 
                 return `
                   <div style="display: flex; gap: 10px; ${bgStyle} padding: 10px; border-radius: 6px; border: 1px solid #eee; align-items: center;">
                       <img src="${u.hopper_image_url || 'https://placehold.co/100x100?text=User'}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 50%; flex-shrink: 0; background:#eee;" alt="User">
                       <div style="flex: 1;">
                           <div style="font-weight: 500; line-height: 1.3;">${nameDisplay}</div>
-                          <div style="font-size: 0.8rem; color: #999; word-break: break-all;">${u.email}</div>
+                          <div style="font-size: 0.8rem; color: #999; word-break: break-all;">${window.escapeHtml(u.email)}</div>
                       </div>
                       <!-- Mini Actions -->
                       <div style="display: flex; gap: 8px;">
@@ -596,10 +610,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Styling
             const bgStyle = isTalent ? 'background: #fff9c4;' : 'background: #fff;';
+            const safeHopperName = window.escapeHtml(hopperName);
+            const safeEmail = window.escapeHtml(u.email);
+            const safeTalentName = talentProfile ? window.escapeHtml(talentProfile.display_name) : '';
+
             const nameDisplay = talentProfile
-                ? `<div style="font-weight:700; font-size:1.05rem; color:#d97706;">${talentProfile.display_name}</div>
-                   <div style="font-size:0.85rem; color:#666;">${hopperName} <span style="font-weight:400; color:#888;">(${u.email})</span></div>`
-                : `<h4 style="margin: 0 0 5px 0;">${hopperName} <span style="font-weight:400; font-size:0.9rem; color:#888;">(${u.email})</span></h4>`;
+                ? `<div style="font-weight:700; font-size:1.05rem; color:#d97706;">${safeTalentName}</div>
+                   <div style="font-size:0.85rem; color:#666;">${safeHopperName} <span style="font-weight:400; color:#888;">(${safeEmail})</span></div>`
+                : `<h4 style="margin: 0 0 5px 0;">${safeHopperName} <span style="font-weight:400; font-size:0.9rem; color:#888;">(${safeEmail})</span></h4>`;
 
             // Icons
             const iconStyle = "width: 14px; height: 14px; stroke-width: 2.5;";

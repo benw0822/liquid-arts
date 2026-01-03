@@ -234,14 +234,14 @@ window.initTalentPage = async () => {
                         if (comments.length > 0) {
                             const itemsHtml = top3.map(c => {
                                 const u = c.user;
-                                const name = u?.hopper_nickname || u?.name || 'Anonymous';
+                                const name = window.escapeHtml(u?.hopper_nickname || u?.name || 'Anonymous');
                                 const avatar = u?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`;
 
                                 return `
                                         <div style="display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); padding: 4px 8px; border-radius: 12px; width: fit-content; margin-bottom: 4px; max-width: 100%; cursor: pointer; pointer-events: auto;" onclick="event.stopPropagation(); window.openGenericHoppingGallery(event, '${hop.id}', 'talentHoppingsCache', true)">
                                              <img src="${avatar}" style="width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.3);">
                                              <span style="color: white; font-size: 0.8rem; font-weight: 500; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 180px;">
-                                                <span style="font-weight: 700; color: #fff;">${name}:</span> <span style="color: #eee;">${c.content}</span>
+                                                <span style="font-weight: 700; color: #fff;">${name}:</span> <span style="color: #eee;">${window.escapeHtml(c.content)}</span>
                                              </span>
                                         </div>
                                     `;
@@ -309,7 +309,7 @@ window.initTalentPage = async () => {
                              
                              <div style="padding: 1.5rem 1rem; text-align: center; background: white; flex: 1; display: flex; flex-direction: column; position: relative; z-index: 2;">
                                 <!-- Bar Title -->
-                                ${bar.title ? `<div style="margin-bottom: 0.5rem; position: relative; z-index: 30;"><a href="bar-details.html?id=${bar.id}" onclick="event.stopPropagation();" style="text-decoration: none; color: inherit; display: inline-block; padding: 5px;"><h3 style="font-family: var(--font-display); font-size: 1.4rem; margin: 0; color: #1b1b1b; transition: color 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#1b1b1b'">${bar.title}</h3></a></div>` : ''}
+                                ${bar.title ? `<div style="margin-bottom: 0.5rem; position: relative; z-index: 30;"><a href="bar-details.html?id=${bar.id}" onclick="event.stopPropagation();" style="text-decoration: none; color: inherit; display: inline-block; padding: 5px;"><h3 style="font-family: var(--font-display); font-size: 1.4rem; margin: 0; color: #1b1b1b; transition: color 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#1b1b1b'">${window.escapeHtml(bar.title)}</h3></a></div>` : ''}
 
                                 <div style="color: var(--bg-red); font-size: 1.2rem; margin-bottom: 0.2rem; letter-spacing: 2px;">${stars}</div>
                                 ${ratingText ? `<div style="font-weight: 600; font-size: 0.8rem; text-transform: uppercase; color: #333; margin-bottom: 0.5rem;">${ratingText}</div>` : ''}
@@ -317,7 +317,7 @@ window.initTalentPage = async () => {
                                 <div style="font-family: var(--font-display); font-size: 0.9rem; color: #666; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.5rem;">${dateStr}</div>
 
                                 <!-- Description -->
-                                ${hop.description ? `<p style="font-size: 0.95rem; color: #555; margin: 0 0 1rem 0; line-height: 1.4; font-style: italic;">"${hop.description}"</p>` : ''}
+                                ${hop.description ? `<p style="font-size: 0.95rem; color: #555; margin: 0 0 1rem 0; line-height: 1.4; font-style: italic;">"${window.escapeHtml(hop.description)}"</p>` : ''}
 
                                 <!-- Mini Map (Dark Theme) -->
                                 <div id="talent-hop-map-${hop.id}" class="card-map" style="height: 150px; width: 100%; border-radius: 4px; margin-bottom: 8px;"></div>
@@ -347,9 +347,8 @@ window.initTalentPage = async () => {
 
                                     // Custom Marker
                                     const markerHtml = `
-                                        <div style="display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -100%);">
                                             <div style="background: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; color: #333; box-shadow: 0 1px 2px rgba(0,0,0,0.15); margin-bottom: 3px; white-space: nowrap;">
-                                                ${bar.title || ''}
+                                                ${window.escapeHtml(bar.title || '')}
                                             </div>
                                             <div style="width: 14px; height: 14px; background: #ef4444; border: 2px solid white; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,0.2);"></div>
                                         </div>

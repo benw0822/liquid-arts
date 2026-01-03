@@ -52,6 +52,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
+    // Global Escape HTML Helper
+    window.escapeHtml = function (unsafe) {
+        if (typeof unsafe !== 'string') return unsafe;
+        return unsafe
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    };
+
 
 
     window.toggleSaveBar = async (id, event) => {
@@ -2147,7 +2158,7 @@ document.addEventListener('DOMContentLoaded', () => {
              </button>
 
              <!-- Share Button -->
-             <button onclick="window.shareBarItem('${barUrl}', '${bar.title.replace(/'/g, "\\'")}', event)" style="position: absolute; top: 61px; right: 15px; z-index: 20; background: white; border: none; border-radius: 50%; width: 36px; height: 36px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0;">
+             <button data-url="${barUrl}" data-title="${window.escapeHtml(bar.title)}" onclick="window.shareBarItem(this.dataset.url, this.dataset.title, event)" style="position: absolute; top: 61px; right: 15px; z-index: 20; background: white; border: none; border-radius: 50%; width: 36px; height: 36px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
              </button>
 
@@ -2165,14 +2176,14 @@ document.addEventListener('DOMContentLoaded', () => {
              <!-- Main Link Wrapper -->
             <a href="${barUrl}" style="text-decoration: none; display: block; display: flex; flex-direction: column;">
                 <div style="width: 100%; border-bottom: 1px solid #f0f0f0; position: relative;">
-                    <img src="${bar.image}" alt="${bar.title}" style="width: 100%; height: auto; display: block; transition: transform 0.5s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                    <img src="${bar.image}" alt="${window.escapeHtml(bar.title)}" style="width: 100%; height: auto; display: block; transition: transform 0.5s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                 </div>
                 <div style="text-align: center; padding: 1.2rem 1rem 0.2rem 1rem;">
                     <h3 style="font-family: var(--font-display); font-size: 1.8rem; margin: 0 0 0.2rem 0; color: #1b1b1b;">
-                        ${bar.title}
+                        ${window.escapeHtml(bar.title)}
                     </h3>
                     <p style="font-family: var(--font-main); font-size: 1rem; color: #888; margin: 0;">
-                        ${bar.vibe ? `<span style="color: var(--bg-red); font-weight: 600;">${bar.vibe}</span> • ` : ''}${displayCity}
+                        ${bar.vibe ? `<span style="color: var(--bg-red); font-weight: 600;">${window.escapeHtml(bar.vibe)}</span> • ` : ''}${window.escapeHtml(displayCity)}
                     </p>
                 </div>
             </a>
@@ -2182,7 +2193,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ${bar.editorial_review ? `
                     <div style="margin-bottom: 1.2rem; padding: 15px; background: var(--bg-red); color: white; border-radius: 12px; text-align: center;">
                          <h4 style="margin: 0 0 5px 0; font-family: var(--font-display); font-size: 1rem; letter-spacing: 0.05em; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 5px; display: inline-block;">Liquid Arts Review</h4>
-                         <p style="font-size: 0.9rem; font-style: italic; margin: 10px 0; line-height: 1.5;">"${bar.editorial_review}"</p>
+                         <p style="font-size: 0.9rem; font-style: italic; margin: 10px 0; line-height: 1.5;">"${window.escapeHtml(bar.editorial_review)}"</p>
                          ${bar.editorial_rating ? `
                             <div style="margin-top: 5px;">
                                 <div style="color: #FFD700; font-size: 1rem; margin-bottom: 2px;">${'★'.repeat(bar.editorial_rating)}${'☆'.repeat(5 - bar.editorial_rating)}</div>
@@ -2194,7 +2205,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                  <!-- Description -->
                 <p style="font-size: 0.95rem; color: #555; line-height: 1.6; margin-bottom: 1rem; display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden;">
-                    ${description}
+                    ${window.escapeHtml(description)}
                 </p>
 
                 <!-- Explore Button -->
@@ -2213,7 +2224,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 <!-- Address -->
                 <p style="font-size: 0.85rem; color: #666; margin-bottom: 0.5rem;">
-                    ${address}
+                    ${window.escapeHtml(address)}
                 </p>
                 
                 <div id="card-map-${bar.id}" class="card-map" style="height: 120px; width: 100%; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-left-radius: 0; border-bottom-right-radius: 0; margin-bottom: 0; z-index: 1;"></div>

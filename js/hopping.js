@@ -1249,11 +1249,12 @@ window.getHopCardHTML = function (hop, user, comments = [], barInfo, cheersInfo 
     const dateDisplay = `${dateString} • ${timeString}`;
 
     const stars = '★'.repeat(hop.rating) + '☆'.repeat(5 - hop.rating);
-    const descDisplay = (hop.description && hop.description !== 'null' && hop.description.trim() !== '')
-        ? `“${hop.description}”`
+    const safeDesc = window.escapeHtml(hop.description || '');
+    const descDisplay = (safeDesc && safeDesc !== 'null' && safeDesc.trim() !== '')
+        ? `“${safeDesc}”`
         : '';
 
-    const userName = user?.hopper_nickname || user?.name || 'Anonymous';
+    const userName = window.escapeHtml(user?.hopper_nickname || user?.name || 'Anonymous');
     const userAvatar = user?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random`;
     const role = 'Hopper';
 
@@ -1263,9 +1264,9 @@ window.getHopCardHTML = function (hop, user, comments = [], barInfo, cheersInfo 
     if (top3.length > 0) {
         const itemsHtml = top3.map(c => {
             const cUser = c.user;
-            const cName = cUser?.hopper_nickname || cUser?.name || 'User';
+            const cName = window.escapeHtml(cUser?.hopper_nickname || cUser?.name || 'User');
             const cAvatar = cUser?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(cName)}&background=random`;
-            const safeContent = c.content?.replace(/"/g, '&quot;') || '';
+            const safeContent = window.escapeHtml(c.content || '');
 
             return `
             <div style="display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); padding: 4px 8px; border-radius: 12px; width: fit-content; margin-bottom: 4px; cursor: pointer; pointer-events: auto; max-width: 100%; transition: transform 0.1s;" onclick="window.toggleCardPanel('${hopId}')" onmousedown="this.style.transform='scale(0.95)'" onmouseup="this.style.transform='scale(1)'">
@@ -1291,7 +1292,7 @@ window.getHopCardHTML = function (hop, user, comments = [], barInfo, cheersInfo 
     if (comments.length > 0) {
         commentListHtml = comments.map(c => {
             const cUser = c.user;
-            const cName = cUser?.hopper_nickname || cUser?.name || 'User';
+            const cName = window.escapeHtml(cUser?.hopper_nickname || cUser?.name || 'User');
             const cAvatar = cUser?.hopper_image_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(cName)}&background=random`;
 
             let timeDisplay = 'Just now';
@@ -1309,7 +1310,7 @@ window.getHopCardHTML = function (hop, user, comments = [], barInfo, cheersInfo 
                             <span style="font-weight: 700; font-size: 0.85rem; color: #333;">${cName}</span>
                             <span style="font-size: 0.7rem; color: #999;">${timeDisplay}</span>
                         </div>
-                        <div style="font-size: 0.95rem; color: #444; word-break: break-word; line-height: 1.4;">${c.content}</div>
+                        <div style="font-size: 0.95rem; color: #444; word-break: break-word; line-height: 1.4;">${window.escapeHtml(c.content)}</div>
                     </div>
                 </div>
             </div>`;
@@ -1320,7 +1321,7 @@ window.getHopCardHTML = function (hop, user, comments = [], barInfo, cheersInfo 
     const barHtml = barInfo ? `
         <div style="margin-top: 1.5rem; text-align: center;">
             <a href="bar.html?id=${barInfo.id}" style="display: inline-flex; align-items: center; gap: 6px; color: #555; text-decoration: none; font-size: 0.85rem; padding: 8px 16px; background: #f5f5f5; border-radius: 20px; transition: background 0.2s;">
-                <span>📍</span> <span style="font-weight: 600;">${barInfo.title || 'Unknown Bar'}</span>
+                <span>📍</span> <span style="font-weight: 600;">${window.escapeHtml(barInfo.title || 'Unknown Bar')}</span>
             </a>
         </div>` : '';
 
